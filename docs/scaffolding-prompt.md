@@ -5,6 +5,7 @@
 **1. Technical Skeleton (The Engine):**
 - **Versions:** Sync `package.json` (Expo 54, React 19, Reanimated 4, Skia, MMKV, IAP, Sentry, Firebase).
 - **Configs:** Copy `.prettierrc`, `eslint.config.cjs`, `tsconfig.json`, `.gitignore`, `metro.config.cjs`, and `app.json`.
+- **CRITICAL (app.json):** Immediately update `expo.name` to "ShowDown", `expo.slug` to "showdown", `expo.ios.bundleIdentifier` to "com.showdown.app", and `expo.android.package` to "com.showdown.app".
 - **Tooling:** Copy entire `scripts/` directory for versioning, building, and translation analysis.
 - **Rules:** Copy `CLAUDE.md` and `AGENTS.md` (Crucial for maintaining high-quality AI development standards).
 

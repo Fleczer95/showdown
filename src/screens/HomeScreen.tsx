@@ -1,18 +1,20 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
+import Pressable from '../components/atoms/HapticPressable';
 import { useColor } from '../theme';
 import { games, GAME_ICONS } from '../data/games';
 
 /**
- * Skeleton home screen. Renders the registered ShowDown game modes to prove the
- * provider stack (theme, settings, store, analytics) is wired. The real
- * navigator and per-game screens land in the game-logic phase.
+ * Home screen. Lists the ShowDown game modes; tapping a card opens that game's
+ * setup screen via the root navigator.
  */
 export function HomeScreen() {
+    const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const background = useColor('background');
     const surface = useColor('surface');
@@ -37,7 +39,14 @@ export function HomeScreen() {
                 {games.map((game) => {
                     const GameIcon = GAME_ICONS[game.iconName];
                     return (
-                        <View key={game.id} style={[styles.card, { backgroundColor: surface, borderColor: border }]}>
+                        <Pressable
+                            key={game.id}
+                            style={[styles.card, { backgroundColor: surface, borderColor: border }]}
+                            onPress={() => navigation.navigate(game.setupRoute, { gameId: game.id })}
+                            haptic='light'
+                            accessibilityRole='button'
+                            accessibilityLabel={game.name}
+                        >
                             <Stack direction='horizontal' gap='md' align='center'>
                                 {GameIcon ? <Icon name={GameIcon} size={28} color={primary} /> : null}
                                 <Stack gap='xs' flex={1}>
@@ -52,7 +61,7 @@ export function HomeScreen() {
                                     </Text>
                                 </Stack>
                             </Stack>
-                        </View>
+                        </Pressable>
                     );
                 })}
             </Stack>

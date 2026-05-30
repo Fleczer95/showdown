@@ -8,9 +8,9 @@
 - [x] Draft Technical Architecture (React Native + XState)
 
 ## Phase 2: Core Engine Development
-- [ ] Initialize React Native project with Expo and necessary libs (Skia, Reanimated, XState, i18next)
-- [ ] Set up i18n infrastructure (EN/PL translation files)
-- [ ] Implement Game State Machine (XState) for core transitions
+- [x] Initialize React Native project with Expo and necessary libs (Skia, Reanimated, XState, i18next)
+- [x] Set up i18n infrastructure (EN/PL translation files)
+- [x] Implement Game State Machine (XState) for core transitions
 - [ ] Build "The Ladder" game logic (Millionaire-style)
 - [ ] Build "The Grid" game logic (Jeopardy-style)
 - [ ] Build "The Opinion Poll" game logic (Family Feud-style)

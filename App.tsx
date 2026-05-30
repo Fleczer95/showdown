@@ -10,7 +10,7 @@ import { initSentry, Sentry } from './src/utils/sentry/init';
 import { initFirebase } from './src/utils/firebase/init';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider } from './src/hooks/store/useStore';
-import { HomeScreen } from './src/screens/HomeScreen';
+import { RootNavigator } from './src/navigation/RootNavigator';
 
 // Sentry -> Firebase: initialized before the tree renders.
 initSentry();
@@ -26,8 +26,7 @@ function App() {
                             <ThemeProvider>
                                 <StoreProvider>
                                     <AnalyticsProviders>
-                                        {/* Navigator + per-game screens land in the game-logic phase. */}
-                                        <HomeScreen />
+                                        <RootNavigator />
                                         <StatusBar style='auto' />
                                     </AnalyticsProviders>
                                 </StoreProvider>

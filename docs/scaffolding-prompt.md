@@ -1,28 +1,36 @@
-# Scaffolding Prompt: ShowDown TV Quiz Party Games (Infra Step)
+# Master Scaffolding Prompt: ShowDown TV Quiz Party Games (Ultimate Edition)
 
-**Context:** We are initializing a new React Native (Expo) project inside this `showdown/` directory. Our goal is to surgically extract the "technical skeleton" from the sibling directory `../TinyParty`.
+**Goal:** Initialize a production-grade React Native (Expo) project in `showdown/` by extracting the technical skeleton, growth infrastructure, dev-ops automation, and developer-level agent skills from `../TinyParty`.
 
-**1. Technical Infrastructure (The Engine):**
-- **Match versions:** Match `package.json` with `../TinyParty` (Expo 54, React 19, Reanimated 4, Skia, MMKV, IAP).
-- **Tooling:** Copy the entire `scripts/` folder and root configs: `.prettierrc`, `eslint.config.cjs`, `tsconfig.json`, and `.gitignore`.
-- **System Logic:** Copy `src/responsive/` (scaling engine), `src/hooks/useHaptics.ts`, `src/hooks/useSound.ts`, and `src/hooks/useSettings.tsx`.
-- **Localization:** Copy `src/i18n/` (configured for EN/PL).
-- **Store:** Copy `src/services/store/` (IAP/Persistence logic).
+**1. Technical Skeleton (The Engine):**
+- **Versions:** Sync `package.json` (Expo 54, React 19, Reanimated 4, Skia, MMKV, IAP, Sentry, Firebase).
+- **Configs:** Copy `.prettierrc`, `eslint.config.cjs`, `tsconfig.json`, `.gitignore`, `metro.config.cjs`, and `app.json`.
+- **Tooling:** Copy entire `scripts/` directory for versioning, building, and translation analysis.
+- **Rules:** Copy `CLAUDE.md` and `AGENTS.md` (Crucial for maintaining high-quality AI development standards).
 
-**2. Theme & Design System:**
-- **Copy Master Theme:** Copy `src/theme/`. We will use this contract to later define our 2.5D Isometric Studio style.
+**2. Developer & AI Ecosystem (The Automation):**
+- **Agent Skills:** Copy the `.agents/` directory (Includes `app-store-connect-api` and `google-play-iap` skills for bulk IAP creation).
+- **Agent Configs:** Copy the `.claude/` directory (Includes workspace settings and skill overrides).
+- **Store Credentials:** Note the pattern for `AuthKey_*.p8` and `google-play-key.json` in the repo root (refer to `CLAUDE.md`).
 
-**3. UI Building Blocks (Atoms & Molecules):**
-- **Copy Atoms:** `src/components/atoms/` (HapticPressable, Stack, Text, Badge, Icon).
-- **Copy Molecules:** `src/components/molecules/` (Button, Card, CircularTimer, ProgressBar, SelectionList, ToggleGroup).
-- **Copy Animations:** `src/animations/` (Confetti, Transition).
-- **Strict Rule:** Skip all "Organisms" and game-specific screens/logic.
+**3. User Experience & UI (The Foundation):**
+- **Atomic UI Kit:** Copy `src/components/atoms` and `molecules` (Theme-aware building blocks).
+- **Theming:** Copy `src/theme/` (Full contract-based responsive system).
+- **Responsive:** Copy `src/responsive/` (Scaling engine).
+- **Feedback:** Copy `src/hooks/useHaptics.ts`, `useSound.ts`, and `src/animations/Confetti.tsx`.
+- **i18n:** Copy `src/i18n/` (Ready for EN/PL).
 
-**4. Production Readiness:**
-- **Observability:** Copy `src/utils/sentry/`, `src/utils/firebase/`, and `src/components/AppErrorBoundary.tsx`.
+**4. Growth & Production (The Intelligence):**
+- **Analytics Schema:** Copy `src/utils/firebase/` (Crucial: adapt `events.ts` for ShowDown).
+- **Observability:** Copy `src/utils/sentry/` and `src/components/AppErrorBoundary.tsx`.
+- **IAP Engine:** Copy `src/services/store/` (IAP abstraction logic).
+
+**5. Operations & ASO (The Launchpad):**
+- **ASO Tooling:** Copy `aso/screenshot-generator/` (The Next.js app for programmatic screenshots). *Skip app-specific metadata files.*
+- **DevOps:** Copy `.github/workflows/` for automated CI and PR management.
 
 **Execution Goal:**
-- Initialize the bare project first.
-- Copy the listed folders/files.
-- Nest all providers in `App.tsx` following the TinyParty pattern: 
-  (Sentry -> Firebase -> ErrorBoundary -> GestureHandler -> SafeArea -> Settings -> Translation -> Theme -> Store -> Analytics).
+- Nest all providers in `App.tsx`: (Sentry -> Firebase -> ErrorBoundary -> GestureHandler -> SafeArea -> Settings -> Translation -> Theme -> Store -> Analytics).
+- Register the 4 game modes in `src/data/games.ts` following the TinyParty pattern.
+- Game logic implementation (XState) to follow in the next phase.
+

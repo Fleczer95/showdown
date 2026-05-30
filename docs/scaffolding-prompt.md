@@ -12,7 +12,7 @@
 **2. Developer & AI Ecosystem (The Automation):**
 - **Agent Skills:** Copy the `.agents/` directory (Includes `app-store-connect-api` and `google-play-iap` skills for bulk IAP creation).
 - **Agent Configs:** Copy the `.claude/` directory (Includes workspace settings and skill overrides).
-- **Store Credentials:** Note the pattern for `AuthKey_*.p8` and `google-play-key.json` in the repo root (refer to `CLAUDE.md`).
+- **Store Credentials:** Note the location of `google-play-key.json`, `api_key_play_store.txt`, and `AuthKey_*.p8` in the repo root. These are required for automated store updates and IAP management (copy if using the same developer account).
 
 **3. User Experience & UI (The Foundation):**
 - **Atomic UI Kit:** Copy `src/components/atoms` and `molecules` (Theme-aware building blocks).

@@ -1,0 +1,63 @@
+import { createTheme } from '../createTheme';
+
+export const partyTheme = createTheme({
+    id: 'party',
+    name: 'Party',
+    colors: {
+        background: '#150F35',
+        surface: '#1F1850',
+        surfaceVariant: '#2C2560',
+        primary: '#FF7EB3',
+        onPrimary: '#FFFFFF',
+        secondary: '#7BFFE0',
+        onSecondary: '#150F35',
+        error: '#FF4D6A',
+        success: '#4ADE80',
+        text: '#F1F0FF',
+        textSecondary: '#A5A3C0',
+        textMuted: '#636180',
+        border: '#352E70',
+        borderLight: '#453D85',
+        overlay: 'rgba(0, 0, 0, 0.6)',
+        shadow: '#000000',
+        onError: '#FFFFFF',
+        onSuccess: '#150F35',
+        warning: '#FBBF24',
+        onWarning: '#150F35',
+    },
+    radii: {
+        sm: 8,
+        md: 14,
+        lg: 20,
+        xl: 28,
+        full: 9999,
+    },
+    shadows: {
+        sm: {
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 3,
+        },
+        md: {
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+            elevation: 6,
+        },
+        lg: {
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.4,
+            shadowRadius: 24,
+            elevation: 12,
+        },
+        none: null,
+    },
+    animation: {
+        springBouncy: { damping: 12, stiffness: 280 },
+        springGentle: { damping: 22, stiffness: 110 },
+    },
+});

@@ -1,0 +1,10 @@
+node_modules
+.next
+.DS_Store
+*.log
+
+# Workspace caches — raws live in ../screenshots/raw
+public/screenshots
+public/screenshots-play
+public/screenshots-play-tablet
+public/app-icon.png

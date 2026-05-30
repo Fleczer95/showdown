@@ -1,0 +1,354 @@
+{
+    "screen": {
+        "home": {
+            "tagline": "Telewizyjne teleturnieje na imprezowy wieczór",
+            "settings": "Ustawienia",
+            "recentlyPlayed": "Ostatnio grane",
+            "allGames": "Wszystkie gry"
+        },
+        "settings": {
+            "title": "Ustawienia",
+            "back": "Wróć",
+            "sections": {
+                "appearance": "WYGLĄD",
+                "gameplay": "ROZGRYWKA",
+                "feedback": "ZACHOWANIE",
+                "language": "JĘZYK",
+                "about": "O GRZE"
+            },
+            "labels": {
+                "theme": "Motyw",
+                "roundTimer": "Czas rundy",
+                "soundEffects": "Efekty dźwiękowe",
+                "hapticFeedback": "Wibracje",
+                "language": "Język",
+                "language_en": "Angielski",
+                "language_pl": "Polski",
+                "version": "Wersja",
+                "privacyPolicy": "Polityka prywatności",
+                "termsOfUse": "Zasady użytkowania"
+            },
+            "theme": {
+                "default": "Domyślny",
+                "party": "Impreza",
+                "pastel": "Pastelowy",
+                "minimal": "Minimalistyczny",
+                "dark": "Ciemny",
+                "light": "Jasny",
+                "system": "Systemowy",
+                "neon": "Neonowe Noce",
+                "cyberpunk": "Cyberpunk",
+                "midnight": "Północ",
+                "nature": "Duch Lasu",
+                "ocean": "Morska Bryza",
+                "sunset": "Żywy Zachód",
+                "gold": "Luksusowe Złoto",
+                "royal": "Królewski Aksamit",
+                "nordic": "Nordycki Szron",
+                "candy": "Sklep ze Słodyczami",
+                "retro": "Retro Lata 80.",
+                "space": "Kosmiczna Podróż",
+                "forest": "Zaczarowany Las",
+                "vintage": "Klasyczny Pergamin",
+                "fire": "Inferno",
+                "ice": "Lodowe Królestwo",
+                "aurora": "Zorza Polarna",
+                "magma": "Magma",
+                "prism": "Pryzmat",
+                "zen": "Ogród Zen",
+                "lavender": "Lawendowa Mgła"
+            },
+            "contact": {
+                "title": "ZOSTAŃMY W KONTAKCIE",
+                "website": "Strona internetowa",
+                "email": "Email",
+                "errors": {
+                    "title": "Błąd",
+                    "unableToOpen": "Nie udało się otworzyć linku"
+                }
+            }
+        },
+        "gameSetup": {
+            "title": "Konfiguracja",
+            "back": "Wróć",
+            "back_accessibility": "Wróć do poprzedniego ekranu",
+            "targetScore": "Wynik docelowy",
+            "targetScore_placeholder": "25",
+            "timer_placeholder": "60",
+            "roundTimer": "Czas Rundy",
+            "seconds": "%{count} sekund",
+            "winningScore": "Cel Punktowy",
+            "points": "Cel: %{count} pkt",
+            "comingSoon": "Wkrótce",
+            "comingSoonDesc": "Pracujemy nad tym, aby udostępnić Ci grę %{name}. Bądź na bieżąco!",
+            "playersCount": "%{count} graczy"
+        },
+        "store": {
+            "title": "Sklep",
+            "back": "Wróć",
+            "category": {
+                "packs": "Pakiety pytań",
+                "themes": "Motywy"
+            },
+            "item": {},
+            "feature": {},
+            "unlocked": "Odblokowano",
+            "buy": "Kup za %{price}",
+            "purchasing": "Przetwarzanie...",
+            "restore": "Przywróć zakupy",
+            "restore_success": "Zakupy zostały pomyślnie przywrócone!"
+        }
+    },
+    "common": {
+        "seconds_short": "s",
+        "players": "%{count} graczy",
+        "continue": "Kontynuuj",
+        "start": "Rozpocznij",
+        "pass": "PAS",
+        "correct": "DOBRZE",
+        "go": "START!",
+        "play-again": "Zagraj ponownie",
+        "home": "Powrót do menu",
+        "ok": "OK",
+        "how_to_play": "Jak grać",
+        "team1": "Drużyna 1",
+        "team2": "Drużyna 2",
+        "timer": "Minutnik",
+        "cancel": "Anuluj",
+        "exit": "Wyjdź",
+        "player": "Gracz",
+        "stop": "Stop",
+        "remove": "Usuń",
+        "teams": "Drużyny",
+        "team": "Drużyna"
+    },
+    "game": {
+        "the-ladder": {
+            "name": "Drabina",
+            "desc": "Wespnij się po drabinie 15 pytań. Jedna błędna odpowiedź kończy grę — chyba że użyjesz koła ratunkowego.",
+            "setup": {
+                "category": "Wybierz kategorię",
+                "categoryDesc": "Wybierz temat pytań do wspinaczki"
+            },
+            "categories": {
+                "all": "Miks pytań"
+            },
+            "lifelines": {
+                "title": "Koła ratunkowe",
+                "fiftyFifty": "50:50",
+                "askStudio": "Pytanie do studia",
+                "skip": "Pomiń pytanie"
+            },
+            "active": {
+                "question": "Pytanie %{number} z 15",
+                "lifelinesLeft": "Pozostałe koła",
+                "leave": "Opuść grę",
+                "leaveConfirm": "Na pewno chcesz wyjść? Twój postęp przepadnie.",
+                "leaveCancel": "Nie, zostaję",
+                "leaveOk": "Tak, wychodzę"
+            },
+            "score": {
+                "gameOver": "Koniec gry!",
+                "youWon": "Dotarłeś na szczyt!",
+                "reached": "Dotarłeś do pytania %{number}.",
+                "playAgain": "Zagraj ponownie",
+                "endGame": "Menu główne"
+            },
+            "rules": "1. Odpowiedz na 15 pytań o rosnącym poziomie trudności.\n2. Każda poprawna odpowiedź to jeden szczebel wyżej.\n3. Błędna odpowiedź kończy grę.\n4. Utknąłeś? Użyj jednego z trzech kół ratunkowych: 50:50, Pytanie do studia lub Pomiń.\n5. Dotrzyj na szczyt, aby zdobyć główną nagrodę!"
+        },
+        "the-grid": {
+            "name": "Plansza",
+            "desc": "Wybierz kategorię, postaw punkty i odpowiedz na wskazówkę. Im większe ryzyko, tym większa nagroda.",
+            "setup": {
+                "category": "Wybierz planszę",
+                "categoryDesc": "Wybierz planszę pytań"
+            },
+            "categories": {
+                "all": "Miks plansz"
+            },
+            "active": {
+                "wager": "Postaw punkty",
+                "pointsAvailable": "Dostępne punkty: %{points}",
+                "reveal": "Pokaż odpowiedź",
+                "correct": "Dobrze",
+                "wrong": "Źle",
+                "leave": "Opuść grę",
+                "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
+                "leaveCancel": "Nie, zostaję",
+                "leaveOk": "Tak, wychodzę"
+            },
+            "score": {
+                "gameOver": "Koniec gry!",
+                "teamWins": "%{team} wygrywa!",
+                "draw": "Remis!",
+                "playAgain": "Zagraj ponownie",
+                "endGame": "Menu główne"
+            },
+            "rules": "1. Drużyny na zmianę wybierają kategorię i liczbę punktów z planszy.\n2. Przeczytajcie wskazówkę na głos i postawcie punkty na odpowiedź.\n3. Poprawna odpowiedź daje punkty, błędna je odbiera.\n4. Wyczyśćcie planszę — wygrywa drużyna z największą liczbą punktów!"
+        },
+        "the-opinion-poll": {
+            "name": "Sonda",
+            "desc": "Zapytaliśmy 100 osób. Zgadnij najpopularniejsze odpowiedzi, zanim zbierzesz trzy ostrzeżenia.",
+            "setup": {
+                "category": "Wybierz sondę",
+                "categoryDesc": "Wybierz temat sondy"
+            },
+            "categories": {
+                "all": "Miks sond"
+            },
+            "active": {
+                "surveySays": "Sonda mówi...",
+                "guess": "Twoja odpowiedź",
+                "submit": "Zatwierdź",
+                "strikes": "Ostrzeżenia",
+                "topAnswers": "Najczęstsze odpowiedzi",
+                "leave": "Opuść grę",
+                "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
+                "leaveCancel": "Nie, zostaję",
+                "leaveOk": "Tak, wychodzę"
+            },
+            "score": {
+                "gameOver": "Koniec gry!",
+                "teamWins": "%{team} wygrywa!",
+                "draw": "Remis!",
+                "playAgain": "Zagraj ponownie",
+                "endGame": "Menu główne"
+            },
+            "rules": "1. W każdej rundzie pojawia się pytanie, na które odpowiedziało 100 ankietowanych.\n2. Drużyny na zmianę zgadują najpopularniejsze odpowiedzi.\n3. Każda odpowiedź jest warta tyle, ile osób jej udzieliło.\n4. Trzy ostrzeżenia i druga drużyna może przejąć rundę.\n5. Wygrywa drużyna z największą liczbą punktów!"
+        },
+        "the-wheel": {
+            "name": "Koło",
+            "desc": "Zakręć kołem mnożnika, zgaduj litery i rozwiąż ukryte hasło.",
+            "setup": {
+                "category": "Wybierz pakiet haseł",
+                "categoryDesc": "Wybierz kategorię haseł"
+            },
+            "categories": {
+                "all": "Miks haseł"
+            },
+            "active": {
+                "spin": "Zakręć kołem",
+                "spinning": "Kręcę...",
+                "guessLetter": "Zgadnij literę",
+                "solve": "Rozwiąż hasło",
+                "bankrupt": "Bankrut!",
+                "leave": "Opuść grę",
+                "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
+                "leaveCancel": "Nie, zostaję",
+                "leaveOk": "Tak, wychodzę"
+            },
+            "score": {
+                "gameOver": "Koniec gry!",
+                "teamWins": "%{team} wygrywa!",
+                "draw": "Remis!",
+                "playAgain": "Zagraj ponownie",
+                "endGame": "Menu główne"
+            },
+            "rules": "1. Zakręć kołem, aby ustalić wartość kolejnej poprawnej litery.\n2. Zgadnij spółgłoskę, aby zdobyć wartość zakręcenia za każde jej wystąpienie.\n3. Kup samogłoskę za stałą opłatę.\n4. Rozwiąż hasło, aby wygrać rundę — ale uważaj na pole Bankrut!\n5. Wygrywa drużyna z największą liczbą punktów."
+        }
+    },
+    "privacyPolicy": {
+        "title": "Polityka Prywatności",
+        "subtitle": "Zgodna z RODO, App Store i Google Play",
+        "sections": [
+            {
+                "title": "1. Zbierane Informacje",
+                "content": "Zbieramy informacje, aby zapewnić lepsze usługi wszystkim użytkownikom. Rodzaje zbieranych informacji obejmują:",
+                "listItems": [
+                    "Statystyki użytkowania gier i dane sesji",
+                    "Raporty o wydajności aplikacji i awariach",
+                    "Informacje o urządzeniu i wersji systemu operacyjnego",
+                    "Preferencje i ustawienia użytkownika"
+                ]
+            },
+            {
+                "title": "2. Sposób Używania Informacji",
+                "content": "Używamy zebranych informacji, aby:",
+                "listItems": [
+                    "Świadczyć i utrzymywać nasze gry",
+                    "Poprawiać wydajność aplikacji i doświadczenie użytkownika",
+                    "Analizować wzorce użytkowania w celu optymalizacji funkcji",
+                    "Odpowiadać na opinie użytkowników i prośby o wsparcie"
+                ]
+            },
+            {
+                "title": "3. Przechowywanie i Bezpieczeństwo Danych",
+                "content": "Wszystkie dane użytkownika są przechowywane lokalnie na urządzeniu. Nie transmitujemy ani nie przechowujemy żadnych informacji osobowych na zewnętrznych serwerach. Twoje dane gier pozostają prywatne i pod Twoją kontrolą."
+            },
+            {
+                "title": "4. Zakres Danych",
+                "content": "Aplikacja zbiera wyłącznie dane techniczne (diagnostyczne) związane z błędami działania aplikacji. Dane nie pozwalają na identyfikację użytkownika."
+            },
+            {
+                "title": "5. Cele Przetwarzania",
+                "content": "Przetwarzamy zebrane dane w celu:",
+                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+            },
+            {
+                "title": "6. Podstawa Prawna",
+                "content": "Art. 6 ust. 1 lit. f RODO – uzasadniony interes administratora."
+            },
+            {
+                "title": "7. Odbiorcy Danych",
+                "content": "Dane mogą być przetwarzane przez usługodawców technologicznych (np. Google Crashlytics) wyłącznie w celu zapewnienia funkcjonalności aplikacji."
+            },
+            {
+                "title": "8. Transfer Danych",
+                "content": "Możliwy transfer poza EOG w oparciu o standardowe klauzule umowne."
+            },
+            {
+                "title": "9. Prawa Użytkownika",
+                "content": "Masz prawo do:",
+                "listItems": [
+                    "Dostępu, sprostowania, ograniczenia przetwarzania, usunięcia danych",
+                    "Kontakt z nami: {{email}}"
+                ]
+            }
+        ],
+        "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+    },
+    "termsOfUse": {
+        "title": "Warunki użytkowania",
+        "sections": [
+            {
+                "title": "1. Akceptacja warunków",
+                "content": "Pobierając, instalując lub korzystając z aplikacji ShowDown, zgadzasz się na niniejsze Warunki użytkowania. Jeśli się z nimi nie zgadzasz, nie korzystaj z aplikacji."
+            },
+            {
+                "title": "2. Cel",
+                "content": "ShowDown to zbiór towarzyskich gier imprezowych stworzony wyłącznie dla rozrywki."
+            },
+            {
+                "title": "3. Usługi",
+                "content": "Aplikacja zawiera gry quizowe i imprezowe przeznaczone do wspólnej zabawy na jednym urządzeniu."
+            },
+            {
+                "title": "4. Ograniczenia użytkowania",
+                "content": "Możesz korzystać z aplikacji wyłącznie do celów osobistych i niekomercyjnych. Nie wolno ci:",
+                "listItems": [
+                    "Odtwarzać kodu źródłowego ani dekompilować aplikacji",
+                    "Rozpowszechniać ani sprzedawać kopii aplikacji",
+                    "Używać aplikacji do celów niezgodnych z prawem",
+                    "Naruszać obowiązujących przepisów"
+                ]
+            },
+            {
+                "title": "5. Płatności",
+                "content": "Zakupy w aplikacji są obsługiwane przez Apple App Store lub Google Play zgodnie z ich politykami."
+            },
+            {
+                "title": "6. Zasady fair play",
+                "content": "Graj odpowiedzialnie i szanuj pozostałych graczy."
+            },
+            {
+                "title": "7. Ograniczenie odpowiedzialności",
+                "content": "Aplikacja i jej twórcy nie ponoszą odpowiedzialności za jakiekolwiek szkody wynikające z korzystania z aplikacji, w tym bezpośrednie, pośrednie, przypadkowe lub wynikowe."
+            },
+            {
+                "title": "8. Zmiany warunków",
+                "content": "Zastrzegamy sobie prawo do zmiany niniejszych warunków w dowolnym momencie. Dalsze korzystanie z aplikacji oznacza akceptację zaktualizowanych warunków."
+            }
+        ],
+        "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+    }
+}

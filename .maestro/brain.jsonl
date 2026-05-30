@@ -1,0 +1,11 @@
+{"type":"tech_stack","ts":"2026-05-30 07:21:01","project_name":"showdown","project_version":"1.0.0","description":"","frameworks":["react"],"framework_versions":{"react":"19.1.0","typescript":"5.9.2"},"key_deps":["Testing (Jest)","Utils (Lodash)"],"dev_tools":["TypeScript","TypeScript (strict)","ESLint","Prettier"],"package_manager":"npm","node_version":">=20.19.4","module_type":"module"}
+{"type":"architecture","ts":"2026-05-30 07:21:01","project_type":"single-package","patterns":[],"key_directories":["src/","src/components/","src/hooks/","src/utils/","src/services/"],"entry_points":[]}
+{"type":"scripts","ts":"2026-05-30 07:21:01","available":{"dev":"node scripts/fix-line-endings.js scripts/dev.sh && ./scripts/dev.sh","start":"expo start --tunnel","test":"jest","lint":"expo lint","format":"prettier --write ."}}
+{"type":"decision","content":"The error is `themeRegistry[0]` is `undefined`: emptying `data/store/themes.ts` **also emptied the theme registry**, because `theme/registry.ts` derives the app's themes from it","session":"2e739f66-144b-4980-ae22-a7db71bffabf"}
+{"type":"decision","content":"App created on both stores and permissions added — now I can resolve the last blocked item: the App Store Connect **numeric App ID** (it only existed as `<TODO>` because the listing didn't exist yet), and verify both store API connections actually work end-to-end","session":"2e739f66-144b-4980-ae22-a7db71bffabf"}
+{"type":"error","content":"<tool_use_error>InputValidationError: TaskCreate failed due to the following issues:"}
+{"type":"error","content":"Error: PRECONDITION_FAILED: To proceed requires an active project. Use the `firebase_update_environment` tool to set a project ID"}
+{"type":"error","content":"ModuleNotFoundError: No module named 'jwt'"}
+{"type":"error","content":"Error: Command '['/Users/justynasyska/Repositories/showdown/.iap-venv/bin/python3.14', '-m', 'ensurepip', '--upgrade', '--default-pip']' returned non-zero exit status 1."}
+{"type":"error","content":"Exit code 1 | ls: /tmp/claude-501showdown-handoff-2026-05-30.md: No such file or directory"}
+{"type":"error","content":"SyntaxError: Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"}

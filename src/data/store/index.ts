@@ -1,0 +1,57 @@
+import {
+    LucideIcon,
+    BookOpen,
+    Palette,
+    Sparkles,
+    MessageSquare,
+    Zap,
+    Target,
+    History,
+    Tag,
+    Atom,
+    Flame,
+    MapPin,
+    Film,
+    Ghost,
+    Dumbbell,
+    Music,
+    Globe,
+    Smile,
+    Heart,
+    Tent,
+    Dog,
+    Users,
+    UserSearch,
+} from 'lucide-react-native';
+
+export type StoreCategory = 'packs' | 'themes';
+
+export const STORE_CATEGORIES = [
+    { id: 'packs', titleKey: 'store.category.packs', icon: BookOpen },
+    { id: 'themes', titleKey: 'store.category.themes', icon: Palette },
+] as const;
+
+export const STORE_ICONS: Record<string, LucideIcon> = {
+    packs: BookOpen,
+    themes: Palette,
+    sparkles: Sparkles,
+    message: MessageSquare,
+    zap: Zap,
+    target: Target,
+    history: History,
+    tag: Tag,
+    atom: Atom,
+    flame: Flame,
+    mapPin: MapPin,
+    film: Film,
+    ghost: Ghost,
+    dumbbell: Dumbbell,
+    music: Music,
+    globe: Globe,
+    smile: Smile,
+    heart: Heart,
+    tent: Tent,
+    dog: Dog,
+    users: Users,
+    userSearch: UserSearch,
+};

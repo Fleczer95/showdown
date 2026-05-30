@@ -4,7 +4,7 @@
 
 **1. Technical Infrastructure (The Engine):**
 - **Match versions:** Match `package.json` with `../TinyParty` (Expo 54, React 19, Reanimated 4, Skia, MMKV, IAP).
-- **Tooling:** Copy the entire `scripts/` folder and root configs: `.prettierrc`, `eslint.config.cjs`, `tsconfig.json`.
+- **Tooling:** Copy the entire `scripts/` folder and root configs: `.prettierrc`, `eslint.config.cjs`, `tsconfig.json`, and `.gitignore`.
 - **System Logic:** Copy `src/responsive/` (scaling engine), `src/hooks/useHaptics.ts`, `src/hooks/useSound.ts`, and `src/hooks/useSettings.tsx`.
 - **Localization:** Copy `src/i18n/` (configured for EN/PL).
 - **Store:** Copy `src/services/store/` (IAP/Persistence logic).

@@ -41,3 +41,5 @@ api_key_play_store.txt
 # Firebase / Google Services
 google-services.json
 GoogleService-Info.plist
+# App Icon Proposals
+assets/archived_icons/

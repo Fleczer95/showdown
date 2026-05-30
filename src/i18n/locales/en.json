@@ -141,6 +141,7 @@
             },
             "active": {
                 "question": "Question %{number} of 15",
+                "turn": "Player %{number} of %{total}",
                 "lifelinesLeft": "Lifelines left",
                 "leave": "Leave Game",
                 "leaveConfirm": "Are you sure you want to leave? Your run will be lost.",
@@ -230,6 +231,7 @@
                 "spin": "Spin the Wheel",
                 "spinning": "Spinning...",
                 "guessLetter": "Guess a letter",
+                "buyVowel": "Buy Vowel (%{cost})",
                 "solve": "Solve the Puzzle",
                 "bankrupt": "Bankrupt!",
                 "leave": "Leave Game",

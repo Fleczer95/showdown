@@ -141,6 +141,7 @@
             },
             "active": {
                 "question": "Pytanie %{number} z 15",
+                "turn": "Gracz %{number} z %{total}",
                 "lifelinesLeft": "Pozostałe koła",
                 "leave": "Opuść grę",
                 "leaveConfirm": "Na pewno chcesz wyjść? Twój postęp przepadnie.",
@@ -230,6 +231,7 @@
                 "spin": "Zakręć kołem",
                 "spinning": "Kręcę...",
                 "guessLetter": "Zgadnij literę",
+                "buyVowel": "Kup samogłoskę (%{cost})",
                 "solve": "Rozwiąż hasło",
                 "bankrupt": "Bankrut!",
                 "leave": "Opuść grę",

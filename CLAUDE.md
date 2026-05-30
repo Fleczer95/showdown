@@ -71,7 +71,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Concept
 
-A pass-and-play mini game collection for small groups (2-4 players) on a single phone. No controllers, no Wi-Fi, no setup. Designed for date nights, road trips, waiting in line, or casual hangouts.
+A solo game-show collection for a single phone: four "legally distinct" TV-quiz formats (The Ladder, The Grid, The Opinion Poll, The Wheel) played one player at a time. No controllers, no Wi-Fi, no setup. Competing with friends happens asynchronously — share a result by URL and challenge them to beat it (post-MVP). See `docs/decisions/0001-solo-mvp-over-pass-and-play.md`.
 
 ## Development Instructions & Build Rules
 

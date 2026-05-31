@@ -109,13 +109,15 @@ export default function Slider({
 
     return (
         <View style={styles.container}>
-            {label && (
+            {(label || renderValue) && (
                 <View style={styles.labelRow}>
                     <View style={styles.labelLeft}>
                         {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
-                        <Text variant='caption' weight='medium' color={t.colors.textSecondary}>
-                            {label}
-                        </Text>
+                        {label && (
+                            <Text variant='caption' weight='medium' color={t.colors.textSecondary}>
+                                {label}
+                            </Text>
+                        )}
                     </View>
                     <Text variant='body' weight='bold' color={activeAccent}>
                         {renderValue ? renderValue(value) : value}

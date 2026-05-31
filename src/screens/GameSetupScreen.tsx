@@ -14,6 +14,7 @@ import { useColor } from '../theme';
 import { useTranslation } from '../i18n/TranslationContext';
 import { games, GAME_ICONS } from '../data/games';
 import { gameSessionMachine } from '../game/machines/gameSessionMachine';
+import { playScreens } from '../game/playScreens';
 import type { RootStackParamList } from '../navigation/types';
 
 /**
@@ -39,6 +40,15 @@ export function GameSetupScreen() {
 
     const GameIcon = GAME_ICONS[game.iconName];
     const isPlaying = state.matches('playing');
+    const PlayScreen = playScreens[game.id];
+
+    if (isPlaying && PlayScreen) {
+        return (
+            <View style={[styles.root, { backgroundColor: background, paddingTop: insets.top }]}>
+                <PlayScreen onExit={() => send({ type: 'EXIT' })} />
+            </View>
+        );
+    }
 
     return (
         <ScrollView
@@ -69,36 +79,20 @@ export function GameSetupScreen() {
                 </Text>
             </Stack>
 
-            {isPlaying ? (
-                <Card gap='sm'>
-                    <Text variant='subheading' weight='semibold'>
-                        {t('screen.gameSetup.comingSoon')}
-                    </Text>
-                    <Text variant='body' color='textSecondary'>
-                        {t('screen.gameSetup.comingSoonDesc', { name: t(`game.${game.id}.name`) })}
-                    </Text>
-                    <Button variant='secondary' onPress={() => send({ type: 'EXIT' })}>
-                        {t('screen.gameSetup.back')}
-                    </Button>
-                </Card>
-            ) : (
-                <>
-                    <Card gap='sm'>
-                        <Text variant='overline' color='textMuted'>
-                            {t('common.how_to_play')}
-                        </Text>
-                        <Text variant='body' color='textSecondary'>
-                            {t(`game.${game.id}.rules`)}
-                        </Text>
-                    </Card>
+            <Card gap='sm'>
+                <Text variant='overline' color='textMuted'>
+                    {t('common.how_to_play')}
+                </Text>
+                <Text variant='body' color='textSecondary'>
+                    {t(`game.${game.id}.rules`)}
+                </Text>
+            </Card>
 
-                    <View style={styles.footer}>
-                        <Button fullWidth size='lg' onPress={() => send({ type: 'START' })}>
-                            {t('common.start')}
-                        </Button>
-                    </View>
-                </>
-            )}
+            <View style={styles.footer}>
+                <Button fullWidth size='lg' onPress={() => send({ type: 'START' })}>
+                    {t('common.start')}
+                </Button>
+            </View>
         </ScrollView>
     );
 }

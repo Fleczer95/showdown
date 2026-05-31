@@ -141,7 +141,6 @@
             },
             "active": {
                 "question": "Question %{number} of 15",
-                "turn": "Player %{number} of %{total}",
                 "lifelinesLeft": "Lifelines left",
                 "leave": "Leave Game",
                 "leaveConfirm": "Are you sure you want to leave? Your run will be lost.",
@@ -187,36 +186,6 @@
             },
             "rules": "1. Teams take turns choosing a category and point value from the grid.\n2. Read the clue aloud and wager points on your answer.\n3. A correct answer wins the points; a wrong answer loses them.\n4. Clear the board — the team with the most points wins!"
         },
-        "the-opinion-poll": {
-            "name": "The Opinion Poll",
-            "desc": "We surveyed 100 people. Guess the most popular answers before you run out of strikes.",
-            "setup": {
-                "category": "Select Survey",
-                "categoryDesc": "Choose the survey topic"
-            },
-            "categories": {
-                "all": "Mixed Surveys"
-            },
-            "active": {
-                "surveySays": "Survey says...",
-                "guess": "Your guess",
-                "submit": "Submit",
-                "strikes": "Strikes",
-                "topAnswers": "Top Answers",
-                "leave": "Leave Game",
-                "leaveConfirm": "Are you sure you want to leave? All progress will be lost.",
-                "leaveCancel": "No, stay",
-                "leaveOk": "Yes, leave"
-            },
-            "score": {
-                "gameOver": "Game Over!",
-                "teamWins": "%{team} Wins!",
-                "draw": "It's a Tie!",
-                "playAgain": "Play Again",
-                "endGame": "Main Menu"
-            },
-            "rules": "1. Each round shows a question answered by 100 surveyed people.\n2. Teams take turns guessing the most popular answers.\n3. Each answer on the board is worth the number of people who gave it.\n4. Three strikes and the other team can steal the round.\n5. The team with the most points wins!"
-        },
         "the-wheel": {
             "name": "The Wheel",
             "desc": "Spin for a multiplier, guess letters, and solve the hidden word puzzle.",
@@ -232,12 +201,16 @@
                 "spinning": "Spinning...",
                 "guessLetter": "Guess a letter",
                 "buyVowel": "Buy Vowel (%{cost})",
+                "vowelHint": "Vowels (teal) cost %{cost}",
                 "solve": "Solve the Puzzle",
                 "bankrupt": "Bankrupt!",
                 "leave": "Leave Game",
                 "leaveConfirm": "Are you sure you want to leave? All progress will be lost.",
                 "leaveCancel": "No, stay",
-                "leaveOk": "Yes, leave"
+                "leaveOk": "Yes, leave",
+                "roundCash": "Round cash",
+                "banked": "Banked",
+                "puzzleProgress": "Puzzle %{current}/%{total}"
             },
             "score": {
                 "gameOver": "Game Over!",
@@ -247,6 +220,36 @@
                 "endGame": "Main Menu"
             },
             "rules": "1. Spin the wheel to set the value of your next correct letter.\n2. Guess a consonant to earn the spin value for each occurrence.\n3. Buy a vowel for a fixed cost.\n4. Solve the puzzle to win the round — but land on Bankrupt and you lose your turn's cash!\n5. The team with the most points wins."
+        },
+        "the-drop": {
+            "name": "The Drop",
+            "desc": "You hold a million in cash. Each round, spread your bank across the answers you trust — wrong answers drop away, right ones survive. Protect your fortune for 9 rounds.",
+            "rules": "1. You start with 1,000,000, in 25,000 bundles.\n2. Each round, place your whole bank across up to 3 of the 4 answers — never all four.\n3. Money on the correct answer survives to the next round; the rest drops.\n4. Money never grows, so protect as much as you can.\n5. Survive 9 rounds without hitting zero. Your final bank is your score.",
+            "header": {
+                "round": "Round %{current} of %{total}",
+                "toPlace": "To place"
+            },
+            "active": {
+                "instruction": "Spread your whole bank across up to %{max} options (never all 4).",
+                "placed": "Placed",
+                "lockIn": "Lock In",
+                "leave": "Leave game"
+            },
+            "reveal": {
+                "survived": "%{amount} survived",
+                "dropped": "%{amount} dropped",
+                "empty": "Empty",
+                "next": "Next round",
+                "seeResult": "See result"
+            },
+            "over": {
+                "title": "The Drop",
+                "survived": "You made it to the end!",
+                "busted": "You lost it all.",
+                "finalBank": "Final bank",
+                "playAgain": "Play Again",
+                "exit": "Exit"
+            }
         }
     },
     "privacyPolicy": {

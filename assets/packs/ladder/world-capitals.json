@@ -1,0 +1,400 @@
+{
+  "type": "ladder",
+  "slug": "world-capitals",
+  "topic": {
+    "en": "World Capitals",
+    "pl": "World Capitals"
+  },
+  "questions": [
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 1",
+        "pl": "Przykładowe pytanie 1 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #1",
+          "pl": "Odpowiedź A dla World Capitals #1"
+        },
+        {
+          "en": "Answer B for World Capitals #1",
+          "pl": "Odpowiedź B dla World Capitals #1"
+        },
+        {
+          "en": "Answer C for World Capitals #1",
+          "pl": "Odpowiedź C dla World Capitals #1"
+        },
+        {
+          "en": "Answer D for World Capitals #1",
+          "pl": "Odpowiedź D dla World Capitals #1"
+        }
+      ],
+      "correctIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 2",
+        "pl": "Przykładowe pytanie 2 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #2",
+          "pl": "Odpowiedź A dla World Capitals #2"
+        },
+        {
+          "en": "Answer B for World Capitals #2",
+          "pl": "Odpowiedź B dla World Capitals #2"
+        },
+        {
+          "en": "Answer C for World Capitals #2",
+          "pl": "Odpowiedź C dla World Capitals #2"
+        },
+        {
+          "en": "Answer D for World Capitals #2",
+          "pl": "Odpowiedź D dla World Capitals #2"
+        }
+      ],
+      "correctIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 3",
+        "pl": "Przykładowe pytanie 3 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #3",
+          "pl": "Odpowiedź A dla World Capitals #3"
+        },
+        {
+          "en": "Answer B for World Capitals #3",
+          "pl": "Odpowiedź B dla World Capitals #3"
+        },
+        {
+          "en": "Answer C for World Capitals #3",
+          "pl": "Odpowiedź C dla World Capitals #3"
+        },
+        {
+          "en": "Answer D for World Capitals #3",
+          "pl": "Odpowiedź D dla World Capitals #3"
+        }
+      ],
+      "correctIndex": 3,
+      "difficulty": 3
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 4",
+        "pl": "Przykładowe pytanie 4 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #4",
+          "pl": "Odpowiedź A dla World Capitals #4"
+        },
+        {
+          "en": "Answer B for World Capitals #4",
+          "pl": "Odpowiedź B dla World Capitals #4"
+        },
+        {
+          "en": "Answer C for World Capitals #4",
+          "pl": "Odpowiedź C dla World Capitals #4"
+        },
+        {
+          "en": "Answer D for World Capitals #4",
+          "pl": "Odpowiedź D dla World Capitals #4"
+        }
+      ],
+      "correctIndex": 0,
+      "difficulty": 4
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 5",
+        "pl": "Przykładowe pytanie 5 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #5",
+          "pl": "Odpowiedź A dla World Capitals #5"
+        },
+        {
+          "en": "Answer B for World Capitals #5",
+          "pl": "Odpowiedź B dla World Capitals #5"
+        },
+        {
+          "en": "Answer C for World Capitals #5",
+          "pl": "Odpowiedź C dla World Capitals #5"
+        },
+        {
+          "en": "Answer D for World Capitals #5",
+          "pl": "Odpowiedź D dla World Capitals #5"
+        }
+      ],
+      "correctIndex": 1,
+      "difficulty": 5
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 6",
+        "pl": "Przykładowe pytanie 6 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #6",
+          "pl": "Odpowiedź A dla World Capitals #6"
+        },
+        {
+          "en": "Answer B for World Capitals #6",
+          "pl": "Odpowiedź B dla World Capitals #6"
+        },
+        {
+          "en": "Answer C for World Capitals #6",
+          "pl": "Odpowiedź C dla World Capitals #6"
+        },
+        {
+          "en": "Answer D for World Capitals #6",
+          "pl": "Odpowiedź D dla World Capitals #6"
+        }
+      ],
+      "correctIndex": 2,
+      "difficulty": 6
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 7",
+        "pl": "Przykładowe pytanie 7 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #7",
+          "pl": "Odpowiedź A dla World Capitals #7"
+        },
+        {
+          "en": "Answer B for World Capitals #7",
+          "pl": "Odpowiedź B dla World Capitals #7"
+        },
+        {
+          "en": "Answer C for World Capitals #7",
+          "pl": "Odpowiedź C dla World Capitals #7"
+        },
+        {
+          "en": "Answer D for World Capitals #7",
+          "pl": "Odpowiedź D dla World Capitals #7"
+        }
+      ],
+      "correctIndex": 3,
+      "difficulty": 7
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 8",
+        "pl": "Przykładowe pytanie 8 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #8",
+          "pl": "Odpowiedź A dla World Capitals #8"
+        },
+        {
+          "en": "Answer B for World Capitals #8",
+          "pl": "Odpowiedź B dla World Capitals #8"
+        },
+        {
+          "en": "Answer C for World Capitals #8",
+          "pl": "Odpowiedź C dla World Capitals #8"
+        },
+        {
+          "en": "Answer D for World Capitals #8",
+          "pl": "Odpowiedź D dla World Capitals #8"
+        }
+      ],
+      "correctIndex": 0,
+      "difficulty": 8
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 9",
+        "pl": "Przykładowe pytanie 9 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #9",
+          "pl": "Odpowiedź A dla World Capitals #9"
+        },
+        {
+          "en": "Answer B for World Capitals #9",
+          "pl": "Odpowiedź B dla World Capitals #9"
+        },
+        {
+          "en": "Answer C for World Capitals #9",
+          "pl": "Odpowiedź C dla World Capitals #9"
+        },
+        {
+          "en": "Answer D for World Capitals #9",
+          "pl": "Odpowiedź D dla World Capitals #9"
+        }
+      ],
+      "correctIndex": 1,
+      "difficulty": 9
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 10",
+        "pl": "Przykładowe pytanie 10 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #10",
+          "pl": "Odpowiedź A dla World Capitals #10"
+        },
+        {
+          "en": "Answer B for World Capitals #10",
+          "pl": "Odpowiedź B dla World Capitals #10"
+        },
+        {
+          "en": "Answer C for World Capitals #10",
+          "pl": "Odpowiedź C dla World Capitals #10"
+        },
+        {
+          "en": "Answer D for World Capitals #10",
+          "pl": "Odpowiedź D dla World Capitals #10"
+        }
+      ],
+      "correctIndex": 2,
+      "difficulty": 10
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 11",
+        "pl": "Przykładowe pytanie 11 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #11",
+          "pl": "Odpowiedź A dla World Capitals #11"
+        },
+        {
+          "en": "Answer B for World Capitals #11",
+          "pl": "Odpowiedź B dla World Capitals #11"
+        },
+        {
+          "en": "Answer C for World Capitals #11",
+          "pl": "Odpowiedź C dla World Capitals #11"
+        },
+        {
+          "en": "Answer D for World Capitals #11",
+          "pl": "Odpowiedź D dla World Capitals #11"
+        }
+      ],
+      "correctIndex": 3,
+      "difficulty": 11
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 12",
+        "pl": "Przykładowe pytanie 12 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #12",
+          "pl": "Odpowiedź A dla World Capitals #12"
+        },
+        {
+          "en": "Answer B for World Capitals #12",
+          "pl": "Odpowiedź B dla World Capitals #12"
+        },
+        {
+          "en": "Answer C for World Capitals #12",
+          "pl": "Odpowiedź C dla World Capitals #12"
+        },
+        {
+          "en": "Answer D for World Capitals #12",
+          "pl": "Odpowiedź D dla World Capitals #12"
+        }
+      ],
+      "correctIndex": 0,
+      "difficulty": 12
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 13",
+        "pl": "Przykładowe pytanie 13 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #13",
+          "pl": "Odpowiedź A dla World Capitals #13"
+        },
+        {
+          "en": "Answer B for World Capitals #13",
+          "pl": "Odpowiedź B dla World Capitals #13"
+        },
+        {
+          "en": "Answer C for World Capitals #13",
+          "pl": "Odpowiedź C dla World Capitals #13"
+        },
+        {
+          "en": "Answer D for World Capitals #13",
+          "pl": "Odpowiedź D dla World Capitals #13"
+        }
+      ],
+      "correctIndex": 1,
+      "difficulty": 13
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 14",
+        "pl": "Przykładowe pytanie 14 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #14",
+          "pl": "Odpowiedź A dla World Capitals #14"
+        },
+        {
+          "en": "Answer B for World Capitals #14",
+          "pl": "Odpowiedź B dla World Capitals #14"
+        },
+        {
+          "en": "Answer C for World Capitals #14",
+          "pl": "Odpowiedź C dla World Capitals #14"
+        },
+        {
+          "en": "Answer D for World Capitals #14",
+          "pl": "Odpowiedź D dla World Capitals #14"
+        }
+      ],
+      "correctIndex": 2,
+      "difficulty": 14
+    },
+    {
+      "prompt": {
+        "en": "Sample World Capitals question 15",
+        "pl": "Przykładowe pytanie 15 o temacie World Capitals"
+      },
+      "options": [
+        {
+          "en": "Answer A for World Capitals #15",
+          "pl": "Odpowiedź A dla World Capitals #15"
+        },
+        {
+          "en": "Answer B for World Capitals #15",
+          "pl": "Odpowiedź B dla World Capitals #15"
+        },
+        {
+          "en": "Answer C for World Capitals #15",
+          "pl": "Odpowiedź C dla World Capitals #15"
+        },
+        {
+          "en": "Answer D for World Capitals #15",
+          "pl": "Odpowiedź D dla World Capitals #15"
+        }
+      ],
+      "correctIndex": 3,
+      "difficulty": 15
+    }
+  ]
+}

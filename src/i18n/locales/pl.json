@@ -141,7 +141,6 @@
             },
             "active": {
                 "question": "Pytanie %{number} z 15",
-                "turn": "Gracz %{number} z %{total}",
                 "lifelinesLeft": "Pozostałe koła",
                 "leave": "Opuść grę",
                 "leaveConfirm": "Na pewno chcesz wyjść? Twój postęp przepadnie.",
@@ -187,36 +186,6 @@
             },
             "rules": "1. Drużyny na zmianę wybierają kategorię i liczbę punktów z planszy.\n2. Przeczytajcie wskazówkę na głos i postawcie punkty na odpowiedź.\n3. Poprawna odpowiedź daje punkty, błędna je odbiera.\n4. Wyczyśćcie planszę — wygrywa drużyna z największą liczbą punktów!"
         },
-        "the-opinion-poll": {
-            "name": "Sonda",
-            "desc": "Zapytaliśmy 100 osób. Zgadnij najpopularniejsze odpowiedzi, zanim zbierzesz trzy ostrzeżenia.",
-            "setup": {
-                "category": "Wybierz sondę",
-                "categoryDesc": "Wybierz temat sondy"
-            },
-            "categories": {
-                "all": "Miks sond"
-            },
-            "active": {
-                "surveySays": "Sonda mówi...",
-                "guess": "Twoja odpowiedź",
-                "submit": "Zatwierdź",
-                "strikes": "Ostrzeżenia",
-                "topAnswers": "Najczęstsze odpowiedzi",
-                "leave": "Opuść grę",
-                "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
-                "leaveCancel": "Nie, zostaję",
-                "leaveOk": "Tak, wychodzę"
-            },
-            "score": {
-                "gameOver": "Koniec gry!",
-                "teamWins": "%{team} wygrywa!",
-                "draw": "Remis!",
-                "playAgain": "Zagraj ponownie",
-                "endGame": "Menu główne"
-            },
-            "rules": "1. W każdej rundzie pojawia się pytanie, na które odpowiedziało 100 ankietowanych.\n2. Drużyny na zmianę zgadują najpopularniejsze odpowiedzi.\n3. Każda odpowiedź jest warta tyle, ile osób jej udzieliło.\n4. Trzy ostrzeżenia i druga drużyna może przejąć rundę.\n5. Wygrywa drużyna z największą liczbą punktów!"
-        },
         "the-wheel": {
             "name": "Koło",
             "desc": "Zakręć kołem mnożnika, zgaduj litery i rozwiąż ukryte hasło.",
@@ -232,12 +201,16 @@
                 "spinning": "Kręcę...",
                 "guessLetter": "Zgadnij literę",
                 "buyVowel": "Kup samogłoskę (%{cost})",
+                "vowelHint": "Samogłoski (turkus) kosztują %{cost}",
                 "solve": "Rozwiąż hasło",
                 "bankrupt": "Bankrut!",
                 "leave": "Opuść grę",
                 "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
                 "leaveCancel": "Nie, zostaję",
-                "leaveOk": "Tak, wychodzę"
+                "leaveOk": "Tak, wychodzę",
+                "roundCash": "Kasa rundy",
+                "banked": "Zebrane",
+                "puzzleProgress": "Hasło %{current}/%{total}"
             },
             "score": {
                 "gameOver": "Koniec gry!",
@@ -247,6 +220,36 @@
                 "endGame": "Menu główne"
             },
             "rules": "1. Zakręć kołem, aby ustalić wartość kolejnej poprawnej litery.\n2. Zgadnij spółgłoskę, aby zdobyć wartość zakręcenia za każde jej wystąpienie.\n3. Kup samogłoskę za stałą opłatę.\n4. Rozwiąż hasło, aby wygrać rundę — ale uważaj na pole Bankrut!\n5. Wygrywa drużyna z największą liczbą punktów."
+        },
+        "the-drop": {
+            "name": "Zrzut",
+            "desc": "Masz milion w gotówce. W każdej rundzie rozłóż bank na odpowiedzi, którym ufasz — błędne przepadają, trafne zostają. Chroń fortunę przez 9 rund.",
+            "rules": "1. Zaczynasz z 1 000 000 w paczkach po 25 000.\n2. W każdej rundzie rozłóż cały bank na maksymalnie 3 z 4 odpowiedzi — nigdy na wszystkie cztery.\n3. Pieniądze na poprawnej odpowiedzi przechodzą do następnej rundy; reszta przepada.\n4. Pieniądze nigdy nie rosną, więc chroń ich jak najwięcej.\n5. Przetrwaj 9 rund, nie schodząc do zera. Końcowy bank to Twój wynik.",
+            "header": {
+                "round": "Runda %{current} z %{total}",
+                "toPlace": "Do obstawienia"
+            },
+            "active": {
+                "instruction": "Rozłóż cały bank na maksymalnie %{max} opcje (nigdy na wszystkie 4).",
+                "placed": "Obstawione",
+                "lockIn": "Zatwierdź",
+                "leave": "Opuść grę"
+            },
+            "reveal": {
+                "survived": "%{amount} ocalało",
+                "dropped": "%{amount} przepadło",
+                "empty": "Puste",
+                "next": "Następna runda",
+                "seeResult": "Zobacz wynik"
+            },
+            "over": {
+                "title": "Zrzut",
+                "survived": "Dotarłeś do końca!",
+                "busted": "Straciłeś wszystko.",
+                "finalBank": "Końcowy bank",
+                "playAgain": "Zagraj ponownie",
+                "exit": "Wyjdź"
+            }
         }
     },
     "privacyPolicy": {

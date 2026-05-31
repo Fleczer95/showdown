@@ -1,0 +1,190 @@
+{
+  "type": "poll",
+  "slug": "movies",
+  "topic": {
+    "en": "Movies",
+    "pl": "Movies"
+  },
+  "surveys": [
+    {
+      "question": {
+        "en": "Sample Movies survey 1",
+        "pl": "Przykładowa ankieta 1 o temacie Movies"
+      },
+      "answers": [
+        {
+          "text": {
+            "en": "Top answer 1",
+            "pl": "Najczęstsza odpowiedź 1"
+          },
+          "count": 40
+        },
+        {
+          "text": {
+            "en": "Second answer 1",
+            "pl": "Druga odpowiedź 1"
+          },
+          "count": 30
+        },
+        {
+          "text": {
+            "en": "Third answer 1",
+            "pl": "Trzecia odpowiedź 1"
+          },
+          "count": 20
+        },
+        {
+          "text": {
+            "en": "Fourth answer 1",
+            "pl": "Czwarta odpowiedź 1"
+          },
+          "count": 10
+        }
+      ]
+    },
+    {
+      "question": {
+        "en": "Sample Movies survey 2",
+        "pl": "Przykładowa ankieta 2 o temacie Movies"
+      },
+      "answers": [
+        {
+          "text": {
+            "en": "Top answer 2",
+            "pl": "Najczęstsza odpowiedź 2"
+          },
+          "count": 40
+        },
+        {
+          "text": {
+            "en": "Second answer 2",
+            "pl": "Druga odpowiedź 2"
+          },
+          "count": 30
+        },
+        {
+          "text": {
+            "en": "Third answer 2",
+            "pl": "Trzecia odpowiedź 2"
+          },
+          "count": 20
+        },
+        {
+          "text": {
+            "en": "Fourth answer 2",
+            "pl": "Czwarta odpowiedź 2"
+          },
+          "count": 10
+        }
+      ]
+    },
+    {
+      "question": {
+        "en": "Sample Movies survey 3",
+        "pl": "Przykładowa ankieta 3 o temacie Movies"
+      },
+      "answers": [
+        {
+          "text": {
+            "en": "Top answer 3",
+            "pl": "Najczęstsza odpowiedź 3"
+          },
+          "count": 40
+        },
+        {
+          "text": {
+            "en": "Second answer 3",
+            "pl": "Druga odpowiedź 3"
+          },
+          "count": 30
+        },
+        {
+          "text": {
+            "en": "Third answer 3",
+            "pl": "Trzecia odpowiedź 3"
+          },
+          "count": 20
+        },
+        {
+          "text": {
+            "en": "Fourth answer 3",
+            "pl": "Czwarta odpowiedź 3"
+          },
+          "count": 10
+        }
+      ]
+    },
+    {
+      "question": {
+        "en": "Sample Movies survey 4",
+        "pl": "Przykładowa ankieta 4 o temacie Movies"
+      },
+      "answers": [
+        {
+          "text": {
+            "en": "Top answer 4",
+            "pl": "Najczęstsza odpowiedź 4"
+          },
+          "count": 40
+        },
+        {
+          "text": {
+            "en": "Second answer 4",
+            "pl": "Druga odpowiedź 4"
+          },
+          "count": 30
+        },
+        {
+          "text": {
+            "en": "Third answer 4",
+            "pl": "Trzecia odpowiedź 4"
+          },
+          "count": 20
+        },
+        {
+          "text": {
+            "en": "Fourth answer 4",
+            "pl": "Czwarta odpowiedź 4"
+          },
+          "count": 10
+        }
+      ]
+    },
+    {
+      "question": {
+        "en": "Sample Movies survey 5",
+        "pl": "Przykładowa ankieta 5 o temacie Movies"
+      },
+      "answers": [
+        {
+          "text": {
+            "en": "Top answer 5",
+            "pl": "Najczęstsza odpowiedź 5"
+          },
+          "count": 40
+        },
+        {
+          "text": {
+            "en": "Second answer 5",
+            "pl": "Druga odpowiedź 5"
+          },
+          "count": 30
+        },
+        {
+          "text": {
+            "en": "Third answer 5",
+            "pl": "Trzecia odpowiedź 5"
+          },
+          "count": 20
+        },
+        {
+          "text": {
+            "en": "Fourth answer 5",
+            "pl": "Czwarta odpowiedź 5"
+          },
+          "count": 10
+        }
+      ]
+    }
+  ]
+}

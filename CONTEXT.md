@@ -85,6 +85,13 @@ options coverable in a round is `min(3, bundles held)` — at 2 bundles you can
 cover at most 2 options, at 1 bundle you are forced all-in. No fractional edge
 cases.
 
+### Question History
+A per-game record of how many times each question has been shown, persisted on
+the device. Selection is biased toward the **least-shown** questions so a game
+cycles through its whole pool before repeating any — and once all are equal, the
+pool reshuffles. Count-based (not boolean "used" flags), so it self-cycles with
+no explicit reset. Each question needs a stable id to be tracked.
+
 ### Gated Secret
 Each game hides its answer (Grid: the clue's answer; Poll: the survey answers;
 Wheel: the phrase) behind a deliberate reveal/match/solve. In solo play this

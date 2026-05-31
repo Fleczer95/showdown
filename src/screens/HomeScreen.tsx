@@ -7,6 +7,7 @@ import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Pressable from '../components/atoms/HapticPressable';
 import { useColor } from '../theme';
+import { useTranslation } from '../i18n';
 import { games, GAME_ICONS } from '../data/games';
 
 /**
@@ -15,6 +16,7 @@ import { games, GAME_ICONS } from '../data/games';
  */
 export function HomeScreen() {
     const navigation = useNavigation();
+    const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     const background = useColor('background');
     const surface = useColor('surface');
@@ -31,7 +33,7 @@ export function HomeScreen() {
                     ShowDown
                 </Text>
                 <Text variant='subheading' color='textSecondary'>
-                    TV Quiz Party Games
+                    {t('screen.home.tagline')}
                 </Text>
             </Stack>
 
@@ -45,19 +47,16 @@ export function HomeScreen() {
                             onPress={() => navigation.navigate(game.setupRoute, { gameId: game.id })}
                             haptic='light'
                             accessibilityRole='button'
-                            accessibilityLabel={game.name}
+                            accessibilityLabel={t(`game.${game.id}.name`)}
                         >
                             <Stack direction='horizontal' gap='md' align='center'>
                                 {GameIcon ? <Icon name={GameIcon} size={28} color={primary} /> : null}
                                 <Stack gap='xs' flex={1}>
                                     <Text variant='subheading' weight='semibold'>
-                                        {game.emoji} {game.name}
+                                        {game.emoji} {t(`game.${game.id}.name`)}
                                     </Text>
                                     <Text variant='caption' color='textSecondary'>
-                                        {game.description}
-                                    </Text>
-                                    <Text variant='overline' color='textMuted'>
-                                        {game.players} players
+                                        {t(`game.${game.id}.desc`)}
                                     </Text>
                                 </Stack>
                             </Stack>

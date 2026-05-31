@@ -7,7 +7,7 @@
 // banks round cash and advances; a wrong solve ends the puzzle with 0 banked.
 
 export const VOWEL_COST = 250;
-export const VOWELS = 'AEIOU';
+export const VOWELS = 'AEIOUĄĘÓ';
 export const TOTAL_PUZZLES = 3;
 
 /** Wheel segments. A Bankrupt segment zeroes the player's round cash. */

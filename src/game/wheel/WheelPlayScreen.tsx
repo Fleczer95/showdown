@@ -42,7 +42,8 @@ type Phase = 'awaitSpin' | 'awaitGuess';
 
 const GAME_ID = 'the-wheel';
 
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const EN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const PL_ALPHABET = 'AĄBCĆDEĘFGHIJKLŁMNŃOÓPQRSŚTUVWXYZŹŻ'.split('');
 
 /** Pick `count` puzzles from the pack, localized, ordered least-shown-first. */
 function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
@@ -57,6 +58,7 @@ function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
 export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
     const { t: tr, locale } = useTranslation();
+    const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
 
     const [game, setGame] = useState<GameState>(() =>
         createGame(pickPuzzles(locale, TOTAL_PUZZLES)),

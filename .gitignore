@@ -45,4 +45,5 @@ GoogleService-Info.plist
 assets/archived_icons/
 
 # agent memory
-.maestro/
+**/.maestro/
+*.maestro

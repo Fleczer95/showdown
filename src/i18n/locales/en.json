@@ -233,6 +233,7 @@
                 "instruction": "Spread your whole bank across up to %{max} options (never all 4).",
                 "placed": "Placed",
                 "lockIn": "Lock In",
+                "lockingIn": "Locking in…",
                 "leave": "Leave game",
                 "leaveConfirm": "Are you sure you want to leave? All progress will be lost.",
                 "leaveCancel": "No, stay",

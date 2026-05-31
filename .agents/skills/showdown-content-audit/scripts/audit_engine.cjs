@@ -16,12 +16,12 @@ const IP_RISKS = [
 ];
 
 const SIMPLICITY_PATTERNS = [
-    { regex: /\bWhat color is\b/i, name: 'Basic Color' },
-    { regex: /\bJakiego koloru jest\b/i, name: 'Basic Color (PL)' },
-    { regex: /\bHow many legs\b/i, name: 'Basic Counting' },
-    { regex: /\bIle nóg ma\b/i, name: 'Basic Counting (PL)' },
-    { regex: /\bHow many fingers\b/i, name: 'Basic Counting' },
-    { regex: /\bIle palców\b/i, name: 'Basic Counting (PL)' },
+    { regex: /\bWhat color is a? \w+\?\b/i, name: 'Basic Color' },
+    { regex: /\bJakiego koloru jest \w+\?\b/i, name: 'Basic Color (PL)' },
+    { regex: /\bHow many legs does a? \w+ have\?\b/i, name: 'Basic Counting' },
+    { regex: /\bIle nóg ma \w+\?\b/i, name: 'Basic Counting (PL)' },
+    { regex: /\bHow many fingers does a? \w+ have\?\b/i, name: 'Basic Counting' },
+    { regex: /\bIle palców ma \w+\?\b/i, name: 'Basic Counting (PL)' },
     { regex: /\bWhat is \d \+ \d\b/i, name: 'Basic Arithmetic' },
     { regex: /\bIle to jest \d \+ \d\b/i, name: 'Basic Arithmetic (PL)' },
     { regex: /\b(small|big|large|fast|slow|heavy|light) and (yellow|red|blue|green|white|black)\b/i, name: 'Ambiguous Descriptor' },
@@ -74,7 +74,7 @@ function auditJsonPack(filePath, data) {
         audit.stats[relPath] = { count: questions.length, type };
         
         questions.forEach((q, i) => {
-            const id = `Q${i+1}`;
+            const id = q.id || `Q${i+1}`;
             if (!q.prompt?.en || !q.prompt?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Prompt`);
             if (!q.options || q.options.length !== 4) audit.errors.push(`[INVALID STRUCT] ${relPath} ${id}: Expected 4 options`);
             q.options?.forEach((opt, oi) => {
@@ -86,6 +86,23 @@ function auditJsonPack(filePath, data) {
             checkQuality(`${relPath} ${id}`, q.prompt?.en);
         });
 
+        checkDuplicates(`${relPath} (EN)`, questions.map(q => q.prompt?.en));
+    } else if (type === 'drop') {
+        const questions = data.questions || [];
+        audit.stats[relPath] = { count: questions.length, type };
+        
+        questions.forEach((q, i) => {
+            const id = q.id || `Q${i+1}`;
+            if (!q.prompt?.en || !q.prompt?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Prompt`);
+            if (!q.options || q.options.length !== 4) audit.errors.push(`[INVALID STRUCT] ${relPath} ${id}: Expected 4 options`);
+            q.options?.forEach((opt, oi) => {
+                if (!opt.en || !opt.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Option ${oi}`);
+                checkIP(`${relPath} ${id}`, opt.en);
+            });
+            if (q.correctIndex < 0 || q.correctIndex > 3) audit.errors.push(`[INVALID DATA] ${relPath} ${id}: correctIndex ${q.correctIndex}`);
+            checkIP(`${relPath} ${id}`, q.prompt?.en);
+            checkQuality(`${relPath} ${id}`, q.prompt?.en);
+        });
         checkDuplicates(`${relPath} (EN)`, questions.map(q => q.prompt?.en));
     } else if (type === 'wheel') {
         const puzzles = data.puzzles || [];
@@ -102,13 +119,26 @@ function auditJsonPack(filePath, data) {
         const categories = data.categories || [];
         audit.stats[relPath] = { count: categories.length, type };
         categories.forEach((cat, i) => {
-            const cid = cat.title?.en || `Cat${i+1}`;
+            const cid = cat.name?.en || cat.title?.en || `Cat${i+1}`;
             if (cat.clues?.length !== 5) audit.errors.push(`[INVALID STRUCT] ${relPath} ${cid}: Expected 5 clues`);
             cat.clues?.forEach((clue, ci) => {
                 if (!clue.clue?.en || !clue.clue?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${cid} Clue ${ci}: Text`);
                 checkIP(`${relPath} ${cid}`, clue.clue?.en);
                 checkQuality(`${relPath} ${cid} Clue ${ci}`, clue.clue?.en);
             });
+        });
+    } else if (type === 'poll') {
+        const surveys = data.surveys || [];
+        audit.stats[relPath] = { count: surveys.length, type };
+        surveys.forEach((s, i) => {
+            const sid = s.question?.en || `Poll${i+1}`;
+            if (!s.question?.en || !s.question?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${sid}: Question`);
+            s.answers?.forEach((ans, ai) => {
+                if (!ans.text?.en || !ans.text?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${sid} Ans ${ai}: Text`);
+                checkIP(`${relPath} ${sid}`, ans.text?.en);
+            });
+            checkIP(`${relPath} ${sid}`, s.question?.en);
+            checkQuality(`${relPath} ${sid}`, s.question?.en);
         });
     }
 }

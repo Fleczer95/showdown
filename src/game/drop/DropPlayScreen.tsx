@@ -1,7 +1,20 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+    FadeIn,
+    Easing,
+    cancelAnimation,
+    runOnJS,
+    useAnimatedStyle,
+    useReducedMotion,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withSequence,
+    withSpring,
+    withTiming,
+} from 'react-native-reanimated';
 import { Check, X } from 'lucide-react-native';
 
 import Text from '../../components/atoms/Text';
@@ -11,8 +24,9 @@ import Card from '../../components/molecules/Card';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import Slider from '../../components/molecules/Slider';
-import { useTheme } from '../../theme';
+import { useTheme, useAnimationPresets } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { useHaptics } from '../../hooks/useHaptics';
 
 import { dropQuestions, type Language } from './content';
 import { getHistory, markShown } from '../history';
@@ -30,10 +44,33 @@ const EMPTY_ALLOCATION = [0, 0, 0, 0];
 
 const GAME_ID = 'the-drop';
 
+// ── Reveal choreography timing (ms) ───────────────────────────────
+// Losses-first sequence, paced so every beat is readable on its own:
+//   hold → each wrong stake "disappears" then settles back as a red tally
+//   (so the player sees what was lost) → the answer is revealed last →
+//   Continue appears once it has all settled.
+const SUSPENSE_MS = 1400; // Phase 1: held tension before anything resolves.
+const DROP_STAGGER = 900; // Phase 2: gap between the START of consecutive losses.
+const ANSWER_GAP = 600; // Phase 3: dwell after the last loss settles, before the answer.
+
+// A single loss "beat": the staked text falls away and fades (disappear),
+// a short empty gap, then the loss tally fades back in and stays (return).
+const DISAPPEAR_MS = 460;
+const GAP_MS = 180;
+const RETURN_MS = 420;
+const RESOLVE_MS = DISAPPEAR_MS + GAP_MS + RETURN_MS; // full length of one beat
+const FALL_DISTANCE = 56; // how far the text falls while disappearing
+const RETURN_RISE = 12; // how far below the tally rises from as it returns
+
+type Phase = 'allocating' | 'suspense' | 'reveal';
+type Reveal = 'none' | 'drop' | 'win';
+
 const formatMoney = (value: number): string => value.toLocaleString('en-US');
 
 export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const { fade } = useAnimationPresets();
+    const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
     const insets = useSafeAreaInsets();
     const lang = locale as Language;
@@ -42,16 +79,31 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         buildGame(dropQuestions, getHistory(GAME_ID)),
     );
     const [allocation, setAllocation] = useState<number[]>(EMPTY_ALLOCATION);
-    // While set, the round is revealed and we await the player advancing.
-    const [revealed, setRevealed] = useState(false);
+    // Drives the lock-in → suspense → reveal choreography.
+    const [phase, setPhase] = useState<Phase>('allocating');
+    // Per-option reveal state, flipped on a timeline during the reveal.
+    const [reveals, setReveals] = useState<Reveal[]>(['none', 'none', 'none', 'none']);
+    // Continue only appears once the whole sequence has played out.
+    const [canAdvance, setCanAdvance] = useState(false);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
+    // Timers driving the suspense ticks + the staged reveal.
+    const ticks = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const clearTicks = useCallback(() => {
+        ticks.current.forEach(clearTimeout);
+        ticks.current = [];
+    }, []);
+    useEffect(() => clearTicks, [clearTicks]);
+
     const reset = useCallback(() => {
+        clearTicks();
         // Re-read history so the next run reflects questions just shown.
         setState(buildGame(dropQuestions, getHistory(GAME_ID)));
         setAllocation(EMPTY_ALLOCATION);
-        setRevealed(false);
-    }, []);
+        setPhase('allocating');
+        setReveals(['none', 'none', 'none', 'none']);
+        setCanAdvance(false);
+    }, [clearTicks]);
 
     const placed = allocation.reduce((sum, a) => sum + a, 0);
     const remaining = state.bank - placed;
@@ -88,14 +140,75 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         if (!canConfirm) {
             return;
         }
-        setRevealed(true);
-    }, [canConfirm]);
+        clearTicks();
+        setReveals(['none', 'none', 'none', 'none']);
+        setCanAdvance(false);
+        setPhase('suspense');
+
+        const push = (delay: number, fn: () => void) => {
+            ticks.current.push(setTimeout(fn, delay));
+        };
+
+        // Phase 1 — accelerating ticks build the pressure across the hold.
+        push(120, haptics.light);
+        push(430, haptics.light);
+        push(700, haptics.medium);
+        push(950, haptics.medium);
+        push(1180, haptics.medium);
+        push(1360, haptics.medium);
+
+        const correctIndex = question.correctIndex;
+        const wrongCovered = [0, 1, 2, 3].filter(
+            (i) => allocation[i] > 0 && i !== correctIndex,
+        );
+
+        // Phase 2 — losses resolve one at a time; each is a full disappear→
+        // return beat, so they are spaced far enough apart to read.
+        push(SUSPENSE_MS, () => setPhase('reveal'));
+        wrongCovered.forEach((idx, k) => {
+            push(SUSPENSE_MS + k * DROP_STAGGER, () => {
+                setReveals((prev) => {
+                    const next = prev.slice();
+                    next[idx] = 'drop';
+                    return next;
+                });
+                haptics.heavy();
+            });
+        });
+
+        // Phase 3 — the correct answer is revealed last, once the final loss
+        // has fully settled.
+        const lastResolveEnd =
+            wrongCovered.length > 0
+                ? SUSPENSE_MS + (wrongCovered.length - 1) * DROP_STAGGER + RESOLVE_MS
+                : SUSPENSE_MS;
+        const answerTime = lastResolveEnd + ANSWER_GAP;
+        push(answerTime, () => {
+            setReveals((prev) => {
+                const next = prev.slice();
+                next[correctIndex] = 'win';
+                return next;
+            });
+            // Relief if points survived; a somber thud if the round busted.
+            if (allocation[correctIndex] > 0) {
+                haptics.notification();
+            } else {
+                haptics.heavy();
+            }
+        });
+
+        // Phase 4 — Continue appears once the answer beat has settled too.
+        push(answerTime + RESOLVE_MS, () => setCanAdvance(true));
+    }, [canConfirm, clearTicks, haptics, allocation, question]);
 
     const onAdvance = useCallback(() => {
+        clearTicks();
         setState((prev) => applyRound(prev, allocation));
         setAllocation(EMPTY_ALLOCATION);
-        setRevealed(false);
-    }, [allocation]);
+        setPhase('allocating');
+        setReveals(['none', 'none', 'none', 'none']);
+        setCanAdvance(false);
+    }, [allocation, clearTicks]);
 
     // --- Game over ---------------------------------------------------------
     if (state.status === 'over') {
@@ -144,6 +257,8 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         );
     }
 
+    const answerShown = reveals[question.correctIndex] === 'win';
+
     // --- Active round ------------------------------------------------------
     return (
         <View style={[styles.container, { backgroundColor: t.colors.background, paddingTop: insets.top + 16 }]}>
@@ -183,7 +298,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                         </Text>
                     </Card>
 
-                    {!revealed && (
+                    {phase === 'allocating' && (
                         <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
                             {translate('game.the-drop.active.instruction', { max: maxCover })}
                         </Text>
@@ -191,90 +306,27 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
 
                     {/* Options */}
                     <Stack gap='md'>
-                        {question.options.map((option, i) => {
-                            const amount = allocation[i];
-                            const isCorrect = i === question.correctIndex;
-                            // Once max options are covered, empty slots lock at 0.
-                            const lockedByCover = !revealed && amount === 0 && coveredCount >= maxCover;
-                            // Every slider shares a fixed scale (the full bank) so adjusting
-                            // one doesn't visually shift the others. Over-allocation is still
-                            // prevented by setSlot's clamp against the remaining bank.
-                            const sliderMax = state.bank;
-
-                            let borderColor = t.colors.border;
-                            let accent = t.colors.primary;
-                            if (revealed) {
-                                if (isCorrect) {
-                                    borderColor = t.colors.success;
-                                    accent = t.colors.success;
-                                } else if (amount > 0) {
-                                    borderColor = t.colors.error;
-                                    accent = t.colors.error;
+                        {question.options.map((option, i) => (
+                            <DropOption
+                                key={`${state.round}-${i}`}
+                                label={option[lang]}
+                                amount={allocation[i]}
+                                phase={phase}
+                                reveal={reveals[i]}
+                                answerShown={answerShown}
+                                lockedByCover={
+                                    phase === 'allocating' &&
+                                    allocation[i] === 0 &&
+                                    coveredCount >= maxCover
                                 }
-                            }
-
-                            return (
-                                <Card
-                                    key={`${state.round}-${i}`}
-                                    variant='outlined'
-                                    padding='md'
-                                    style={{ borderColor, opacity: lockedByCover ? 0.5 : 1 }}
-                                >
-                                    <Stack gap='sm'>
-                                        <Stack direction='horizontal' justify='between' align='center'>
-                                            <Text variant='body' weight='semibold' style={styles.optionText}>
-                                                {option[lang]}
-                                            </Text>
-                                            {revealed && (
-                                                <Icon
-                                                    name={isCorrect ? Check : X}
-                                                    size={20}
-                                                    color={isCorrect ? t.colors.success : t.colors.error}
-                                                />
-                                            )}
-                                        </Stack>
-
-                                        {revealed ? (
-                                            <Text variant='caption' weight='bold' color={accent}>
-                                                {amount > 0
-                                                    ? isCorrect
-                                                        ? translate('game.the-drop.reveal.survived', {
-                                                              amount: formatMoney(amount),
-                                                          })
-                                                        : translate('game.the-drop.reveal.dropped', {
-                                                              amount: formatMoney(amount),
-                                                          })
-                                                    : translate('game.the-drop.reveal.empty')}
-                                            </Text>
-                                        ) : (
-                                            <Slider
-                                                label={translate('game.the-drop.active.placed')}
-                                                value={amount}
-                                                min={0}
-                                                max={Math.max(BUNDLE, sliderMax)}
-                                                step={BUNDLE}
-                                                onChange={(v) => !lockedByCover && setSlot(i, v)}
-                                                accentColor={accent}
-                                                renderValue={() => formatMoney(amount)}
-                                            />
-                                        )}
-                                    </Stack>
-                                </Card>
-                            );
-                        })}
+                                sliderMax={state.bank}
+                                onChange={(v) => setSlot(i, v)}
+                            />
+                        ))}
                     </Stack>
 
                     {/* Actions */}
-                    {revealed ? (
-                        <Animated.View entering={FadeIn.duration(250)}>
-                            <Button variant='primary' onPress={onAdvance} fullWidth>
-                                {state.round + 1 >= TOTAL_ROUNDS ||
-                                allocation[question.correctIndex] === 0
-                                    ? translate('game.the-drop.reveal.seeResult')
-                                    : translate('game.the-drop.reveal.next')}
-                            </Button>
-                        </Animated.View>
-                    ) : (
+                    {phase === 'allocating' ? (
                         <Stack gap='sm'>
                             <Button variant='primary' onPress={onConfirm} disabled={!canConfirm} fullWidth>
                                 {translate('game.the-drop.active.lockIn')}
@@ -283,6 +335,19 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                                 {translate('game.the-drop.active.leave')}
                             </Button>
                         </Stack>
+                    ) : canAdvance ? (
+                        <Animated.View entering={FadeIn.duration(fade.duration)}>
+                            <Button variant='primary' onPress={onAdvance} fullWidth>
+                                {state.round + 1 >= TOTAL_ROUNDS ||
+                                allocation[question.correctIndex] === 0
+                                    ? translate('game.the-drop.reveal.seeResult')
+                                    : translate('game.the-drop.reveal.next')}
+                            </Button>
+                        </Animated.View>
+                    ) : (
+                        phase === 'suspense' && (
+                            <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
+                        )
                     )}
                 </Stack>
             </ScrollView>
@@ -293,6 +358,245 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                 onCancel={() => setShowLeaveConfirm(false)}
             />
         </View>
+    );
+}
+
+interface DropOptionProps {
+    label: string;
+    amount: number;
+    phase: Phase;
+    reveal: Reveal;
+    answerShown: boolean;
+    lockedByCover: boolean;
+    sliderMax: number;
+    onChange: (value: number) => void;
+}
+
+/**
+ * A single answer option. Owns its own reveal choreography, driven by `reveal`:
+ *  - while unresolved during suspense/reveal, a covered card "breathes"
+ *    (theme `pulse` token) — the nervous survivor as neighbours fall,
+ *  - `drop`: the staked text falls away and fades (disappear), then the loss
+ *    tally fades back in and stays, so the player sees what was lost,
+ *  - `win`: the same text crossfades to the survived amount as the card pops.
+ * All motion is skipped under "reduce motion"; the result still shows and the
+ * timed sequence still plays, so the outcome stays readable.
+ */
+function DropOption({
+    label,
+    amount,
+    phase,
+    reveal,
+    answerShown,
+    lockedByCover,
+    sliderMax,
+    onChange,
+}: DropOptionProps) {
+    const t = useTheme();
+    const { t: translate } = useTranslation();
+    const reduceMotion = useReducedMotion();
+    const { spring, springBouncy, pulse } = useAnimationPresets();
+
+    const scale = useSharedValue(1);
+    const textOpacity = useSharedValue(1);
+    const textY = useSharedValue(0);
+    // Flips at the bottom of the disappear act (while invisible) so the text
+    // content swaps from the staked amount to the result tally unseen.
+    const [showResult, setShowResult] = useState(false);
+
+    const covered = amount > 0;
+
+    useEffect(() => {
+        if (reveal === 'none') {
+            // Unresolved: breathe if covered & in play, otherwise rest.
+            setShowResult(false);
+            cancelAnimation(scale);
+            textOpacity.value = 1;
+            textY.value = 0;
+            if (reduceMotion) {
+                scale.value = 1;
+                return;
+            }
+            const breathing = (phase === 'suspense' || phase === 'reveal') && covered;
+            scale.value = breathing
+                ? withRepeat(
+                      withTiming(pulse.scale, {
+                          duration: pulse.duration,
+                          easing: Easing.inOut(Easing.quad),
+                      }),
+                      -1,
+                      true,
+                  )
+                : withTiming(1, { duration: 150 });
+            return;
+        }
+
+        // Resolving (drop | win).
+        cancelAnimation(scale);
+        if (reduceMotion) {
+            scale.value = 1;
+            textOpacity.value = 1;
+            textY.value = 0;
+            setShowResult(true);
+            return;
+        }
+
+        // Card: win pops, a loss just settles flat.
+        scale.value =
+            reveal === 'win'
+                ? withSequence(
+                      withSpring(pulse.scale, springBouncy as never),
+                      withSpring(1, spring as never),
+                  )
+                : withSpring(1, spring as never);
+
+        // Text: disappear (fall + fade) → swap content while hidden → return.
+        const fall = reveal === 'drop' ? FALL_DISTANCE : 0;
+        setShowResult(false);
+        textOpacity.value = withSequence(
+            withTiming(
+                0,
+                { duration: DISAPPEAR_MS, easing: Easing.in(Easing.quad) },
+                (finished) => {
+                    if (finished) {
+                        runOnJS(setShowResult)(true);
+                    }
+                },
+            ),
+            withDelay(GAP_MS, withTiming(1, { duration: RETURN_MS, easing: Easing.out(Easing.quad) })),
+        );
+        textY.value = withSequence(
+            withTiming(fall, { duration: DISAPPEAR_MS, easing: Easing.in(Easing.cubic) }),
+            withTiming(RETURN_RISE, { duration: 0 }),
+            withDelay(GAP_MS, withTiming(0, { duration: RETURN_MS, easing: Easing.out(Easing.quad) })),
+        );
+    }, [
+        reveal,
+        phase,
+        covered,
+        reduceMotion,
+        scale,
+        textOpacity,
+        textY,
+        pulse.scale,
+        pulse.duration,
+        spring,
+        springBouncy,
+    ]);
+
+    const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+    const textStyle = useAnimatedStyle(() => ({
+        opacity: textOpacity.value,
+        transform: [{ translateY: textY.value }],
+    }));
+
+    let borderColor = t.colors.border;
+    let accent = t.colors.primary;
+    if (reveal === 'win') {
+        borderColor = t.colors.success;
+        accent = t.colors.success;
+    } else if (reveal === 'drop') {
+        borderColor = t.colors.error;
+        accent = t.colors.error;
+    }
+
+    let cardOpacity = 1;
+    if (lockedByCover) {
+        cardOpacity = 0.5;
+    } else if (answerShown && reveal === 'none') {
+        // Answers that never mattered recede once the result is in.
+        cardOpacity = 0.5;
+    }
+
+    // Outcome text shows the frozen stake until the content swap, then the tally.
+    const resolved = showResult && reveal !== 'none';
+    let outcomeText: string;
+    let outcomeColor: string;
+    let outcomeWeight: 'semibold' | 'bold';
+    if (!resolved) {
+        outcomeText = covered
+            ? `${translate('game.the-drop.active.placed')}: ${formatMoney(amount)}`
+            : translate('game.the-drop.reveal.empty');
+        outcomeColor = t.colors.textSecondary;
+        outcomeWeight = 'semibold';
+    } else if (reveal === 'win') {
+        outcomeText = covered
+            ? translate('game.the-drop.reveal.survived', { amount: formatMoney(amount) })
+            : translate('game.the-drop.reveal.empty');
+        outcomeColor = t.colors.success;
+        outcomeWeight = 'bold';
+    } else {
+        outcomeText = covered
+            ? translate('game.the-drop.reveal.dropped', { amount: formatMoney(amount) })
+            : translate('game.the-drop.reveal.empty');
+        outcomeColor = t.colors.error;
+        outcomeWeight = 'bold';
+    }
+
+    return (
+        <Animated.View style={cardStyle}>
+            <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
+                <Stack gap='sm'>
+                    <Stack direction='horizontal' justify='between' align='center'>
+                        <Text variant='body' weight='semibold' style={styles.optionText}>
+                            {label}
+                        </Text>
+                        {reveal !== 'none' && (
+                            <Icon
+                                name={reveal === 'win' ? Check : X}
+                                size={20}
+                                color={reveal === 'win' ? t.colors.success : t.colors.error}
+                            />
+                        )}
+                    </Stack>
+
+                    {phase === 'allocating' ? (
+                        <Slider
+                            label={translate('game.the-drop.active.placed')}
+                            value={amount}
+                            min={0}
+                            max={Math.max(BUNDLE, sliderMax)}
+                            step={BUNDLE}
+                            onChange={(v) => !lockedByCover && onChange(v)}
+                            accentColor={accent}
+                            renderValue={() => formatMoney(amount)}
+                        />
+                    ) : (
+                        <Animated.View style={textStyle}>
+                            <Text variant='caption' weight={outcomeWeight} color={outcomeColor}>
+                                {outcomeText}
+                            </Text>
+                        </Animated.View>
+                    )}
+                </Stack>
+            </Card>
+        </Animated.View>
+    );
+}
+
+/** Pulsing "Locking in…" status shown while the reveal is held in suspense. */
+function SuspenseStatus({ label }: { label: string }) {
+    const t = useTheme();
+    const { pulse } = useAnimationPresets();
+    const reduceMotion = useReducedMotion();
+    const opacity = useSharedValue(1);
+
+    useEffect(() => {
+        if (reduceMotion) {
+            return;
+        }
+        opacity.value = withRepeat(withTiming(0.45, { duration: pulse.duration }), -1, true);
+        return () => cancelAnimation(opacity);
+    }, [reduceMotion, pulse.duration, opacity]);
+
+    const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+    return (
+        <Animated.View entering={FadeIn.duration(180)} style={style}>
+            <Text variant='caption' weight='semibold' align='center' color={t.colors.textSecondary}>
+                {label}
+            </Text>
+        </Animated.View>
     );
 }
 

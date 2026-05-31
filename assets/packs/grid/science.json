@@ -5,31 +5,36 @@
     "en": "Science",
     "pl": "Nauka"
   },
-  "items": [
+  "categories": [
     {
-      "value": 200,
-      "clue": { "en": "The symbol for Gold.", "pl": "Symbol złota." },
-      "answer": { "en": "Au", "pl": "Au" }
-    },
-    {
-      "value": 400,
-      "clue": { "en": "The nearest star to Earth.", "pl": "Najbliższa gwiazda Ziemi." },
-      "answer": { "en": "Sun", "pl": "Słońce" }
-    },
-    {
-      "value": 600,
-      "clue": { "en": "The boiling point of water in Celsius.", "pl": "Temperatura wrzenia wody w Celsjuszach." },
-      "answer": { "en": "100", "pl": "100" }
-    },
-    {
-      "value": 800,
-      "clue": { "en": "Largest planet in our solar system.", "pl": "Największa planeta Układu Słonecznego." },
-      "answer": { "en": "Jupiter", "pl": "Jowisz" }
-    },
-    {
-      "value": 1000,
-      "clue": { "en": "The study of living organisms.", "pl": "Nauka o organizmach żywych." },
-      "answer": { "en": "Biology", "pl": "Biologia" }
+      "name": { "en": "General Science", "pl": "Nauka ogólna" },
+      "clues": [
+        {
+          "value": 100,
+          "clue": { "en": "The symbol for Gold.", "pl": "Symbol złota." },
+          "answer": { "en": "Au", "pl": "Au" }
+        },
+        {
+          "value": 200,
+          "clue": { "en": "The nearest star to Earth.", "pl": "Najbliższa gwiazda Ziemi." },
+          "answer": { "en": "Sun", "pl": "Słońce" }
+        },
+        {
+          "value": 300,
+          "clue": { "en": "The boiling point of water in Celsius.", "pl": "Temperatura wrzenia wody w Celsjuszach." },
+          "answer": { "en": "100", "pl": "100" }
+        },
+        {
+          "value": 400,
+          "clue": { "en": "Largest planet in our solar system.", "pl": "Największa planeta Układu Słonecznego." },
+          "answer": { "en": "Jupiter", "pl": "Jowisz" }
+        },
+        {
+          "value": 500,
+          "clue": { "en": "The study of living organisms.", "pl": "Nauka o organizmach żywych." },
+          "answer": { "en": "Biology", "pl": "Biologia" }
+        }
+      ]
     }
   ]
 }

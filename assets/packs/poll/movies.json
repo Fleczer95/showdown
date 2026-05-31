@@ -12,10 +12,10 @@
         "pl": "Wymień słynny film o superbohaterach."
       },
       "answers": [
-        { "text": { "en": "Spider-Man", "pl": "Spider-Man" }, "count": 35 },
-        { "text": { "en": "Batman", "pl": "Batman" }, "count": 28 },
-        { "text": { "en": "Avengers", "pl": "Avengers" }, "count": 22 },
-        { "text": { "en": "Superman", "pl": "Superman" }, "count": 15 }
+        { "text": { "en": "The Dark Knight", "pl": "Mroczny Rycerz" }, "count": 35 },
+        { "text": { "en": "The Caped Crusader", "pl": "Zamaskowany Krzyżowiec" }, "count": 28 },
+        { "text": { "en": "Assemble of Heroes", "pl": "Zgromadzenie Bohaterów" }, "count": 22 },
+        { "text": { "en": "Man of Steel", "pl": "Człowiek ze Stali" }, "count": 15 }
       ]
     },
     {
@@ -24,10 +24,10 @@
         "pl": "Wymień film wyreżyserowany przez Stevena Spielberga."
       },
       "answers": [
-        { "text": { "en": "Jaws", "pl": "Szczęki" }, "count": 38 },
-        { "text": { "en": "E.T.", "pl": "E.T." }, "count": 32 },
-        { "text": { "en": "Jurassic Park", "pl": "Park Jurajski" }, "count": 20 },
-        { "text": { "en": "Schindler's List", "pl": "Lista Schindlera" }, "count": 10 }
+        { "text": { "en": "The Great White Shark movie", "pl": "Film o wielkim białym rekinie" }, "count": 38 },
+        { "text": { "en": "The Friendly Alien movie", "pl": "Film o przyjaznym kosmicie" }, "count": 32 },
+        { "text": { "en": "Dinosaur Theme Park movie", "pl": "Film o parku dinozaurów" }, "count": 20 },
+        { "text": { "en": "The Schindler biopic", "pl": "Biopic Schindlera" }, "count": 10 }
       ]
     },
     {
@@ -36,10 +36,10 @@
         "pl": "Wymień słynny film animowany."
       },
       "answers": [
-        { "text": { "en": "The Lion King", "pl": "Król Lew" }, "count": 42 },
-        { "text": { "en": "Toy Story", "pl": "Toy Story" }, "count": 25 },
-        { "text": { "en": "Shrek", "pl": "Shrek" }, "count": 18 },
-        { "text": { "en": "Frozen", "pl": "Kraina Lodu" }, "count": 15 }
+        { "text": { "en": "The Savannah King", "pl": "Król Sawanny" }, "count": 42 },
+        { "text": { "en": "Living Toys movie", "pl": "Film o żyjących zabawkach" }, "count": 25 },
+        { "text": { "en": "The Ogre movie", "pl": "Film o ogrze" }, "count": 18 },
+        { "text": { "en": "The Snow Queen movie", "pl": "Film o Królowej Śniegu" }, "count": 15 }
       ]
     },
     {
@@ -48,10 +48,10 @@
         "pl": "Wymień film, którego akcja toczy się w kosmosie."
       },
       "answers": [
-        { "text": { "en": "Star Wars", "pl": "Gwiezdne Wojny" }, "count": 45 },
-        { "text": { "en": "Interstellar", "pl": "Interstellar" }, "count": 25 },
-        { "text": { "en": "Alien", "pl": "Obcy" }, "count": 18 },
-        { "text": { "en": "Gravity", "pl": "Grawitacja" }, "count": 12 }
+        { "text": { "en": "The Space Opera saga", "pl": "Saga space opera" }, "count": 45 },
+        { "text": { "en": "Wormhole travel movie", "pl": "Film o podróży przez tunel czasoprzestrzenny" }, "count": 25 },
+        { "text": { "en": "Space Monster movie", "pl": "Film o kosmicznym potworze" }, "count": 18 },
+        { "text": { "en": "Floating in Orbit movie", "pl": "Film o dryfowaniu na orbicie" }, "count": 12 }
       ]
     },
     {

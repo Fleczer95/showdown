@@ -3,395 +3,215 @@
   "slug": "world-capitals",
   "topic": {
     "en": "World Capitals",
-    "pl": "World Capitals"
+    "pl": "Stolice Świata"
   },
   "questions": [
     {
       "prompt": {
-        "en": "Sample World Capitals question 1",
-        "pl": "Przykładowe pytanie 1 o temacie World Capitals"
+        "en": "What is the capital of France?",
+        "pl": "Jaka jest stolica Francji?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #1",
-          "pl": "Odpowiedź A dla World Capitals #1"
-        },
-        {
-          "en": "Answer B for World Capitals #1",
-          "pl": "Odpowiedź B dla World Capitals #1"
-        },
-        {
-          "en": "Answer C for World Capitals #1",
-          "pl": "Odpowiedź C dla World Capitals #1"
-        },
-        {
-          "en": "Answer D for World Capitals #1",
-          "pl": "Odpowiedź D dla World Capitals #1"
-        }
+        { "en": "Lyon", "pl": "Lyon" },
+        { "en": "Paris", "pl": "Paryż" },
+        { "en": "Marseille", "pl": "Marsylia" },
+        { "en": "Nice", "pl": "Nicea" }
       ],
       "correctIndex": 1,
       "difficulty": 1
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 2",
-        "pl": "Przykładowe pytanie 2 o temacie World Capitals"
+        "en": "What is the capital of Japan?",
+        "pl": "Jaka jest stolica Japonii?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #2",
-          "pl": "Odpowiedź A dla World Capitals #2"
-        },
-        {
-          "en": "Answer B for World Capitals #2",
-          "pl": "Odpowiedź B dla World Capitals #2"
-        },
-        {
-          "en": "Answer C for World Capitals #2",
-          "pl": "Odpowiedź C dla World Capitals #2"
-        },
-        {
-          "en": "Answer D for World Capitals #2",
-          "pl": "Odpowiedź D dla World Capitals #2"
-        }
+        { "en": "Seoul", "pl": "Seul" },
+        { "en": "Beijing", "pl": "Pekin" },
+        { "en": "Tokyo", "pl": "Tokio" },
+        { "en": "Bangkok", "pl": "Bangkok" }
       ],
       "correctIndex": 2,
       "difficulty": 2
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 3",
-        "pl": "Przykładowe pytanie 3 o temacie World Capitals"
+        "en": "What is the capital of Australia?",
+        "pl": "Jaka jest stolica Australii?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #3",
-          "pl": "Odpowiedź A dla World Capitals #3"
-        },
-        {
-          "en": "Answer B for World Capitals #3",
-          "pl": "Odpowiedź B dla World Capitals #3"
-        },
-        {
-          "en": "Answer C for World Capitals #3",
-          "pl": "Odpowiedź C dla World Capitals #3"
-        },
-        {
-          "en": "Answer D for World Capitals #3",
-          "pl": "Odpowiedź D dla World Capitals #3"
-        }
+        { "en": "Sydney", "pl": "Sydney" },
+        { "en": "Melbourne", "pl": "Melbourne" },
+        { "en": "Perth", "pl": "Perth" },
+        { "en": "Canberra", "pl": "Canberra" }
       ],
       "correctIndex": 3,
       "difficulty": 3
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 4",
-        "pl": "Przykładowe pytanie 4 o temacie World Capitals"
+        "en": "What is the capital of Brazil?",
+        "pl": "Jaka jest stolica Brazylii?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #4",
-          "pl": "Odpowiedź A dla World Capitals #4"
-        },
-        {
-          "en": "Answer B for World Capitals #4",
-          "pl": "Odpowiedź B dla World Capitals #4"
-        },
-        {
-          "en": "Answer C for World Capitals #4",
-          "pl": "Odpowiedź C dla World Capitals #4"
-        },
-        {
-          "en": "Answer D for World Capitals #4",
-          "pl": "Odpowiedź D dla World Capitals #4"
-        }
+        { "en": "Brasilia", "pl": "Brasília" },
+        { "en": "Rio de Janeiro", "pl": "Rio de Janeiro" },
+        { "en": "Sao Paulo", "pl": "Sao Paulo" },
+        { "en": "Salvador", "pl": "Salvador" }
       ],
       "correctIndex": 0,
       "difficulty": 4
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 5",
-        "pl": "Przykładowe pytanie 5 o temacie World Capitals"
+        "en": "What is the capital of Canada?",
+        "pl": "Jaka jest stolica Kanady?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #5",
-          "pl": "Odpowiedź A dla World Capitals #5"
-        },
-        {
-          "en": "Answer B for World Capitals #5",
-          "pl": "Odpowiedź B dla World Capitals #5"
-        },
-        {
-          "en": "Answer C for World Capitals #5",
-          "pl": "Odpowiedź C dla World Capitals #5"
-        },
-        {
-          "en": "Answer D for World Capitals #5",
-          "pl": "Odpowiedź D dla World Capitals #5"
-        }
+        { "en": "Toronto", "pl": "Toronto" },
+        { "en": "Ottawa", "pl": "Ottawa" },
+        { "en": "Montreal", "pl": "Montreal" },
+        { "en": "Vancouver", "pl": "Vancouver" }
       ],
       "correctIndex": 1,
       "difficulty": 5
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 6",
-        "pl": "Przykładowe pytanie 6 o temacie World Capitals"
+        "en": "What is the capital of Switzerland?",
+        "pl": "Jaka jest stolica Szwajcarii?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #6",
-          "pl": "Odpowiedź A dla World Capitals #6"
-        },
-        {
-          "en": "Answer B for World Capitals #6",
-          "pl": "Odpowiedź B dla World Capitals #6"
-        },
-        {
-          "en": "Answer C for World Capitals #6",
-          "pl": "Odpowiedź C dla World Capitals #6"
-        },
-        {
-          "en": "Answer D for World Capitals #6",
-          "pl": "Odpowiedź D dla World Capitals #6"
-        }
+        { "en": "Zurich", "pl": "Zurych" },
+        { "en": "Geneva", "pl": "Genewa" },
+        { "en": "Bern", "pl": "Berno" },
+        { "en": "Basel", "pl": "Bazylea" }
       ],
       "correctIndex": 2,
       "difficulty": 6
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 7",
-        "pl": "Przykładowe pytanie 7 o temacie World Capitals"
+        "en": "What is the capital of Egypt?",
+        "pl": "Jaka jest stolica Egiptu?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #7",
-          "pl": "Odpowiedź A dla World Capitals #7"
-        },
-        {
-          "en": "Answer B for World Capitals #7",
-          "pl": "Odpowiedź B dla World Capitals #7"
-        },
-        {
-          "en": "Answer C for World Capitals #7",
-          "pl": "Odpowiedź C dla World Capitals #7"
-        },
-        {
-          "en": "Answer D for World Capitals #7",
-          "pl": "Odpowiedź D dla World Capitals #7"
-        }
+        { "en": "Alexandria", "pl": "Aleksandria" },
+        { "en": "Luxor", "pl": "Luksor" },
+        { "en": "Giza", "pl": "Giza" },
+        { "en": "Cairo", "pl": "Kair" }
       ],
       "correctIndex": 3,
       "difficulty": 7
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 8",
-        "pl": "Przykładowe pytanie 8 o temacie World Capitals"
+        "en": "What is the capital of Vietnam?",
+        "pl": "Jaka jest stolica Wietnamu?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #8",
-          "pl": "Odpowiedź A dla World Capitals #8"
-        },
-        {
-          "en": "Answer B for World Capitals #8",
-          "pl": "Odpowiedź B dla World Capitals #8"
-        },
-        {
-          "en": "Answer C for World Capitals #8",
-          "pl": "Odpowiedź C dla World Capitals #8"
-        },
-        {
-          "en": "Answer D for World Capitals #8",
-          "pl": "Odpowiedź D dla World Capitals #8"
-        }
+        { "en": "Hanoi", "pl": "Hanoi" },
+        { "en": "Saigon", "pl": "Sajgon" },
+        { "en": "Da Nang", "pl": "Da Nang" },
+        { "en": "Hue", "pl": "Hue" }
       ],
       "correctIndex": 0,
       "difficulty": 8
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 9",
-        "pl": "Przykładowe pytanie 9 o temacie World Capitals"
+        "en": "What is the capital of Morocco?",
+        "pl": "Jaka jest stolica Maroka?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #9",
-          "pl": "Odpowiedź A dla World Capitals #9"
-        },
-        {
-          "en": "Answer B for World Capitals #9",
-          "pl": "Odpowiedź B dla World Capitals #9"
-        },
-        {
-          "en": "Answer C for World Capitals #9",
-          "pl": "Odpowiedź C dla World Capitals #9"
-        },
-        {
-          "en": "Answer D for World Capitals #9",
-          "pl": "Odpowiedź D dla World Capitals #9"
-        }
+        { "en": "Casablanca", "pl": "Casablanca" },
+        { "en": "Rabat", "pl": "Rabat" },
+        { "en": "Marrakesh", "pl": "Marrakesz" },
+        { "en": "Fes", "pl": "Fes" }
       ],
       "correctIndex": 1,
       "difficulty": 9
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 10",
-        "pl": "Przykładowe pytanie 10 o temacie World Capitals"
+        "en": "What is the capital of Kazakhstan?",
+        "pl": "Jaka jest stolica Kazachstanu?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #10",
-          "pl": "Odpowiedź A dla World Capitals #10"
-        },
-        {
-          "en": "Answer B for World Capitals #10",
-          "pl": "Odpowiedź B dla World Capitals #10"
-        },
-        {
-          "en": "Answer C for World Capitals #10",
-          "pl": "Odpowiedź C dla World Capitals #10"
-        },
-        {
-          "en": "Answer D for World Capitals #10",
-          "pl": "Odpowiedź D dla World Capitals #10"
-        }
+        { "en": "Almaty", "pl": "Ałmaty" },
+        { "en": "Tashkent", "pl": "Taszkent" },
+        { "en": "Astana", "pl": "Astana" },
+        { "en": "Bishkek", "pl": "Biszkek" }
       ],
       "correctIndex": 2,
       "difficulty": 10
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 11",
-        "pl": "Przykładowe pytanie 11 o temacie World Capitals"
+        "en": "What is the capital of Ethiopia?",
+        "pl": "Jaka jest stolica Etiopii?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #11",
-          "pl": "Odpowiedź A dla World Capitals #11"
-        },
-        {
-          "en": "Answer B for World Capitals #11",
-          "pl": "Odpowiedź B dla World Capitals #11"
-        },
-        {
-          "en": "Answer C for World Capitals #11",
-          "pl": "Odpowiedź C dla World Capitals #11"
-        },
-        {
-          "en": "Answer D for World Capitals #11",
-          "pl": "Odpowiedź D dla World Capitals #11"
-        }
+        { "en": "Asmara", "pl": "Asmara" },
+        { "en": "Nairobi", "pl": "Nairobi" },
+        { "en": "Khartoum", "pl": "Chartum" },
+        { "en": "Addis Ababa", "pl": "Addis Abeba" }
       ],
       "correctIndex": 3,
       "difficulty": 11
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 12",
-        "pl": "Przykładowe pytanie 12 o temacie World Capitals"
+        "en": "What is the capital of Iceland?",
+        "pl": "Jaka jest stolica Islandii?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #12",
-          "pl": "Odpowiedź A dla World Capitals #12"
-        },
-        {
-          "en": "Answer B for World Capitals #12",
-          "pl": "Odpowiedź B dla World Capitals #12"
-        },
-        {
-          "en": "Answer C for World Capitals #12",
-          "pl": "Odpowiedź C dla World Capitals #12"
-        },
-        {
-          "en": "Answer D for World Capitals #12",
-          "pl": "Odpowiedź D dla World Capitals #12"
-        }
+        { "en": "Reykjavik", "pl": "Reykjavík" },
+        { "en": "Akureyri", "pl": "Akureyri" },
+        { "en": "Selfoss", "pl": "Selfoss" },
+        { "en": "Keflavik", "pl": "Keflavík" }
       ],
       "correctIndex": 0,
       "difficulty": 12
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 13",
-        "pl": "Przykładowe pytanie 13 o temacie World Capitals"
+        "en": "What is the capital of Malta?",
+        "pl": "Jaka jest stolica Malty?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #13",
-          "pl": "Odpowiedź A dla World Capitals #13"
-        },
-        {
-          "en": "Answer B for World Capitals #13",
-          "pl": "Odpowiedź B dla World Capitals #13"
-        },
-        {
-          "en": "Answer C for World Capitals #13",
-          "pl": "Odpowiedź C dla World Capitals #13"
-        },
-        {
-          "en": "Answer D for World Capitals #13",
-          "pl": "Odpowiedź D dla World Capitals #13"
-        }
+        { "en": "Mdina", "pl": "Mdina" },
+        { "en": "Valletta", "pl": "Valletta" },
+        { "en": "Sliema", "pl": "Sliema" },
+        { "en": "Gozo", "pl": "Gozo" }
       ],
       "correctIndex": 1,
       "difficulty": 13
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 14",
-        "pl": "Przykładowe pytanie 14 o temacie World Capitals"
+        "en": "What is the capital of Bhutan?",
+        "pl": "Jaka jest stolica Bhutanu?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #14",
-          "pl": "Odpowiedź A dla World Capitals #14"
-        },
-        {
-          "en": "Answer B for World Capitals #14",
-          "pl": "Odpowiedź B dla World Capitals #14"
-        },
-        {
-          "en": "Answer C for World Capitals #14",
-          "pl": "Odpowiedź C dla World Capitals #14"
-        },
-        {
-          "en": "Answer D for World Capitals #14",
-          "pl": "Odpowiedź D dla World Capitals #14"
-        }
+        { "en": "Lhasa", "pl": "Lhasa" },
+        { "en": "Kathmandu", "pl": "Katmandu" },
+        { "en": "Thimphu", "pl": "Thimphu" },
+        { "en": "Dhaka", "pl": "Dhaka" }
       ],
       "correctIndex": 2,
       "difficulty": 14
     },
     {
       "prompt": {
-        "en": "Sample World Capitals question 15",
-        "pl": "Przykładowe pytanie 15 o temacie World Capitals"
+        "en": "What is the capital of Suriname?",
+        "pl": "Jaka jest stolica Surinamu?"
       },
       "options": [
-        {
-          "en": "Answer A for World Capitals #15",
-          "pl": "Odpowiedź A dla World Capitals #15"
-        },
-        {
-          "en": "Answer B for World Capitals #15",
-          "pl": "Odpowiedź B dla World Capitals #15"
-        },
-        {
-          "en": "Answer C for World Capitals #15",
-          "pl": "Odpowiedź C dla World Capitals #15"
-        },
-        {
-          "en": "Answer D for World Capitals #15",
-          "pl": "Odpowiedź D dla World Capitals #15"
-        }
+        { "en": "Georgetown", "pl": "Georgetown" },
+        { "en": "Cayenne", "pl": "Kajenna" },
+        { "en": "Belmopan", "pl": "Belmopan" },
+        { "en": "Paramaribo", "pl": "Paramaribo" }
       ],
       "correctIndex": 3,
       "difficulty": 15

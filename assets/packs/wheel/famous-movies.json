@@ -3,88 +3,58 @@
   "slug": "famous-movies",
   "topic": {
     "en": "Famous Movies",
-    "pl": "Famous Movies"
+    "pl": "Słynne Filmy"
   },
   "puzzles": [
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 1",
-        "pl": "Przykładowe hasło 1 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-001",
+      "phrase": { "en": "THE GODFATHER", "pl": "OJCIEC CHRZESTNY" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 2",
-        "pl": "Przykładowe hasło 2 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-002",
+      "phrase": { "en": "PULP FICTION", "pl": "PULP FICTION" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 3",
-        "pl": "Przykładowe hasło 3 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-003",
+      "phrase": { "en": "THE SHAWSHANK REDEMPTION", "pl": "SKAZANI NA SHAWSHANK" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 4",
-        "pl": "Przykładowe hasło 4 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-004",
+      "phrase": { "en": "SCHINDLERS LIST", "pl": "LISTA SCHINDLERA" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 5",
-        "pl": "Przykładowe hasło 5 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-005",
+      "phrase": { "en": "FORREST GUMP", "pl": "FORREST GUMP" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 6",
-        "pl": "Przykładowe hasło 6 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-006",
+      "phrase": { "en": "STAR WARS", "pl": "GWIEZDNE WOJNY" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 7",
-        "pl": "Przykładowe hasło 7 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-007",
+      "phrase": { "en": "THE DARK KNIGHT", "pl": "MROCZNY RYCERZ" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     },
     {
-      "phrase": {
-        "en": "Sample Famous Movies phrase 8",
-        "pl": "Przykładowe hasło 8 o temacie Famous Movies"
-      },
-      "category": {
-        "en": "Famous Movies category",
-        "pl": "Famous Movies kategoria"
-      }
+      "id": "movie-008",
+      "phrase": { "en": "INCEPTION", "pl": "INCEPCJA" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
+    },
+    {
+      "id": "movie-009",
+      "phrase": { "en": "THE MATRIX", "pl": "MATRIX" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
+    },
+    {
+      "id": "movie-010",
+      "phrase": { "en": "LORD OF THE RINGS", "pl": "WŁADCA PIERŚCIENI" },
+      "category": { "en": "Movie Title", "pl": "Tytuł Filmu" }
     }
   ]
 }

@@ -3,187 +3,67 @@
   "slug": "movies",
   "topic": {
     "en": "Movies",
-    "pl": "Movies"
+    "pl": "Filmy"
   },
   "surveys": [
     {
       "question": {
-        "en": "Sample Movies survey 1",
-        "pl": "Przykładowa ankieta 1 o temacie Movies"
+        "en": "Name a famous superhero movie.",
+        "pl": "Wymień słynny film o superbohaterach."
       },
       "answers": [
-        {
-          "text": {
-            "en": "Top answer 1",
-            "pl": "Najczęstsza odpowiedź 1"
-          },
-          "count": 40
-        },
-        {
-          "text": {
-            "en": "Second answer 1",
-            "pl": "Druga odpowiedź 1"
-          },
-          "count": 30
-        },
-        {
-          "text": {
-            "en": "Third answer 1",
-            "pl": "Trzecia odpowiedź 1"
-          },
-          "count": 20
-        },
-        {
-          "text": {
-            "en": "Fourth answer 1",
-            "pl": "Czwarta odpowiedź 1"
-          },
-          "count": 10
-        }
+        { "text": { "en": "Spider-Man", "pl": "Spider-Man" }, "count": 35 },
+        { "text": { "en": "Batman", "pl": "Batman" }, "count": 28 },
+        { "text": { "en": "Avengers", "pl": "Avengers" }, "count": 22 },
+        { "text": { "en": "Superman", "pl": "Superman" }, "count": 15 }
       ]
     },
     {
       "question": {
-        "en": "Sample Movies survey 2",
-        "pl": "Przykładowa ankieta 2 o temacie Movies"
+        "en": "Name a movie directed by Steven Spielberg.",
+        "pl": "Wymień film wyreżyserowany przez Stevena Spielberga."
       },
       "answers": [
-        {
-          "text": {
-            "en": "Top answer 2",
-            "pl": "Najczęstsza odpowiedź 2"
-          },
-          "count": 40
-        },
-        {
-          "text": {
-            "en": "Second answer 2",
-            "pl": "Druga odpowiedź 2"
-          },
-          "count": 30
-        },
-        {
-          "text": {
-            "en": "Third answer 2",
-            "pl": "Trzecia odpowiedź 2"
-          },
-          "count": 20
-        },
-        {
-          "text": {
-            "en": "Fourth answer 2",
-            "pl": "Czwarta odpowiedź 2"
-          },
-          "count": 10
-        }
+        { "text": { "en": "Jaws", "pl": "Szczęki" }, "count": 38 },
+        { "text": { "en": "E.T.", "pl": "E.T." }, "count": 32 },
+        { "text": { "en": "Jurassic Park", "pl": "Park Jurajski" }, "count": 20 },
+        { "text": { "en": "Schindler's List", "pl": "Lista Schindlera" }, "count": 10 }
       ]
     },
     {
       "question": {
-        "en": "Sample Movies survey 3",
-        "pl": "Przykładowa ankieta 3 o temacie Movies"
+        "en": "Name a famous animated movie.",
+        "pl": "Wymień słynny film animowany."
       },
       "answers": [
-        {
-          "text": {
-            "en": "Top answer 3",
-            "pl": "Najczęstsza odpowiedź 3"
-          },
-          "count": 40
-        },
-        {
-          "text": {
-            "en": "Second answer 3",
-            "pl": "Druga odpowiedź 3"
-          },
-          "count": 30
-        },
-        {
-          "text": {
-            "en": "Third answer 3",
-            "pl": "Trzecia odpowiedź 3"
-          },
-          "count": 20
-        },
-        {
-          "text": {
-            "en": "Fourth answer 3",
-            "pl": "Czwarta odpowiedź 3"
-          },
-          "count": 10
-        }
+        { "text": { "en": "The Lion King", "pl": "Król Lew" }, "count": 42 },
+        { "text": { "en": "Toy Story", "pl": "Toy Story" }, "count": 25 },
+        { "text": { "en": "Shrek", "pl": "Shrek" }, "count": 18 },
+        { "text": { "en": "Frozen", "pl": "Kraina Lodu" }, "count": 15 }
       ]
     },
     {
       "question": {
-        "en": "Sample Movies survey 4",
-        "pl": "Przykładowa ankieta 4 o temacie Movies"
+        "en": "Name a movie set in space.",
+        "pl": "Wymień film, którego akcja toczy się w kosmosie."
       },
       "answers": [
-        {
-          "text": {
-            "en": "Top answer 4",
-            "pl": "Najczęstsza odpowiedź 4"
-          },
-          "count": 40
-        },
-        {
-          "text": {
-            "en": "Second answer 4",
-            "pl": "Druga odpowiedź 4"
-          },
-          "count": 30
-        },
-        {
-          "text": {
-            "en": "Third answer 4",
-            "pl": "Trzecia odpowiedź 4"
-          },
-          "count": 20
-        },
-        {
-          "text": {
-            "en": "Fourth answer 4",
-            "pl": "Czwarta odpowiedź 4"
-          },
-          "count": 10
-        }
+        { "text": { "en": "Star Wars", "pl": "Gwiezdne Wojny" }, "count": 45 },
+        { "text": { "en": "Interstellar", "pl": "Interstellar" }, "count": 25 },
+        { "text": { "en": "Alien", "pl": "Obcy" }, "count": 18 },
+        { "text": { "en": "Gravity", "pl": "Grawitacja" }, "count": 12 }
       ]
     },
     {
       "question": {
-        "en": "Sample Movies survey 5",
-        "pl": "Przykładowa ankieta 5 o temacie Movies"
+        "en": "Name a classic horror movie.",
+        "pl": "Wymień klasyczny horror."
       },
       "answers": [
-        {
-          "text": {
-            "en": "Top answer 5",
-            "pl": "Najczęstsza odpowiedź 5"
-          },
-          "count": 40
-        },
-        {
-          "text": {
-            "en": "Second answer 5",
-            "pl": "Druga odpowiedź 5"
-          },
-          "count": 30
-        },
-        {
-          "text": {
-            "en": "Third answer 5",
-            "pl": "Trzecia odpowiedź 5"
-          },
-          "count": 20
-        },
-        {
-          "text": {
-            "en": "Fourth answer 5",
-            "pl": "Czwarta odpowiedź 5"
-          },
-          "count": 10
-        }
+        { "text": { "en": "The Shining", "pl": "Lśnienie" }, "count": 36 },
+        { "text": { "en": "Psycho", "pl": "Psychoza" }, "count": 28 },
+        { "text": { "en": "Halloween", "pl": "Halloween" }, "count": 22 },
+        { "text": { "en": "The Exorcist", "pl": "Egzorcysta" }, "count": 14 }
       ]
     }
   ]

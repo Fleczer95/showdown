@@ -16,6 +16,7 @@ It validates:
 - **Structural Integrity**: Expected number of options (4), valid correct indices (0-3), and correct number of clues in Grid categories (5).
 - **Translation Parity**: Ensures every English string has a Polish translation and vice-versa.
 - **IP Risk Flags**: Detection of trademarked terms (e.g., Disney, Marvel, Apple) using word-boundary matching.
+- **Quality Checks**: Flags questions that are over-simple ("toddler-level") or ambiguous (vague descriptors like "small and yellow").
 
 **How to run:**
 ```bash

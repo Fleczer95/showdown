@@ -15,11 +15,33 @@ const IP_RISKS = [
     'Mickey Mouse', 'James Bond', 'Gandalf', 'Skyrim', 'Minecraft', 'Mario', 'iPhone'
 ];
 
+const SIMPLICITY_PATTERNS = [
+    { regex: /\bWhat color is\b/i, name: 'Basic Color' },
+    { regex: /\bJakiego koloru jest\b/i, name: 'Basic Color (PL)' },
+    { regex: /\bHow many legs\b/i, name: 'Basic Counting' },
+    { regex: /\bIle nóg ma\b/i, name: 'Basic Counting (PL)' },
+    { regex: /\bHow many fingers\b/i, name: 'Basic Counting' },
+    { regex: /\bIle palców\b/i, name: 'Basic Counting (PL)' },
+    { regex: /\bWhat is \d \+ \d\b/i, name: 'Basic Arithmetic' },
+    { regex: /\bIle to jest \d \+ \d\b/i, name: 'Basic Arithmetic (PL)' },
+    { regex: /\b(small|big|large|fast|slow|heavy|light) and (yellow|red|blue|green|white|black)\b/i, name: 'Ambiguous Descriptor' },
+    { regex: /\b(mały|duży|wielki|szybki|wolny|ciężki|lekki) i (żółty|czerwony|niebieski|zielony|biały|czarny)\b/i, name: 'Ambiguous Descriptor (PL)' }
+];
+
 const audit = {
     errors: [],
     warnings: [],
     stats: {}
 };
+
+function checkQuality(name, text) {
+    if (typeof text !== 'string') return;
+    SIMPLICITY_PATTERNS.forEach(pattern => {
+        if (pattern.regex.test(text)) {
+            audit.warnings.push(`[LOW QUALITY] ${name}: Found over-simple or ambiguous pattern "${pattern.name}" in "${text}".`);
+        }
+    });
+}
 
 function checkDuplicates(name, list) {
     const seen = new Set();
@@ -61,6 +83,7 @@ function auditJsonPack(filePath, data) {
             });
             if (q.correctIndex < 0 || q.correctIndex > 3) audit.errors.push(`[INVALID DATA] ${relPath} ${id}: correctIndex ${q.correctIndex}`);
             checkIP(`${relPath} ${id}`, q.prompt?.en);
+            checkQuality(`${relPath} ${id}`, q.prompt?.en);
         });
 
         checkDuplicates(`${relPath} (EN)`, questions.map(q => q.prompt?.en));
@@ -72,6 +95,7 @@ function auditJsonPack(filePath, data) {
             const id = p.id || `P${i+1}`;
             if (!p.phrase?.en || !p.phrase?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Phrase`);
             checkIP(`${relPath} ${id}`, p.phrase?.en);
+            checkQuality(`${relPath} ${id}`, p.phrase?.en);
         });
         checkDuplicates(`${relPath} (EN)`, puzzles.map(p => p.phrase?.en));
     } else if (type === 'grid') {
@@ -83,6 +107,7 @@ function auditJsonPack(filePath, data) {
             cat.clues?.forEach((clue, ci) => {
                 if (!clue.clue?.en || !clue.clue?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${cid} Clue ${ci}: Text`);
                 checkIP(`${relPath} ${cid}`, clue.clue?.en);
+                checkQuality(`${relPath} ${cid} Clue ${ci}`, clue.clue?.en);
             });
         });
     }
@@ -105,6 +130,7 @@ function auditTsFile(filePath) {
     // IP Check on the whole file for English strings
     const enStrings = [...content.matchAll(/en: '([^']*)'/g)].map(m => m[1]);
     enStrings.forEach(s => checkIP(relPath, s));
+    enStrings.forEach(s => checkQuality(relPath, s));
     
     // Duplicate check for English prompts (best effort)
     const prompts = [...content.matchAll(/question: { en: '([^']*)'/g)].map(m => m[1]);

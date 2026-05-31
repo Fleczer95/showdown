@@ -43,3 +43,6 @@ google-services.json
 GoogleService-Info.plist
 # App Icon Proposals
 assets/archived_icons/
+
+# agent memory
+.maestro/

@@ -49,18 +49,18 @@ const allBoard: GridContentPack = {
         {
             title: { en: 'Movies', pl: 'Filmy' },
             clues: [
-                { value: VALUES[0], clue: { en: 'The toy cowboy in "Toy Story".', pl: 'Kowboj-zabawka z „Toy Story".' }, answer: { en: 'Woody', pl: 'Chudy' } },
-                { value: VALUES[1], clue: { en: 'The wizard school in the "Harry Potter" films.', pl: 'Szkoła czarodziejów w filmach o Harrym Potterze.' }, answer: { en: 'Hogwarts', pl: 'Hogwart' } },
+                { value: VALUES[0], clue: { en: 'The toy cowboy in a famous movie about living toys.', pl: 'Kowboj-zabawka ze słynnego filmu o ożywających zabawkach.' }, answer: { en: 'Woody', pl: 'Chudy' } },
+                { value: VALUES[1], clue: { en: 'The city where the movies "Breakfast at Tiffany\'s" and "Home Alone 2" take place.', pl: 'Miasto, w którym toczy się akcja filmów „Śniadanie u Tiffany’ego” i „Kevin sam w Nowym Jorku”.' }, answer: { en: 'New York', pl: 'Nowy Jork' } },
                 { value: VALUES[2], clue: { en: 'The director of "Jurassic Park" (1993).', pl: 'Reżyser „Parku Jurajskiego" (1993).' }, answer: { en: 'Steven Spielberg', pl: 'Steven Spielberg' } },
                 { value: VALUES[3], clue: { en: 'The ship that sinks in the 1997 film by James Cameron.', pl: 'Statek, który tonie w filmie Jamesa Camerona z 1997 roku.' }, answer: { en: 'Titanic', pl: 'Titanic' } },
-                { value: VALUES[4], clue: { en: 'The first feature-length animated film by Walt Disney.', pl: 'Pierwszy pełnometrażowy film animowany Walta Disneya.' }, answer: { en: 'Snow White', pl: 'Królewna Śnieżka' } },
+                { value: VALUES[4], clue: { en: 'The first feature-length animated film by a famous studio.', pl: 'Pierwszy pełnometrażowy film animowany słynnego studia.' }, answer: { en: 'Snow White', pl: 'Królewna Śnieżka' } },
             ],
         },
         {
             title: { en: 'Sports', pl: 'Sport' },
             clues: [
                 { value: VALUES[0], clue: { en: 'The number of players on a soccer team on the field.', pl: 'Liczba zawodników drużyny piłkarskiej na boisku.' }, answer: { en: '11', pl: '11' } },
-                { value: VALUES[1], clue: { en: 'The sport played at Wimbledon.', pl: 'Sport rozgrywany na Wimbledonie.' }, answer: { en: 'Tennis', pl: 'Tenis' } },
+                { value: VALUES[1], clue: { en: 'The sport played at a famous grass-court tournament.', pl: 'Sport rozgrywany na słynnym trawiastym turnieju.' }, answer: { en: 'Tennis', pl: 'Tenis' } },
                 { value: VALUES[2], clue: { en: 'The country that hosts the Tour de France.', pl: 'Kraj, w którym odbywa się Tour de France.' }, answer: { en: 'France', pl: 'Francja' } },
                 { value: VALUES[3], clue: { en: 'The number of rings on the Olympic flag.', pl: 'Liczba kół na fladze olimpijskiej.' }, answer: { en: '5', pl: '5' } },
                 { value: VALUES[4], clue: { en: 'The boxer who called himself "The Greatest".', pl: 'Bokser, który nazywał siebie „Największym".' }, answer: { en: 'Muhammad Ali', pl: 'Muhammad Ali' } },
@@ -83,7 +83,7 @@ const allBoard: GridContentPack = {
                 { value: VALUES[1], clue: { en: 'The detective living at 221B Baker Street.', pl: 'Detektyw mieszkający przy Baker Street 221B.' }, answer: { en: 'Sherlock Holmes', pl: 'Sherlock Holmes' } },
                 { value: VALUES[2], clue: { en: 'The fictional land in "The Lion, the Witch and the Wardrobe".', pl: 'Fikcyjna kraina z książki „Lew, Czarownica i stara szafa”.' }, answer: { en: 'Narnia', pl: 'Narnia' } },
                 { value: VALUES[3], clue: { en: 'The author of "The Little Prince".', pl: 'Autor „Małego Księcia”.' }, answer: { en: 'Saint-Exupéry', pl: 'Saint-Exupéry' } },
-                { value: VALUES[4], clue: { en: 'The school of witchcraft and wizardry.', pl: 'Szkoła magii i czarodziejstwa.' }, answer: { en: 'Hogwarts', pl: 'Hogwart' } },
+                { value: VALUES[4], clue: { en: 'The mythical island city that sank into the sea.', pl: 'Mityczna wyspa i miasto, które zatonęło w morzu.' }, answer: { en: 'Atlantis', pl: 'Atlantyda' } },
             ],
         },
         {
@@ -109,10 +109,10 @@ const allBoard: GridContentPack = {
         {
             title: { en: 'Technology', pl: 'Technologia' },
             clues: [
-                { value: VALUES[0], clue: { en: 'The company that created the iPhone.', pl: 'Firma, która stworzyła iPhone’a.' }, answer: { en: 'Apple', pl: 'Apple' } },
+                { value: VALUES[0], clue: { en: 'The software that translates human-readable code into machine code.', pl: 'Oprogramowanie tłumaczące kod czytelny dla człowieka na kod maszynowy.' }, answer: { en: 'Compiler', pl: 'Kompilator' } },
                 { value: VALUES[1], clue: { en: 'The "World Wide Web" inventor.', pl: 'Twórca sieci World Wide Web.' }, answer: { en: 'Tim Berners-Lee', pl: 'Tim Berners-Lee' } },
                 { value: VALUES[2], clue: { en: 'The main component of a computer (brain).', pl: 'Główny komponent komputera (jego mózg).' }, answer: { en: 'CPU', pl: 'Procesor' } },
-                { value: VALUES[3], clue: { en: 'The largest search engine.', pl: 'Największa wyszukiwarka internetowa.' }, answer: { en: 'Google', pl: 'Google' } },
+                { value: VALUES[3], clue: { en: 'The protocol used for secure communication over the web.', pl: 'Protokół używany do bezpiecznej komunikacji w sieci.' }, answer: { en: 'HTTPS', pl: 'HTTPS' } },
                 { value: VALUES[4], clue: { en: 'The first programmer in history.', pl: 'Pierwsza programistka w historii.' }, answer: { en: 'Ada Lovelace', pl: 'Ada Lovelace' } },
             ],
         },
@@ -179,11 +179,11 @@ const allBoard: GridContentPack = {
         {
             title: { en: 'Business', pl: 'Biznes' },
             clues: [
-                { value: VALUES[0], clue: { en: 'The founder of Microsoft.', pl: 'Założyciel Microsoftu.' }, answer: { en: 'Bill Gates', pl: 'Bill Gates' } },
+                { value: VALUES[0], clue: { en: 'The founder of a major software company.', pl: 'Założyciel wielkiej firmy programistycznej.' }, answer: { en: 'Bill Gates', pl: 'Bill Gates' } },
                 { value: VALUES[1], clue: { en: 'The currency of the European Union.', pl: 'Waluta Unii Europejskiej.' }, answer: { en: 'Euro', pl: 'Euro' } },
                 { value: VALUES[2], clue: { en: 'The largest retailer in the world.', pl: 'Największy detalista na świecie.' }, answer: { en: 'Walmart', pl: 'Walmart' } },
-                { value: VALUES[3], clue: { en: 'The company behind the search engine Google.', pl: 'Firma stojąca za wyszukiwarką Google.' }, answer: { en: 'Alphabet', pl: 'Alphabet' } },
-                { value: VALUES[4], clue: { en: 'The billionaire founder of Tesla.', pl: 'Miliarder, założyciel Tesli.' }, answer: { en: 'Elon Musk', pl: 'Elon Musk' } },
+                { value: VALUES[3], clue: { en: 'The company behind a dominant search engine.', pl: 'Firma stojąca za dominującą wyszukiwarką internetową.' }, answer: { en: 'Alphabet', pl: 'Alphabet' } },
+                { value: VALUES[4], clue: { en: 'The billionaire founder of a leading electric car company.', pl: 'Miliarder, założyciel wiodącej firmy produkującej samochody elektryczne.' }, answer: { en: 'Elon Musk', pl: 'Elon Musk' } },
             ],
         },
         {

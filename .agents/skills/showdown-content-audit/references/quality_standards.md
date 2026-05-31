@@ -38,6 +38,11 @@ This document defines the mandatory quality and legal criteria for all game cont
   - Entertainment Franchises (Disney, Marvel, Pokemon) unless described generically.
   - Specific brand names for common products (e.g., use "adhesive tape" instead of "Scotch Tape").
 
-## 4. ID Conventions
+## 4. Question Quality Standards
+- **Avoid Over-Simplicity**: Questions should challenge the player's knowledge. Avoid "toddler-level" trivia (e.g., "What color is a red car?", "How many legs does a dog have?").
+- **Precision**: Questions must be factual and unambiguous. Avoid subjective descriptors like "small", "big", "heavy" unless they are part of a comparative fact (e.g., "Which is the heaviest planet?").
+- **Unique Answers**: Ensure only one option can be considered correct under a strict interpretation.
+
+## 5. ID Conventions
 - **Base Content**: `ladder-001`, `drop-001`, etc.
 - **Packs**: `[slug]-[index]` (e.g., `science-001`).

@@ -13,6 +13,7 @@ import Pressable from '../../components/atoms/HapticPressable';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
 import Input from '../../components/molecules/Input';
+import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { getPack } from './content';
@@ -69,6 +70,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const [solveText, setSolveText] = useState('');
     const [solveMode, setSolveMode] = useState(false);
     const [status, setStatus] = useState('');
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     // Mark each puzzle shown the moment it begins (display-time). Fires once per
     // puzzle actually reached, so quitting early only marks puzzles played.
@@ -363,10 +365,16 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                     </Button>
                 )}
 
-                <Button variant='danger' fullWidth onPress={onExit}>
+                <Button variant='danger' fullWidth onPress={() => setShowLeaveConfirm(true)}>
                     {tr('game.the-wheel.active.leave')}
                 </Button>
             </Stack>
+            <LeaveConfirmModal
+                visible={showLeaveConfirm}
+                gameKey='the-wheel'
+                onConfirm={onExit}
+                onCancel={() => setShowLeaveConfirm(false)}
+            />
         </ScrollView>
     );
 }

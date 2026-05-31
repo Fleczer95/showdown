@@ -5,6 +5,7 @@ import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
+import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import { useTheme, useColor } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -28,7 +29,7 @@ type Language = 'en' | 'pl';
 
 /** Turn the bilingual content pack into a per-rung pool for the chosen locale. */
 function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
-    return ALL_PACK.rungs.map((rung) =>
+    const rawRungs = ALL_PACK.rungs.map((rung) =>
         rung.map((q) => ({
             id: q.id,
             prompt: q.question[lang],
@@ -37,6 +38,23 @@ function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
             hint: q.hint[lang],
         })),
     );
+
+    // We group the 15 rungs into 5 broader difficulty pools (3 rungs each).
+    // This increases variety at each step (e.g. any question from levels 1-3
+    // can appear in any of the first three rungs of a run).
+    const pooled: LadderQuestion[][] = [];
+    for (let i = 0; i < 5; i++) {
+        const startIndex = i * 3;
+        const combinedPool = [
+            ...rawRungs[startIndex],
+            ...rawRungs[startIndex + 1],
+            ...rawRungs[startIndex + 2],
+        ];
+        // We push the same large pool for all 3 rungs in the group.
+        // buildRun() will then pick distinct least-shown questions for each.
+        pooled.push(combinedPool, combinedPool, combinedPool);
+    }
+    return pooled;
 }
 
 const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[] = [
@@ -70,6 +88,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const [hidden, setHidden] = useState<number[]>([]);
     const [studioHint, setStudioHint] = useState<string | null>(null);
     const [selected, setSelected] = useState<number | null>(null);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     const question = currentQuestion(run);
 
@@ -139,7 +158,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                     <Text variant='caption' color='textSecondary' weight='semibold'>
                         {t('game.the-ladder.active.question', { number: run.currentIndex + 1 })}
                     </Text>
-                    <Button variant='ghost' size='sm' onPress={onExit}>
+                    <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
                         {t('game.the-ladder.active.leave')}
                     </Button>
                 </Stack>
@@ -227,6 +246,12 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                     </Stack>
                 </Stack>
             </Stack>
+            <LeaveConfirmModal
+                visible={showLeaveConfirm}
+                gameKey='the-ladder'
+                onConfirm={onExit}
+                onCancel={() => setShowLeaveConfirm(false)}
+            />
         </ScrollView>
     );
 }

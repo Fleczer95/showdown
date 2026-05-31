@@ -15,3 +15,14 @@
 {"type":"error","content":"Exit code 1 | ls: /tmp/claude-501showdown-handoff-2026-05-30.md: No such file or directory"}
 {"type":"error","content":"SyntaxError: Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"}
 {"type":"error","content":"<tool_use_error>Error: No such tool available: Glob</tool_use_error>"}
+{"type":"error","content":"Exit code 1 | wc: src/app/play.tsx: open: No such file or directory"}
+{"type":"error","content":"Exit code 1 | cat: src/app/play.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 1 | ... | content.ts | logic.test.ts | logic.ts | WheelPlayScreen.tsx"}
+{"type":"error","content":"Exit code 1 | cat: src/components/TopBar.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 2 | ugrep: warning: src/app: No such file or directory"}
+{"type":"error","content":"Exit code 2 | ... | ugrep: warning: src/game/grid/GridGame.tsx: No such file or directory | ugrep: warning: src/game/poll/PollGame.tsx: No such file or directory | ugrep: warning: src/game/wheel/WheelGame.tsx: No such file or directory | ugrep: warning: src/game/drop/DropGame.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 2 | ... | === wheel/WheelGame === | ugrep: warning: src/game/wheel/WheelGame.tsx: No such file or directory | === drop/DropGame === | ugrep: warning: src/game/drop/DropGame.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 1 | GameSetupScreen.tsx | HomeScreen.tsx | =====WHEELINFOMODAL===== | cat: src/components/molecules/WheelInfoModal.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 1 | cat: src/components/molecules/ResultsModal.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 2 | === PrimaryButton variants === | ugrep: warning: src/components/atoms/PrimaryButton.tsx: No such file or directory | === actions style in ResultsModal === | ugrep: warning: src/components/molecules/ResultsModal.tsx: No such file or directory"}
+{"type":"error","content":"Exit code 2 | awk: can't open file src/components/molecules/ResultsModal.tsx |  source line number 1"}

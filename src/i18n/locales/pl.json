@@ -233,7 +233,10 @@
                 "instruction": "Rozłóż cały bank na maksymalnie %{max} opcje (nigdy na wszystkie 4).",
                 "placed": "Obstawione",
                 "lockIn": "Zatwierdź",
-                "leave": "Opuść grę"
+                "leave": "Opuść grę",
+                "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
+                "leaveCancel": "Nie, zostaję",
+                "leaveOk": "Tak, wychodzę"
             },
             "reveal": {
                 "survived": "%{amount} ocalało",

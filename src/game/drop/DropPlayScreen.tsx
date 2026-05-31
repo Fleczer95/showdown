@@ -8,6 +8,7 @@ import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
+import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import Slider from '../../components/molecules/Slider';
 import { useTheme } from '../../theme';
@@ -43,6 +44,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const [allocation, setAllocation] = useState<number[]>(EMPTY_ALLOCATION);
     // While set, the round is revealed and we await the player advancing.
     const [revealed, setRevealed] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     const reset = useCallback(() => {
         // Re-read history so the next run reflects questions just shown.
@@ -277,13 +279,19 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                             <Button variant='primary' onPress={onConfirm} disabled={!canConfirm} fullWidth>
                                 {translate('game.the-drop.active.lockIn')}
                             </Button>
-                            <Button variant='ghost' onPress={onExit}>
+                            <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
                                 {translate('game.the-drop.active.leave')}
                             </Button>
                         </Stack>
                     )}
                 </Stack>
             </ScrollView>
+            <LeaveConfirmModal
+                visible={showLeaveConfirm}
+                gameKey='the-drop'
+                onConfirm={onExit}
+                onCancel={() => setShowLeaveConfirm(false)}
+            />
         </View>
     );
 }

@@ -233,7 +233,10 @@
                 "instruction": "Spread your whole bank across up to %{max} options (never all 4).",
                 "placed": "Placed",
                 "lockIn": "Lock In",
-                "leave": "Leave game"
+                "leave": "Leave game",
+                "leaveConfirm": "Are you sure you want to leave? All progress will be lost.",
+                "leaveCancel": "No, stay",
+                "leaveOk": "Yes, leave"
             },
             "reveal": {
                 "survived": "%{amount} survived",

@@ -5,6 +5,7 @@ import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
+import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -32,6 +33,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     const [state, setState] = useState<GridState>(() => buildBoard(getGridPack('all'), teams));
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [answerShown, setAnswerShown] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     const selected = selectedId ? findCell(state, selectedId) : undefined;
 
@@ -202,12 +204,18 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
                     variant='ghost'
                     size='md'
                     fullWidth
-                    onPress={onExit}
+                    onPress={() => setShowLeaveConfirm(true)}
                     icon={<Icon name={X} size={18} color={colors.textSecondary} />}
                 >
                     {t('game.the-grid.active.leave')}
                 </Button>
             </View>
+            <LeaveConfirmModal
+                visible={showLeaveConfirm}
+                gameKey='the-grid'
+                onConfirm={onExit}
+                onCancel={() => setShowLeaveConfirm(false)}
+            />
         </View>
     );
 }

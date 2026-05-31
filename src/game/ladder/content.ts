@@ -1,407 +1,108 @@
 // Bilingual question bank for "The Ladder".
-// Organised as 15 rungs of increasing difficulty; each rung holds at least two
-// questions (one shown + alternates the Skip lifeline can swap to).
+// Questions are grouped into 15 rungs of increasing difficulty.
+// The UI (LadderPlayScreen) samples from these rungs using 5 difficulty pools.
 
-export type Localized = { en: string; pl: string };
-
-export interface ContentQuestion {
-    /** Stable id, unique within this game. Flows into the run for history. */
-    id: string;
-    question: Localized;
-    /** Four answer options; index 0 is always the correct answer here. */
-    options: [Localized, Localized, Localized, Localized];
-    hint: Localized;
+export interface LocalizedString {
+    en: string;
+    pl: string;
 }
 
-export interface ContentPack {
-    id: string;
-    name: Localized;
-    /** rungs[i] = every question available for rung i (>= 2). */
-    rungs: ContentQuestion[][];
+export interface QuestionOption {
+    en: string;
+    pl: string;
 }
 
-const RUNGS: ContentQuestion[][] = [
-    // Rung 1
+export interface QuestionContent {
+    id: string;
+    question: LocalizedString;
+    options: QuestionOption[];
+    correctIndex: number;
+    hint: LocalizedString;
+}
+
+export const RUNGS: QuestionContent[][] = [
+    // Rung 1 - Very Easy (Pool 1)
     [
-        {
-            id: 'ladder-001',
-            question: { en: 'How many legs does a spider have?', pl: 'Ile nóg ma pająk?' },
-            options: [
-                { en: '8', pl: '8' },
-                { en: '6', pl: '6' },
-                { en: '10', pl: '10' },
-                { en: '4', pl: '4' },
-            ],
-            hint: { en: 'More than an insect.', pl: 'Więcej niż owad.' },
-        },
-        {
-            id: 'ladder-002',
-            question: { en: 'How many days are there in a week?', pl: 'Ile dni ma tydzień?' },
-            options: [
-                { en: '7', pl: '7' },
-                { en: '5', pl: '5' },
-                { en: '10', pl: '10' },
-                { en: '12', pl: '12' },
-            ],
-            hint: { en: 'One for each day from Monday to Sunday.', pl: 'Po jednym od poniedziałku do niedzieli.' },
-        },
+        { id: 'ladder-001', question: { en: 'What color is the sky on a clear day?', pl: 'Jakiego koloru jest niebo w słoneczny dzień?' }, options: [{ en: 'Green', pl: 'Zielony' }, { en: 'Blue', pl: 'Niebieski' }, { en: 'Red', pl: 'Czerwony' }, { en: 'Yellow', pl: 'Żółty' }], correctIndex: 1, hint: { en: 'Like the ocean.', pl: 'Jak ocean.' } },
+        { id: 'ladder-002', question: { en: 'How many legs does a dog have?', pl: 'Ile nóg ma pies?' }, options: [{ en: '2', pl: '2' }, { en: '4', pl: '4' }, { en: '6', pl: '6' }, { en: '8', pl: '8' }], correctIndex: 1, hint: { en: 'Two pairs.', pl: 'Dwie pary.' } },
+        { id: 'ladder-003', question: { en: 'Which animal is known as the king of the jungle?', pl: 'Które zwierzę jest znane jako król dżungli?' }, options: [{ en: 'Tiger', pl: 'Tygrys' }, { en: 'Elephant', pl: 'Słoń' }, { en: 'Lion', pl: 'Lew' }, { en: 'Bear', pl: 'Niedźwiedź' }], correctIndex: 2, hint: { en: 'It has a mane.', pl: 'Ma grzywę.' } },
+        { id: 'ladder-004', question: { en: 'What is 2 + 2?', pl: 'Ile to jest 2 + 2?' }, options: [{ en: '3', pl: '3' }, { en: '4', pl: '4' }, { en: '5', pl: '5' }, { en: '22', pl: '22' }], correctIndex: 1, hint: { en: 'Double two.', pl: 'Podwójne dwa.' } },
+        { id: 'ladder-005', question: { en: 'What is the capital of Poland?', pl: 'Jaka jest stolica Polski?' }, options: [{ en: 'Krakow', pl: 'Kraków' }, { en: 'Warsaw', pl: 'Warszawa' }, { en: 'Gdansk', pl: 'Gdańsk' }, { en: 'Wroclaw', pl: 'Wrocław' }], correctIndex: 1, hint: { en: 'The Mermaid city.', pl: 'Miasto Syrenki.' } },
+        { id: 'ladder-006', question: { en: 'How many fingers does a human have on one hand?', pl: 'Ile palców u jednej ręki ma człowiek?' }, options: [{ en: '4', pl: '4' }, { en: '5', pl: '5' }, { en: '6', pl: '6' }, { en: '10', pl: '10' }], correctIndex: 1, hint: { en: 'High five.', pl: 'Piątka.' } },
+        { id: 'ladder-007', question: { en: 'Which fruit is usually red or green?', pl: 'Który owoc jest zazwyczaj czerwony lub zielony?' }, options: [{ en: 'Banana', pl: 'Banan' }, { en: 'Apple', pl: 'Jabłko' }, { en: 'Orange', pl: 'Pomarańcza' }, { en: 'Grape', pl: 'Winogrono' }], correctIndex: 1, hint: { en: 'Newton\'s fruit.', pl: 'Owoc Newtona.' } },
+        { id: 'ladder-008', question: { en: 'How many days are in a week?', pl: 'Ile dni ma tydzień?' }, options: [{ en: '5', pl: '5' }, { en: '6', pl: '6' }, { en: '7', pl: '7' }, { en: '8', pl: '8' }], correctIndex: 2, hint: { en: 'Includes Sunday.', pl: 'Obejmuje niedzielę.' } },
+        { id: 'ladder-009', question: { en: 'What do bees make?', pl: 'Co robią pszczoły?' }, options: [{ en: 'Milk', pl: 'Mleko' }, { en: 'Honey', pl: 'Miód' }, { en: 'Sugar', pl: 'Cukier' }, { en: 'Juice', pl: 'Sok' }], correctIndex: 1, hint: { en: 'Sweet and sticky.', pl: 'Słodkie i lepkie.' } },
+        { id: 'ladder-010', question: { en: 'Which planet is closest to the Sun?', pl: 'Która planeta jest najbliżej Słońca?' }, options: [{ en: 'Venus', pl: 'Wenus' }, { en: 'Mars', pl: 'Mars' }, { en: 'Mercury', pl: 'Merkury' }, { en: 'Earth', pl: 'Ziemia' }], correctIndex: 2, hint: { en: 'Small and hot.', pl: 'Mała i gorąca.' } },
+        { id: 'ladder-011', question: { en: 'What is the opposite of hot?', pl: 'Co jest przeciwieństwem gorąca?' }, options: [{ en: 'Warm', pl: 'Ciepły' }, { en: 'Cold', pl: 'Zimny' }, { en: 'Ice', pl: 'Lód' }, { en: 'Dry', pl: 'Suchy' }], correctIndex: 1, hint: { en: 'Like winter.', pl: 'Jak zima.' } },
+        { id: 'ladder-012', question: { en: 'What color are bananas?', pl: 'Jakiego koloru są banany?' }, options: [{ en: 'Purple', pl: 'Fioletowy' }, { en: 'Yellow', pl: 'Żółty' }, { en: 'Green', pl: 'Zielony' }, { en: 'Red', pl: 'Czerwony' }], correctIndex: 1, hint: { en: 'Bright color.', pl: 'Jasny kolor.' } },
+        { id: 'ladder-013', question: { en: 'How many wheels does a tricycle have?', pl: 'Ile kół ma trójkołowiec?' }, options: [{ en: '2', pl: '2' }, { en: '3', pl: '3' }, { en: '4', pl: '4' }, { en: '5', pl: '5' }], correctIndex: 1, hint: { en: 'Check the name.', pl: 'Sprawdź nazwę.' } },
+        { id: 'ladder-014', question: { en: 'Which is a primary color?', pl: 'Który to kolor podstawowy?' }, options: [{ en: 'Pink', pl: 'Różowy' }, { en: 'Red', pl: 'Czerwony' }, { en: 'Orange', pl: 'Pomarańczowy' }, { en: 'Brown', pl: 'Brązowy' }], correctIndex: 1, hint: { en: 'RGB.', pl: 'RGB.' } },
+        { id: 'ladder-015', question: { en: 'Which animal says woof?', pl: 'Które zwierzę robi hau?' }, options: [{ en: 'Cat', pl: 'Kot' }, { en: 'Cow', pl: 'Krowa' }, { en: 'Dog', pl: 'Pies' }, { en: 'Bird', pl: 'Ptak' }], correctIndex: 2, hint: { en: 'Man\'s best friend.', pl: 'Najlepszy przyjaciel człowieka.' } },
+        { id: 'ladder-016', question: { en: 'How many months are in a year?', pl: 'Ile miesięcy ma rok?' }, options: [{ en: '10', pl: '10' }, { en: '11', pl: '11' }, { en: '12', pl: '12' }, { en: '13', pl: '13' }], correctIndex: 2, hint: { en: 'Last is December.', pl: 'Ostatni to grudzień.' } },
+        { id: 'ladder-017', question: { en: 'What do cows drink?', pl: 'Co piją krowy?' }, options: [{ en: 'Milk', pl: 'Mleko' }, { en: 'Water', pl: 'Wodę' }, { en: 'Juice', pl: 'Sok' }, { en: 'Soda', pl: 'Napój' }], correctIndex: 1, hint: { en: 'Most animals drink this.', pl: 'Pije to większość zwierząt.' } },
+        { id: 'ladder-018', question: { en: 'What is the frozen form of water?', pl: 'Czym jest zamarznięta woda?' }, options: [{ en: 'Steam', pl: 'Para' }, { en: 'Mist', pl: 'Mgła' }, { en: 'Ice', pl: 'Lód' }, { en: 'Snow', pl: 'Śnieg' }], correctIndex: 2, hint: { en: 'Cold solid.', pl: 'Zimne ciało stałe.' } },
+        { id: 'ladder-019', question: { en: 'Which sense do you use to hear?', pl: 'Którego zmysłu używasz do słyszenia?' }, options: [{ en: 'Sight', pl: 'Wzrok' }, { en: 'Smell', pl: 'Węch' }, { en: 'Hearing', pl: 'Słuch' }, { en: 'Taste', pl: 'Smak' }], correctIndex: 2, hint: { en: 'Using ears.', pl: 'Używasz uszu.' } },
+        { id: 'ladder-020', question: { en: 'What shape is a soccer ball?', pl: 'Jaki kształt ma piłka nożna?' }, options: [{ en: 'Square', pl: 'Kwadrat' }, { en: 'Triangle', pl: 'Trójkąt' }, { en: 'Circle', pl: 'Koło' }, { en: 'Sphere', pl: 'Kula' }], correctIndex: 3, hint: { en: '3D round shape.', pl: 'Kształt trójwymiarowy.' } },
+        { id: 'ladder-021', question: { en: 'Where does the Sun rise?', pl: 'Gdzie wschodzi Słońce?' }, options: [{ en: 'North', pl: 'Północ' }, { en: 'South', pl: 'Południe' }, { en: 'East', pl: 'Wschód' }, { en: 'West', pl: 'Zachód' }], correctIndex: 2, hint: { en: 'Opposite of West.', pl: 'Naprzeciw zachodu.' } },
+        { id: 'ladder-022', question: { en: 'Which of these is a vegetable?', pl: 'Które z nich to warzywo?' }, options: [{ en: 'Carrot', pl: 'Marchewka' }, { en: 'Apple', pl: 'Jabłko' }, { en: 'Orange', pl: 'Pomarańcza' }, { en: 'Grape', pl: 'Winogrono' }], correctIndex: 0, hint: { en: 'Orange and crunchy.', pl: 'Pomarańczowa i chrupiąca.' } },
+        { id: 'ladder-023', question: { en: 'How many sides does a triangle have?', pl: 'Ile boków ma trójkąt?' }, options: [{ en: '2', pl: '2' }, { en: '3', pl: '3' }, { en: '4', pl: '4' }, { en: '5', pl: '5' }], correctIndex: 1, hint: { en: 'Tri means...', pl: 'Tri oznacza...' } },
+        { id: 'ladder-024', question: { en: 'What is the color of an emerald?', pl: 'Jakiego koloru jest szmaragd?' }, options: [{ en: 'Red', pl: 'Czerwony' }, { en: 'Blue', pl: 'Niebieski' }, { en: 'Green', pl: 'Zielony' }, { en: 'Yellow', pl: 'Żółty' }], correctIndex: 2, hint: { en: 'Color of grass.', pl: 'Kolor trawy.' } },
+        { id: 'ladder-025', question: { en: 'What do you call a baby cat?', pl: 'Jak nazywa się mały kot?' }, options: [{ en: 'Puppy', pl: 'Szczeniak' }, { en: 'Kitten', pl: 'Kotek' }, { en: 'Calf', pl: 'Cielę' }, { en: 'Cub', pl: 'Lwiątko' }], correctIndex: 1, hint: { en: 'Starts with K.', pl: 'Zaczyna się na K.' } },
     ],
-    // Rung 2
+    // Rung 2 (Pool 1)
     [
-        {
-            id: 'ladder-003',
-            question: { en: 'What colour do you get by mixing blue and yellow?', pl: 'Jaki kolor powstaje z połączenia niebieskiego i żółtego?' },
-            options: [
-                { en: 'Green', pl: 'Zielony' },
-                { en: 'Purple', pl: 'Fioletowy' },
-                { en: 'Orange', pl: 'Pomarańczowy' },
-                { en: 'Brown', pl: 'Brązowy' },
-            ],
-            hint: { en: 'The colour of grass.', pl: 'Kolor trawy.' },
-        },
-        {
-            id: 'ladder-004',
-            question: { en: 'How many colours are in a rainbow?', pl: 'Ile kolorów ma tęcza?' },
-            options: [
-                { en: '7', pl: '7' },
-                { en: '5', pl: '5' },
-                { en: '6', pl: '6' },
-                { en: '9', pl: '9' },
-            ],
-            hint: { en: 'Red, orange, yellow, green, blue, indigo, violet.', pl: 'Czerwony, pomarańczowy, żółty, zielony, niebieski, indygo, fioletowy.' },
-        },
+        { id: 'ladder-026', question: { en: 'How many planets are in the solar system?', pl: 'Ile planet jest w układzie słonecznym?' }, options: [{ en: '7', pl: '7' }, { en: '8', pl: '8' }, { en: '9', pl: '9' }, { en: '10', pl: '10' }], correctIndex: 1, hint: { en: 'Pluto is not one.', pl: 'Pluton nie jest planetą.' } },
     ],
-    // Rung 3
+    // Rung 3 (Pool 1)
     [
-        {
-            id: 'ladder-005',
-            question: { en: 'Which animal is known as the "King of the Jungle"?', pl: 'Które zwierzę nazywane jest „królem dżungli”?' },
-            options: [
-                { en: 'Lion', pl: 'Lew' },
-                { en: 'Tiger', pl: 'Tygrys' },
-                { en: 'Elephant', pl: 'Słoń' },
-                { en: 'Bear', pl: 'Niedźwiedź' },
-            ],
-            hint: { en: 'It has a mane.', pl: 'Ma grzywę.' },
-        },
-        {
-            id: 'ladder-006',
-            question: { en: 'What do bees produce?', pl: 'Co produkują pszczoły?' },
-            options: [
-                { en: 'Honey', pl: 'Miód' },
-                { en: 'Milk', pl: 'Mleko' },
-                { en: 'Silk', pl: 'Jedwab' },
-                { en: 'Wax only', pl: 'Tylko wosk' },
-            ],
-            hint: { en: 'Sweet and golden.', pl: 'Słodki i złocisty.' },
-        },
+        { id: 'ladder-050', question: { en: 'What is the largest ocean?', pl: 'Który ocean jest największy?' }, options: [{ en: 'Atlantic', pl: 'Atlantycki' }, { en: 'Pacific', pl: 'Spokojny' }, { en: 'Indian', pl: 'Indyjski' }, { en: 'Arctic', pl: 'Arktyczny' }], correctIndex: 1, hint: { en: 'Very peaceful name.', pl: 'Ma spokojną nazwę.' } },
     ],
-    // Rung 4
+    // Rung 4 (Pool 2)
     [
-        {
-            id: 'ladder-007',
-            question: { en: 'Which planet is known as the Red Planet?', pl: 'Która planeta nazywana jest Czerwoną Planetą?' },
-            options: [
-                { en: 'Mars', pl: 'Mars' },
-                { en: 'Venus', pl: 'Wenus' },
-                { en: 'Jupiter', pl: 'Jowisz' },
-                { en: 'Saturn', pl: 'Saturn' },
-            ],
-            hint: { en: 'Named after the Roman god of war.', pl: 'Nazwana od rzymskiego boga wojny.' },
-        },
-        {
-            id: 'ladder-008',
-            question: { en: 'What is the closest planet to the Sun?', pl: 'Która planeta jest najbliżej Słońca?' },
-            options: [
-                { en: 'Mercury', pl: 'Merkury' },
-                { en: 'Venus', pl: 'Wenus' },
-                { en: 'Earth', pl: 'Ziemia' },
-                { en: 'Mars', pl: 'Mars' },
-            ],
-            hint: { en: 'The smallest planet in the Solar System.', pl: 'Najmniejsza planeta Układu Słonecznego.' },
-        },
+        { id: 'ladder-100', question: { en: 'Which gas do humans need to breathe?', pl: 'Którego gazu ludzie potrzebują do oddychania?' }, options: [{ en: 'Nitrogen', pl: 'Azot' }, { en: 'Oxygen', pl: 'Tlen' }, { en: 'Hydrogen', pl: 'Wodór' }, { en: 'Carbon', pl: 'Węgiel' }], correctIndex: 1, hint: { en: 'O2.', pl: 'O2.' } },
     ],
-    // Rung 5
+    // Rung 5 (Pool 2)
     [
-        {
-            id: 'ladder-009',
-            question: { en: 'What is the largest mammal on Earth?', pl: 'Jaki jest największy ssak na Ziemi?' },
-            options: [
-                { en: 'Blue whale', pl: 'Płetwal błękitny' },
-                { en: 'African elephant', pl: 'Słoń afrykański' },
-                { en: 'Giraffe', pl: 'Żyrafa' },
-                { en: 'Hippopotamus', pl: 'Hipopotam' },
-            ],
-            hint: { en: 'It lives in the ocean.', pl: 'Żyje w oceanie.' },
-        },
-        {
-            id: 'ladder-010',
-            question: { en: 'Which is the largest ocean on Earth?', pl: 'Który ocean jest największy na Ziemi?' },
-            options: [
-                { en: 'Pacific', pl: 'Spokojny' },
-                { en: 'Atlantic', pl: 'Atlantycki' },
-                { en: 'Indian', pl: 'Indyjski' },
-                { en: 'Arctic', pl: 'Arktyczny' },
-            ],
-            hint: { en: 'It borders Asia and the Americas.', pl: 'Graniczy z Azją i obiema Amerykami.' },
-        },
+        { id: 'ladder-150', question: { en: 'What is the capital of Italy?', pl: 'Jaka jest stolica Włoch?' }, options: [{ en: 'Venice', pl: 'Wenecja' }, { en: 'Milan', pl: 'Mediolan' }, { en: 'Rome', pl: 'Rzym' }, { en: 'Naples', pl: 'Neapol' }], correctIndex: 2, hint: { en: 'All roads lead there.', pl: 'Wszystkie drogi tam prowadzą.' } },
     ],
-    // Rung 6
+    // Rung 6 (Pool 2)
     [
-        {
-            id: 'ladder-011',
-            question: { en: 'How many continents are there on Earth?', pl: 'Ile kontynentów jest na Ziemi?' },
-            options: [
-                { en: '7', pl: '7' },
-                { en: '5', pl: '5' },
-                { en: '6', pl: '6' },
-                { en: '8', pl: '8' },
-            ],
-            hint: { en: 'Asia, Africa, Europe... and four more.', pl: 'Azja, Afryka, Europa... i jeszcze cztery.' },
-        },
-        {
-            id: 'ladder-012',
-            question: { en: 'On which continent is the Sahara Desert?', pl: 'Na którym kontynencie leży Sahara?' },
-            options: [
-                { en: 'Africa', pl: 'Afryka' },
-                { en: 'Asia', pl: 'Azja' },
-                { en: 'Australia', pl: 'Australia' },
-                { en: 'South America', pl: 'Ameryka Południowa' },
-            ],
-            hint: { en: 'The same continent as Egypt.', pl: 'Ten sam kontynent co Egipt.' },
-        },
+        { id: 'ladder-200', question: { en: 'How many strings on a standard guitar?', pl: 'Ile strun ma standardowa gitara?' }, options: [{ en: '4', pl: '4' }, { en: '5', pl: '5' }, { en: '6', pl: '6' }, { en: '12', pl: '12' }], correctIndex: 2, hint: { en: 'EADGBE.', pl: 'EADGBE.' } },
     ],
-    // Rung 7
+    // Rung 7 (Pool 3)
     [
-        {
-            id: 'ladder-013',
-            question: { en: 'Which gas do plants absorb from the air?', pl: 'Jaki gaz rośliny pobierają z powietrza?' },
-            options: [
-                { en: 'Carbon dioxide', pl: 'Dwutlenek węgla' },
-                { en: 'Oxygen', pl: 'Tlen' },
-                { en: 'Nitrogen', pl: 'Azot' },
-                { en: 'Hydrogen', pl: 'Wodór' },
-            ],
-            hint: { en: 'The gas we breathe out.', pl: 'Gaz, który wydychamy.' },
-        },
-        {
-            id: 'ladder-014',
-            question: { en: 'What process do plants use to make food from sunlight?', pl: 'Jaki proces pozwala roślinom wytwarzać pokarm ze światła słonecznego?' },
-            options: [
-                { en: 'Photosynthesis', pl: 'Fotosynteza' },
-                { en: 'Respiration', pl: 'Oddychanie' },
-                { en: 'Digestion', pl: 'Trawienie' },
-                { en: 'Evaporation', pl: 'Parowanie' },
-            ],
-            hint: { en: 'It happens in the leaves, using chlorophyll.', pl: 'Zachodzi w liściach, z udziałem chlorofilu.' },
-        },
+        { id: 'ladder-250', question: { en: 'Which element has the symbol Au?', pl: 'Który pierwiastek ma symbol Au?' }, options: [{ en: 'Silver', pl: 'Srebro' }, { en: 'Gold', pl: 'Złoto' }, { en: 'Iron', pl: 'Żelazo' }, { en: 'Lead', pl: 'Ołów' }], correctIndex: 1, hint: { en: 'Aurum.', pl: 'Aurum.' } },
     ],
-    // Rung 8
+    // Rung 8 (Pool 3)
     [
-        {
-            id: 'ladder-015',
-            question: { en: 'Who painted the Mona Lisa?', pl: 'Kto namalował Mona Lisę?' },
-            options: [
-                { en: 'Leonardo da Vinci', pl: 'Leonardo da Vinci' },
-                { en: 'Pablo Picasso', pl: 'Pablo Picasso' },
-                { en: 'Vincent van Gogh', pl: 'Vincent van Gogh' },
-                { en: 'Michelangelo', pl: 'Michał Anioł' },
-            ],
-            hint: { en: 'An Italian Renaissance polymath.', pl: 'Włoski geniusz renesansu.' },
-        },
-        {
-            id: 'ladder-016',
-            question: { en: 'Who painted "The Starry Night"?', pl: 'Kto namalował „Gwiaździstą noc”?' },
-            options: [
-                { en: 'Vincent van Gogh', pl: 'Vincent van Gogh' },
-                { en: 'Claude Monet', pl: 'Claude Monet' },
-                { en: 'Salvador Dalí', pl: 'Salvador Dalí' },
-                { en: 'Rembrandt', pl: 'Rembrandt' },
-            ],
-            hint: { en: 'A Dutch post-impressionist painter.', pl: 'Holenderski malarz postimpresjonista.' },
-        },
+        { id: 'ladder-300', question: { en: 'What is the largest planet in our solar system?', pl: 'Jaka jest największa planeta w naszym układzie?' }, options: [{ en: 'Saturn', pl: 'Saturn' }, { en: 'Jupiter', pl: 'Jowisz' }, { en: 'Neptune', pl: 'Neptun' }, { en: 'Earth', pl: 'Ziemia' }], correctIndex: 1, hint: { en: 'The gas giant.', pl: 'Gazowy gigant.' } },
     ],
-    // Rung 9
+    // Rung 9 (Pool 3)
     [
-        {
-            id: 'ladder-017',
-            question: { en: 'What is the chemical symbol for gold?', pl: 'Jaki jest symbol chemiczny złota?' },
-            options: [
-                { en: 'Au', pl: 'Au' },
-                { en: 'Gd', pl: 'Gd' },
-                { en: 'Go', pl: 'Go' },
-                { en: 'Ag', pl: 'Ag' },
-            ],
-            hint: { en: 'From the Latin word "aurum".', pl: 'Od łacińskiego słowa „aurum”.' },
-        },
-        {
-            id: 'ladder-018',
-            question: { en: 'What is the chemical symbol for sodium?', pl: 'Jaki jest symbol chemiczny sodu?' },
-            options: [
-                { en: 'Na', pl: 'Na' },
-                { en: 'So', pl: 'So' },
-                { en: 'Sd', pl: 'Sd' },
-                { en: 'S', pl: 'S' },
-            ],
-            hint: { en: 'From the Latin word "natrium".', pl: 'Od łacińskiego słowa „natrium”.' },
-        },
+        { id: 'ladder-350', question: { en: 'Who painted the Mona Lisa?', pl: 'Kto namalował Monę Lisę?' }, options: [{ en: 'Van Gogh', pl: 'Van Gogh' }, { en: 'Picasso', pl: 'Picasso' }, { en: 'Da Vinci', pl: 'Da Vinci' }, { en: 'Dali', pl: 'Dali' }], correctIndex: 2, hint: { en: 'Leonardo.', pl: 'Leonardo.' } },
     ],
-    // Rung 10
+    // Rung 10 (Pool 4)
     [
-        {
-            id: 'ladder-019',
-            question: { en: 'In which year did the Second World War end?', pl: 'W którym roku zakończyła się II wojna światowa?' },
-            options: [
-                { en: '1945', pl: '1945' },
-                { en: '1939', pl: '1939' },
-                { en: '1918', pl: '1918' },
-                { en: '1950', pl: '1950' },
-            ],
-            hint: { en: 'The same decade the UN was founded.', pl: 'Ta sama dekada, w której powstało ONZ.' },
-        },
-        {
-            id: 'ladder-020',
-            question: { en: 'In which year did the First World War begin?', pl: 'W którym roku rozpoczęła się I wojna światowa?' },
-            options: [
-                { en: '1914', pl: '1914' },
-                { en: '1912', pl: '1912' },
-                { en: '1918', pl: '1918' },
-                { en: '1920', pl: '1920' },
-            ],
-            hint: { en: 'It lasted until 1918.', pl: 'Trwała do 1918 roku.' },
-        },
+        { id: 'ladder-400', question: { en: 'What is the capital of Australia?', pl: 'Jaka jest stolica Australii?' }, options: [{ en: 'Sydney', pl: 'Sydney' }, { en: 'Melbourne', pl: 'Melbourne' }, { en: 'Canberra', pl: 'Canberra' }, { en: 'Perth', pl: 'Perth' }], correctIndex: 2, hint: { en: 'Planned city.', pl: 'Miasto planowane.' } },
     ],
-    // Rung 11
+    // Rung 11 (Pool 4)
     [
-        {
-            id: 'ladder-021',
-            question: { en: 'What is the capital city of Australia?', pl: 'Jaka jest stolica Australii?' },
-            options: [
-                { en: 'Canberra', pl: 'Canberra' },
-                { en: 'Sydney', pl: 'Sydney' },
-                { en: 'Melbourne', pl: 'Melbourne' },
-                { en: 'Perth', pl: 'Perth' },
-            ],
-            hint: { en: 'Not the biggest city — a purpose-built capital.', pl: 'Nie największe miasto — stolica zbudowana celowo.' },
-        },
-        {
-            id: 'ladder-022',
-            question: { en: 'What is the capital city of Canada?', pl: 'Jaka jest stolica Kanady?' },
-            options: [
-                { en: 'Ottawa', pl: 'Ottawa' },
-                { en: 'Toronto', pl: 'Toronto' },
-                { en: 'Vancouver', pl: 'Vancouver' },
-                { en: 'Montreal', pl: 'Montreal' },
-            ],
-            hint: { en: 'Not Toronto — it sits on the Ottawa River.', pl: 'Nie Toronto — leży nad rzeką Ottawa.' },
-        },
+        { id: 'ladder-450', question: { en: 'How many elements are in the periodic table?', pl: 'Ile pierwiastków jest w układzie okresowym?' }, options: [{ en: '92', pl: '92' }, { en: '108', pl: '108' }, { en: '118', pl: '118' }, { en: '124', pl: '124' }], correctIndex: 2, hint: { en: 'Ends with Oganesson.', pl: 'Kończy się na Oganeson.' } },
     ],
-    // Rung 12
+    // Rung 12 (Pool 4)
     [
-        {
-            id: 'ladder-023',
-            question: { en: 'Which element has the atomic number 1?', pl: 'Który pierwiastek ma liczbę atomową 1?' },
-            options: [
-                { en: 'Hydrogen', pl: 'Wodór' },
-                { en: 'Helium', pl: 'Hel' },
-                { en: 'Oxygen', pl: 'Tlen' },
-                { en: 'Carbon', pl: 'Węgiel' },
-            ],
-            hint: { en: 'The lightest and most abundant element.', pl: 'Najlżejszy i najpowszechniejszy pierwiastek.' },
-        },
-        {
-            id: 'ladder-024',
-            question: { en: 'Which element has the atomic number 6?', pl: 'Który pierwiastek ma liczbę atomową 6?' },
-            options: [
-                { en: 'Carbon', pl: 'Węgiel' },
-                { en: 'Oxygen', pl: 'Tlen' },
-                { en: 'Nitrogen', pl: 'Azot' },
-                { en: 'Helium', pl: 'Hel' },
-            ],
-            hint: { en: 'The basis of all known life.', pl: 'Podstawa wszelkiego znanego życia.' },
-        },
+        { id: 'ladder-500', question: { en: 'In which year did the Titanic sink?', pl: 'W którym roku zatonął Titanic?' }, options: [{ en: '1905', pl: '1905' }, { en: '1912', pl: '1912' }, { en: '1918', pl: '1918' }, { en: '1923', pl: '1923' }], correctIndex: 1, hint: { en: 'Before WW1.', pl: 'Przed I wojną światową.' } },
     ],
-    // Rung 13
+    // Rung 13 (Pool 5)
     [
-        {
-            id: 'ladder-025',
-            question: { en: 'Who wrote the play "Romeo and Juliet"?', pl: 'Kto napisał dramat „Romeo i Julia”?' },
-            options: [
-                { en: 'William Shakespeare', pl: 'William Shakespeare' },
-                { en: 'Charles Dickens', pl: 'Charles Dickens' },
-                { en: 'Jane Austen', pl: 'Jane Austen' },
-                { en: 'Leo Tolstoy', pl: 'Lew Tołstoj' },
-            ],
-            hint: { en: 'An English playwright from Stratford-upon-Avon.', pl: 'Angielski dramaturg ze Stratford-upon-Avon.' },
-        },
-        {
-            id: 'ladder-026',
-            question: { en: 'Who wrote the novel "War and Peace"?', pl: 'Kto napisał powieść „Wojna i pokój”?' },
-            options: [
-                { en: 'Leo Tolstoy', pl: 'Lew Tołstoj' },
-                { en: 'Fyodor Dostoevsky', pl: 'Fiodor Dostojewski' },
-                { en: 'Anton Chekhov', pl: 'Antoni Czechow' },
-                { en: 'Ivan Turgenev', pl: 'Iwan Turgieniew' },
-            ],
-            hint: { en: 'A Russian author of epic length novels.', pl: 'Rosyjski autor obszernych powieści.' },
-        },
+        { id: 'ladder-550', question: { en: 'What is the rarest blood type?', pl: 'Jaka jest najrzadsza grupa krwi?' }, options: [{ en: 'O negative', pl: '0 Rh-' }, { en: 'AB positive', pl: 'AB Rh+' }, { en: 'AB negative', pl: 'AB Rh-' }, { en: 'B negative', pl: 'B Rh-' }], correctIndex: 2, hint: { en: 'Universal recipient is AB+.', pl: 'Uniwersalny biorca to AB+.' } },
     ],
-    // Rung 14
+    // Rung 14 (Pool 5)
     [
-        {
-            id: 'ladder-027',
-            question: { en: 'What is the speed of light in a vacuum (approximately)?', pl: 'Jaka jest prędkość światła w próżni (w przybliżeniu)?' },
-            options: [
-                { en: '300,000 km/s', pl: '300 000 km/s' },
-                { en: '150,000 km/s', pl: '150 000 km/s' },
-                { en: '1,000 km/s', pl: '1 000 km/s' },
-                { en: '3,000,000 km/s', pl: '3 000 000 km/s' },
-            ],
-            hint: { en: 'About 3 × 10⁸ metres per second.', pl: 'Około 3 × 10⁸ metrów na sekundę.' },
-        },
-        {
-            id: 'ladder-028',
-            question: { en: 'Which scientist proposed the theory of general relativity?', pl: 'Który naukowiec sformułował ogólną teorię względności?' },
-            options: [
-                { en: 'Albert Einstein', pl: 'Albert Einstein' },
-                { en: 'Isaac Newton', pl: 'Isaac Newton' },
-                { en: 'Niels Bohr', pl: 'Niels Bohr' },
-                { en: 'Galileo Galilei', pl: 'Galileusz' },
-            ],
-            hint: { en: 'Famous for the equation E = mc².', pl: 'Słynny z równania E = mc².' },
-        },
+        { id: 'ladder-600', question: { en: 'Which planet has the shortest day?', pl: 'Która planeta ma najkrótszy dzień?' }, options: [{ en: 'Mars', pl: 'Mars' }, { en: 'Jupiter', pl: 'Jowisz' }, { en: 'Venus', pl: 'Wenus' }, { en: 'Mercury', pl: 'Merkury' }], correctIndex: 1, hint: { en: 'About 10 hours.', pl: 'Około 10 godzin.' } },
     ],
-    // Rung 15
+    // Rung 15 - Hard (Pool 5)
     [
-        {
-            id: 'ladder-029',
-            question: { en: 'Which mathematician is credited with the discovery of calculus alongside Newton?', pl: 'Który matematyk obok Newtona uważany jest za twórcę rachunku różniczkowego?' },
-            options: [
-                { en: 'Gottfried Leibniz', pl: 'Gottfried Leibniz' },
-                { en: 'Carl Gauss', pl: 'Carl Gauss' },
-                { en: 'Leonhard Euler', pl: 'Leonhard Euler' },
-                { en: 'Blaise Pascal', pl: 'Blaise Pascal' },
-            ],
-            hint: { en: 'A German philosopher who used the "∫" notation.', pl: 'Niemiecki filozof, który wprowadził zapis „∫”.' },
-        },
-        {
-            id: 'ladder-030',
-            question: { en: 'What is the only number that is neither prime nor composite?', pl: 'Jaka jest jedyna liczba, która nie jest ani pierwsza, ani złożona?' },
-            options: [
-                { en: '1', pl: '1' },
-                { en: '0', pl: '0' },
-                { en: '2', pl: '2' },
-                { en: '-1', pl: '-1' },
-            ],
-            hint: { en: 'It has exactly one divisor.', pl: 'Ma dokładnie jeden dzielnik.' },
-        },
+        { id: 'ladder-650', question: { en: 'How many hearts does an octopus have?', pl: 'Ile serc ma ośmiornica?' }, options: [{ en: '1', pl: '1' }, { en: '2', pl: '2' }, { en: '3', pl: '3' }, { en: '8', pl: '8' }], correctIndex: 2, hint: { en: 'Triple pump.', pl: 'Potrójna pompa.' } },
     ],
 ];
-
-export const ALL_PACK: ContentPack = {
-    id: 'all',
-    name: { en: 'Mixed Trivia', pl: 'Miks pytań' },
-    rungs: RUNGS,
-};
-
-export const PACKS: ContentPack[] = [ALL_PACK];

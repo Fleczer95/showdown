@@ -68,6 +68,111 @@
                 }
             }
         },
+        "privacyPolicy": {
+            "title": "Privacy Policy",
+            "subtitle": "GDPR, App Store, and Google Play compliant",
+            "sections": [
+                {
+                    "title": "1. Information We Collect",
+                    "content": "We collect information to provide better services to all our users. The types of information we collect include:",
+                    "listItems": [
+                        "Game usage statistics and session data",
+                        "App performance reports and crash logs",
+                        "Device information and OS version",
+                        "User preferences and settings"
+                    ]
+                },
+                {
+                    "title": "2. How We Use Information",
+                    "content": "We use the information we collect to:",
+                    "listItems": [
+                        "Provide and maintain our games",
+                        "Improve app performance and user experience",
+                        "Analyze usage patterns to optimize features",
+                        "Respond to user feedback and support requests"
+                    ]
+                },
+                {
+                    "title": "3. Data Storage and Security",
+                    "content": "All user data is stored locally on your device. We do not transmit or store any personal information on external servers. Your game data remains private and under your control."
+                },
+                {
+                    "title": "4. Scope of Data",
+                    "content": "The app collects only technical (diagnostic) data related to app performance errors. This data does not allow for user identification."
+                },
+                {
+                    "title": "5. Purposes of Processing",
+                    "content": "We use the collected data for:",
+                    "listItems": ["Diagnosing technical issues", "Improving app performance"]
+                },
+                {
+                    "title": "6. Legal Basis",
+                    "content": "Article 6(1)(f) GDPR – legitimate interest."
+                },
+                {
+                    "title": "7. Data Recipients",
+                    "content": "Technical providers (e.g., Google Crashlytics) may process diagnostic data solely for functionality."
+                },
+                {
+                    "title": "8. Data Transfer",
+                    "content": "Possible transfers outside the EEA follow Standard Contractual Clauses."
+                },
+                {
+                    "title": "9. User Rights",
+                    "content": "You have the right to:",
+                    "listItems": ["Access, rectification, restriction, deletion", "Contact us at: contact@showdown.app"]
+                }
+            ],
+            "lastUpdated": "Last updated: {{lastUpdated}}"
+        },
+        "termsOfUse": {
+            "title": "Terms of Use",
+            "sections": [
+                {
+                    "title": "1. Acceptance of Terms",
+                    "content": "By downloading, installing, or using the ShowDown App, you agree to be bound by these Terms of Use. If you do not agree to these terms, please do not use the app."
+                },
+                {
+                    "title": "2. Purpose",
+                    "content": "ShowDown is a social entertainment application providing TV-style quiz games. All content is intended for entertainment purposes only."
+                },
+                {
+                    "title": "3. Services",
+                    "content": "The app provides access to various game show formats and content packs. Some content may require in-app purchases."
+                },
+                {
+                    "title": "4. Use Limitations",
+                    "content": "You may use this app for personal, non-commercial purposes only. You may not:",
+                    "listItems": [
+                        "Reverse engineer or decompile the app",
+                        "Distribute or sell copies of the app",
+                        "Use the app for any illegal purposes",
+                        "Violate any applicable laws or regulations"
+                    ]
+                },
+                {
+                    "title": "5. Payments",
+                    "content": "In‑app purchases are managed via Apple App Store or Google Play under their respective policies."
+                },
+                {
+                    "title": "6. Content Accuracy",
+                    "content": "While we strive for accuracy in our quiz questions and data, we do not guarantee that all information provided in the games is correct or up-to-date. Content is for fun and should not be used as a primary source of information."
+                },
+                {
+                    "title": "7. Intellectual Property",
+                    "content": "All game mechanics, designs, and content within ShowDown are the property of the publisher and protected by intellectual property laws."
+                },
+                {
+                    "title": "8. Limitation of Liability",
+                    "content": "The app and its creators are not liable for any damages arising from the use of this application, including but not limited to direct, indirect, incidental, or consequential damages."
+                },
+                {
+                    "title": "9. Changes to Terms",
+                    "content": "We reserve the right to modify these terms at any time. Continued use of the app after any changes constitutes acceptance of the updated terms."
+                }
+            ],
+            "lastUpdated": "Last updated: {{lastUpdated}}"
+        },
         "gameSetup": {
             "title": "Game Setup",
             "back": "Back",

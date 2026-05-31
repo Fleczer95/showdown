@@ -7,6 +7,9 @@ import type { SetupRoute } from '../data/games';
  */
 export type RootStackParamList = {
     Home: undefined;
+    Settings: undefined;
+    privacyPolicy: undefined;
+    termsOfUse: undefined;
 } & Record<SetupRoute, { gameId: string }>;
 
 // Make `useNavigation()` / `Link` etc. globally aware of the param list.

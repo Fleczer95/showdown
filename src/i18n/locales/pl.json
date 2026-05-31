@@ -68,6 +68,114 @@
                 }
             }
         },
+        "privacyPolicy": {
+            "title": "Polityka Prywatności",
+            "subtitle": "Zgodna z RODO, App Store i Google Play",
+            "sections": [
+                {
+                    "title": "1. Zbierane Informacje",
+                    "content": "Zbieramy informacje, aby zapewnić lepsze usługi wszystkim użytkownikom. Rodzaje zbieranych informacji obejmują:",
+                    "listItems": [
+                        "Statystyki użytkowania gier i dane sesji",
+                        "Raporty o wydajności aplikacji i awariach",
+                        "Informacje o urządzeniu i wersji systemu operacyjnego",
+                        "Preferencje i ustawienia użytkownika"
+                    ]
+                },
+                {
+                    "title": "2. Sposób Używania Informacji",
+                    "content": "Używamy zebranych informacji, aby:",
+                    "listItems": [
+                        "Świadczyć i utrzymywać nasze gry",
+                        "Poprawiać wydajność aplikacji i doświadczenie użytkownika",
+                        "Analizować wzorce użytkowania w celu optymalizacji funkcji",
+                        "Odpowiadać na opinie użytkowników i prośby o wsparcie"
+                    ]
+                },
+                {
+                    "title": "3. Przechowywanie i Bezpieczeństwo Danych",
+                    "content": "Wszystkie dane użytkownika są przechowywane lokalnie na urządzeniu. Nie transmitujemy ani nie przechowujemy żadnych informacji osobowych na zewnętrznych serwerach. Twoje dane gier pozostają prywatne i pod Twoją kontrolą."
+                },
+                {
+                    "title": "4. Zakres Danych",
+                    "content": "Aplikacja zbiera wyłącznie dane techniczne (diagnostyczne) związane z błędami działania aplikacji. Dane nie pozwalają na identyfikację użytkownika."
+                },
+                {
+                    "title": "5. Cele Przetwarzania",
+                    "content": "Przetwarzamy zebrane dane w celu:",
+                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                },
+                {
+                    "title": "6. Podstawa Prawna",
+                    "content": "Art. 6 ust. 1 lit. f RODO – uzasadniony interes administratora."
+                },
+                {
+                    "title": "7. Odbiorcy Danych",
+                    "content": "Dane mogą być przetwarzane przez usługodawców technologicznych (np. Google Crashlytics) wyłącznie w celu zapewnienia funkcjonalności aplikacji."
+                },
+                {
+                    "title": "8. Transfer Danych",
+                    "content": "Możliwy transfer poza EOG w oparciu o standardowe klauzule umowne."
+                },
+                {
+                    "title": "9. Prawa Użytkownika",
+                    "content": "Masz prawo do:",
+                    "listItems": [
+                        "Dostępu, sprostowania, ograniczenia przetwarzania, usunięcia danych",
+                        "Kontakt z nami: contact@showdown.app"
+                    ]
+                }
+            ],
+            "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+        },
+        "termsOfUse": {
+            "title": "Regulamin Korzystania z Aplikacji",
+            "sections": [
+                {
+                    "title": "1. Akceptacja Regulaminu",
+                    "content": "Pobierając, instalując lub używając aplikacji ShowDown, zgadzasz się na przestrzeganie niniejszego Regulaminu. Jeśli nie zgadzasz się na te warunki, prosimy o niekorzystanie z aplikacji."
+                },
+                {
+                    "title": "2. Charakter Aplikacji",
+                    "content": "ShowDown to aplikacja rozrywkowa oferująca quizy w stylu teleturniejów telewizyjnych. Wszystkie treści są przeznaczone wyłącznie do celów rozrywkowych."
+                },
+                {
+                    "title": "3. Usługi",
+                    "content": "Aplikacja zapewnia dostęp do różnych formatów gier i pakietów zawartości. Niektóre treści mogą wymagać zakupów wewnątrz aplikacji."
+                },
+                {
+                    "title": "4. Ograniczenia Użytkowania",
+                    "content": "Możesz używać tej aplikacji wyłącznie dla celów osobistych, niekomercyjnych. Nie możesz:",
+                    "listItems": [
+                        "Odwracać inżynierii ani dekompilować aplikacji",
+                        "Dystrybuować ani sprzedawać kopii aplikacji",
+                        "Używać aplikacji do celów nielegalnych",
+                        "Naruszać żadnych obowiązujących praw lub przepisów"
+                    ]
+                },
+                {
+                    "title": "5. Płatności",
+                    "content": "Zakupy w aplikacji realizowane są za pośrednictwem Apple App Store lub Google Play zgodnie z ich regulaminami."
+                },
+                {
+                    "title": "6. Dokładność Treści",
+                    "content": "Dokładamy wszelkich starań, aby pytania w naszych quizach były poprawne, jednak nie gwarantujemy, że wszystkie informacje są bezbłędne lub aktualne. Treści mają charakter zabawowy i nie powinny być traktowane jako główne źródło wiedzy."
+                },
+                {
+                    "title": "7. Własność Intelektualna",
+                    "content": "Wszystkie mechaniki gier, projekty i treści wewnątrz ShowDown są własnością wydawcy i są chronione prawem autorskim."
+                },
+                {
+                    "title": "8. Ograniczenie Odpowiedzialności",
+                    "content": "Aplikacja i jej twórcy nie ponoszą odpowiedzialności za żadne szkody wynikające z korzystania z tej aplikacji, w tym w szczególności za szkody bezpośrednie, pośrednie, przypadkowe lub wynikowe."
+                },
+                {
+                    "title": "9. Zmiany w Regulaminie",
+                    "content": "Zastrzegamy sobie prawo do modyfikacji niniejszego regulaminu w dowolnym czasie. Dalsze korzystanie z aplikacji po wprowadzeniu zmian stanowi akceptację zaktualizowanych warunków."
+                }
+            ],
+            "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+        },
         "gameSetup": {
             "title": "Konfiguracja",
             "back": "Wróć",
@@ -312,50 +420,6 @@
                     "Dostępu, sprostowania, ograniczenia przetwarzania, usunięcia danych",
                     "Kontakt z nami: {{email}}"
                 ]
-            }
-        ],
-        "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
-    },
-    "termsOfUse": {
-        "title": "Warunki użytkowania",
-        "sections": [
-            {
-                "title": "1. Akceptacja warunków",
-                "content": "Pobierając, instalując lub korzystając z aplikacji ShowDown, zgadzasz się na niniejsze Warunki użytkowania. Jeśli się z nimi nie zgadzasz, nie korzystaj z aplikacji."
-            },
-            {
-                "title": "2. Cel",
-                "content": "ShowDown to zbiór towarzyskich gier imprezowych stworzony wyłącznie dla rozrywki."
-            },
-            {
-                "title": "3. Usługi",
-                "content": "Aplikacja zawiera gry quizowe i imprezowe przeznaczone do wspólnej zabawy na jednym urządzeniu."
-            },
-            {
-                "title": "4. Ograniczenia użytkowania",
-                "content": "Możesz korzystać z aplikacji wyłącznie do celów osobistych i niekomercyjnych. Nie wolno ci:",
-                "listItems": [
-                    "Odtwarzać kodu źródłowego ani dekompilować aplikacji",
-                    "Rozpowszechniać ani sprzedawać kopii aplikacji",
-                    "Używać aplikacji do celów niezgodnych z prawem",
-                    "Naruszać obowiązujących przepisów"
-                ]
-            },
-            {
-                "title": "5. Płatności",
-                "content": "Zakupy w aplikacji są obsługiwane przez Apple App Store lub Google Play zgodnie z ich politykami."
-            },
-            {
-                "title": "6. Zasady fair play",
-                "content": "Graj odpowiedzialnie i szanuj pozostałych graczy."
-            },
-            {
-                "title": "7. Ograniczenie odpowiedzialności",
-                "content": "Aplikacja i jej twórcy nie ponoszą odpowiedzialności za jakiekolwiek szkody wynikające z korzystania z aplikacji, w tym bezpośrednie, pośrednie, przypadkowe lub wynikowe."
-            },
-            {
-                "title": "8. Zmiany warunków",
-                "content": "Zastrzegamy sobie prawo do zmiany niniejszych warunków w dowolnym momencie. Dalsze korzystanie z aplikacji oznacza akceptację zaktualizowanych warunków."
             }
         ],
         "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"

@@ -1,11 +1,13 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Settings } from 'lucide-react-native';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Pressable from '../components/atoms/HapticPressable';
+import IconButton from '../components/molecules/IconButton';
 import { useColor } from '../theme';
 import { useTranslation } from '../i18n';
 import { games, GAME_ICONS } from '../data/games';
@@ -29,9 +31,17 @@ export function HomeScreen() {
             contentContainerStyle={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
         >
             <Stack gap='xs'>
-                <Text variant='display' weight='bold'>
-                    ShowDown
-                </Text>
+                <View style={styles.header}>
+                    <Text variant='display' weight='bold' style={styles.title}>
+                        ShowDown
+                    </Text>
+                    <IconButton
+                        icon={<Settings size={24} color={primary} />}
+                        onPress={() => navigation.navigate('Settings')}
+                        size='md'
+                        accessibilityLabel={t('screen.home.settings')}
+                    />
+                </View>
                 <Text variant='subheading' color='textSecondary'>
                     {t('screen.home.tagline')}
                 </Text>
@@ -75,6 +85,15 @@ const styles = StyleSheet.create({
     content: {
         paddingHorizontal: 20,
         gap: 24,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: -8, // Adjust for IconButton padding
+    },
+    title: {
+        flex: 1,
     },
     list: {
         marginTop: 8,

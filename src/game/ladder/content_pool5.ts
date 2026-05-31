@@ -1,3 +1,6 @@
+import { QuestionContent } from './content';
+
+export const POOL5_DRAFT: QuestionContent[][] = [
     // Rung 13 (Pool 5)
     [
         { id: 'ladder-761', question: { en: 'Which physicist won the Nobel Prize in 1921?', pl: 'Który fizyk otrzymał Nagrodę Nobla w 1921 roku?' }, options: [{ en: 'Niels Bohr', pl: 'Niels Bohr' }, { en: 'Max Planck', pl: 'Max Planck' }, { en: 'Albert Einstein', pl: 'Albert Einstein' }, { en: 'Marie Curie', pl: 'Maria Skłodowska-Curie' }], correctIndex: 2, hint: { en: 'For Photoelectric Effect.', pl: 'Za efekt fotoelektryczny.' } },
@@ -127,3 +130,5 @@
         { id: 'ladder-879', question: { en: 'Who wrote "The Odyssey"?', pl: 'Kto napisał „Odyseję”?' }, options: [{ en: 'Homer', pl: 'Homer' }, { en: 'Virgil', pl: 'Wergiliusz' }, { en: 'Ovid', pl: 'Owidiusz' }, { en: 'Sophocles', pl: 'Sofokles' }], correctIndex: 0, hint: { en: 'Ancient Greek.', pl: 'Starożytna Grecja.' } },
         { id: 'ladder-880', question: { en: 'What is the capital of Belize?', pl: 'Jaka jest stolica Belize?' }, options: [{ en: 'Belize City', pl: 'Belize City' }, { en: 'Belmopan', pl: 'Belmopan' }, { en: 'San Ignacio', pl: 'San Ignacio' }, { en: 'Orange Walk', pl: 'Orange Walk' }], correctIndex: 1, hint: { en: 'Built inland after hurricane.', pl: 'Zbudowana w głębi lądu po huraganie.' } },
     ],
+];
+

@@ -1,7 +1,7 @@
-import { RUNGS } from './src/game/ladder/content';
-import { dropQuestions } from './src/game/drop/content';
-import { PACKS as wheelPacks } from './src/game/wheel/content';
-import { CATEGORIES } from './src/game/grid/content';
+import { RUNGS } from '../src/game/ladder/content';
+import { dropQuestions } from '../src/game/drop/content';
+import { PACKS as wheelPacks } from '../src/game/wheel/content';
+import { CATEGORIES } from '../src/game/grid/content';
 
 function validateLadder() {
     console.log('Validating Ladder...');

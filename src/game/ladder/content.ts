@@ -323,6 +323,7 @@ export const RUNGS: QuestionContent[][] = [
         { id: 'ladder-285', question: { en: 'Which is the largest moon of Saturn?', pl: 'Jaki jest największy księżyc Saturna?' }, options: [{ en: 'Titan', pl: 'Tytan' }, { en: 'Rhea', pl: 'Rea' }, { en: 'Enceladus', pl: 'Enceladus' }, { en: 'Mimas', pl: 'Mimas' }], correctIndex: 0, hint: { en: 'Has thick atmosphere.', pl: 'Ma gęstą atmosferę.' } },
         { id: 'ladder-286', question: { en: 'What is the capital of South Korea?', pl: 'Jaka jest stolica Korei Południowej?' }, options: [{ en: 'Seoul', pl: 'Seul' }, { en: 'Busan', pl: 'Pusan' }, { en: 'Incheon', pl: 'Inczon' }, { en: 'Daegu', pl: 'Daegu' }], correctIndex: 0, hint: { en: 'Han river city.', pl: 'Miasto nad rzeką Han.' } },
         { id: 'ladder-287', question: { en: 'How many edges on a cube?', pl: 'Ile krawędzi ma sześcian?' }, options: [{ en: '8', pl: '8' }, { en: '10', pl: '10' }, { en: '12', pl: '12' }, { en: '16', pl: '16' }], correctIndex: 2, hint: { en: '4 top, 4 bottom, 4 side.', pl: '4 góra, 4 dół, 4 boki.' } },
+    ],
 
     // Rung 5 (Pool 2)
     [
@@ -961,5 +962,10 @@ export const RUNGS: QuestionContent[][] = [
         { id: 'ladder-879', question: { en: 'What is the capital of Saint Lucia?', pl: 'Jaka jest stolica Saint Lucia?' }, options: [{ en: 'Castries', pl: 'Castries' }, { en: 'Kingstown', pl: 'Kingstown' }, { en: 'Bridgetown', pl: 'Bridgetown' }, { en: 'Roseau', pl: 'Roseau' }], correctIndex: 0, hint: { en: 'French-influenced name.', pl: 'Francuskojęzyczna nazwa.' } },
         { id: 'ladder-880', question: { en: 'Which element is the basis of life?', pl: 'Który pierwiastek jest podstawą życia?' }, options: [{ en: 'Oxygen', pl: 'Tlen' }, { en: 'Carbon', pl: 'Węgiel' }, { en: 'Hydrogen', pl: 'Wodór' }, { en: 'Nitrogen', pl: 'Azot' }], correctIndex: 1, hint: { en: 'Organic chemistry basis.', pl: 'Podstawa chemii organicznej.' } },
     ],
-
 ];
+
+export const ALL_PACK = {
+    id: 'ladder-base',
+    rungs: RUNGS,
+};
+

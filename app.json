@@ -2,15 +2,13 @@
     "expo": {
         "name": "ShowDown",
         "slug": "showdown",
-        "version": "1.0.0",
+        "version": "0.8.0",
         "scheme": "showdown",
         "icon": "./assets/icon.png",
         "orientation": "portrait",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
         "splash": {
-            "image": "./assets/splash.png",
-            "resizeMode": "contain",
             "backgroundColor": "#1A1A2E"
         },
         "ios": {

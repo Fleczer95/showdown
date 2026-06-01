@@ -7,7 +7,7 @@ import fs from 'fs';
 export class IOSUtils {
     constructor(projectRoot) {
         this.projectRoot = projectRoot;
-        this.bundleIdentifier = 'com.fleczer.breathingapprn';
+        this.bundleIdentifier = 'com.showdown.app';
     }
 
     log(message, type = 'info') {
@@ -188,7 +188,7 @@ export class IOSUtils {
 
     findBuiltApp() {
         const findAppResult = this.runCommandWithOutput(
-            'find ~/Library/Developer/Xcode/DerivedData/breathingapprn-*/Build/Products/Debug-iphonesimulator/breathingapprn.app -name "breathingapprn.app" 2>/dev/null | head -1',
+            'find ~/Library/Developer/Xcode/DerivedData/ShowDown-*/Build/Products/Debug-iphonesimulator/ShowDown.app -name "ShowDown.app" 2>/dev/null | head -1',
             'Finding built iOS app',
             { silent: true },
         );

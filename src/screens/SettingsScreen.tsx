@@ -53,7 +53,12 @@ export function SettingsScreen() {
     return (
         <SafeContainer edges={['top', 'bottom']}>
             {/* Header */}
-            <View style={styles.header}>
+            <View
+                style={[
+                    styles.header,
+                    { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md },
+                ]}
+            >
                 <IconButton
                     icon={<ChevronLeft size={24} color={theme.colors.text} />}
                     onPress={handleBack}
@@ -66,11 +71,21 @@ export function SettingsScreen() {
                 <View style={{ width: 44 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.content,
+                    { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + theme.spacing.sm },
+                ]}
+            >
                 <Stack gap='xl'>
                     {/* Appearance */}
                     <Stack gap='md'>
-                        <Text variant='caption' weight='bold' color={theme.colors.textSecondary} style={styles.sectionLabel}>
+                        <Text
+                            variant='caption'
+                            weight='bold'
+                            color={theme.colors.textSecondary}
+                            style={[styles.sectionLabel, { marginBottom: theme.spacing.xs }]}
+                        >
                             {t('screen.settings.sections.appearance')}
                         </Text>
                         <SelectionList
@@ -86,28 +101,37 @@ export function SettingsScreen() {
 
                     {/* Feedback */}
                     <Stack gap='md'>
-                        <Text variant='caption' weight='bold' color={theme.colors.textSecondary} style={styles.sectionLabel}>
+                        <Text
+                            variant='caption'
+                            weight='bold'
+                            color={theme.colors.textSecondary}
+                            style={[styles.sectionLabel, { marginBottom: theme.spacing.xs }]}
+                        >
                             {t('screen.settings.sections.feedback')}
                         </Text>
-                        
-                        <View style={styles.row}>
+
+                        <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
                             <Stack direction='horizontal' gap='sm' align='center'>
                                 <Volume2 size={scale(20)} color={theme.colors.textSecondary} />
-                                <Text variant='body' weight='medium'>{t('screen.settings.labels.soundEffects')}</Text>
+                                <Text variant='body' weight='medium'>
+                                    {t('screen.settings.labels.soundEffects')}
+                                </Text>
                             </Stack>
-                            <Switch 
-                                value={settings.soundEffects} 
+                            <Switch
+                                value={settings.soundEffects}
                                 onValueChange={settings.setSoundEffects}
                             />
                         </View>
 
-                        <View style={styles.row}>
+                        <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
                             <Stack direction='horizontal' gap='sm' align='center'>
                                 <Smartphone size={scale(20)} color={theme.colors.textSecondary} />
-                                <Text variant='body' weight='medium'>{t('screen.settings.labels.hapticFeedback')}</Text>
+                                <Text variant='body' weight='medium'>
+                                    {t('screen.settings.labels.hapticFeedback')}
+                                </Text>
                             </Stack>
-                            <Switch 
-                                value={settings.hapticFeedback} 
+                            <Switch
+                                value={settings.hapticFeedback}
                                 onValueChange={settings.setHapticFeedback}
                             />
                         </View>
@@ -117,7 +141,12 @@ export function SettingsScreen() {
 
                     {/* Language */}
                     <Stack gap='md'>
-                        <Text variant='caption' weight='bold' color={theme.colors.textSecondary} style={styles.sectionLabel}>
+                        <Text
+                            variant='caption'
+                            weight='bold'
+                            color={theme.colors.textSecondary}
+                            style={[styles.sectionLabel, { marginBottom: theme.spacing.xs }]}
+                        >
                             {t('screen.settings.sections.language')}
                         </Text>
                         <SelectionList
@@ -131,33 +160,55 @@ export function SettingsScreen() {
 
                     {/* About */}
                     <Stack gap='md'>
-                        <Text variant='caption' weight='bold' color={theme.colors.textSecondary} style={styles.sectionLabel}>
+                        <Text
+                            variant='caption'
+                            weight='bold'
+                            color={theme.colors.textSecondary}
+                            style={[styles.sectionLabel, { marginBottom: theme.spacing.xs }]}
+                        >
                             {t('screen.settings.sections.about')}
                         </Text>
-                        
-                        <View style={styles.aboutRow}>
+
+                        <View style={[styles.aboutRow, { paddingVertical: theme.spacing.xs }]}>
                             <Text variant='body'>{t('screen.settings.labels.version')}</Text>
-                            <Text variant='body' color={theme.colors.textSecondary}>{FULL_VERSION_STRING}</Text>
+                            <Text variant='body' color={theme.colors.textSecondary}>
+                                {FULL_VERSION_STRING}
+                            </Text>
                         </View>
 
-                        <Pressable 
-                            style={styles.linkButton} 
+                        <Pressable
+                            style={[styles.linkButton, { paddingVertical: theme.spacing.sm }]}
                             onPress={() => navigation.navigate('privacyPolicy' as any)}
                             haptic='light'
+                            accessibilityLabel={t('screen.settings.labels.privacyPolicy')}
+                            accessibilityRole='link'
                         >
-                            <Text variant='body' color={theme.colors.primary}>{t('screen.settings.labels.privacyPolicy')}</Text>
+                            <Text variant='body' color={theme.colors.primary}>
+                                {t('screen.settings.labels.privacyPolicy')}
+                            </Text>
                         </Pressable>
 
-                        <Pressable 
-                            style={styles.linkButton} 
+                        <Pressable
+                            style={[styles.linkButton, { paddingVertical: theme.spacing.sm }]}
                             onPress={() => navigation.navigate('termsOfUse' as any)}
                             haptic='light'
+                            accessibilityLabel={t('screen.settings.labels.termsOfUse')}
+                            accessibilityRole='link'
                         >
-                            <Text variant='body' color={theme.colors.primary}>{t('screen.settings.labels.termsOfUse')}</Text>
+                            <Text variant='body' color={theme.colors.primary}>
+                                {t('screen.settings.labels.termsOfUse')}
+                            </Text>
                         </Pressable>
                     </Stack>
 
-                    <Stack gap='sm' align='center' style={styles.footer}>
+                    <Stack
+                        gap='sm'
+                        align='center'
+                        style={[
+                            styles.footer,
+                            { marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl },
+                        ]}
+                    >
                         <Text variant='caption' color={theme.colors.textMuted}>
                             © 2026 ShowDown Games
                         </Text>
@@ -173,37 +224,30 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 8,
-        paddingVertical: 12,
     },
     title: {
         flex: 1,
         textAlign: 'center',
     },
     content: {
-        paddingHorizontal: 20,
-        paddingBottom: 40,
+        // dynamic spacing moved
     },
     sectionLabel: {
         letterSpacing: 1.2,
-        marginBottom: 4,
     },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 8,
     },
     aboutRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingVertical: 4,
     },
     linkButton: {
-        paddingVertical: 8,
+        // dynamic spacing moved
     },
     footer: {
-        marginTop: 20,
-        marginBottom: 20,
+        // dynamic spacing moved
     },
 });

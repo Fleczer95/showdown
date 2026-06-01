@@ -39,8 +39,9 @@ export default function Slider({
     const [trackWidth, setTrackWidth] = useState(0);
     const activeAccent = accentColor || t.colors.primary;
 
-    // Fluid sizing — thumb is referenced in the gesture worklet, so resolve it here.
+    const horizontalPadding = 0;
     const thumbSize = scale(THUMB_SIZE);
+    const trackPadding = thumbSize / 2;
     const trackHeight = scale(TRACK_HEIGHT);
 
     const onLayout = useCallback((event: LayoutChangeEvent) => {
@@ -63,7 +64,6 @@ export default function Slider({
         const rawValue = min + percent * (max - min);
         const steppedValue = Math.round(rawValue / step) * step;
 
-        // Only call onChange if value actually changed (discrete steps)
         if (steppedValue !== value) {
             runOnJS(haptics.selection)();
             runOnJS(onChange)(steppedValue);
@@ -75,13 +75,12 @@ export default function Slider({
             isPressed.value = true;
         })
         .onUpdate((e) => {
-            const newX = Math.max(0, Math.min(trackWidth, e.x));
+            const newX = Math.max(0, Math.min(trackWidth, e.x - trackPadding));
             offset.value = newX;
             updateValue(newX);
         })
         .onFinalize(() => {
             isPressed.value = false;
-            // Snap to exact step position
             const percent = (value - min) / (max - min);
             offset.value = withSpring(percent * trackWidth, { damping: 20, stiffness: 200 });
         });
@@ -91,7 +90,7 @@ export default function Slider({
             isPressed.value = true;
         })
         .onEnd((e) => {
-            const newX = Math.max(0, Math.min(trackWidth, e.x));
+            const newX = Math.max(0, Math.min(trackWidth, e.x - trackPadding));
             offset.value = withSpring(newX);
             updateValue(newX);
         })
@@ -100,7 +99,7 @@ export default function Slider({
         });
 
     const thumbStyle = useAnimatedStyle(() => ({
-        transform: [{ translateX: offset.value - thumbSize / 2 }, { scale: withSpring(isPressed.value ? 1.2 : 1) }],
+        transform: [{ translateX: offset.value }, { scale: withSpring(isPressed.value ? 1.2 : 1) }],
     }));
 
     const fillStyle = useAnimatedStyle(() => ({
@@ -110,7 +109,7 @@ export default function Slider({
     return (
         <View style={styles.container}>
             {(label || renderValue) && (
-                <View style={styles.labelRow}>
+                <View style={[styles.labelRow, { paddingHorizontal: horizontalPadding }]}>
                     <View style={styles.labelLeft}>
                         {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
                         {label && (
@@ -119,14 +118,14 @@ export default function Slider({
                             </Text>
                         )}
                     </View>
-                    <Text variant='body' weight='bold' color={activeAccent}>
+                    <Text variant='body' weight='bold' color={activeAccent} style={{paddingHorizontal:12}}>
                         {renderValue ? renderValue(value) : value}
                     </Text>
                 </View>
             )}
 
             <GestureDetector gesture={Gesture.Race(gesture, tapGesture)}>
-                <View style={[styles.gestureArea, { height: scale(40) }]}>
+                <View style={[styles.gestureArea, { height: scale(40), paddingHorizontal: trackPadding }]}>
                     <View
                         style={[
                             styles.track,
@@ -169,7 +168,6 @@ export default function Slider({
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        paddingHorizontal: 16, // Account for thumb scale-up (1.2x of 24px)
     },
     labelRow: {
         flexDirection: 'row',
@@ -179,6 +177,7 @@ const styles = StyleSheet.create({
     },
     labelLeft: {
         flexDirection: 'row',
+        paddingHorizontal: 10,
         alignItems: 'center',
     },
     iconContainer: {

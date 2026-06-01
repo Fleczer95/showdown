@@ -49,7 +49,12 @@ export function DocumentScreen() {
 
     return (
         <SafeContainer edges={['top', 'bottom']}>
-            <View style={styles.header}>
+            <View
+                style={[
+                    styles.header,
+                    { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md },
+                ]}
+            >
                 <IconButton
                     icon={<ChevronLeft size={24} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
@@ -65,38 +70,70 @@ export function DocumentScreen() {
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 style={styles.scroll}
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    {
+                        paddingHorizontal: theme.spacing.xl, // approx 20
+                        paddingBottom: theme.spacing.xxl + theme.spacing.sm, // approx 40
+                    },
+                ]}
             >
                 <Animated.View style={animatedStyle}>
-                    <Card style={styles.contentCard}>
+                    <Card
+                        style={[
+                            styles.contentCard,
+                            { marginTop: theme.spacing.sm, padding: theme.spacing.xl },
+                        ]}
+                    >
                         {!!subtitle && (
-                            <Text variant='body' color={theme.colors.textSecondary} style={styles.subtitle}>
+                            <Text
+                                variant='body'
+                                color={theme.colors.textSecondary}
+                                style={[styles.subtitle, { marginBottom: theme.spacing.lg }]}
+                            >
                                 {subtitle}
                             </Text>
                         )}
 
-                        {Array.isArray(sections) && sections.map((section, index) => (
-                            <View key={index} style={styles.section}>
-                                <Text variant='body' weight='bold' color={theme.colors.text}>
-                                    {section.title}
-                                </Text>
-                                <Text variant='body' color={theme.colors.textSecondary}>
-                                    {section.content}
-                                </Text>
-                                {section.listItems && (
-                                    <View style={styles.list}>
-                                        {section.listItems.map((item: string, itemIndex: number) => (
-                                            <Text key={itemIndex} variant='body' color={theme.colors.textSecondary}>
-                                                • {item}
-                                            </Text>
-                                        ))}
-                                    </View>
-                                )}
-                            </View>
-                        ))}
+                        {Array.isArray(sections) &&
+                            sections.map((section, index) => (
+                                <View
+                                    key={index}
+                                    style={[styles.section, { marginTop: theme.spacing.lg, gap: theme.spacing.sm }]}
+                                >
+                                    <Text variant='body' weight='bold' color={theme.colors.text}>
+                                        {section.title}
+                                    </Text>
+                                    <Text variant='body' color={theme.colors.textSecondary}>
+                                        {section.content}
+                                    </Text>
+                                    {section.listItems && (
+                                        <View
+                                            style={[
+                                                styles.list,
+                                                { gap: theme.spacing.xs, marginLeft: theme.spacing.sm },
+                                            ]}
+                                        >
+                                            {section.listItems.map((item: string, itemIndex: number) => (
+                                                <Text
+                                                    key={itemIndex}
+                                                    variant='body'
+                                                    color={theme.colors.textSecondary}
+                                                >
+                                                    • {item}
+                                                </Text>
+                                            ))}
+                                        </View>
+                                    )}
+                                </View>
+                            ))}
 
                         {!!lastUpdated && (
-                            <Text variant='caption' color={theme.colors.textMuted} style={styles.lastUpdated}>
+                            <Text
+                                variant='caption'
+                                color={theme.colors.textMuted}
+                                style={[styles.lastUpdated, { marginTop: theme.spacing.xxl }]}
+                            >
                                 {lastUpdated}
                             </Text>
                         )}
@@ -113,8 +150,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 8,
-        paddingVertical: 12,
     },
     headerTitle: {
         flex: 1,
@@ -124,26 +159,21 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingHorizontal: 20,
-        paddingBottom: 40,
+        // dynamic spacing moved
     },
     contentCard: {
-        marginTop: 8,
-        padding: 20,
+        // dynamic spacing moved
     },
     subtitle: {
-        marginBottom: 16,
+        // dynamic spacing moved
     },
     section: {
-        marginTop: 16,
-        gap: 8,
+        // dynamic spacing moved
     },
     list: {
-        gap: 4,
-        marginLeft: 8,
+        // dynamic spacing moved
     },
     lastUpdated: {
-        marginTop: 32,
         textAlign: 'center',
     },
 });

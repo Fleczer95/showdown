@@ -265,7 +265,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
             <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
                 <Stack gap='lg'>
                     {/* Header */}
-                    <Stack direction='horizontal' justify='between' align='center'>
+                    <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
                         <Stack gap='xs'>
                             <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
                                 {translate('game.the-drop.header.round', {
@@ -567,6 +567,7 @@ function DropOption({
                     {phase === 'allocating' ? (
                         <Slider
                             label={translate('game.the-drop.active.placed')}
+
                             value={amount}
                             min={0}
                             max={Math.max(BUNDLE, sliderMax)}
@@ -621,6 +622,9 @@ const styles = StyleSheet.create({
     content: {
         paddingHorizontal: 16,
     },
+    header: {
+        paddingHorizontal: 18, // content (16) + 12 = 28px total indent
+    },
     gameOverContent: {
         paddingHorizontal: 24,
         paddingBottom: 32,
@@ -635,9 +639,9 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     optionHeader: {
-        paddingHorizontal: 16,
+        paddingHorizontal: 12, // card (12) + 0 = 12px from card border, 28px total indent
     },
     optionOutcome: {
-        paddingHorizontal: 16,
+        paddingHorizontal: 0,
     },
 });

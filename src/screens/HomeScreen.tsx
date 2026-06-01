@@ -22,11 +22,22 @@ export function HomeScreen() {
     const theme = useTheme();
     const primary = theme.colors.primary;
 
+    // Themed container style
+    const contentContainerStyle = [
+        styles.content,
+        {
+            paddingHorizontal: theme.spacing.xl,
+            paddingTop: theme.spacing.xxl,
+            paddingBottom: theme.spacing.xxl + theme.spacing.sm, // approx 40
+            gap: theme.spacing.xxl,
+        },
+    ];
+
     return (
         <SafeContainer edges={['top', 'bottom']}>
             <ScrollView
                 style={styles.root}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
             >
                 <Stack gap='md'>
@@ -48,7 +59,7 @@ export function HomeScreen() {
                     </View>
                 </Stack>
 
-                <Stack gap='lg' style={styles.list}>
+                <Stack gap='lg' style={[styles.list, { marginTop: theme.spacing.sm }]}>
                     {games.map((game) => {
                         const GameIcon = GAME_ICONS[game.iconName];
                         return (
@@ -61,7 +72,15 @@ export function HomeScreen() {
                                 accessibilityLabel={t(`game.${game.id}.name`)}
                             >
                                 <Stack direction='horizontal' gap='lg' align='center'>
-                                    <View style={[styles.iconContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
+                                    <View
+                                        style={[
+                                            styles.iconContainer,
+                                            {
+                                                backgroundColor: theme.colors.surfaceVariant,
+                                                borderRadius: theme.radii.lg,
+                                            },
+                                        ]}
+                                    >
                                         {GameIcon ? <Icon name={GameIcon} size={32} color={primary} /> : null}
                                     </View>
                                     <Stack gap='xs' flex={1}>
@@ -88,10 +107,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingHorizontal: 24,
-        paddingTop: 32,
-        paddingBottom: 40,
-        gap: 32,
+        // padding/gap moved to themed style
     },
     header: {
         flexDirection: 'row',
@@ -105,12 +121,11 @@ const styles = StyleSheet.create({
         letterSpacing: -1,
     },
     list: {
-        marginTop: 8,
+        // marginTop moved to themed style
     },
     iconContainer: {
         width: 60,
         height: 60,
-        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },

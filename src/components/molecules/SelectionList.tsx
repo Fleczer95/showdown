@@ -36,36 +36,63 @@ function SelectionList({
     multiSelect = false,
     testID,
 }: SelectionListProps) {
-    const t = useTheme();
+    const theme = useTheme();
     const { scale, iconSize } = useResponsive();
     const isGrid = numColumns > 1;
 
     // Fluid sizing so the widget keeps pace with the scaled type/spacing tokens on tablet.
     const metrics = React.useMemo(() => {
         const iconBox = isGrid ? scale(48) : scale(40);
-        const iconBoxRadius = isGrid ? scale(16) : scale(12);
+        const iconBoxRadius = isGrid ? theme.radii.lg : theme.radii.md;
         return {
             iconBoxRadius,
             iconContainerOverride: isGrid
-                ? { width: iconBox, height: iconBox, borderRadius: iconBoxRadius, marginBottom: scale(8) }
-                : { width: iconBox, height: iconBox, borderRadius: iconBoxRadius, marginRight: scale(12) },
+                ? {
+                      width: iconBox,
+                      height: iconBox,
+                      borderRadius: iconBoxRadius,
+                      marginBottom: theme.spacing.sm,
+                  }
+                : {
+                      width: iconBox,
+                      height: iconBox,
+                      borderRadius: iconBoxRadius,
+                      marginRight: theme.spacing.md,
+                  },
             checkSize: scale(24),
             gridCheckSize: scale(18),
             gridItemHeight: scale(132),
-            dividerInset: iconBox + scale(12),
+            dividerInset: iconBox + theme.spacing.md,
         };
-    }, [isGrid, scale]);
+    }, [isGrid, scale, theme]);
 
-    const { iconBoxRadius, iconContainerOverride, checkSize, gridCheckSize, gridItemHeight, dividerInset } = metrics;
+    const {
+        iconBoxRadius,
+        iconContainerOverride,
+        checkSize,
+        gridCheckSize,
+        gridItemHeight,
+        dividerInset,
+    } = metrics;
 
     return (
-        <View style={styles.container} testID={testID}>
+        <View style={[styles.container, { paddingHorizontal: theme.spacing.lg }]} testID={testID}>
             {label && (
-                <Text variant='caption' color={t.colors.textSecondary} style={styles.label} weight='medium'>
+                <Text
+                    variant='caption'
+                    color={theme.colors.textSecondary}
+                    style={[styles.label, { marginBottom: theme.spacing.sm }]}
+                    weight='medium'
+                >
                     {label}
                 </Text>
             )}
-            <View style={[isGrid && (styles.gridContainer as ViewStyle)]}>
+            <View
+                style={[
+                    isGrid && (styles.gridContainer as ViewStyle),
+                    isGrid && { marginHorizontal: -theme.spacing.sm },
+                ]}
+            >
                 {options.map((option, index) => {
                     const isActive = value.includes(option.value);
                     const IconComponent = option.icon;
@@ -82,27 +109,43 @@ function SelectionList({
                                         styles.item,
                                         isGrid ? styles.gridItem : styles.listItem,
                                         {
-                                            backgroundColor: isActive ? t.colors.primary + '10' : 'transparent',
-                                            borderRadius: t.radii.lg,
+                                            backgroundColor: isActive
+                                                ? theme.colors.primary + '10'
+                                                : 'transparent',
+                                            borderRadius: theme.radii.lg,
                                             borderWidth: isGrid ? 2 : 0,
-                                            borderColor: isActive ? t.colors.primary : 'transparent',
+                                            borderColor: isActive ? theme.colors.primary : 'transparent',
+                                            marginVertical: theme.spacing.xs,
                                         },
-                                        isGrid ? { height: gridItemHeight } : null,
+                                        isGrid ? { height: gridItemHeight, margin: theme.spacing.sm } : null,
+                                        !isGrid && {
+                                            paddingVertical: theme.spacing.md,
+                                            paddingHorizontal: theme.spacing.md,
+                                        },
+                                        isGrid && {
+                                            paddingVertical: theme.spacing.lg,
+                                            paddingHorizontal: theme.spacing.sm,
+                                        },
                                     ] as any
                                 }
                                 haptic='light'
                             >
                                 <View
                                     pointerEvents='none'
-                                    style={[styles.itemContent, isGrid && (styles.gridItemContent as ViewStyle)]}
+                                    style={[
+                                        styles.itemContent,
+                                        isGrid && (styles.gridItemContent as ViewStyle),
+                                    ]}
                                 >
                                     {IconComponent && (
                                         <Icon
                                             name={IconComponent}
                                             size={iconSize(isGrid ? 32 : 24)}
-                                            color={isActive ? t.colors.primary : t.colors.textSecondary}
+                                            color={isActive ? theme.colors.primary : theme.colors.textSecondary}
                                             backgroundColor={
-                                                isActive ? t.colors.primary + '15' : t.colors.borderLight + '40'
+                                                isActive
+                                                    ? theme.colors.primary + '15'
+                                                    : theme.colors.borderLight + '40'
                                             }
                                             borderRadius={iconBoxRadius}
                                             containerStyle={
@@ -118,7 +161,7 @@ function SelectionList({
                                         <Text
                                             variant='body'
                                             weight={isActive ? 'bold' : 'semibold'}
-                                            color={isActive ? t.colors.primary : t.colors.text}
+                                            color={isActive ? theme.colors.primary : theme.colors.text}
                                             align={isGrid ? 'center' : 'left'}
                                             numberOfLines={isGrid ? 2 : undefined}
                                         >
@@ -126,8 +169,20 @@ function SelectionList({
                                         </Text>
                                     </View>
                                     {option.isPremium && option.isLocked && (
-                                        <View style={styles.lockBadge}>
-                                            <Lock size={iconSize(isGrid ? 14 : 12)} color={t.colors.textSecondary} />
+                                        <View
+                                            style={[
+                                                styles.lockBadge,
+                                                {
+                                                    backgroundColor: theme.colors.overlay + '20',
+                                                    padding: theme.spacing.xs,
+                                                    borderRadius: theme.radii.sm,
+                                                },
+                                            ]}
+                                        >
+                                            <Lock
+                                                size={iconSize(isGrid ? 14 : 12)}
+                                                color={theme.colors.textSecondary}
+                                            />
                                         </View>
                                     )}
                                     {isGrid && multiSelect && isActive && (
@@ -135,14 +190,20 @@ function SelectionList({
                                             style={[
                                                 styles.gridCheckmark,
                                                 {
-                                                    backgroundColor: t.colors.primary,
+                                                    backgroundColor: theme.colors.primary,
                                                     width: gridCheckSize,
                                                     height: gridCheckSize,
                                                     borderRadius: gridCheckSize / 2,
+                                                    top: theme.spacing.xs,
+                                                    right: theme.spacing.xs,
                                                 },
                                             ]}
                                         >
-                                            <Check size={iconSize(10)} color='#fff' strokeWidth={3} />
+                                            <Check
+                                                size={iconSize(10)}
+                                                color={theme.colors.onPrimary}
+                                                strokeWidth={3}
+                                            />
                                         </View>
                                     )}
                                 </View>
@@ -151,14 +212,19 @@ function SelectionList({
                                         style={[
                                             styles.checkmark,
                                             {
-                                                backgroundColor: t.colors.primary,
+                                                backgroundColor: theme.colors.primary,
                                                 width: checkSize,
                                                 height: checkSize,
                                                 borderRadius: checkSize / 2,
+                                                marginLeft: theme.spacing.sm,
                                             },
                                         ]}
                                     >
-                                        <Check size={iconSize(14)} color='#fff' strokeWidth={3} />
+                                        <Check
+                                            size={iconSize(14)}
+                                            color={theme.colors.onPrimary}
+                                            strokeWidth={3}
+                                        />
                                     </View>
                                 )}
                             </Pressable>
@@ -167,7 +233,7 @@ function SelectionList({
                                 !isActive &&
                                 option.value !== options[index + 1].value && (
                                     <Divider
-                                        marginVertical={4}
+                                        marginVertical={theme.spacing.xs}
                                         style={{ marginLeft: IconComponent ? dividerInset : 0 }}
                                     />
                                 )}
@@ -182,35 +248,24 @@ function SelectionList({
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        paddingHorizontal: 16,
     },
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginHorizontal: -6,
     },
-    label: {
-        marginBottom: 8,
-    },
+    label: {},
     fullWidth: {
         width: '100%',
     },
-    item: {
-        marginVertical: 4,
-    },
+    item: {},
     listItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
     },
     gridItem: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 8,
-        margin: 6,
     },
     itemContent: {
         flexDirection: 'row',
@@ -224,7 +279,6 @@ const styles = StyleSheet.create({
     iconContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
     },
     gridIconContainer: {
         marginRight: 0,
@@ -238,20 +292,14 @@ const styles = StyleSheet.create({
     checkmark: {
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: 8,
     },
     lockBadge: {
         position: 'absolute',
         top: 0,
         right: 0,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        padding: 4,
-        borderRadius: 8,
     },
     gridCheckmark: {
         position: 'absolute',
-        top: 4,
-        right: 4,
         alignItems: 'center',
         justifyContent: 'center',
     },

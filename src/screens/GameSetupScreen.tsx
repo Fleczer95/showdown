@@ -41,6 +41,17 @@ export function GameSetupScreen() {
     const isPlaying = state.matches('playing');
     const PlayScreen = playScreens[game.id];
 
+    // Themed container style
+    const contentContainerStyle = [
+        styles.content,
+        {
+            paddingHorizontal: theme.spacing.xl,
+            paddingTop: theme.spacing.lg,
+            paddingBottom: theme.spacing.xxl * 3, // approx 100 (32*3) for footer clearance
+            gap: theme.spacing.xxl,
+        },
+    ];
+
     if (isPlaying && PlayScreen) {
         return (
             <SafeContainer edges={['top', 'bottom']}>
@@ -53,10 +64,15 @@ export function GameSetupScreen() {
         <SafeContainer edges={['top', 'bottom']}>
             <ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
             >
-                <Stack direction='horizontal' gap='sm' align='center' style={styles.navBar}>
+                <Stack
+                    direction='horizontal'
+                    gap='sm'
+                    align='center'
+                    style={[styles.navBar, { paddingVertical: theme.spacing.md }]}
+                >
                     <IconButton
                         icon={<ChevronLeft size={28} color={theme.colors.text} />}
                         onPress={() => navigation.goBack()}
@@ -67,21 +83,40 @@ export function GameSetupScreen() {
                     </Text>
                 </Stack>
 
-                <Stack gap='md' align='center' style={styles.header}>
-                    <View style={[styles.mainIconContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
+                <Stack gap='md' align='center' style={[styles.header, { marginTop: theme.spacing.lg }]}>
+                    <View
+                        style={[
+                            styles.mainIconContainer,
+                            {
+                                backgroundColor: theme.colors.surfaceVariant,
+                                borderRadius: theme.radii.xl,
+                                marginBottom: theme.spacing.sm,
+                            },
+                        ]}
+                    >
                         {GameIcon ? <Icon name={GameIcon} size={48} color={primary} /> : null}
                     </View>
                     <Stack gap='xs' align='center'>
                         <Text variant='heading' weight='bold' align='center'>
                             {game.emoji} {t(`game.${game.id}.name`)}
                         </Text>
-                        <Text variant='body' color='textSecondary' align='center' style={styles.desc}>
+                        <Text
+                            variant='body'
+                            color='textSecondary'
+                            align='center'
+                            style={[styles.desc, { paddingHorizontal: theme.spacing.lg }]}
+                        >
                             {t(`game.${game.id}.desc`)}
                         </Text>
                     </Stack>
                 </Stack>
 
-                <Card variant='outlined' padding='lg' gap='md' style={styles.rulesCard}>
+                <Card
+                    variant='outlined'
+                    padding='lg'
+                    gap='md'
+                    style={[styles.rulesCard, { marginTop: theme.spacing.sm }]}
+                >
                     <Stack direction='horizontal' gap='sm' align='center'>
                         <View style={[styles.dot, { backgroundColor: primary }]} />
                         <Text variant='overline' color='primary' weight='bold'>
@@ -94,7 +129,12 @@ export function GameSetupScreen() {
                 </Card>
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View
+                style={[
+                    styles.footer,
+                    { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl },
+                ]}
+            >
                 <Button
                     fullWidth
                     size='lg'
@@ -116,31 +156,24 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingHorizontal: 24,
-        paddingTop: 16,
-        paddingBottom: 100,
-        gap: 32,
+        // dynamic spacing moved
     },
     navBar: {
         marginLeft: -8,
-        paddingVertical: 12,
     },
     header: {
-        marginTop: 16,
+        // dynamic spacing moved
     },
     mainIconContainer: {
         width: 100,
         height: 100,
-        borderRadius: 32,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 8,
     },
     desc: {
-        paddingHorizontal: 20,
+        // dynamic spacing moved
     },
     rulesCard: {
-        marginTop: 8,
         borderStyle: 'dashed',
     },
     dot: {
@@ -153,10 +186,8 @@ const styles = StyleSheet.create({
     },
     footer: {
         position: 'absolute',
-        bottom: 24,
         left: 0,
         right: 0,
-        paddingHorizontal: 24,
         backgroundColor: 'transparent',
     },
 });

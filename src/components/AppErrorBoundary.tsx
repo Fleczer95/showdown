@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeSentry } from '../utils/sentry/init';
+import { defaultTokens } from '../theme/defaults';
 
 interface ErrorBoundaryProps {
     children: ReactNode;
@@ -11,6 +12,9 @@ interface ErrorBoundaryState {
     error: Error | null;
     errorInfo: ErrorInfo | null;
 }
+
+const colors = defaultTokens.colors!;
+const spacing = defaultTokens.spacing!;
 
 export class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
@@ -88,10 +92,10 @@ export class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundar
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#1A1B2E',
+        backgroundColor: colors.background,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 24,
+        padding: spacing.xl,
     },
     content: {
         width: '100%',
@@ -101,44 +105,44 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 22,
         fontWeight: '600',
-        color: '#FFFFFF',
-        marginBottom: 12,
+        color: colors.text,
+        marginBottom: spacing.md,
         textAlign: 'center',
     },
     message: {
         fontSize: 16,
-        color: 'rgba(255, 255, 255, 0.75)',
+        color: colors.textSecondary,
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: spacing.xl,
         lineHeight: 22,
     },
     errorContainer: {
         width: '100%',
         maxHeight: 200,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        backgroundColor: colors.surfaceVariant,
         borderRadius: 8,
-        padding: 12,
-        marginBottom: 20,
+        padding: spacing.md,
+        marginBottom: spacing.xl,
     },
     errorTitle: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#FFFFFF',
-        marginBottom: 6,
+        color: colors.text,
+        marginBottom: spacing.xs,
     },
     errorText: {
         fontSize: 12,
-        color: 'rgba(255, 255, 255, 0.7)',
-        marginBottom: 8,
+        color: colors.textSecondary,
+        marginBottom: spacing.sm,
     },
     errorStack: {
         fontSize: 12,
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: colors.textSecondary,
     },
     retryButton: {
-        backgroundColor: '#7C3AED',
-        paddingHorizontal: 32,
-        paddingVertical: 12,
+        backgroundColor: colors.primary,
+        paddingHorizontal: spacing.xl + spacing.sm, // 32
+        paddingVertical: spacing.md,
         borderRadius: 8,
         minWidth: 150,
         alignItems: 'center',
@@ -146,6 +150,6 @@ const styles = StyleSheet.create({
     retryButtonText: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#FFFFFF',
+        color: colors.onPrimary,
     },
 });

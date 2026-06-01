@@ -10,8 +10,8 @@ source: showdown (custom)
 
 | Field           | Value                                                       |
 | --------------- | ----------------------------------------------------------- |
-| Service Account | `tinyparty@breathing-in-labour.iam.gserviceaccount.com` (shared dev key — grant it access to the ShowDown app in Play Console) (shared dev key — grant it access to the ShowDown app in Play Console)     |
-| Project ID      | `breathing-in-labour`                                       |
+| Service Account | `[SERVICE_ACCOUNT_EMAIL]` (grant it access to the ShowDown app in Play Console)     |
+| Project ID      | `[PROJECT_ID]`                                       |
 | Key file        | `google-play-key.json` — repo root, covered by `.gitignore` |
 | Package Name    | `com.showdown.app`                                         |
 
@@ -19,7 +19,7 @@ source: showdown (custom)
 
 Google Play's permission system is strict and requires specific manual steps in the [Google Play Console](https://play.google.com/console/):
 
-1.  **Enable API:** Enable the "Google Play Android Developer API" in the Google Cloud Console for project `breathing-in-labour`.
+1.  **Enable API:** Enable the "Google Play Android Developer API" in the Google Cloud Console for project `[PROJECT_ID]`.
 2.  **Invite User:** Go to **Users and permissions** → **Invite new users**. Add the service account email above.
 3.  **App Permissions:** In the **App permissions** tab for ShowDown, ensure these are checked:
     - **Manage in-app products**

@@ -15,7 +15,7 @@
   - `react-native-reanimated`: Fluid UI transitions and graphics motion.
   - `react-native-skia`: Professional-grade VFX, shadows, and lighting.
   - `expo-router`: Type-safe navigation between game modes and the Trophy Room.
-  - `i18n-js`: Localization framework for EN and PL support (Matches TinyParty infra).
+  - `i18n-js`: Localization framework for EN and PL support (Standard implementation).
 - **Content:** An offline-first monolithic bundle of AI-curated question packs, categorized by game mode and complexity. Supports English and Polish.
 
 ## 3. Progression & Monetization

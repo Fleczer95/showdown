@@ -17,7 +17,7 @@ Two approaches were considered:
 
 1. **Boolean "used" flags + reset.** Mark each shown question used; exclude used
    ones when picking; when the unused set can't fill a run, reset all flags.
-2. **Count-based weighting** (as in the sibling app TinyParty's `createDeck`):
+2. **Count-based weighting** (as in the standard `createDeck` implementation):
    store a per-question show-count; order candidates by ascending count, shuffle
    within each count tier, take the least-seen first.
 
@@ -27,7 +27,7 @@ Use **count-based** selection.
 
 - A per-game **Question History** (`Record<questionId, showCount>`) is persisted
   on device in MMKV (`createMMKV({ id: 'showdown-history' })`), keyed by game id.
-- Selection uses a pure `createDeck(items, history, rng)` (ported from TinyParty):
+- Selection uses a pure `createDeck(items, history, rng)` (standard implementation):
   group by show-count, sort ascending, shuffle within each tier, take the
   least-seen first.
 - Every question carries an **explicit stable `id`** in content (the pack

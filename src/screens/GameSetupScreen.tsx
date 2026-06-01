@@ -1,9 +1,9 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { ChevronLeft, Play } from 'lucide-react-native';
+import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
@@ -25,11 +25,9 @@ import type { RootStackParamList } from '../navigation/types';
 export function GameSetupScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, keyof RootStackParamList>>();
-    const insets = useSafeAreaInsets();
     const { t } = useTranslation();
     const theme = useTheme();
 
-    const background = theme.colors.background;
     const primary = theme.colors.primary;
 
     const gameId = (route.params as { gameId: string }).gameId;
@@ -45,28 +43,24 @@ export function GameSetupScreen() {
 
     if (isPlaying && PlayScreen) {
         return (
-            <View style={[styles.root, { backgroundColor: background, paddingTop: insets.top }]}>
+            <SafeContainer edges={['top', 'bottom']}>
                 <PlayScreen onExit={() => send({ type: 'EXIT' })} />
-            </View>
+            </SafeContainer>
         );
     }
 
     return (
-        <View style={[styles.root, { backgroundColor: background }]}>
+        <SafeContainer edges={['top', 'bottom']}>
             <ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={[
-                    styles.content,
-                    { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 100 },
-                ]}
+                contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
                 <Stack direction='horizontal' gap='sm' align='center' style={styles.navBar}>
                     <IconButton
-                        icon={<ChevronLeft size={28} color={primary} />}
+                        icon={<ChevronLeft size={28} color={theme.colors.text} />}
                         onPress={() => navigation.goBack()}
                         accessibilityLabel={t('screen.gameSetup.back')}
-                        bgColor={theme.colors.surface}
                     />
                     <Text variant='subheading' weight='bold'>
                         {t('screen.gameSetup.title')}
@@ -100,7 +94,7 @@ export function GameSetupScreen() {
                 </Card>
             </ScrollView>
 
-            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+            <View style={styles.footer}>
                 <Button
                     fullWidth
                     size='lg'
@@ -110,7 +104,7 @@ export function GameSetupScreen() {
                     {t('common.start')}
                 </Button>
             </View>
-        </View>
+        </SafeContainer>
     );
 }
 
@@ -123,10 +117,13 @@ const styles = StyleSheet.create({
     },
     content: {
         paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 100,
         gap: 32,
     },
     navBar: {
         marginLeft: -8,
+        paddingVertical: 12,
     },
     header: {
         marginTop: 16,
@@ -156,11 +153,10 @@ const styles = StyleSheet.create({
     },
     footer: {
         position: 'absolute',
-        bottom: 0,
+        bottom: 24,
         left: 0,
         right: 0,
         paddingHorizontal: 24,
-        paddingTop: 16,
         backgroundColor: 'transparent',
     },
 });

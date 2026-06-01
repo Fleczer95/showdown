@@ -150,7 +150,6 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
 
     return (
         <ScrollView
-            style={{ backgroundColor: theme.colors.background }}
             contentContainerStyle={styles.scroll}
         >
             <Stack gap='lg'>
@@ -273,7 +272,7 @@ function GameOverView({
     const textMuted = useColor('textMuted');
 
     return (
-        <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.center}>
             <Stack gap='lg' align='center'>
                 <Icon name={Trophy} size={64} color={won ? success : textMuted} />
                 <Text variant='heading' weight='bold' align='center'>

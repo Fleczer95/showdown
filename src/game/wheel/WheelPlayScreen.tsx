@@ -250,7 +250,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
 
                 {/* Wheel */}
                 <Stack gap='sm' align='center'>
-                    <View style={styles.pointer} />
+                    <View style={[styles.pointer, { borderTopColor: t.colors.primary }]} />
                     <Animated.View
                         style={[styles.wheel, { borderColor: t.colors.primary }, wheelStyle]}
                     >
@@ -441,7 +441,6 @@ const styles = StyleSheet.create({
         borderTopWidth: 18,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderTopColor: '#E0245E',
         zIndex: 2,
     },
 });

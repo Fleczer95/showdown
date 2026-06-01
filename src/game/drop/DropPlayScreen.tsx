@@ -214,7 +214,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     if (state.status === 'over') {
         const won = state.bank > 0;
         return (
-            <View style={[styles.container, { backgroundColor: t.colors.background, paddingTop: insets.top + 24 }]}>
+            <View style={styles.container}>
                 <ScrollView contentContainerStyle={styles.gameOverContent}>
                     <Stack gap='xl' align='center'>
                         <Text variant='display' weight='bold' align='center'>
@@ -261,7 +261,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
 
     // --- Active round ------------------------------------------------------
     return (
-        <View style={[styles.container, { backgroundColor: t.colors.background, paddingTop: insets.top + 16 }]}>
+        <View style={styles.container}>
             <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
                 <Stack gap='lg'>
                     {/* Header */}
@@ -309,6 +309,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                         {question.options.map((option, i) => (
                             <DropOption
                                 key={`${state.round}-${i}`}
+                                index={i}
                                 label={option[lang]}
                                 amount={allocation[i]}
                                 phase={phase}
@@ -362,6 +363,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
 }
 
 interface DropOptionProps {
+    index: number;
     label: string;
     amount: number;
     phase: Phase;
@@ -383,6 +385,7 @@ interface DropOptionProps {
  * timed sequence still plays, so the outcome stays readable.
  */
 function DropOption({
+    index,
     label,
     amount,
     phase,
@@ -394,6 +397,7 @@ function DropOption({
 }: DropOptionProps) {
     const t = useTheme();
     const { t: translate } = useTranslation();
+    const prefix = String.fromCharCode(65 + index);
     const reduceMotion = useReducedMotion();
     const { spring, springBouncy, pulse } = useAnimationPresets();
 
@@ -537,10 +541,20 @@ function DropOption({
         <Animated.View style={cardStyle}>
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
-                    <Stack direction='horizontal' justify='between' align='center'>
-                        <Text variant='body' weight='semibold' style={styles.optionText}>
-                            {label}
-                        </Text>
+                    <Stack
+                        direction='horizontal'
+                        justify='between'
+                        align='center'
+                        style={styles.optionHeader}
+                    >
+                        <Stack direction='horizontal' gap='xs' align='center' flex={1}>
+                            <Text variant='body' weight='bold' color='primary'>
+                                {prefix}:
+                            </Text>
+                            <Text variant='body' weight='semibold' style={styles.optionText}>
+                                {label}
+                            </Text>
+                        </Stack>
                         {reveal !== 'none' && (
                             <Icon
                                 name={reveal === 'win' ? Check : X}
@@ -562,7 +576,7 @@ function DropOption({
                             renderValue={() => formatMoney(amount)}
                         />
                     ) : (
-                        <Animated.View style={textStyle}>
+                        <Animated.View style={[textStyle, styles.optionOutcome]}>
                             <Text variant='caption' weight={outcomeWeight} color={outcomeColor}>
                                 {outcomeText}
                             </Text>
@@ -619,5 +633,11 @@ const styles = StyleSheet.create({
     optionText: {
         flexShrink: 1,
         marginRight: 12,
+    },
+    optionHeader: {
+        paddingHorizontal: 16,
+    },
+    optionOutcome: {
+        paddingHorizontal: 16,
     },
 });

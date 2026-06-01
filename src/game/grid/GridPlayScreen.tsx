@@ -65,7 +65,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     if (state.status === 'over') {
         const winner = winningTeam(state);
         return (
-            <View style={[styles.screen, { backgroundColor: colors.background }]}>
+            <View style={styles.screen}>
                 <Stack gap='xl' align='center' justify='center' flex={1} style={styles.padded}>
                     <Icon name={Crown} size={56} color={colors.primary} />
                     <Text variant='overline' color='textMuted'>
@@ -106,7 +106,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     // Active clue view.
     if (selected) {
         return (
-            <View style={[styles.screen, { backgroundColor: colors.background }]}>
+            <View style={styles.screen}>
                 <Stack gap='xl' align='stretch' flex={1} justify='center' style={styles.padded}>
                     <Stack gap='xs' align='center'>
                         <Text variant='overline' color='textMuted'>
@@ -159,7 +159,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
 
     // Board view.
     return (
-        <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <View style={styles.screen}>
             <Scoreboard state={state} t={t} />
             <ScrollView contentContainerStyle={styles.boardScroll}>
                 <Stack direction='horizontal' gap='xs' align='start'>

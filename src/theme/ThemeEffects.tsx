@@ -11,20 +11,19 @@ export const ThemeEffects = () => {
     const { themeId } = useThemeActions();
 
     // Specific effects for premium/specialized themes
-    const hasSpecialEffect = ['nature', 'forest', 'aurora', 'ocean'].includes(themeId);
+    const specialEffects: Record<string, React.ReactNode> = {
+        nature: <LeafEffect />,
+        forest: <LeafEffect />,
+        aurora: <AuroraEffect />,
+        ocean: <WaveEffect />,
+    };
 
-    // Default glow effect for other themes to make the app feel alive
-    const useDefaultEffect = ['party', 'pastel', 'minimal', 'dark', 'midnight', 'sunset'].includes(themeId);
-
-    if (!hasSpecialEffect && !useDefaultEffect) return null;
+    const SpecialEffect = specialEffects[themeId];
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents='none'>
             <Canvas style={StyleSheet.absoluteFill}>
-                {(themeId === 'nature' || themeId === 'forest') && <LeafEffect />}
-                {themeId === 'aurora' && <AuroraEffect />}
-                {themeId === 'ocean' && <WaveEffect />}
-                {useDefaultEffect && <DefaultGlowEffect />}
+                {SpecialEffect || <DefaultGlowEffect />}
             </Canvas>
         </View>
     );

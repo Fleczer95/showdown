@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
 import Text from '../atoms/Text';
 import Stack from '../atoms/Stack';
 import Button from './Button';
 import Card from './Card';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { useBlur } from '../../theme';
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
 
 export type LeaveConfirmGameKey = 'the-ladder' | 'the-grid' | 'the-drop' | 'the-wheel';
 
@@ -23,20 +25,36 @@ interface LeaveConfirmModalProps {
  */
 function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfirmModalProps) {
     const { t } = useTranslation();
+    const { setIsBlurry } = useBlur();
     const base = `game.${gameKey}.active`;
+
+    useEffect(() => {
+        if (visible) {
+            setIsBlurry(true);
+        }
+        return () => {
+            setIsBlurry(false);
+        };
+    }, [visible, setIsBlurry]);
 
     return (
         <Modal
             visible={visible}
             transparent
-            animationType='fade'
+            animationType='none'
             statusBarTranslucent
             onRequestClose={onCancel}
         >
-            <Pressable style={styles.backdrop} onPress={onCancel}>
+            <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.backdrop}>
+                <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
+
                 {/* Swallow taps on the card so they don't dismiss via the backdrop. */}
-                <Pressable style={styles.cardWrap} onPress={() => {}}>
-                    <Card variant='elevated' padding='lg'>
+                <Animated.View
+                    entering={ZoomIn.springify().damping(22).stiffness(300)}
+                    exiting={ZoomOut}
+                    style={styles.cardWrap}
+                >
+                    <Card variant='glass' padding='lg' gap='lg'>
                         <Stack gap='lg'>
                             <Text variant='subheading' weight='bold' align='center'>
                                 {t(`${base}.leaveConfirm`)}
@@ -51,8 +69,8 @@ function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfi
                             </Stack>
                         </Stack>
                     </Card>
-                </Pressable>
-            </Pressable>
+                </Animated.View>
+            </Animated.View>
         </Modal>
     );
 }
@@ -63,7 +81,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.2)',
     },
     cardWrap: {
         width: '100%',

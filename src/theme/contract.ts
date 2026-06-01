@@ -36,6 +36,8 @@ export interface ThemeColors {
     borderLight: string;
     overlay: string;
     shadow: string;
+    glass: string;
+    glassBorder: string;
 }
 
 export type ColorToken = keyof ThemeColors;
@@ -178,6 +180,7 @@ export interface ThemeComponentVariants {
         elevated?: CardVariant;
         outlined?: CardVariant;
         flat?: CardVariant;
+        glass?: CardVariant;
     };
     input?: {
         default?: InputDefaultVariant;
@@ -238,6 +241,7 @@ export interface ResolvedComponentVariants {
         elevated: ResolvedCardVariant;
         outlined: ResolvedCardVariant;
         flat: ResolvedCardVariant;
+        glass: ResolvedCardVariant;
     };
     input: {
         default: ResolvedInputDefaultVariant;

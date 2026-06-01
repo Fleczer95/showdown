@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import Pressable from '../atoms/HapticPressable';
 import { useTheme } from '../../theme';
 
-export type CardVariant = 'elevated' | 'outlined' | 'flat';
+export type CardVariant = 'elevated' | 'outlined' | 'flat' | 'glass';
 
 export interface CardProps {
     variant?: CardVariant;
@@ -45,6 +45,14 @@ function Card({
                 borderRadius: t.radii.lg,
                 ...(padding !== 'none' ? { padding: t.spacing[padding] } : {}),
                 ...(gap ? { gap: t.spacing[gap] } : {}),
+                // 3D effect for glass variant
+                ...(variant === 'glass' ? {
+                    borderBottomWidth: 5,
+                    borderBottomColor: t.colors.shadow,
+                    borderTopColor: t.colors.glassBorder,
+                    borderLeftColor: t.colors.glassBorder,
+                    borderRightColor: t.colors.glassBorder,
+                } : {}),
             },
             shadowStyle,
             style,

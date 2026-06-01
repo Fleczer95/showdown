@@ -33,6 +33,8 @@ const colors: ThemeColors = {
     borderLight: '#3A3A5A',
     overlay: 'rgba(0, 0, 0, 0.5)',
     shadow: '#000000',
+    glass: '#1E1E3E',
+    glassBorder: '#5A5A7A',
 };
 
 // ── Typography defaults ───────────────────────────────────────────
@@ -145,6 +147,7 @@ const defaultComponentVariants: ThemeComponentVariants = {
         elevated: { bg: 'surface', border: 'border', shadow: 'md' },
         outlined: { bg: 'background', border: 'border', shadow: 'none' },
         flat: { bg: 'surface', border: 'background', shadow: 'none' },
+        glass: { bg: 'glass', border: 'glassBorder', shadow: 'lg' },
     },
     input: {
         default: { bg: 'surface', border: 'border', text: 'text', placeholder: 'textMuted' },

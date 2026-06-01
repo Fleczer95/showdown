@@ -24,7 +24,9 @@ interface ThemeContextValue {
     theme: ResolvedTheme;
     themeId: string;
     breakpoint: Breakpoint;
+    isBlurry: boolean;
     setTheme: (id: string) => void;
+    setIsBlurry: (isBlurry: boolean) => void;
 }
 
 // ── Fallback for outside provider (e.g. tests) ────────────────────
@@ -35,7 +37,9 @@ const ThemeContext = createContext<ThemeContextValue>({
     theme: fallbackResolved,
     themeId: 'party',
     breakpoint: 'regular',
+    isBlurry: false,
     setTheme: () => {},
+    setIsBlurry: () => {},
 });
 
 // ── Provider ──────────────────────────────────────────────────────
@@ -47,6 +51,7 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children, defaultThemeId }: ThemeProviderProps) {
     const [themeId, setThemeId] = useState<string>(() => defaultThemeId ?? loadThemePreference());
+    const [isBlurry, setIsBlurry] = useState(false);
     const { width, height } = useWindowDimensions();
 
     // Memoize on breakpoint, not raw dimensions
@@ -70,8 +75,8 @@ export function ThemeProvider({ children, defaultThemeId }: ThemeProviderProps) 
     }, [theme.colors.background]);
 
     const value = useMemo(
-        () => ({ theme, themeId, breakpoint, setTheme: handleSetTheme }),
-        [theme, themeId, breakpoint, handleSetTheme],
+        () => ({ theme, themeId, breakpoint, isBlurry, setTheme: handleSetTheme, setIsBlurry }),
+        [theme, themeId, breakpoint, isBlurry, handleSetTheme],
     );
 
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
@@ -98,6 +103,18 @@ export function useThemeActions(): {
         throw new Error('useThemeActions() must be used within <ThemeProvider>.');
     }
     return { themeId: ctx.themeId, setTheme: ctx.setTheme };
+}
+
+/** Global blur state for modals/overlays */
+export function useBlur(): {
+    isBlurry: boolean;
+    setIsBlurry: (isBlurry: boolean) => void;
+} {
+    const ctx = useContext(ThemeContext);
+    if (!ctx) {
+        throw new Error('useBlur() must be used within <ThemeProvider>.');
+    }
+    return { isBlurry: ctx.isBlurry, setIsBlurry: ctx.setIsBlurry };
 }
 
 /** Type-safe color access */

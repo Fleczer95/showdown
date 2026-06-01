@@ -39,10 +39,10 @@ export default function Slider({
     const [trackWidth, setTrackWidth] = useState(0);
     const activeAccent = accentColor || t.colors.primary;
 
-    const horizontalPadding = 0;
-    const thumbSize = scale(THUMB_SIZE);
+    // Fluid sizing so the widget keeps pace with the scaled type/spacing tokens on tablet.
+    const thumbSize = scale(24);
     const trackPadding = thumbSize / 2;
-    const trackHeight = scale(TRACK_HEIGHT);
+    const trackHeight = scale(6);
 
     const onLayout = useCallback((event: LayoutChangeEvent) => {
         setTrackWidth(event.nativeEvent.layout.width);
@@ -109,16 +109,18 @@ export default function Slider({
     return (
         <View style={styles.container}>
             {(label || renderValue) && (
-                <View style={[styles.labelRow, { paddingHorizontal: horizontalPadding }]}>
-                    <View style={styles.labelLeft}>
-                        {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
+                <View style={[styles.labelRow, { marginBottom: t.spacing.sm }]}>
+                    <View style={[styles.labelLeft, { paddingHorizontal: t.spacing.md }]}>
+                        {leftIcon && (
+                            <View style={[styles.iconContainer, { marginRight: t.spacing.sm }]}>{leftIcon}</View>
+                        )}
                         {label && (
                             <Text variant='caption' weight='medium' color={t.colors.textSecondary}>
                                 {label}
                             </Text>
                         )}
                     </View>
-                    <Text variant='body' weight='bold' color={activeAccent} style={{paddingHorizontal:12}}>
+                    <Text variant='body' weight='bold' color={activeAccent} style={{ paddingHorizontal: t.spacing.md }}>
                         {renderValue ? renderValue(value) : value}
                     </Text>
                 </View>
@@ -129,7 +131,11 @@ export default function Slider({
                     <View
                         style={[
                             styles.track,
-                            { height: trackHeight, borderRadius: trackHeight / 2, backgroundColor: t.colors.surface },
+                            {
+                                height: trackHeight,
+                                borderRadius: trackHeight / 2,
+                                backgroundColor: t.colors.surface,
+                            },
                         ]}
                         onLayout={onLayout}
                     >
@@ -148,8 +154,8 @@ export default function Slider({
                                     height: thumbSize,
                                     borderRadius: thumbSize / 2,
                                     top: -(thumbSize - trackHeight) / 2,
-                                    backgroundColor: '#fff',
-                                    shadowColor: '#000',
+                                    backgroundColor: t.colors.onPrimary,
+                                    shadowColor: t.colors.shadow,
                                     shadowOffset: { width: 0, height: 2 },
                                     shadowOpacity: 0.2,
                                     shadowRadius: 3,
@@ -173,16 +179,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
     },
     labelLeft: {
         flexDirection: 'row',
-        paddingHorizontal: 10,
         alignItems: 'center',
     },
-    iconContainer: {
-        marginRight: 8,
-    },
+    iconContainer: {},
     gestureArea: {
         justifyContent: 'center',
         width: '100%',

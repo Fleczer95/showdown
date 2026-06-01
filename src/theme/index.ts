@@ -9,6 +9,7 @@ export {
     useRadii,
     useShadow,
     useAnimationPresets,
+    useBlur,
 } from './context';
 export { createTheme, deepMerge } from './createTheme';
 export { resolveTheme } from './resolveTheme';

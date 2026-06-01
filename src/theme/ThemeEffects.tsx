@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Canvas } from '@shopify/react-native-skia';
-import { useThemeActions } from './context';
+import { Canvas, Group, Blur } from '@shopify/react-native-skia';
+import { useThemeActions, useBlur } from './context';
 import { LeafEffect } from './effects/LeafEffect';
 import { AuroraEffect } from './effects/AuroraEffect';
 import { WaveEffect } from './effects/WaveEffect';
@@ -9,6 +9,7 @@ import { DefaultGlowEffect } from './effects/DefaultGlowEffect';
 
 export const ThemeEffects = () => {
     const { themeId } = useThemeActions();
+    const { isBlurry } = useBlur();
 
     // Specific effects for premium/specialized themes
     const specialEffects: Record<string, React.ReactNode> = {
@@ -23,7 +24,10 @@ export const ThemeEffects = () => {
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents='none'>
             <Canvas style={StyleSheet.absoluteFill}>
-                {SpecialEffect || <DefaultGlowEffect />}
+                <Group>
+                    {isBlurry && <Blur blur={40} />}
+                    {SpecialEffect || <DefaultGlowEffect />}
+                </Group>
             </Canvas>
         </View>
     );

@@ -45,7 +45,15 @@ function ToggleGroup({ value, options, onChange, multiple = false, disabledOptio
 
     return (
         <View
-            style={[styles.container, { backgroundColor: t.colors.background, borderRadius: t.radii.lg, padding: 4 }]}
+            style={[
+                styles.container,
+                {
+                    backgroundColor: t.colors.background,
+                    borderRadius: t.radii.lg,
+                    padding: t.spacing.xs,
+                    minHeight: t.spacing.xxl + t.spacing.lg, // approx 48
+                },
+            ]}
             testID={testID}
             accessibilityRole={multiple ? 'radiogroup' : 'tablist'}
         >
@@ -92,10 +100,12 @@ function ToggleItem({
                     backgroundColor: active ? t.colors.surface : 'transparent',
                     borderRadius: t.radii.md,
                     opacity: disabled ? 0.5 : 1,
+                    paddingVertical: t.spacing.md - 2, // approx 10
+                    paddingHorizontal: t.spacing.sm,
                     // More pronounced shadow for visibility on surface
                     ...(active
                         ? {
-                              shadowColor: '#000',
+                              shadowColor: t.colors.shadow,
                               shadowOffset: { width: 0, height: 1 },
                               shadowOpacity: 0.15,
                               shadowRadius: 2,
@@ -115,7 +125,7 @@ function ToggleItem({
                     <Icon
                         size={iconSize(16)}
                         color={active ? t.colors.primary : t.colors.textSecondary}
-                        style={styles.itemIcon}
+                        style={[styles.itemIcon, { marginRight: t.spacing.sm - 2 }]}
                     />
                 )}
                 <Text
@@ -138,7 +148,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-        minHeight: 48,
     },
     itemWrapper: {
         flex: 1,
@@ -146,8 +155,6 @@ const styles = StyleSheet.create({
     },
     item: {
         width: '100%',
-        paddingVertical: 10,
-        paddingHorizontal: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -157,9 +164,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         maxWidth: '100%',
     },
-    itemIcon: {
-        marginRight: 6,
-    },
+    itemIcon: {},
     itemLabel: {
         flexShrink: 1,
         minWidth: 0,

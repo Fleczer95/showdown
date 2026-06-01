@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../theme';
+import { useTheme, useBlur } from '../theme';
 import { ThemeEffects } from '../theme/ThemeEffects';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 interface SafeContainerProps {
     children: React.ReactNode;
@@ -21,6 +22,12 @@ function SafeContainer({
 }: SafeContainerProps) {
     const insets = useSafeAreaInsets();
     const t = useTheme();
+    const { isBlurry } = useBlur();
+
+    const animatedContentStyle = useAnimatedStyle(() => ({
+        opacity: withTiming(isBlurry ? 0.3 : 1, { duration: 600 }),
+        transform: [{ scale: withTiming(isBlurry ? 0.95 : 1, { duration: 600 }) }],
+    }));
 
     return (
         <View
@@ -38,13 +45,18 @@ function SafeContainer({
             testID={testID}
         >
             {!disableEffects && <ThemeEffects />}
-            {children}
+            <Animated.View style={[styles.content, animatedContentStyle]}>
+                {children}
+            </Animated.View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+    },
+    content: {
         flex: 1,
     },
 });

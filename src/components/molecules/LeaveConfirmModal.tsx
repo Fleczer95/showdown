@@ -6,7 +6,7 @@ import Button from './Button';
 import Card from './Card';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useBlur } from '../../theme';
-import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut, Easing } from 'react-native-reanimated';
 
 export type LeaveConfirmGameKey = 'the-ladder' | 'the-grid' | 'the-drop' | 'the-wheel';
 
@@ -50,8 +50,8 @@ function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfi
 
                 {/* Swallow taps on the card so they don't dismiss via the backdrop. */}
                 <Animated.View
-                    entering={ZoomIn.springify().damping(22).stiffness(300)}
-                    exiting={ZoomOut}
+                    entering={ZoomIn.duration(600).easing(Easing.bezier(0.33, 1, 0.68, 1))}
+                    exiting={ZoomOut.duration(300)}
                     style={styles.cardWrap}
                 >
                     <Card variant='glass' padding='lg' gap='lg'>

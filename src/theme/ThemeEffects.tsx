@@ -25,7 +25,7 @@ export const ThemeEffects = () => {
         <View style={StyleSheet.absoluteFill} pointerEvents='none'>
             <Canvas style={StyleSheet.absoluteFill}>
                 <Group>
-                    {isBlurry && <Blur blur={40} />}
+                    {isBlurry && <Blur blur={350} />}
                     {SpecialEffect || <DefaultGlowEffect />}
                 </Group>
             </Canvas>

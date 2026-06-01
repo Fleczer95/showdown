@@ -45,14 +45,6 @@ function Card({
                 borderRadius: t.radii.lg,
                 ...(padding !== 'none' ? { padding: t.spacing[padding] } : {}),
                 ...(gap ? { gap: t.spacing[gap] } : {}),
-                // 3D effect for glass variant
-                ...(variant === 'glass' ? {
-                    borderBottomWidth: 5,
-                    borderBottomColor: t.colors.shadow,
-                    borderTopColor: t.colors.glassBorder,
-                    borderLeftColor: t.colors.glassBorder,
-                    borderRightColor: t.colors.glassBorder,
-                } : {}),
             },
             shadowStyle,
             style,

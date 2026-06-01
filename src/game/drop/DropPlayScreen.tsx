@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
     FadeIn,
     Easing,
@@ -72,7 +71,6 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const { fade } = useAnimationPresets();
     const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
-    const insets = useSafeAreaInsets();
     const lang = locale as Language;
 
     const [state, setState] = useState<DropState>(() =>
@@ -262,96 +260,104 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     // --- Active round ------------------------------------------------------
     return (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
-                <Stack gap='lg'>
-                    {/* Header */}
-                    <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
-                        <Stack gap='xs'>
-                            <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
-                                {translate('game.the-drop.header.round', {
-                                    current: state.round + 1,
-                                    total: TOTAL_ROUNDS,
-                                })}
-                            </Text>
-                            <Text variant='heading' weight='bold' color={t.colors.primary}>
-                                {formatMoney(state.bank)}
-                            </Text>
-                        </Stack>
-                        <Stack gap='xs' align='end'>
-                            <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
-                                {translate('game.the-drop.header.toPlace')}
-                            </Text>
-                            <Text
-                                variant='subheading'
-                                weight='bold'
-                                color={remaining === 0 ? t.colors.success : t.colors.text}
-                            >
-                                {formatMoney(remaining)}
-                            </Text>
-                        </Stack>
-                    </Stack>
-
-                    {/* Question */}
-                    <Card variant='outlined' padding='md'>
-                        <Text variant='subheading' weight='bold' align='center'>
-                            {question.prompt[lang]}
+            {/* Top fixed content */}
+            <Stack gap='lg' style={[styles.staticHeader, { borderBottomColor: t.colors.border }]}>
+                {/* Header */}
+                <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
+                    <Stack gap='xs'>
+                        <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                            {translate('game.the-drop.header.round', {
+                                current: state.round + 1,
+                                total: TOTAL_ROUNDS,
+                            })}
                         </Text>
-                    </Card>
-
-                    {phase === 'allocating' && (
-                        <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
-                            {translate('game.the-drop.active.instruction', { max: maxCover })}
+                        <Text variant='heading' weight='bold' color={t.colors.primary}>
+                            {formatMoney(state.bank)}
                         </Text>
-                    )}
-
-                    {/* Options */}
-                    <Stack gap='md'>
-                        {question.options.map((option, i) => (
-                            <DropOption
-                                key={`${state.round}-${i}`}
-                                index={i}
-                                label={option[lang]}
-                                amount={allocation[i]}
-                                phase={phase}
-                                reveal={reveals[i]}
-                                answerShown={answerShown}
-                                lockedByCover={
-                                    phase === 'allocating' &&
-                                    allocation[i] === 0 &&
-                                    coveredCount >= maxCover
-                                }
-                                sliderMax={state.bank}
-                                onChange={(v) => setSlot(i, v)}
-                            />
-                        ))}
                     </Stack>
+                    <Stack gap='xs' align='end'>
+                        <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                            {translate('game.the-drop.header.toPlace')}
+                        </Text>
+                        <Text
+                            variant='subheading'
+                            weight='bold'
+                            color={remaining === 0 ? t.colors.success : t.colors.text}
+                        >
+                            {formatMoney(remaining)}
+                        </Text>
+                    </Stack>
+                </Stack>
 
-                    {/* Actions */}
-                    {phase === 'allocating' ? (
-                        <Stack gap='sm'>
-                            <Button variant='primary' onPress={onConfirm} disabled={!canConfirm} fullWidth>
-                                {translate('game.the-drop.active.lockIn')}
-                            </Button>
-                            <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
-                                {translate('game.the-drop.active.leave')}
-                            </Button>
-                        </Stack>
-                    ) : canAdvance ? (
-                        <Animated.View entering={FadeIn.duration(fade.duration)}>
-                            <Button variant='primary' onPress={onAdvance} fullWidth>
-                                {state.round + 1 >= TOTAL_ROUNDS ||
-                                allocation[question.correctIndex] === 0
-                                    ? translate('game.the-drop.reveal.seeResult')
-                                    : translate('game.the-drop.reveal.next')}
-                            </Button>
-                        </Animated.View>
-                    ) : (
-                        phase === 'suspense' && (
-                            <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
-                        )
-                    )}
+                {/* Question */}
+                <Card variant='outlined' padding='md'>
+                    <Text variant='subheading' weight='bold' align='center'>
+                        {question.prompt[lang]}
+                    </Text>
+                </Card>
+
+                {phase === 'allocating' && (
+                    <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
+                        {translate('game.the-drop.active.instruction', { max: maxCover })}
+                    </Text>
+                )}
+            </Stack>
+
+            {/* Scrollable middle content (options) */}
+            <ScrollView
+                style={styles.optionsScroll}
+                contentContainerStyle={styles.optionsContent}
+                showsVerticalScrollIndicator={true}
+            >
+                <Stack gap='md'>
+                    {question.options.map((option, i) => (
+                        <DropOption
+                            key={`${state.round}-${i}`}
+                            index={i}
+                            label={option[lang]}
+                            amount={allocation[i]}
+                            phase={phase}
+                            reveal={reveals[i]}
+                            answerShown={answerShown}
+                            lockedByCover={
+                                phase === 'allocating' &&
+                                allocation[i] === 0 &&
+                                coveredCount >= maxCover
+                            }
+                            sliderMax={state.bank}
+                            onChange={(v) => setSlot(i, v)}
+                        />
+                    ))}
                 </Stack>
             </ScrollView>
+
+            {/* Bottom fixed content (actions) */}
+            <View style={[styles.footer, { borderTopColor: t.colors.border }]}>
+                {phase === 'allocating' ? (
+                    <Stack gap='sm'>
+                        <Button variant='primary' onPress={onConfirm} disabled={!canConfirm} fullWidth>
+                            {translate('game.the-drop.active.lockIn')}
+                        </Button>
+                        <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
+                            {translate('game.the-drop.active.leave')}
+                        </Button>
+                    </Stack>
+                ) : canAdvance ? (
+                    <Animated.View entering={FadeIn.duration(fade.duration)}>
+                        <Button variant='primary' onPress={onAdvance} fullWidth>
+                            {state.round + 1 >= TOTAL_ROUNDS ||
+                            allocation[question.correctIndex] === 0
+                                ? translate('game.the-drop.reveal.seeResult')
+                                : translate('game.the-drop.reveal.next')}
+                        </Button>
+                    </Animated.View>
+                ) : (
+                    phase === 'suspense' && (
+                        <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
+                    )
+                )}
+            </View>
+
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-drop'
@@ -621,6 +627,26 @@ const styles = StyleSheet.create({
     },
     content: {
         paddingHorizontal: 16,
+    },
+    staticHeader: {
+        paddingHorizontal: 16,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+    },
+    optionsScroll: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.05)', // Subtle contrast for the scroll area
+    },
+    optionsContent: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 16,
+    },
+    footer: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 16,
+        borderTopWidth: 1,
     },
     header: {
         paddingHorizontal: 18, // content (16) + 12 = 28px total indent

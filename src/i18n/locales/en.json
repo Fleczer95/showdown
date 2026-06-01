@@ -3,6 +3,7 @@
         "home": {
             "tagline": "TV quiz party games for game night",
             "settings": "Settings",
+            "store": "Store",
             "recentlyPlayed": "Recently Played",
             "allGames": "All Games"
         },
@@ -24,6 +25,7 @@
                 "language": "Language",
                 "language_en": "English",
                 "language_pl": "Polish",
+                "store": "Theme Store",
                 "version": "Version",
                 "privacyPolicy": "Privacy Policy",
                 "termsOfUse": "Terms of Use"
@@ -195,13 +197,22 @@
                 "packs": "Question Packs",
                 "themes": "Themes"
             },
-            "item": {},
-            "feature": {},
+            "item": {
+                "theme_cyberpunk": {
+                    "title": "Cyberpunk",
+                    "desc": "A high-contrast neon theme with electric blue accents and late-night arcade energy."
+                }
+            },
+            "feature": {
+                "theme_cyberpunk_1": "Neon cyan controls and highlights",
+                "theme_cyberpunk_2": "Dark premium palette for game night"
+            },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",
             "purchasing": "Processing...",
             "restore": "Restore Purchases",
-            "restore_success": "Purchases restored successfully!"
+            "restore_success": "Purchases restored successfully!",
+            "empty": "No items available yet."
         }
     },
     "common": {

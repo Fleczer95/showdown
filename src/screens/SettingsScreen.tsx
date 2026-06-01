@@ -1,11 +1,10 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View, Linking, Platform } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, Volume2, Smartphone, Languages } from 'lucide-react-native';
+import { ChevronLeft, Store, Volume2, Smartphone } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
-import Icon from '../components/atoms/Icon';
 import Pressable from '../components/atoms/HapticPressable';
 import IconButton from '../components/molecules/IconButton';
 import Switch from '../components/molecules/Switch';
@@ -14,6 +13,7 @@ import Divider from '../components/atoms/Divider';
 import { useTheme, useThemeActions, themeRegistry } from '../theme';
 import { useTranslation } from '../i18n';
 import { useSettings } from '../hooks/useSettings';
+import { useStore } from '../hooks/store/useStore';
 import { useResponsive } from '../responsive/useResponsive';
 import { FULL_VERSION_STRING } from '../utils/version';
 
@@ -27,6 +27,7 @@ export function SettingsScreen() {
     const theme = useTheme();
     const { themeId, setTheme } = useThemeActions();
     const settings = useSettings();
+    const { purchasedItemIds } = useStore();
     const { scale } = useResponsive();
 
     const handleBack = () => navigation.goBack();
@@ -36,19 +37,22 @@ export function SettingsScreen() {
         label: t(opt.labelKey as any),
         icon: opt.icon,
         isPremium: opt.isPremium,
+        isLocked: opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`),
     }));
+
+    const handleThemeChange = (nextThemeId: string) => {
+        const option = themeOptions.find((themeOption) => themeOption.value === nextThemeId);
+        if (option?.isLocked) {
+            navigation.navigate('Store' as any, { gameId: 'themes' });
+            return;
+        }
+        setTheme(nextThemeId);
+    };
 
     const languageOptions = [
         { value: 'en', label: t('screen.settings.labels.language_en') },
         { value: 'pl', label: t('screen.settings.labels.language_pl') },
     ];
-
-    const openLink = async (url: string) => {
-        const supported = await Linking.canOpenURL(url);
-        if (supported) {
-            await Linking.openURL(url);
-        }
-    };
 
     return (
         <SafeContainer edges={['top', 'bottom']}>
@@ -92,9 +96,22 @@ export function SettingsScreen() {
                             label={t('screen.settings.labels.theme')}
                             value={[themeId]}
                             options={themeOptions}
-                            onChange={setTheme}
+                            onChange={handleThemeChange}
                             numColumns={2}
                         />
+                        <Pressable
+                            style={[styles.storeButton, { paddingVertical: theme.spacing.sm }]}
+                            onPress={() => navigation.navigate('Store' as any, { gameId: 'themes' })}
+                            haptic='light'
+                            accessibilityLabel={t('screen.store.title')}
+                        >
+                            <View pointerEvents='none' style={styles.storeButtonContent}>
+                                <Store size={scale(18)} color={theme.colors.primary} />
+                                <Text variant='body' color={theme.colors.primary} weight='semibold'>
+                                    {t('screen.settings.labels.store')}
+                                </Text>
+                            </View>
+                        </Pressable>
                     </Stack>
 
                     <Divider />
@@ -246,6 +263,14 @@ const styles = StyleSheet.create({
     },
     linkButton: {
         // dynamic spacing moved
+    },
+    storeButton: {
+        alignSelf: 'flex-start',
+    },
+    storeButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     footer: {
         // dynamic spacing moved

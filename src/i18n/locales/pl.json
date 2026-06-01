@@ -3,6 +3,7 @@
         "home": {
             "tagline": "Telewizyjne teleturnieje na imprezowy wieczór",
             "settings": "Ustawienia",
+            "store": "Sklep",
             "recentlyPlayed": "Ostatnio grane",
             "allGames": "Wszystkie gry"
         },
@@ -24,6 +25,7 @@
                 "language": "Język",
                 "language_en": "Angielski",
                 "language_pl": "Polski",
+                "store": "Sklep z motywami",
                 "version": "Wersja",
                 "privacyPolicy": "Polityka prywatności",
                 "termsOfUse": "Zasady użytkowania"
@@ -198,13 +200,22 @@
                 "packs": "Pakiety pytań",
                 "themes": "Motywy"
             },
-            "item": {},
-            "feature": {},
+            "item": {
+                "theme_cyberpunk": {
+                    "title": "Cyberpunk",
+                    "desc": "Kontrastowy neonowy motyw z elektrycznymi akcentami i nocnym, arcade'owym klimatem."
+                }
+            },
+            "feature": {
+                "theme_cyberpunk_1": "Neonowe turkusowe kontrolki i podświetlenia",
+                "theme_cyberpunk_2": "Ciemna paleta premium na wieczór z grami"
+            },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",
             "purchasing": "Przetwarzanie...",
             "restore": "Przywróć zakupy",
-            "restore_success": "Zakupy zostały pomyślnie przywrócone!"
+            "restore_success": "Zakupy zostały pomyślnie przywrócone!",
+            "empty": "Brak dostępnych produktów."
         }
     },
     "common": {
@@ -420,6 +431,50 @@
                     "Dostępu, sprostowania, ograniczenia przetwarzania, usunięcia danych",
                     "Kontakt z nami: {{email}}"
                 ]
+            }
+        ],
+        "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+    },
+    "termsOfUse": {
+        "title": "Regulamin Korzystania z Aplikacji",
+        "sections": [
+            {
+                "title": "1. Akceptacja Regulaminu",
+                "content": "Pobierając, instalując lub używając aplikacji ShowDown, zgadzasz się na przestrzeganie niniejszego Regulaminu. Jeśli nie zgadzasz się na te warunki, prosimy o niekorzystanie z aplikacji."
+            },
+            {
+                "title": "2. Charakter Aplikacji",
+                "content": "ShowDown to kolekcja gier imprezowych stworzona wyłącznie dla rozrywki."
+            },
+            {
+                "title": "3. Usługi",
+                "content": "Aplikacja zawiera quizy i gry imprezowe przeznaczone do lokalnej gry ze znajomymi."
+            },
+            {
+                "title": "4. Ograniczenia Użytkowania",
+                "content": "Możesz używać tej aplikacji wyłącznie dla celów osobistych, niekomercyjnych. Nie możesz:",
+                "listItems": [
+                    "Odwracać inżynierii ani dekompilować aplikacji",
+                    "Dystrybuować ani sprzedawać kopii aplikacji",
+                    "Używać aplikacji do celów nielegalnych",
+                    "Naruszać żadnych obowiązujących praw lub przepisów"
+                ]
+            },
+            {
+                "title": "5. Płatności",
+                "content": "Zakupy w aplikacji realizowane są za pośrednictwem Apple App Store lub Google Play zgodnie z ich regulaminami."
+            },
+            {
+                "title": "6. Zasady Gry",
+                "content": "Graj odpowiedzialnie i szanuj pozostałych uczestników zabawy."
+            },
+            {
+                "title": "7. Ograniczenie Odpowiedzialności",
+                "content": "Aplikacja i jej twórcy nie ponoszą odpowiedzialności za żadne szkody wynikające z korzystania z tej aplikacji, w tym w szczególności za szkody bezpośrednie, pośrednie, przypadkowe lub wynikowe."
+            },
+            {
+                "title": "8. Zmiany w Regulaminie",
+                "content": "Zastrzegamy sobie prawo do modyfikacji niniejszego regulaminu w dowolnym czasie. Dalsze korzystanie z aplikacji po wprowadzeniu zmian stanowi akceptację zaktualizowanych warunków."
             }
         ],
         "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"

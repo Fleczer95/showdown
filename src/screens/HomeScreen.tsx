@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Settings, ChevronRight } from 'lucide-react-native';
+import { Settings, ChevronRight, ShoppingBag } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -42,7 +42,7 @@ export function HomeScreen() {
             >
                 <Stack gap='md'>
                     <View style={styles.header}>
-                        <Stack gap='xs' style={styles.titleContainer}>
+                        <Stack gap='xs' style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
                             <Text variant='display' weight='bold' color='primary' style={styles.title}>
                                 ShowDown
                             </Text>
@@ -50,12 +50,20 @@ export function HomeScreen() {
                                 {t('screen.home.tagline')}
                             </Text>
                         </Stack>
-                        <IconButton
-                            icon={<Settings size={24} color={theme.colors.text} />}
-                            onPress={() => navigation.navigate('Settings')}
-                            size='md'
-                            accessibilityLabel={t('screen.home.settings')}
-                        />
+                        <View style={styles.headerActions}>
+                            <IconButton
+                                icon={<ShoppingBag size={24} color={theme.colors.text} />}
+                                onPress={() => navigation.navigate('Store')}
+                                size='md'
+                                accessibilityLabel={t('screen.home.store')}
+                            />
+                            <IconButton
+                                icon={<Settings size={24} color={theme.colors.text} />}
+                                onPress={() => navigation.navigate('Settings')}
+                                size='md'
+                                accessibilityLabel={t('screen.home.settings')}
+                            />
+                        </View>
                     </View>
                 </Stack>
 
@@ -116,6 +124,10 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         flex: 1,
+    },
+    headerActions: {
+        flexDirection: 'column',
+        gap: 8,
     },
     title: {
         letterSpacing: -1,

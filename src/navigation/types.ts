@@ -8,6 +8,7 @@ import type { SetupRoute } from '../data/games';
 export type RootStackParamList = {
     Home: undefined;
     Settings: undefined;
+    Store: { gameId?: string } | undefined;
     privacyPolicy: undefined;
     termsOfUse: undefined;
 } & Record<SetupRoute, { gameId: string }>;

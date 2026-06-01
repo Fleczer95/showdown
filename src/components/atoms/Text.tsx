@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Text as RNText, StyleSheet, type TextStyle } from 'react-native';
+import { Text as RNText, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
 import { useTheme, type TypographyToken, type FontWeight, type FontSizeToken, type ColorToken } from '../../theme';
 
 export type TextVariant = 'display' | 'heading' | 'subheading' | 'body' | 'caption' | 'overline';
@@ -9,7 +9,7 @@ export interface TextProps {
     color?: ColorToken | string;
     align?: 'left' | 'center' | 'right';
     weight?: FontWeight;
-    style?: TextStyle;
+    style?: StyleProp<TextStyle>;
     children?: React.ReactNode;
     numberOfLines?: number;
     ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';

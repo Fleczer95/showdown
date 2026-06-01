@@ -1,4 +1,5 @@
 import { defaultTokens } from '../../theme/defaults';
+import { cyberpunkTheme } from '../../theme/themes';
 import type { ThemeDefinition } from './types';
 
 /**
@@ -24,5 +25,18 @@ export const themes: ThemeDefinition[] = [
             accentColor: '#A855F7',
         },
         tokens: defaultTokens,
+    },
+    {
+        id: 'theme-cyberpunk',
+        kind: 'theme',
+        status: 'live',
+        tier: 'premium',
+        presentation: {
+            titleKey: 'screen.settings.theme.cyberpunk',
+            descriptionKey: 'screen.settings.theme.cyberpunk',
+            iconName: 'zap',
+            accentColor: '#00f3ff',
+        },
+        tokens: cyberpunkTheme,
     },
 ];

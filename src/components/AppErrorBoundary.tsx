@@ -16,6 +16,16 @@ interface ErrorBoundaryState {
 const colors = defaultTokens.colors!;
 const spacing = defaultTokens.spacing!;
 
+// Safe access to spacing with fallbacks to avoid undefined errors in arithmetic
+const sp = {
+    xs: spacing.xs ?? 4,
+    sm: spacing.sm ?? 8,
+    md: spacing.md ?? 12,
+    lg: spacing.lg ?? 16,
+    xl: spacing.xl ?? 24,
+    xxl: spacing.xxl ?? 32,
+};
+
 export class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
         super(props);
@@ -95,7 +105,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: spacing.xl,
+        padding: sp.xl,
     },
     content: {
         width: '100%',
@@ -106,14 +116,14 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: '600',
         color: colors.text,
-        marginBottom: spacing.md,
+        marginBottom: sp.md,
         textAlign: 'center',
     },
     message: {
         fontSize: 16,
         color: colors.textSecondary,
         textAlign: 'center',
-        marginBottom: spacing.xl,
+        marginBottom: sp.xl,
         lineHeight: 22,
     },
     errorContainer: {
@@ -121,19 +131,19 @@ const styles = StyleSheet.create({
         maxHeight: 200,
         backgroundColor: colors.surfaceVariant,
         borderRadius: 8,
-        padding: spacing.md,
-        marginBottom: spacing.xl,
+        padding: sp.md,
+        marginBottom: sp.xl,
     },
     errorTitle: {
         fontSize: 13,
         fontWeight: '600',
         color: colors.text,
-        marginBottom: spacing.xs,
+        marginBottom: sp.xs,
     },
     errorText: {
         fontSize: 12,
         color: colors.textSecondary,
-        marginBottom: spacing.sm,
+        marginBottom: sp.sm,
     },
     errorStack: {
         fontSize: 12,
@@ -141,8 +151,8 @@ const styles = StyleSheet.create({
     },
     retryButton: {
         backgroundColor: colors.primary,
-        paddingHorizontal: spacing.xl + spacing.sm, // 32
-        paddingVertical: spacing.md,
+        paddingHorizontal: sp.xl + sp.sm, // 32
+        paddingVertical: sp.md,
         borderRadius: 8,
         minWidth: 150,
         alignItems: 'center',

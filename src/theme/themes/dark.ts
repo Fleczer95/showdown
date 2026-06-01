@@ -19,7 +19,7 @@ export const darkTheme = createTheme({
         success: '#4CAF50',
         text: '#ECECF1',
         textSecondary: '#A0A0B8',
-        textMuted: '#5A5A72',
+        textMuted: '#7A7A8A',
         border: '#2A2A3A',
         borderLight: '#363648',
         overlay: 'rgba(0, 0, 0, 0.6)',

@@ -306,7 +306,7 @@
                 "spinning": "Spinning...",
                 "guessLetter": "Guess a letter",
                 "buyVowel": "Buy Vowel (%{cost})",
-                "vowelHint": "Vowels (teal) cost %{cost}",
+                "vowelHint": "Vowels cost %{cost}",
                 "solve": "Solve the Puzzle",
                 "bankrupt": "Bankrupt!",
                 "leave": "Leave Game",

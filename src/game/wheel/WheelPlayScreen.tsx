@@ -251,16 +251,11 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                 {/* Wheel */}
                 <Stack gap='sm' align='center'>
                     <View style={[styles.pointer, { borderTopColor: t.colors.primary }]} />
-                    <Animated.View
-                        style={[styles.wheel, { borderColor: t.colors.primary }, wheelStyle]}
-                    >
+                    <Animated.View style={[styles.wheel, { borderColor: t.colors.primary }, wheelStyle]}>
                         {WHEEL.map((seg, i) => (
                             <View
                                 key={i}
-                                style={[
-                                    styles.segment,
-                                    { transform: [{ rotate: `${(360 / WHEEL.length) * i}deg` }] },
-                                ]}
+                                style={[styles.segment, { transform: [{ rotate: `${(360 / WHEEL.length) * i}deg` }] }]}
                             >
                                 <Text
                                     variant='caption'
@@ -290,7 +285,8 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                 {phase === 'awaitGuess' && !solveMode ? (
                     <Stack gap='sm'>
                         <Text variant='caption' weight='medium' color='textSecondary' align='center'>
-                            {tr('game.the-wheel.active.guessLetter')}
+                            {tr('game.the-wheel.active.guessLetter')}{' ('}
+                            {tr('game.the-wheel.active.vowelHint', { cost: VOWEL_COST })}{')'}
                         </Text>
                         <View style={styles.keyboard}>
                             {ALPHABET.map((ch) => {
@@ -309,9 +305,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                             styles.key,
                                             {
                                                 borderColor: guessed ? t.colors.border : accent,
-                                                backgroundColor: guessed
-                                                    ? t.colors.surfaceVariant
-                                                    : t.colors.surface,
+                                                backgroundColor: guessed ? t.colors.surfaceVariant : t.colors.surface,
                                             },
                                         ]}
                                     >
@@ -326,9 +320,6 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                 );
                             })}
                         </View>
-                        <Text variant='caption' color='textMuted' align='center'>
-                            {tr('game.the-wheel.active.vowelHint', { cost: VOWEL_COST })}
-                        </Text>
                     </Stack>
                 ) : null}
 

@@ -309,7 +309,7 @@
                 "spinning": "Kręcę...",
                 "guessLetter": "Zgadnij literę",
                 "buyVowel": "Kup samogłoskę (%{cost})",
-                "vowelHint": "Samogłoski (turkus) kosztują %{cost}",
+                "vowelHint": "Samogłoski kosztują %{cost}",
                 "solve": "Rozwiąż hasło",
                 "bankrupt": "Bankrut!",
                 "leave": "Opuść grę",

@@ -57,13 +57,21 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
                         style={[
                             styles.row,
                             { borderBottomColor: theme.colors.border },
-                            highlighted && { backgroundColor: theme.colors.primary + '22', borderRadius: theme.radii.sm },
+                            highlighted && {
+                                backgroundColor: theme.colors.primary + '22',
+                                borderRadius: theme.radii.sm,
+                            },
                         ]}
                     >
                         <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
                             {i + 1}
                         </Text>
-                        <Text variant='body' weight={highlighted ? 'bold' : 'semibold'} style={styles.name} numberOfLines={1}>
+                        <Text
+                            variant='body'
+                            weight={highlighted ? 'bold' : 'semibold'}
+                            style={styles.name}
+                            numberOfLines={1}
+                        >
                             {entry.nickname}
                         </Text>
                         <Text variant='caption' color='textMuted' style={styles.date}>

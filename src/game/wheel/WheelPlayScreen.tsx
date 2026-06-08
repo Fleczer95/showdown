@@ -246,7 +246,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             ]}
             keyboardShouldPersistTaps='handled'
         >
-            <Stack gap='md'>
+            <Stack gap='lg' flex={1}>
                 {/* Header: progress + banked score + round cash */}
                 <Stack direction='horizontal' gap='sm'>
                     <Card variant='outlined' padding='sm' style={styles.headerCard}>
@@ -295,8 +295,9 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                     </Text>
                 </Card>
 
-                {/* Wheel */}
-                <Stack gap='sm' align='center'>
+                {/* Wheel — absorbs leftover vertical space so it centers between
+                    the puzzle and the actions instead of leaving dead space. */}
+                <Stack gap='sm' align='center' flex={1} justify='center'>
                     <View style={[styles.pointer, { borderTopColor: accent }]} />
                     <Animated.View style={[styles.wheel, wheelStyle]}>
                         <WheelGraphic accent={accent} />
@@ -424,6 +425,7 @@ const WHEEL_SIZE = 240;
 const styles = StyleSheet.create({
     content: {
         // padding moved to themed inline style
+        flexGrow: 1,
     },
     gameOver: {
         padding: 24,

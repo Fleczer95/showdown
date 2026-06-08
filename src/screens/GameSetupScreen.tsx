@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
-import { ChevronLeft, Play } from 'lucide-react-native';
+import { ChevronLeft, Play, Trophy } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -11,6 +11,8 @@ import Icon from '../components/atoms/Icon';
 import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
+import BottomSheet from '../components/molecules/BottomSheet';
+import Leaderboard from '../components/molecules/Leaderboard';
 import { useTheme } from '../theme';
 import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
@@ -32,6 +34,8 @@ export function GameSetupScreen() {
 
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
+
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     // Per-game accent — mirrors the home card the player tapped to get here.
     const accent = resolveAccent(theme, game.accent);
@@ -171,17 +175,36 @@ export function GameSetupScreen() {
                     { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl },
                 ]}
             >
-                <Button
-                    fullWidth
-                    size='lg'
-                    onPress={() => send({ type: 'START' })}
-                    style={{ backgroundColor: accent, borderColor: accent }}
-                    textColor={onAccent}
-                    icon={<Play size={20} color={onAccent} fill={onAccent} />}
-                >
-                    {t('common.start')}
-                </Button>
+                <Stack gap='sm' align='stretch'>
+                    <Button
+                        fullWidth
+                        size='lg'
+                        onPress={() => send({ type: 'START' })}
+                        style={{ backgroundColor: accent, borderColor: accent }}
+                        textColor={onAccent}
+                        icon={<Play size={20} color={onAccent} fill={onAccent} />}
+                    >
+                        {t('common.start')}
+                    </Button>
+                    <Button
+                        fullWidth
+                        variant='ghost'
+                        onPress={() => setShowLeaderboard(true)}
+                        icon={<Trophy size={18} color={theme.colors.text} />}
+                    >
+                        {t('leaderboard.view')}
+                    </Button>
+                </Stack>
             </View>
+
+            <BottomSheet
+                visible={showLeaderboard}
+                onClose={() => setShowLeaderboard(false)}
+                title={t('leaderboard.title')}
+                scrollable
+            >
+                <Leaderboard gameId={game.id} />
+            </BottomSheet>
         </SafeContainer>
     );
 }

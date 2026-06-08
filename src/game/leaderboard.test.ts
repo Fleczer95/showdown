@@ -1,23 +1,30 @@
 import { rankEntries, qualifies, insertEntry, BOARD_SIZE, type LeaderboardEntry } from './leaderboard';
 
-const entry = (score: number, timestamp: number, nickname = 'P'): LeaderboardEntry => ({
+const entry = (score: number, timestamp: number, nickname = 'P', progress = 0): LeaderboardEntry => ({
     nickname,
+    progress,
     score,
     timestamp,
 });
 
-// Build a full board of BOARD_SIZE entries with descending scores 100,90,...,10.
+// Build a full board of BOARD_SIZE entries with descending scores 100,90,...,10
+// (all at equal progress, so the score tiebreak is what's under test).
 const fullBoard = (): LeaderboardEntry[] =>
     Array.from({ length: BOARD_SIZE }, (_, i) => entry((BOARD_SIZE - i) * 10, i + 1));
 
 describe('rankEntries', () => {
-    it('sorts by score descending', () => {
-        const ranked = rankEntries([entry(10, 1), entry(30, 2), entry(20, 3)]);
+    it('ranks by progress descending before score', () => {
+        const ranked = rankEntries([entry(9999, 1, 'shallow', 1), entry(100, 2, 'deep', 5), entry(500, 3, 'mid', 3)]);
+        expect(ranked.map((e) => e.nickname)).toEqual(['deep', 'mid', 'shallow']);
+    });
+
+    it('breaks equal progress by score descending', () => {
+        const ranked = rankEntries([entry(10, 1, 'lo', 3), entry(30, 2, 'hi', 3), entry(20, 3, 'mid', 3)]);
         expect(ranked.map((e) => e.score)).toEqual([30, 20, 10]);
     });
 
-    it('breaks ties oldest-first (smaller timestamp ranks higher)', () => {
-        const ranked = rankEntries([entry(50, 200, 'new'), entry(50, 100, 'old')]);
+    it('breaks equal progress and score oldest-first (smaller timestamp ranks higher)', () => {
+        const ranked = rankEntries([entry(50, 200, 'new', 3), entry(50, 100, 'old', 3)]);
         expect(ranked.map((e) => e.nickname)).toEqual(['old', 'new']);
     });
 
@@ -30,19 +37,29 @@ describe('rankEntries', () => {
 
 describe('qualifies', () => {
     it('qualifies when the board has open slots', () => {
-        expect(qualifies([entry(100, 1)], 1)).toBe(true);
+        expect(qualifies([entry(100, 1)], 0, 1)).toBe(true);
     });
 
-    it('qualifies when strictly greater than the lowest on a full board', () => {
-        expect(qualifies(fullBoard(), 11)).toBe(true); // lowest is 10
+    it('qualifies with more progress even when the score is lower', () => {
+        // Full board, all progress 0; a deeper run with a tiny score still gets in.
+        expect(qualifies(fullBoard(), 1, 1)).toBe(true);
     });
 
-    it('does not qualify when equal to the lowest on a full board', () => {
-        expect(qualifies(fullBoard(), 10)).toBe(false);
+    it('does not qualify with less progress even when the score is higher', () => {
+        const board = Array.from({ length: BOARD_SIZE }, (_, i) => entry(10, i + 1, 'P', 5));
+        expect(qualifies(board, 4, 99999)).toBe(false);
     });
 
-    it('does not qualify when below the lowest on a full board', () => {
-        expect(qualifies(fullBoard(), 5)).toBe(false);
+    it('qualifies when strictly greater than the lowest at equal progress', () => {
+        expect(qualifies(fullBoard(), 0, 11)).toBe(true); // lowest is 10
+    });
+
+    it('does not qualify when equal to the lowest at equal progress', () => {
+        expect(qualifies(fullBoard(), 0, 10)).toBe(false);
+    });
+
+    it('does not qualify when below the lowest at equal progress', () => {
+        expect(qualifies(fullBoard(), 0, 5)).toBe(false);
     });
 });
 

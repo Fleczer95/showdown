@@ -251,7 +251,12 @@
         "totalPoints": "Łączne punkty",
         "base": "Baza",
         "speed": "Tempo",
-        "bonus": "Bonus"
+        "bonus": "Bonus",
+        "progress": {
+            "ladder": "%{n} poprawnych",
+            "wheel": "%{n} rozwiązane",
+            "drop": "%{n} rund"
+        }
     },
     "game": {
         "the-ladder": {

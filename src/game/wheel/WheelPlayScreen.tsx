@@ -1,6 +1,15 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS } from 'react-native-reanimated';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    Easing,
+    runOnJS,
+    FadeIn,
+    FadeOutUp,
+    FadeInDown,
+} from 'react-native-reanimated';
 import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Pressable from '../../components/atoms/HapticPressable';
@@ -78,6 +87,8 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const speedTotal = useRef(0);
     const cleanPuzzles = useRef(0);
     const boughtVowel = useRef(false);
+    // Puzzles solved correctly — the board's primary ranking key for The Wheel.
+    const solvedCount = useRef(0);
 
     // Mark each puzzle shown the moment it begins (display-time), and restart the
     // solve timer + clean-solve tracking. Fires once per puzzle actually reached,
@@ -171,6 +182,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             // clean-solve bonus if no vowel was bought for this puzzle.
             const seconds = (Date.now() - decisionStartedAt.current) / 1000;
             speedTotal.current += speedBonus(game.roundCash, seconds);
+            solvedCount.current += 1;
             if (!boughtVowel.current) cleanPuzzles.current += 1;
         }
         setStatus(correct ? '✓' : '✗');
@@ -181,6 +193,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const handlePlayAgain = useCallback(() => {
         speedTotal.current = 0;
         cleanPuzzles.current = 0;
+        solvedCount.current = 0;
         boughtVowel.current = false;
         decisionStartedAt.current = Date.now();
         setGame(createGame(pickPuzzles(locale, TOTAL_PUZZLES)));
@@ -197,7 +210,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         });
         return (
             <ScrollView style={styles.flex} contentContainerStyle={styles.gameOver} keyboardShouldPersistTaps='handled'>
-                <GameOverCard gameId='the-wheel'>
+                <GameOverCard gameId={GAME_ID}>
                     {({ accent, onAccent }) => (
                         <>
                             <Stack gap='xs' align='center'>
@@ -212,7 +225,11 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                 </Text>
                                 <ScoreBreakdownLine breakdown={breakdown} />
                             </Stack>
-                            <Leaderboard gameId='the-wheel' pendingScore={breakdown.total} />
+                            <Leaderboard
+                                gameId={GAME_ID}
+                                pendingScore={breakdown.total}
+                                pendingProgress={solvedCount.current}
+                            />
                             <Stack gap='sm' align='stretch'>
                                 <Button
                                     variant='primary'
@@ -295,19 +312,28 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                     </Text>
                 </Card>
 
-                {/* Wheel — absorbs leftover vertical space so it centers between
-                    the puzzle and the actions instead of leaving dead space. */}
-                <Stack gap='sm' align='center' flex={1} justify='center'>
-                    <View style={[styles.pointer, { borderTopColor: accent }]} />
-                    <Animated.View style={[styles.wheel, wheelStyle]}>
-                        <WheelGraphic accent={accent} />
+                {/* Wheel — slides up and hides while the letter keyboard is up so
+                    the keyboard can rise into the freed space. Otherwise it absorbs
+                    the leftover vertical space and stays centered. */}
+                {phase === 'awaitGuess' && !solveMode ? null : (
+                    <Animated.View
+                        entering={FadeIn.duration(250)}
+                        exiting={FadeOutUp.duration(200)}
+                        style={styles.centerRegion}
+                    >
+                        <Stack gap='sm' align='center'>
+                            <View style={[styles.pointer, { borderTopColor: accent }]} />
+                            <Animated.View style={[styles.wheel, wheelStyle]}>
+                                <WheelGraphic accent={accent} />
+                            </Animated.View>
+                            {status ? (
+                                <Text variant='subheading' weight='bold' color={accent} align='center'>
+                                    {status}
+                                </Text>
+                            ) : null}
+                        </Stack>
                     </Animated.View>
-                    {status ? (
-                        <Text variant='subheading' weight='bold' color={accent} align='center'>
-                            {status}
-                        </Text>
-                    ) : null}
-                </Stack>
+                )}
 
                 {/* Actions */}
                 {phase === 'awaitSpin' && !solveMode ? (
@@ -325,46 +351,54 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                 ) : null}
 
                 {phase === 'awaitGuess' && !solveMode ? (
-                    <Stack gap='sm'>
-                        <Text variant='caption' weight='medium' color='textSecondary' align='center'>
-                            {tr('game.the-wheel.active.guessLetter')}
-                            {' ('}
-                            {tr('game.the-wheel.active.vowelHint', { cost: VOWEL_COST })}
-                            {')'}
-                        </Text>
-                        <View style={styles.keyboard}>
-                            {ALPHABET.map((ch) => {
-                                const vowel = isVowel(ch);
-                                const guessed = alreadyGuessed(game, ch);
-                                const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
-                                const keyColor = vowel ? t.colors.secondary : accent;
-                                return (
-                                    <Pressable
-                                        key={ch}
-                                        haptic='light'
-                                        disabled={disabled}
-                                        onPress={() => (vowel ? handleBuyVowel(ch) : handleGuessConsonant(ch))}
-                                        accessibilityLabel={ch}
-                                        style={[
-                                            styles.key,
-                                            {
-                                                borderColor: guessed ? t.colors.border : keyColor,
-                                                backgroundColor: guessed ? t.colors.surfaceVariant : t.colors.surface,
-                                            },
-                                        ]}
-                                    >
-                                        <Text
-                                            variant='subheading'
-                                            weight='bold'
-                                            color={guessed ? t.colors.textMuted : keyColor}
+                    <Animated.View
+                        entering={FadeInDown.duration(250)}
+                        exiting={FadeOutUp.duration(200)}
+                        style={styles.centerRegion}
+                    >
+                        <Stack gap='sm'>
+                            <Text variant='caption' weight='medium' color='textSecondary' align='center'>
+                                {tr('game.the-wheel.active.guessLetter')}
+                                {' ('}
+                                {tr('game.the-wheel.active.vowelHint', { cost: VOWEL_COST })}
+                                {')'}
+                            </Text>
+                            <View style={styles.keyboard}>
+                                {ALPHABET.map((ch) => {
+                                    const vowel = isVowel(ch);
+                                    const guessed = alreadyGuessed(game, ch);
+                                    const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
+                                    const keyColor = vowel ? t.colors.secondary : accent;
+                                    return (
+                                        <Pressable
+                                            key={ch}
+                                            haptic='light'
+                                            disabled={disabled}
+                                            onPress={() => (vowel ? handleBuyVowel(ch) : handleGuessConsonant(ch))}
+                                            accessibilityLabel={ch}
+                                            style={[
+                                                styles.key,
+                                                {
+                                                    borderColor: guessed ? t.colors.border : keyColor,
+                                                    backgroundColor: guessed
+                                                        ? t.colors.surfaceVariant
+                                                        : t.colors.surface,
+                                                },
+                                            ]}
                                         >
-                                            {ch}
-                                        </Text>
-                                    </Pressable>
-                                );
-                            })}
-                        </View>
-                    </Stack>
+                                            <Text
+                                                variant='subheading'
+                                                weight='bold'
+                                                color={guessed ? t.colors.textMuted : keyColor}
+                                            >
+                                                {ch}
+                                            </Text>
+                                        </Pressable>
+                                    );
+                                })}
+                            </View>
+                        </Stack>
+                    </Animated.View>
                 ) : null}
 
                 {solveMode ? (
@@ -438,6 +472,10 @@ const styles = StyleSheet.create({
     },
     headerCard: {
         flex: 1,
+    },
+    centerRegion: {
+        flex: 1,
+        justifyContent: 'center',
     },
     phrase: {
         letterSpacing: 2,

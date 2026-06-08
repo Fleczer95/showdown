@@ -21,9 +21,11 @@ interface LeaderboardProps {
     gameId: string;
     /** When set, enables the post-game entry flow for this just-achieved score. */
     pendingScore?: number;
+    /** How far the just-played run got; primary ranking key and the no-empty-run gate. */
+    pendingProgress?: number;
 }
 
-function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
+function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
 
@@ -31,7 +33,14 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
     const [nickname, setNickname] = useState<string>(() => getLastNickname());
     const [savedTimestamp, setSavedTimestamp] = useState<number | null>(null);
 
-    const canEnter = pendingScore !== undefined && savedTimestamp === null && qualifies(board, pendingScore);
+    // Only offer to save a run that actually got somewhere — a zero-progress run
+    // (busted immediately, missed question 1, solved nothing) never reaches the board.
+    const canEnter =
+        pendingScore !== undefined &&
+        pendingProgress !== undefined &&
+        pendingProgress > 0 &&
+        savedTimestamp === null &&
+        qualifies(board, pendingProgress, pendingScore);
     const trimmed = nickname.trim();
 
     const formatScore = (score: number): string => `${score.toLocaleString(locale)} ${t('leaderboard.points')}`;
@@ -39,9 +48,17 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
     const formatDate = (timestamp: number): string =>
         new Date(timestamp).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 
+    // Per-game label for the ranking metric shown beneath each nickname.
+    const formatProgress = (progress: number): string => {
+        if (gameId === 'the-ladder') return t('leaderboard.progress.ladder', { n: progress });
+        if (gameId === 'the-wheel') return t('leaderboard.progress.wheel', { n: progress });
+        if (gameId === 'the-drop') return t('leaderboard.progress.drop', { n: progress });
+        return '';
+    };
+
     const handleSave = () => {
-        if (pendingScore === undefined || trimmed.length === 0) return;
-        const entry = saveScore(gameId, trimmed, pendingScore);
+        if (pendingScore === undefined || pendingProgress === undefined || trimmed.length === 0) return;
+        const entry = saveScore(gameId, trimmed, pendingScore, pendingProgress);
         setLastNickname(entry.nickname);
         setBoard(getBoard(gameId));
         setSavedTimestamp(entry.timestamp);
@@ -66,14 +83,14 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
                         <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
                             {i + 1}
                         </Text>
-                        <Text
-                            variant='body'
-                            weight={highlighted ? 'bold' : 'semibold'}
-                            style={styles.name}
-                            numberOfLines={1}
-                        >
-                            {entry.nickname}
-                        </Text>
+                        <View style={styles.nameCol}>
+                            <Text variant='body' weight={highlighted ? 'bold' : 'semibold'} numberOfLines={1}>
+                                {entry.nickname}
+                            </Text>
+                            <Text variant='caption' color='textMuted' numberOfLines={1}>
+                                {formatProgress(entry.progress)}
+                            </Text>
+                        </View>
                         <Text variant='caption' color='textMuted' style={styles.date}>
                             {formatDate(entry.timestamp)}
                         </Text>
@@ -83,9 +100,9 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
                     </View>
                 );
             }),
-        // formatScore/formatDate are stable per render; board + highlight drive updates.
+        // formatScore/formatDate/formatProgress are stable per render; board + highlight drive updates.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [board, savedTimestamp, theme],
+        [board, savedTimestamp, theme, gameId],
     );
 
     return (
@@ -151,7 +168,7 @@ const styles = StyleSheet.create({
         width: 24,
         textAlign: 'center',
     },
-    name: {
+    nameCol: {
         flex: 1,
     },
     date: {

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { View, StyleSheet, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, withSpring } from 'react-native-reanimated';
@@ -43,29 +43,29 @@ function BottomSheet({
 
     const translateY = useSharedValue(500);
     const opacity = useSharedValue(0);
-    const contextY = useSharedValue(0);
 
-    const handleDismiss = useCallback(() => {
-        translateY.value = withTiming(500, { duration: 250 });
-        opacity.value = withTiming(0, { duration: 200 });
-        if (onClose) setTimeout(onClose, 250);
-    }, [onClose, translateY, opacity]);
+    // Keep the Modal mounted through the exit animation: parent `visible` drives
+    // the slide, and we only unmount once the slide-out finishes.
+    const [mounted, setMounted] = useState(visible);
 
-    // Animate in
+    // All dismissals route through the parent's `visible` so there is a single
+    // path: tap/drag/back → onClose() → visible=false → the effect animates out.
+    const requestClose = useCallback(() => onClose?.(), [onClose]);
+
     useEffect(() => {
         if (visible) {
-            // Using a nicer spring for the entry
-            translateY.value = withSpring(0, {
-                damping: 20,
-                stiffness: 120,
-                mass: 0.8,
-            });
+            setMounted(true);
+            // A nicer spring for the entry.
+            translateY.value = withSpring(0, { damping: 20, stiffness: 120, mass: 0.8 });
             opacity.value = withTiming(1, { duration: 250 });
-        } else {
-            handleDismiss();
+        } else if (mounted) {
+            translateY.value = withTiming(500, { duration: 250 });
+            opacity.value = withTiming(0, { duration: 200 }, (finished) => {
+                if (finished) runOnJS(setMounted)(false);
+            });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [visible, handleDismiss]);
+    }, [visible]);
 
     const sheetStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: translateY.value }],
@@ -81,9 +81,6 @@ function BottomSheet({
         // inner ScrollView handle upward scrolls (e.g. scrolling down to the buy
         // button on short devices) instead of the sheet hijacking every touch.
         .activeOffsetY(15)
-        .onStart((e) => {
-            contextY.value = e.translationY;
-        })
         .onUpdate((e) => {
             // Only allow dragging down
             if (e.translationY > 0) {
@@ -92,14 +89,14 @@ function BottomSheet({
         })
         .onEnd((e) => {
             if (e.translationY > DISMISS_THRESHOLD) {
-                runOnJS(handleDismiss)();
+                runOnJS(requestClose)();
             } else {
                 translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
             }
         });
 
     return (
-        <Modal visible={visible} transparent animationType='none' statusBarTranslucent onRequestClose={handleDismiss}>
+        <Modal visible={mounted} transparent animationType='none' statusBarTranslucent onRequestClose={requestClose}>
             <GestureHandlerRootView style={styles.root}>
                 <Animated.View
                     style={[
@@ -109,14 +106,14 @@ function BottomSheet({
                     ]}
                     testID={testID}
                     accessibilityViewIsModal={true}
-                    onAccessibilityEscape={onClose}
+                    onAccessibilityEscape={requestClose}
                 >
-                    <View style={styles.touchable} onStartShouldSetResponder={() => true} />
-                    {/* Tap overlay to dismiss */}
+                    {/* Tap the backdrop to dismiss. The sheet renders above this and
+                        captures its own touches, so only taps outside it land here. */}
                     <View
-                        style={styles.touchableDismiss}
+                        style={StyleSheet.absoluteFill}
                         onStartShouldSetResponder={() => true}
-                        onTouchEnd={handleDismiss}
+                        onTouchEnd={requestClose}
                     />
                     <GestureDetector gesture={panGesture}>
                         <Animated.View
@@ -153,7 +150,7 @@ function BottomSheet({
                                             accessibilityRole='button'
                                             accessibilityLabel='Close'
                                             onStartShouldSetResponder={() => true}
-                                            onTouchEnd={handleDismiss}
+                                            onTouchEnd={requestClose}
                                             style={styles.closeButton}
                                         >
                                             <View
@@ -211,16 +208,6 @@ const styles = StyleSheet.create({
     overlay: {
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'flex-end',
-    },
-    touchable: {
-        flex: 1,
-    },
-    touchableDismiss: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 200,
     },
     sheet: {
         minHeight: 200,

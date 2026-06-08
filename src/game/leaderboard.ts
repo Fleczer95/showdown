@@ -6,7 +6,9 @@ import { createMMKV } from 'react-native-mmkv';
 
 export interface LeaderboardEntry {
     nickname: string;
-    /** Unified points score; higher is always better. */
+    /** How far the run got (Ladder rungs / Wheel puzzles / Drop rounds). Primary ranking key. */
+    progress: number;
+    /** Unified points score; breaks ties between equal-progress runs. */
     score: number;
     /** Epoch ms when saved; used for tie-breaking and the row date. */
     timestamp: number;
@@ -15,16 +17,22 @@ export interface LeaderboardEntry {
 export const BOARD_SIZE = 10;
 export const MAX_NICKNAME_LENGTH = 12;
 
-/** Sort by score descending; ties resolved oldest-first (smaller timestamp ranks higher). */
+/**
+ * Rank by progress descending (getting further always ranks higher), then points
+ * descending, then oldest-first (smaller timestamp ranks higher).
+ */
 export function rankEntries(entries: LeaderboardEntry[]): LeaderboardEntry[] {
-    return [...entries].sort((a, b) => b.score - a.score || a.timestamp - b.timestamp);
+    return [...entries].sort((a, b) => b.progress - a.progress || b.score - a.score || a.timestamp - b.timestamp);
 }
 
-/** A score qualifies when the board has room, or it strictly beats the current lowest. */
-export function qualifies(entries: LeaderboardEntry[], score: number): boolean {
+/**
+ * A run qualifies when the board has room, or it outranks the current lowest
+ * entry — more progress, or equal progress with a strictly higher score.
+ */
+export function qualifies(entries: LeaderboardEntry[], progress: number, score: number): boolean {
     if (entries.length < BOARD_SIZE) return true;
-    const lowest = Math.min(...entries.map((e) => e.score));
-    return score > lowest;
+    const lowest = rankEntries(entries)[entries.length - 1];
+    return progress > lowest.progress || (progress === lowest.progress && score > lowest.score);
 }
 
 /**
@@ -53,18 +61,21 @@ export function getBoard(gameId: string): LeaderboardEntry[] {
     if (!json) return [];
     try {
         const parsed = JSON.parse(json);
-        return Array.isArray(parsed) ? rankEntries(parsed as LeaderboardEntry[]) : [];
+        if (!Array.isArray(parsed)) return [];
+        // Default progress so any pre-progress entry still sorts deterministically.
+        const entries = (parsed as LeaderboardEntry[]).map((e) => ({ ...e, progress: e.progress ?? 0 }));
+        return rankEntries(entries);
     } catch {
         return [];
     }
 }
 
 /**
- * Save a score under a nickname. Persists the capped board and returns the
- * created entry (its `timestamp` identifies its row for highlighting).
+ * Save a run under a nickname. Persists the capped board and returns the created
+ * entry (its `timestamp` identifies its row for highlighting).
  */
-export function saveScore(gameId: string, nickname: string, score: number): LeaderboardEntry {
-    const next: LeaderboardEntry = { nickname, score, timestamp: Date.now() };
+export function saveScore(gameId: string, nickname: string, score: number, progress: number): LeaderboardEntry {
+    const next: LeaderboardEntry = { nickname, progress, score, timestamp: Date.now() };
     const { board } = insertEntry(getBoard(gameId), next);
     boardStore.set(gameId, JSON.stringify(board));
     return next;

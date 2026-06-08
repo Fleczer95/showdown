@@ -24,6 +24,7 @@ import {
     skipQuestion,
     currentQuestion,
     reachedRung,
+    RUN_LENGTH,
     type LadderRun,
     type LadderQuestion,
     type Lifeline,
@@ -31,6 +32,8 @@ import {
 import { speedBonus, ladderScore, LADDER_RUNG_POINTS, type ScoreBreakdown } from '../scoring';
 
 type Language = 'en' | 'pl';
+
+const GAME_ID = 'the-ladder';
 
 /** Turn the bilingual content pack into a per-rung pool for the chosen locale. */
 function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
@@ -66,7 +69,7 @@ const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[
 
 export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const theme = useTheme();
-    const { accent, glow } = useGameAccent('the-ladder');
+    const { accent, glow } = useGameAccent(GAME_ID);
     const { t, locale } = useTranslation();
     const lang = (locale === 'pl' ? 'pl' : 'en') as Language;
 
@@ -75,7 +78,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const textMuted = useColor('textMuted');
     const surface = useColor('surface');
 
-    const [run, setRun] = useState<LadderRun>(() => buildRun(buildLocalizedRungs(lang), getHistory('the-ladder')));
+    const [run, setRun] = useState<LadderRun>(() => buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
 
     // Hidden per-decision stopwatch + run accumulators for the unified points
     // score. The timer resets on every new question (including after a Skip);
@@ -88,7 +91,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     // the decision timer. Skipping changes the current id, so this refires for the
     // swapped-in question while the skipped one was already counted when first shown.
     useEffect(() => {
-        markShown('the-ladder', currentQuestion(run).id);
+        markShown(GAME_ID, currentQuestion(run).id);
         decisionStartedAt.current = Date.now();
     }, [currentQuestion(run).id]);
     // Per-question transient UI state.
@@ -106,7 +109,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     }
 
     function startFreshRun() {
-        setRun(buildRun(buildLocalizedRungs(lang), getHistory('the-ladder')));
+        setRun(buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
         baseTotal.current = 0;
         speedTotal.current = 0;
         resetTransient();
@@ -158,10 +161,14 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
             speed: speedTotal.current,
             usedLifelines: run.usedLifelines.length,
         });
+        // Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
+        // never reaches the board), a win clears all RUN_LENGTH rungs.
+        const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
         return (
             <GameOverView
                 won={run.status === 'won'}
                 rung={reachedRung(run)}
+                progress={correctAnswered}
                 breakdown={breakdown}
                 onPlayAgain={startFreshRun}
                 onExit={onExit}
@@ -275,12 +282,14 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
 function GameOverView({
     won,
     rung,
+    progress,
     breakdown,
     onPlayAgain,
     onExit,
 }: {
     won: boolean;
     rung: number;
+    progress: number;
     breakdown: ScoreBreakdown;
     onPlayAgain: () => void;
     onExit: () => void;
@@ -289,7 +298,7 @@ function GameOverView({
 
     return (
         <ScrollView style={styles.flex} contentContainerStyle={styles.center} keyboardShouldPersistTaps='handled'>
-            <GameOverCard gameId='the-ladder'>
+            <GameOverCard gameId={GAME_ID}>
                 {({ accent, onAccent }) => (
                     <>
                         <Stack gap='xs' align='center'>
@@ -309,7 +318,7 @@ function GameOverView({
                             </Text>
                             <ScoreBreakdownLine breakdown={breakdown} />
                         </Stack>
-                        <Leaderboard gameId='the-ladder' pendingScore={breakdown.total} />
+                        <Leaderboard gameId={GAME_ID} pendingScore={breakdown.total} pendingProgress={progress} />
                         <Stack gap='sm' align='stretch'>
                             <Button
                                 variant='primary'

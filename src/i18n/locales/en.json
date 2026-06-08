@@ -248,7 +248,12 @@
         "totalPoints": "Total points",
         "base": "Base",
         "speed": "Speed",
-        "bonus": "Bonus"
+        "bonus": "Bonus",
+        "progress": {
+            "ladder": "%{n} correct",
+            "wheel": "%{n} solved",
+            "drop": "%{n} rounds"
+        }
     },
     "game": {
         "the-ladder": {

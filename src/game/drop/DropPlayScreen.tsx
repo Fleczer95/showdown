@@ -233,9 +233,11 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     // --- Game over ---------------------------------------------------------
     if (state.status === 'over') {
         const won = state.bank > 0;
-        const avgSeconds =
-            roundsTimed.current > 0 ? secondsTotal.current / roundsTimed.current : SPEED_WINDOW_SECONDS;
+        const avgSeconds = roundsTimed.current > 0 ? secondsTotal.current / roundsTimed.current : SPEED_WINDOW_SECONDS;
         const breakdown = dropScore({ bank: state.bank, avgSeconds });
+        // Rounds survived ranks the board; a win cleared them all, a bust survived
+        // every round before the one that wiped the bank.
+        const roundsSurvived = Math.max(0, won ? state.round : state.round - 1);
         return (
             <View style={styles.container}>
                 <ScrollView
@@ -243,7 +245,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                     contentContainerStyle={styles.gameOverContent}
                     keyboardShouldPersistTaps='handled'
                 >
-                    <GameOverCard gameId='the-drop'>
+                    <GameOverCard gameId={GAME_ID}>
                         {({ accent, onAccent }) => (
                             <>
                                 <Stack gap='xs' align='center'>
@@ -275,7 +277,11 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                                     </Text>
                                     <ScoreBreakdownLine breakdown={breakdown} />
                                 </Stack>
-                                <Leaderboard gameId='the-drop' pendingScore={breakdown.total} />
+                                <Leaderboard
+                                    gameId={GAME_ID}
+                                    pendingScore={breakdown.total}
+                                    pendingProgress={roundsSurvived}
+                                />
                                 <Stack gap='sm' align='stretch'>
                                     <Button
                                         variant='primary'

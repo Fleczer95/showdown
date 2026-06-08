@@ -237,6 +237,15 @@
         "teams": "Teams",
         "team": "Team"
     },
+    "leaderboard": {
+        "title": "Leaderboard",
+        "view": "Leaderboard",
+        "empty": "No scores yet. Be the first!",
+        "nicknamePlaceholder": "Enter a nickname",
+        "save": "Save score",
+        "saved": "Saved!",
+        "rung": "Rung %{number}"
+    },
     "game": {
         "the-ladder": {
             "name": "The Ladder",

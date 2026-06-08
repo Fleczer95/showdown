@@ -240,6 +240,15 @@
         "teams": "Drużyny",
         "team": "Drużyna"
     },
+    "leaderboard": {
+        "title": "Tabela wyników",
+        "view": "Tabela wyników",
+        "empty": "Brak wyników. Bądź pierwszy!",
+        "nicknamePlaceholder": "Wpisz pseudonim",
+        "save": "Zapisz wynik",
+        "saved": "Zapisano!",
+        "rung": "Szczebel %{number}"
+    },
     "game": {
         "the-ladder": {
             "name": "Drabina",

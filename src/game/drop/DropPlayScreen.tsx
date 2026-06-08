@@ -21,10 +21,13 @@ import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
 import Leaderboard from '../../components/molecules/Leaderboard';
+import GameOverCard from '../../components/molecules/GameOverCard';
+import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import Slider from '../../components/molecules/Slider';
 import { useTheme, useAnimationPresets } from '../../theme';
+import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useHaptics } from '../../hooks/useHaptics';
 
@@ -39,6 +42,7 @@ import {
     TOTAL_ROUNDS,
     type DropState,
 } from './logic';
+import { dropScore, SPEED_WINDOW_SECONDS } from '../scoring';
 
 const EMPTY_ALLOCATION = [0, 0, 0, 0];
 
@@ -69,14 +73,13 @@ const formatMoney = (value: number): string => value.toLocaleString('en-US');
 
 export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { fade } = useAnimationPresets();
     const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
 
-    const [state, setState] = useState<DropState>(() =>
-        buildGame(dropQuestions, getHistory(GAME_ID)),
-    );
+    const [state, setState] = useState<DropState>(() => buildGame(dropQuestions, getHistory(GAME_ID)));
     const [allocation, setAllocation] = useState<number[]>(EMPTY_ALLOCATION);
     // Drives the lock-in → suspense → reveal choreography.
     const [phase, setPhase] = useState<Phase>('allocating');
@@ -85,6 +88,20 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     // Continue only appears once the whole sequence has played out.
     const [canAdvance, setCanAdvance] = useState(false);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+    // Hidden per-round stopwatch (allocating phase → Lock In). We accumulate the
+    // run's total decision time and the number of rounds timed; at game over the
+    // average scales the final bank into the unified points speed bonus.
+    const decisionStartedAt = useRef(Date.now());
+    const secondsTotal = useRef(0);
+    const roundsTimed = useRef(0);
+
+    // Restart the round timer whenever a fresh allocating phase begins.
+    useEffect(() => {
+        if (phase === 'allocating') {
+            decisionStartedAt.current = Date.now();
+        }
+    }, [phase, state.round]);
 
     // Timers driving the suspense ticks + the staged reveal.
     const ticks = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -96,6 +113,8 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
 
     const reset = useCallback(() => {
         clearTicks();
+        secondsTotal.current = 0;
+        roundsTimed.current = 0;
         // Re-read history so the next run reflects questions just shown.
         setState(buildGame(dropQuestions, getHistory(GAME_ID)));
         setAllocation(EMPTY_ALLOCATION);
@@ -139,6 +158,12 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         if (!canConfirm) {
             return;
         }
+        // Record this round's decision time at Lock In, before the suspense/
+        // reveal plays out (that animation must not count). The run's average
+        // decision speed scales the final bank into a speed bonus at game over.
+        const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+        secondsTotal.current += seconds;
+        roundsTimed.current += 1;
         clearTicks();
         setReveals(['none', 'none', 'none', 'none']);
         setCanAdvance(false);
@@ -157,9 +182,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         push(1360, haptics.medium);
 
         const correctIndex = question.correctIndex;
-        const wrongCovered = [0, 1, 2, 3].filter(
-            (i) => allocation[i] > 0 && i !== correctIndex,
-        );
+        const wrongCovered = [0, 1, 2, 3].filter((i) => allocation[i] > 0 && i !== correctIndex);
 
         // Phase 2 — losses resolve one at a time; each is a full disappear→
         // return beat, so they are spaced far enough apart to read.
@@ -178,9 +201,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         // Phase 3 — the correct answer is revealed last, once the final loss
         // has fully settled.
         const lastResolveEnd =
-            wrongCovered.length > 0
-                ? SUSPENSE_MS + (wrongCovered.length - 1) * DROP_STAGGER + RESOLVE_MS
-                : SUSPENSE_MS;
+            wrongCovered.length > 0 ? SUSPENSE_MS + (wrongCovered.length - 1) * DROP_STAGGER + RESOLVE_MS : SUSPENSE_MS;
         const answerTime = lastResolveEnd + ANSWER_GAP;
         push(answerTime, () => {
             setReveals((prev) => {
@@ -212,46 +233,66 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     // --- Game over ---------------------------------------------------------
     if (state.status === 'over') {
         const won = state.bank > 0;
+        const avgSeconds =
+            roundsTimed.current > 0 ? secondsTotal.current / roundsTimed.current : SPEED_WINDOW_SECONDS;
+        const breakdown = dropScore({ bank: state.bank, avgSeconds });
         return (
             <View style={styles.container}>
-                <ScrollView contentContainerStyle={styles.gameOverContent}>
-                    <Stack gap='xl' align='center'>
-                        <Text variant='display' weight='bold' align='center'>
-                            {translate('game.the-drop.over.title')}
-                        </Text>
-                        <Text
-                            variant='caption'
-                            weight='semibold'
-                            align='center'
-                            color={t.colors.textSecondary}
-                        >
-                            {won
-                                ? translate('game.the-drop.over.survived')
-                                : translate('game.the-drop.over.busted')}
-                        </Text>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
-                                {translate('game.the-drop.over.finalBank')}
-                            </Text>
-                            <Text
-                                variant='display'
-                                weight='bold'
-                                align='center'
-                                color={won ? t.colors.success : t.colors.error}
-                            >
-                                {formatMoney(state.bank)}
-                            </Text>
-                        </Stack>
-                        <Leaderboard gameId='the-drop' pendingScore={state.bank} />
-                        <Stack gap='sm' align='stretch' style={styles.fullWidth}>
-                            <Button variant='primary' onPress={reset} fullWidth>
-                                {translate('game.the-drop.over.playAgain')}
-                            </Button>
-                            <Button variant='secondary' onPress={onExit} fullWidth>
-                                {translate('game.the-drop.over.exit')}
-                            </Button>
-                        </Stack>
-                    </Stack>
+                <ScrollView
+                    style={styles.container}
+                    contentContainerStyle={styles.gameOverContent}
+                    keyboardShouldPersistTaps='handled'
+                >
+                    <GameOverCard gameId='the-drop'>
+                        {({ accent, onAccent }) => (
+                            <>
+                                <Stack gap='xs' align='center'>
+                                    <Text variant='display' weight='bold' align='center'>
+                                        {translate('game.the-drop.over.title')}
+                                    </Text>
+                                    <Text
+                                        variant='caption'
+                                        weight='semibold'
+                                        align='center'
+                                        color={t.colors.textSecondary}
+                                    >
+                                        {won
+                                            ? translate('game.the-drop.over.survived')
+                                            : translate('game.the-drop.over.busted')}
+                                    </Text>
+                                </Stack>
+                                <Stack gap='xs' align='center'>
+                                    <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                                        {translate('leaderboard.totalPoints')}
+                                    </Text>
+                                    <Text
+                                        variant='display'
+                                        weight='bold'
+                                        align='center'
+                                        color={won ? t.colors.success : t.colors.error}
+                                    >
+                                        {breakdown.total.toLocaleString(locale)}
+                                    </Text>
+                                    <ScoreBreakdownLine breakdown={breakdown} />
+                                </Stack>
+                                <Leaderboard gameId='the-drop' pendingScore={breakdown.total} />
+                                <Stack gap='sm' align='stretch'>
+                                    <Button
+                                        variant='primary'
+                                        onPress={reset}
+                                        fullWidth
+                                        style={{ backgroundColor: accent, borderColor: accent }}
+                                        textColor={onAccent}
+                                    >
+                                        {translate('game.the-drop.over.playAgain')}
+                                    </Button>
+                                    <Button variant='secondary' onPress={onExit} fullWidth>
+                                        {translate('game.the-drop.over.exit')}
+                                    </Button>
+                                </Stack>
+                            </>
+                        )}
+                    </GameOverCard>
                 </ScrollView>
             </View>
         );
@@ -267,18 +308,18 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                 {/* Header */}
                 <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
                     <Stack gap='xs'>
-                        <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                        <Text variant='overline' weight='bold' color={accent}>
                             {translate('game.the-drop.header.round', {
                                 current: state.round + 1,
                                 total: TOTAL_ROUNDS,
                             })}
                         </Text>
-                        <Text variant='heading' weight='bold' color={t.colors.primary}>
+                        <Text variant='heading' weight='bold' color={accent}>
                             {formatMoney(state.bank)}
                         </Text>
                     </Stack>
                     <Stack gap='xs' align='end'>
-                        <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                        <Text variant='overline' weight='bold' color={accent}>
                             {translate('game.the-drop.header.toPlace')}
                         </Text>
                         <Text
@@ -292,7 +333,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                 </Stack>
 
                 {/* Question */}
-                <Card variant='outlined' padding='md'>
+                <Card variant='elevated' padding='md' style={glow}>
                     <Text variant='subheading' weight='bold' align='center'>
                         {question.prompt[lang]}
                     </Text>
@@ -317,15 +358,12 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                             key={`${state.round}-${i}`}
                             index={i}
                             label={option[lang]}
+                            accent={accent}
                             amount={allocation[i]}
                             phase={phase}
                             reveal={reveals[i]}
                             answerShown={answerShown}
-                            lockedByCover={
-                                phase === 'allocating' &&
-                                allocation[i] === 0 &&
-                                coveredCount >= maxCover
-                            }
+                            lockedByCover={phase === 'allocating' && allocation[i] === 0 && coveredCount >= maxCover}
                             sliderMax={state.bank}
                             onChange={(v) => setSlot(i, v)}
                         />
@@ -337,7 +375,14 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
             <View style={[styles.footer, { borderTopColor: t.colors.border }]}>
                 {phase === 'allocating' ? (
                     <Stack gap='sm'>
-                        <Button variant='primary' onPress={onConfirm} disabled={!canConfirm} fullWidth>
+                        <Button
+                            variant='primary'
+                            onPress={onConfirm}
+                            disabled={!canConfirm}
+                            fullWidth
+                            style={canConfirm ? { backgroundColor: accent, borderColor: accent } : undefined}
+                            textColor={canConfirm ? onAccent : undefined}
+                        >
                             {translate('game.the-drop.active.lockIn')}
                         </Button>
                         <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
@@ -346,17 +391,20 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                     </Stack>
                 ) : canAdvance ? (
                     <Animated.View entering={FadeIn.duration(fade.duration)}>
-                        <Button variant='primary' onPress={onAdvance} fullWidth>
-                            {state.round + 1 >= TOTAL_ROUNDS ||
-                            allocation[question.correctIndex] === 0
+                        <Button
+                            variant='primary'
+                            onPress={onAdvance}
+                            fullWidth
+                            style={{ backgroundColor: accent, borderColor: accent }}
+                            textColor={onAccent}
+                        >
+                            {state.round + 1 >= TOTAL_ROUNDS || allocation[question.correctIndex] === 0
                                 ? translate('game.the-drop.reveal.seeResult')
                                 : translate('game.the-drop.reveal.next')}
                         </Button>
                     </Animated.View>
                 ) : (
-                    phase === 'suspense' && (
-                        <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
-                    )
+                    phase === 'suspense' && <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
                 )}
             </View>
 
@@ -373,6 +421,8 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
 interface DropOptionProps {
     index: number;
     label: string;
+    /** Per-game accent for neutral chrome (prefix + slider) before any reveal. */
+    accent: string;
     amount: number;
     phase: Phase;
     reveal: Reveal;
@@ -395,6 +445,7 @@ interface DropOptionProps {
 function DropOption({
     index,
     label,
+    accent,
     amount,
     phase,
     reveal,
@@ -456,25 +507,18 @@ function DropOption({
         // Card: win pops, a loss just settles flat.
         scale.value =
             reveal === 'win'
-                ? withSequence(
-                      withSpring(pulse.scale, springBouncy as never),
-                      withSpring(1, spring as never),
-                  )
+                ? withSequence(withSpring(pulse.scale, springBouncy as never), withSpring(1, spring as never))
                 : withSpring(1, spring as never);
 
         // Text: disappear (fall + fade) → swap content while hidden → return.
         const fall = reveal === 'drop' ? FALL_DISTANCE : 0;
         setShowResult(false);
         textOpacity.value = withSequence(
-            withTiming(
-                0,
-                { duration: DISAPPEAR_MS, easing: Easing.in(Easing.quad) },
-                (finished) => {
-                    if (finished) {
-                        runOnJS(setShowResult)(true);
-                    }
-                },
-            ),
+            withTiming(0, { duration: DISAPPEAR_MS, easing: Easing.in(Easing.quad) }, (finished) => {
+                if (finished) {
+                    runOnJS(setShowResult)(true);
+                }
+            }),
             withDelay(GAP_MS, withTiming(1, { duration: RETURN_MS, easing: Easing.out(Easing.quad) })),
         );
         textY.value = withSequence(
@@ -503,13 +547,15 @@ function DropOption({
     }));
 
     let borderColor = t.colors.border;
-    let accent = t.colors.primary;
+    // Slider tints with the game accent while allocating; the reveal phase hides
+    // the slider, so the success/error overrides only keep the value coherent.
+    let sliderAccent = accent;
     if (reveal === 'win') {
         borderColor = t.colors.success;
-        accent = t.colors.success;
+        sliderAccent = t.colors.success;
     } else if (reveal === 'drop') {
         borderColor = t.colors.error;
-        accent = t.colors.error;
+        sliderAccent = t.colors.error;
     }
 
     let cardOpacity = 1;
@@ -549,14 +595,9 @@ function DropOption({
         <Animated.View style={cardStyle}>
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
-                    <Stack
-                        direction='horizontal'
-                        justify='between'
-                        align='center'
-                        style={styles.optionHeader}
-                    >
+                    <Stack direction='horizontal' justify='between' align='center' style={styles.optionHeader}>
                         <Stack direction='horizontal' gap='xs' align='center' flex={1}>
-                            <Text variant='body' weight='bold' color='primary'>
+                            <Text variant='body' weight='bold' color={accent}>
                                 {prefix}:
                             </Text>
                             <Text variant='body' weight='semibold' style={styles.optionText}>
@@ -575,13 +616,12 @@ function DropOption({
                     {phase === 'allocating' ? (
                         <Slider
                             label={translate('game.the-drop.active.placed')}
-
                             value={amount}
                             min={0}
                             max={Math.max(BUNDLE, sliderMax)}
                             step={BUNDLE}
                             onChange={(v) => !lockedByCover && onChange(v)}
-                            accentColor={accent}
+                            accentColor={sliderAccent}
                             renderValue={() => formatMoney(amount)}
                         />
                     ) : (
@@ -637,7 +677,6 @@ const styles = StyleSheet.create({
     },
     optionsScroll: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.05)', // Subtle contrast for the scroll area
     },
     optionsContent: {
         paddingHorizontal: 16,
@@ -658,9 +697,7 @@ const styles = StyleSheet.create({
         paddingBottom: 32,
         flexGrow: 1,
         justifyContent: 'center',
-    },
-    fullWidth: {
-        width: '100%',
+        alignItems: 'center',
     },
     optionText: {
         flexShrink: 1,

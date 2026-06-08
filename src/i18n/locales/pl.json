@@ -247,7 +247,11 @@
         "nicknamePlaceholder": "Wpisz pseudonim",
         "save": "Zapisz wynik",
         "saved": "Zapisano!",
-        "rung": "Szczebel %{number}"
+        "points": "pkt",
+        "totalPoints": "Łączne punkty",
+        "base": "Baza",
+        "speed": "Tempo",
+        "bonus": "Bonus"
     },
     "game": {
         "the-ladder": {
@@ -337,7 +341,7 @@
                 "leaveOk": "Tak, wychodzę",
                 "roundCash": "Kasa rundy",
                 "banked": "Zebrane",
-                "puzzleProgress": "Hasło %{current}/%{total}"
+                "puzzle": "Hasło"
             },
             "score": {
                 "gameOver": "Koniec gry!",

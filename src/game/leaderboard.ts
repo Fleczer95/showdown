@@ -1,12 +1,12 @@
 import { createMMKV } from 'react-native-mmkv';
 
 // Local, per-game top-10 leaderboards. Mirrors `history.ts`: pure ranking
-// logic is exported for testing, MMKV I/O is a thin wrapper. Scores are stored
-// raw (rung / final bank / total banked); the UI formats per game.
+// logic is exported for testing, MMKV I/O is a thin wrapper. Every game now
+// stores a unified points score (see `scoring.ts`); the UI formats uniformly.
 
 export interface LeaderboardEntry {
     nickname: string;
-    /** Raw game score; higher is always better. */
+    /** Unified points score; higher is always better. */
     score: number;
     /** Epoch ms when saved; used for tie-breaking and the row date. */
     timestamp: number;
@@ -41,7 +41,9 @@ export function insertEntry(
 
 // --- Persistence -----------------------------------------------------------
 
-const boardStore = createMMKV({ id: 'showdown-leaderboard' });
+// v2: unified points scoring changed every game's scale, so old boards are not
+// comparable and are cleanly abandoned by bumping the namespace (no migration).
+const boardStore = createMMKV({ id: 'showdown-leaderboard-v2' });
 const prefsStore = createMMKV({ id: 'showdown' });
 const LAST_NICKNAME_KEY = 'lastNickname';
 

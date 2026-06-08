@@ -244,7 +244,11 @@
         "nicknamePlaceholder": "Enter a nickname",
         "save": "Save score",
         "saved": "Saved!",
-        "rung": "Rung %{number}"
+        "points": "pts",
+        "totalPoints": "Total points",
+        "base": "Base",
+        "speed": "Speed",
+        "bonus": "Bonus"
     },
     "game": {
         "the-ladder": {
@@ -334,7 +338,7 @@
                 "leaveOk": "Yes, leave",
                 "roundCash": "Round cash",
                 "banked": "Banked",
-                "puzzleProgress": "Puzzle %{current}/%{total}"
+                "puzzle": "Puzzle"
             },
             "score": {
                 "gameOver": "Game Over!",

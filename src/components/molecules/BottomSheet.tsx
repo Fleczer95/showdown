@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, StyleSheet, BackHandler, ScrollView } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, withSpring } from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Text from '../atoms/Text';
 import Spacer from '../atoms/Spacer';
 import { useTheme } from '../../theme';
@@ -67,16 +67,6 @@ function BottomSheet({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible, handleDismiss]);
 
-    // Android back button
-    useEffect(() => {
-        if (!visible) return;
-        const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-            handleDismiss();
-            return true;
-        });
-        return () => sub.remove();
-    }, [visible, handleDismiss]);
-
     const sheetStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: translateY.value }],
     }));
@@ -108,99 +98,116 @@ function BottomSheet({
             }
         });
 
-    if (!visible) return null;
-
     return (
-        <Animated.View
-            style={[styles.overlay, overlayStyle, { backgroundColor: t.colors.overlay, zIndex: t.zIndex.sheet }]}
-            testID={testID}
-            accessibilityViewIsModal={true}
-            onAccessibilityEscape={onClose}
-        >
-            <View style={styles.touchable} onStartShouldSetResponder={() => true} />
-            {/* Tap overlay to dismiss */}
-            <View style={styles.touchableDismiss} onStartShouldSetResponder={() => true} onTouchEnd={handleDismiss} />
-            <GestureDetector gesture={panGesture}>
+        <Modal visible={visible} transparent animationType='none' statusBarTranslucent onRequestClose={handleDismiss}>
+            <GestureHandlerRootView style={styles.root}>
                 <Animated.View
                     style={[
-                        styles.sheet,
-                        sheetStyle,
-                        {
-                            backgroundColor: t.colors.surface,
-                            borderTopLeftRadius: t.radii.xl,
-                            borderTopRightRadius: t.radii.xl,
-                            padding: t.spacing.xl,
-                            paddingBottom: t.spacing.xxl + insets.bottom,
-                            // Cap + centre on tablet so content keeps a readable measure
-                            // instead of stretching edge-to-edge (no effect on phones).
-                            width: '100%',
-                            maxWidth: contentMaxWidth,
-                            alignSelf: 'center',
-                            ...(height ? { maxHeight: height, height } : {}),
-                        },
+                        styles.overlay,
+                        overlayStyle,
+                        { backgroundColor: t.colors.overlay, zIndex: t.zIndex.sheet },
                     ]}
+                    testID={testID}
                     accessibilityViewIsModal={true}
+                    onAccessibilityEscape={onClose}
                 >
-                    {title ? (
-                        <View style={styles.header}>
-                            <View style={[styles.handle, handleSize, { backgroundColor: t.colors.borderLight }]} />
-                            <Spacer size='xs' />
-                            <Text variant='subheading' weight='bold' style={styles.title}>
-                                {title}
-                            </Text>
-                            {onClose ? (
-                                <View
-                                    accessibilityRole='button'
-                                    accessibilityLabel='Close'
-                                    onStartShouldSetResponder={() => true}
-                                    onTouchEnd={handleDismiss}
-                                    style={styles.closeButton}
-                                >
-                                    <View
-                                        style={[
-                                            styles.closeIconBg,
-                                            {
-                                                width: closeSize,
-                                                height: closeSize,
-                                                borderRadius: closeSize / 2,
-                                                backgroundColor: t.colors.borderLight + '40',
-                                            },
-                                        ]}
-                                    >
-                                        <Text
-                                            variant='body'
-                                            weight='bold'
-                                            color={t.colors.textSecondary}
-                                            style={{ fontSize: scale(14) }}
-                                        >
-                                            ✕
-                                        </Text>
-                                    </View>
-                                </View>
-                            ) : null}
-                        </View>
-                    ) : (
-                        <View style={[styles.handleCenter, handleSize, { backgroundColor: t.colors.borderLight }]} />
-                    )}
-                    {scrollable ? (
-                        <ScrollView
-                            style={styles.scrollContent}
-                            showsVerticalScrollIndicator={false}
-                            bounces={true}
-                            keyboardShouldPersistTaps='handled'
+                    <View style={styles.touchable} onStartShouldSetResponder={() => true} />
+                    {/* Tap overlay to dismiss */}
+                    <View
+                        style={styles.touchableDismiss}
+                        onStartShouldSetResponder={() => true}
+                        onTouchEnd={handleDismiss}
+                    />
+                    <GestureDetector gesture={panGesture}>
+                        <Animated.View
+                            style={[
+                                styles.sheet,
+                                sheetStyle,
+                                {
+                                    backgroundColor: t.colors.surface,
+                                    borderTopLeftRadius: t.radii.xl,
+                                    borderTopRightRadius: t.radii.xl,
+                                    padding: t.spacing.xl,
+                                    paddingBottom: t.spacing.xxl + insets.bottom,
+                                    // Cap + centre on tablet so content keeps a readable measure
+                                    // instead of stretching edge-to-edge (no effect on phones).
+                                    width: '100%',
+                                    maxWidth: contentMaxWidth,
+                                    alignSelf: 'center',
+                                    ...(height ? { maxHeight: height, height } : {}),
+                                },
+                            ]}
+                            accessibilityViewIsModal={true}
                         >
-                            {children}
-                        </ScrollView>
-                    ) : (
-                        <>{children}</>
-                    )}
+                            {title ? (
+                                <View style={styles.header}>
+                                    <View
+                                        style={[styles.handle, handleSize, { backgroundColor: t.colors.borderLight }]}
+                                    />
+                                    <Spacer size='xs' />
+                                    <Text variant='subheading' weight='bold' style={styles.title}>
+                                        {title}
+                                    </Text>
+                                    {onClose ? (
+                                        <View
+                                            accessibilityRole='button'
+                                            accessibilityLabel='Close'
+                                            onStartShouldSetResponder={() => true}
+                                            onTouchEnd={handleDismiss}
+                                            style={styles.closeButton}
+                                        >
+                                            <View
+                                                style={[
+                                                    styles.closeIconBg,
+                                                    {
+                                                        width: closeSize,
+                                                        height: closeSize,
+                                                        borderRadius: closeSize / 2,
+                                                        backgroundColor: t.colors.borderLight + '40',
+                                                    },
+                                                ]}
+                                            >
+                                                <Text
+                                                    variant='body'
+                                                    weight='bold'
+                                                    color={t.colors.textSecondary}
+                                                    style={{ fontSize: scale(14) }}
+                                                >
+                                                    ✕
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    ) : null}
+                                </View>
+                            ) : (
+                                <View
+                                    style={[styles.handleCenter, handleSize, { backgroundColor: t.colors.borderLight }]}
+                                />
+                            )}
+                            {scrollable ? (
+                                <ScrollView
+                                    style={styles.scrollContent}
+                                    showsVerticalScrollIndicator={false}
+                                    bounces={true}
+                                    keyboardShouldPersistTaps='handled'
+                                >
+                                    {children}
+                                </ScrollView>
+                            ) : (
+                                <>{children}</>
+                            )}
+                        </Animated.View>
+                    </GestureDetector>
                 </Animated.View>
-            </GestureDetector>
-        </Animated.View>
+            </GestureHandlerRootView>
+        </Modal>
     );
 }
 
 const styles = StyleSheet.create({
+    root: {
+        flex: 1,
+    },
     overlay: {
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'flex-end',

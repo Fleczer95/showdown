@@ -87,9 +87,14 @@ export function GameSetupScreen() {
                         onPress={() => navigation.goBack()}
                         accessibilityLabel={t('screen.gameSetup.back')}
                     />
-                    <Text variant='subheading' weight='bold'>
+                    <Text variant='subheading' weight='bold' style={styles.navTitle}>
                         {t('screen.gameSetup.title')}
                     </Text>
+                    <IconButton
+                        icon={<Trophy size={28} color={theme.colors.text} />}
+                        onPress={() => setShowLeaderboard(true)}
+                        accessibilityLabel={t('leaderboard.view')}
+                    />
                 </Stack>
 
                 <Stack gap='md' align='center' style={[styles.header, { marginTop: theme.spacing.lg }]}>
@@ -175,26 +180,16 @@ export function GameSetupScreen() {
                     { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl },
                 ]}
             >
-                <Stack gap='sm' align='stretch'>
-                    <Button
-                        fullWidth
-                        size='lg'
-                        onPress={() => send({ type: 'START' })}
-                        style={{ backgroundColor: accent, borderColor: accent }}
-                        textColor={onAccent}
-                        icon={<Play size={20} color={onAccent} fill={onAccent} />}
-                    >
-                        {t('common.start')}
-                    </Button>
-                    <Button
-                        fullWidth
-                        variant='ghost'
-                        onPress={() => setShowLeaderboard(true)}
-                        icon={<Trophy size={18} color={theme.colors.text} />}
-                    >
-                        {t('leaderboard.view')}
-                    </Button>
-                </Stack>
+                <Button
+                    fullWidth
+                    size='lg'
+                    onPress={() => send({ type: 'START' })}
+                    style={{ backgroundColor: accent, borderColor: accent }}
+                    textColor={onAccent}
+                    icon={<Play size={20} color={onAccent} fill={onAccent} />}
+                >
+                    {t('common.start')}
+                </Button>
             </View>
 
             <BottomSheet
@@ -221,6 +216,9 @@ const styles = StyleSheet.create({
     },
     navBar: {
         marginLeft: -8,
+    },
+    navTitle: {
+        flex: 1,
     },
     header: {
         // dynamic spacing moved

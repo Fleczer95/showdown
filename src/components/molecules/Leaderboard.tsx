@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Stack from '../atoms/Stack';
 import Text from '../atoms/Text';
+import Divider from '../atoms/Divider';
 import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
@@ -33,8 +34,7 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
     const canEnter = pendingScore !== undefined && savedTimestamp === null && qualifies(board, pendingScore);
     const trimmed = nickname.trim();
 
-    const formatScore = (score: number): string =>
-        gameId === 'the-ladder' ? t('leaderboard.rung', { number: score }) : score.toLocaleString(locale);
+    const formatScore = (score: number): string => `${score.toLocaleString(locale)} ${t('leaderboard.points')}`;
 
     const formatDate = (timestamp: number): string =>
         new Date(timestamp).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
@@ -89,33 +89,7 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
     );
 
     return (
-        <Stack gap='md' align='stretch'>
-            {canEnter ? (
-                <Stack gap='sm' align='stretch'>
-                    <Input
-                        value={nickname}
-                        onChangeText={setNickname}
-                        placeholder={t('leaderboard.nicknamePlaceholder')}
-                        maxLength={MAX_NICKNAME_LENGTH}
-                        clearable
-                        autoFocus
-                        autoCapitalize='words'
-                        returnKeyType='done'
-                        onSubmitEditing={handleSave}
-                        accessibilityLabel={t('leaderboard.nicknamePlaceholder')}
-                    />
-                    <Button variant='primary' fullWidth disabled={trimmed.length === 0} onPress={handleSave}>
-                        {t('leaderboard.save')}
-                    </Button>
-                </Stack>
-            ) : null}
-
-            {savedTimestamp !== null ? (
-                <Text variant='caption' color='success' align='center'>
-                    {t('leaderboard.saved')}
-                </Text>
-            ) : null}
-
+        <Stack gap='md' align='stretch' style={styles.container}>
             {board.length === 0 ? (
                 <Text variant='body' color='textMuted' align='center'>
                     {t('leaderboard.empty')}
@@ -123,11 +97,48 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
             ) : (
                 <View>{rows}</View>
             )}
+
+            {savedTimestamp !== null ? (
+                <Text variant='caption' color='success' align='center'>
+                    {t('leaderboard.saved')}
+                </Text>
+            ) : null}
+
+            {canEnter ? (
+                <>
+                    {board.length > 0 ? <Divider /> : null}
+                    <Stack gap='sm' align='stretch'>
+                        <Input
+                            value={nickname}
+                            onChangeText={setNickname}
+                            placeholder={t('leaderboard.nicknamePlaceholder')}
+                            maxLength={MAX_NICKNAME_LENGTH}
+                            clearable
+                            autoFocus
+                            autoCapitalize='words'
+                            returnKeyType='done'
+                            onSubmitEditing={handleSave}
+                            accessibilityLabel={t('leaderboard.nicknamePlaceholder')}
+                            textAlign='center'
+                            wrapperStyle={styles.inputWrapper}
+                        />
+                        <Button variant='primary' fullWidth disabled={trimmed.length === 0} onPress={handleSave}>
+                            {t('leaderboard.save')}
+                        </Button>
+                    </Stack>
+                </>
+            ) : null}
         </Stack>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        width: '100%',
+    },
+    inputWrapper: {
+        paddingHorizontal: 0,
+    },
     row: {
         flexDirection: 'row',
         alignItems: 'center',

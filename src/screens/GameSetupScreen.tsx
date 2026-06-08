@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { ChevronLeft, Play } from 'lucide-react-native';
@@ -11,6 +12,7 @@ import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
 import { useTheme } from '../theme';
+import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
 import { games, GAME_ICONS } from '../data/games';
 import { gameSessionMachine } from '../game/machines/gameSessionMachine';
@@ -28,10 +30,13 @@ export function GameSetupScreen() {
     const { t } = useTranslation();
     const theme = useTheme();
 
-    const primary = theme.colors.primary;
-
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
+
+    // Per-game accent — mirrors the home card the player tapped to get here.
+    const accent = resolveAccent(theme, game.accent);
+    const onAccent = readableOn(accent);
+    const medallionGradientId = `setup-medallion-${game.id}`;
 
     const [state, send] = useMachine(gameSessionMachine, {
         input: { gameId: game.id },
@@ -88,13 +93,33 @@ export function GameSetupScreen() {
                         style={[
                             styles.mainIconContainer,
                             {
-                                backgroundColor: theme.colors.surfaceVariant,
                                 borderRadius: theme.radii.xl,
                                 marginBottom: theme.spacing.sm,
+                                borderWidth: 1,
+                                borderColor: hexToRgba(accent, 0.5),
+                                shadowColor: accent,
+                                shadowOpacity: 0.45,
+                                shadowRadius: 16,
+                                shadowOffset: { width: 0, height: 6 },
+                                elevation: 8,
                             },
                         ]}
                     >
-                        {GameIcon ? <Icon name={GameIcon} size={48} color={primary} /> : null}
+                        <View
+                            style={[StyleSheet.absoluteFill, { borderRadius: theme.radii.xl, overflow: 'hidden' }]}
+                            pointerEvents='none'
+                        >
+                            <Svg width='100%' height='100%'>
+                                <Defs>
+                                    <SvgGradient id={medallionGradientId} x1='0' y1='0' x2='1' y2='1'>
+                                        <Stop offset='0' stopColor={accent} />
+                                        <Stop offset='1' stopColor={darken(accent, 0.4)} />
+                                    </SvgGradient>
+                                </Defs>
+                                <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${medallionGradientId})`} />
+                            </Svg>
+                        </View>
+                        {GameIcon ? <Icon name={GameIcon} size={48} color={onAccent} /> : null}
                     </View>
                     <Stack gap='xs' align='center'>
                         <Text variant='heading' weight='bold' align='center'>
@@ -115,11 +140,22 @@ export function GameSetupScreen() {
                     variant='outlined'
                     padding='lg'
                     gap='md'
-                    style={[styles.rulesCard, { marginTop: theme.spacing.sm }]}
+                    style={[
+                        styles.rulesCard,
+                        {
+                            marginTop: theme.spacing.sm,
+                            borderColor: hexToRgba(accent, 0.5),
+                            shadowColor: accent,
+                            shadowOpacity: 0.25,
+                            shadowRadius: 16,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 6,
+                        },
+                    ]}
                 >
                     <Stack direction='horizontal' gap='sm' align='center'>
-                        <View style={[styles.dot, { backgroundColor: primary }]} />
-                        <Text variant='overline' color='primary' weight='bold'>
+                        <View style={[styles.dot, { backgroundColor: accent }]} />
+                        <Text variant='overline' color={accent} weight='bold'>
                             {t('common.how_to_play')}
                         </Text>
                     </Stack>
@@ -139,7 +175,9 @@ export function GameSetupScreen() {
                     fullWidth
                     size='lg'
                     onPress={() => send({ type: 'START' })}
-                    icon={<Play size={20} color={theme.colors.onPrimary} fill={theme.colors.onPrimary} />}
+                    style={{ backgroundColor: accent, borderColor: accent }}
+                    textColor={onAccent}
+                    icon={<Play size={20} color={onAccent} fill={onAccent} />}
                 >
                     {t('common.start')}
                 </Button>

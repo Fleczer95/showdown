@@ -104,11 +104,16 @@ export function resolveTheme(theme: Theme, breakpoint: Breakpoint, shortestSide?
     const spacing = merged.spacing as ThemeSpacing;
     const shortest = shortestSide ?? BREAKPOINT_SHORTEST[breakpoint];
 
+    // Wordmark gradient accepts hex or color-token names; defaults to brand colors.
+    const resolveCol = (c: string) => (c in colors ? colors[c as ColorToken] : c);
+    const wordmarkGradient = (merged.wordmarkGradient ?? ['primary', 'secondary']).map(resolveCol);
+
     return {
         ...merged,
         id: merged.id,
         name: merged.name,
         colors,
+        wordmarkGradient,
         typography: scaleTypography(typography, shortest),
         spacing: scaleSpacing(spacing, shortest),
         radii: merged.radii as ThemeRadii,

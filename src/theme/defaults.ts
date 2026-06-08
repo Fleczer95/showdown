@@ -59,6 +59,13 @@ const typography: ThemeTypography = {
     display: 36,
     lineHeight,
     letterSpacing: { overline: 1.5 },
+    fontFamily: {
+        regular: 'Inter_400Regular',
+        medium: 'Inter_500Medium',
+        semibold: 'Inter_600SemiBold',
+        bold: 'Inter_700Bold',
+        display: 'Fredoka_700Bold',
+    },
 };
 
 // ── Spacing defaults ──────────────────────────────────────────────

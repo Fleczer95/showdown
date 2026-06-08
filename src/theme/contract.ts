@@ -74,6 +74,8 @@ export interface ThemeTypography {
         medium?: string;
         semibold?: string;
         bold?: string;
+        /** Display face for the `display`/`heading` variants (brand wordmark + section titles). */
+        display?: string;
     };
 }
 
@@ -277,6 +279,8 @@ export interface ResolvedComponentVariants {
 export interface Theme extends ThemeIdentity {
     colors?: Partial<ThemeColors>;
     gameAccents?: ThemeGameAccents;
+    /** Gradient stops for the home wordmark. Hex or color-token names. Defaults to [primary, secondary]. */
+    wordmarkGradient?: string[];
     typography?: Partial<ThemeTypography>;
     spacing?: Partial<ThemeSpacing>;
     radii?: Partial<ThemeRadii>;
@@ -291,6 +295,8 @@ export interface Theme extends ThemeIdentity {
 export interface ResolvedTheme extends ThemeIdentity {
     colors: ThemeColors;
     gameAccents?: ThemeGameAccents;
+    /** Resolved gradient stops (hex) for the home wordmark. */
+    wordmarkGradient: string[];
     typography: ThemeTypography;
     spacing: ThemeSpacing;
     radii: ThemeRadii;

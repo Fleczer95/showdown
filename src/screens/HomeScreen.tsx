@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { Settings, ArrowRight, ShoppingBag } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -9,46 +9,10 @@ import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
-import { useTheme, type ResolvedTheme } from '../theme';
+import { useTheme } from '../theme';
+import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
-import { games, GAME_ICONS, type Game, type GameAccent } from '../data/games';
-
-// ── Color helpers ─────────────────────────────────────────────────
-
-/** Normalize #RGB / #RRGGBB to [r, g, b]. */
-function toRgb(hex: string): [number, number, number] {
-    const h = hex.replace('#', '');
-    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
-    return [parseInt(full.slice(0, 2), 16), parseInt(full.slice(2, 4), 16), parseInt(full.slice(4, 6), 16)];
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-    const [r, g, b] = toRgb(hex);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-/** Darken a hex toward black by `amount` (0..1) — used for the medallion gradient. */
-function darken(hex: string, amount: number): string {
-    const [r, g, b] = toRgb(hex).map((c) => Math.round(c * (1 - amount)));
-    return `rgb(${r}, ${g}, ${b})`;
-}
-
-/** Pick a readable glyph color (#1A1A2E or #FFFFFF) for an icon sitting on `hex`. */
-function readableOn(hex: string): string {
-    const [r, g, b] = toRgb(hex);
-    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return lum > 0.6 ? '#1A1A2E' : '#FFFFFF';
-}
-
-/** Resolve a game's themeable accent, falling back to a role token. */
-const ACCENT_FALLBACK: Record<GameAccent, 'primary' | 'secondary' | 'warning'> = {
-    accent1: 'primary',
-    accent2: 'warning',
-    accent3: 'secondary',
-};
-function resolveAccent(theme: ResolvedTheme, token: GameAccent): string {
-    return theme.gameAccents?.[token] ?? theme.colors[ACCENT_FALLBACK[token]];
-}
+import { games, GAME_ICONS, type Game } from '../data/games';
 
 /**
  * Accent-forward game card: a dark elevated card whose per-game color shows up
@@ -114,6 +78,45 @@ function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
 }
 
 /**
+ * Brand wordmark: "ShowDown" rendered as an SVG gradient (theme.wordmarkGradient)
+ * on a transparent background. Auto-fits the font size to the measured width so it
+ * never clips beside the header icons.
+ */
+function Wordmark() {
+    const theme = useTheme();
+    const [width, setWidth] = useState(220);
+    const stops = theme.wordmarkGradient;
+    const fontSize = Math.min(40, Math.max(24, width / 4.6));
+    const h = Math.round(fontSize * 1.25);
+
+    return (
+        <View
+            style={{ height: h, justifyContent: 'center' }}
+            onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        >
+            <Svg width={width} height={h}>
+                <Defs>
+                    <SvgGradient id='home-wordmark' x1='0' y1='0' x2='1' y2='0'>
+                        <Stop offset='0' stopColor={stops[0]} />
+                        <Stop offset='1' stopColor={stops[stops.length - 1]} />
+                    </SvgGradient>
+                </Defs>
+                <SvgText
+                    fill='url(#home-wordmark)'
+                    fontFamily='Fredoka_700Bold'
+                    fontSize={fontSize}
+                    x={0}
+                    y={fontSize}
+                    letterSpacing={-1}
+                >
+                    ShowDown
+                </SvgText>
+            </Svg>
+        </View>
+    );
+}
+
+/**
  * Home screen. Lists the ShowDown game modes; tapping a card opens that game's
  * setup screen via the root navigator.
  */
@@ -143,14 +146,9 @@ export function HomeScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.header}>
-                    <Stack gap='xs' style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
-                        <Text variant='display' weight='bold' color='primary' style={styles.title}>
-                            ShowDown
-                        </Text>
-                        <Text variant='subheading' color='textSecondary' weight='medium'>
-                            {t('screen.home.tagline')}
-                        </Text>
-                    </Stack>
+                    <View style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
+                        <Wordmark />
+                    </View>
                     <View style={styles.headerActions}>
                         <IconButton
                             icon={<ShoppingBag size={24} color={theme.colors.text} />}
@@ -186,7 +184,7 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'space-between',
     },
     titleContainer: {
@@ -195,9 +193,6 @@ const styles = StyleSheet.create({
     headerActions: {
         flexDirection: 'row',
         gap: 8,
-    },
-    title: {
-        letterSpacing: -1,
     },
     iconContainer: {
         width: 56,

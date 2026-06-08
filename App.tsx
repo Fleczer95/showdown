@@ -1,6 +1,14 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
+import { useFonts } from 'expo-font';
+import { Fredoka_700Bold } from '@expo-google-fonts/fredoka';
+import {
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useThemeActions } from './src/theme';
@@ -33,6 +41,17 @@ function PremiumThemeGate() {
 }
 
 function App() {
+    // Brand display face (Fredoka) + Inter (body) weights.
+    const [fontsLoaded] = useFonts({
+        Fredoka_700Bold,
+        Inter_400Regular,
+        Inter_500Medium,
+        Inter_600SemiBold,
+        Inter_700Bold,
+    });
+
+    if (!fontsLoaded) return null;
+
     return (
         <AppErrorBoundary>
             <GestureHandlerRootView style={styles.root}>

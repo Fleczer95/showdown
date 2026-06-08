@@ -13,6 +13,7 @@ import Pressable from '../../components/atoms/HapticPressable';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
 import Input from '../../components/molecules/Input';
+import Leaderboard from '../../components/molecules/Leaderboard';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -184,6 +185,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             </Text>
                         </Stack>
                     </Card>
+                    <Leaderboard gameId='the-wheel' pendingScore={game.score} />
                     <Stack gap='sm' style={styles.fullWidth}>
                         <Button variant='primary' fullWidth onPress={handlePlayAgain}>
                             {tr('game.the-wheel.score.playAgain')}

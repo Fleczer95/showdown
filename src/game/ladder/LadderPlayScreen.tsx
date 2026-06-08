@@ -5,6 +5,7 @@ import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
+import Leaderboard from '../../components/molecules/Leaderboard';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import { useTheme, useColor } from '../../theme';
@@ -281,6 +282,7 @@ function GameOverView({
                 <Text variant='body' color='textSecondary' align='center'>
                     {t('game.the-ladder.score.reached', { number: rung })}
                 </Text>
+                <Leaderboard gameId='the-ladder' pendingScore={rung} />
                 <Stack gap='sm' align='stretch' style={styles.actions}>
                     <Button variant='primary' fullWidth onPress={onPlayAgain}>
                         {t('game.the-ladder.score.playAgain')}

@@ -20,6 +20,7 @@ import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
+import Leaderboard from '../../components/molecules/Leaderboard';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import Slider from '../../components/molecules/Slider';
@@ -241,6 +242,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                                 {formatMoney(state.bank)}
                             </Text>
                         </Stack>
+                        <Leaderboard gameId='the-drop' pendingScore={state.bank} />
                         <Stack gap='sm' align='stretch' style={styles.fullWidth}>
                             <Button variant='primary' onPress={reset} fullWidth>
                                 {translate('game.the-drop.over.playAgain')}

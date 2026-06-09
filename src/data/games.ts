@@ -16,6 +16,8 @@ export interface Game {
     setupRoute: SetupRoute;
     /** Per-game accent, resolved against the active theme's palette. */
     accent: GameAccent;
+    /** i18n key for the leaderboard ranking metric, interpolated with the run's progress count (`%{n}`). */
+    progressLabelKey: string;
 }
 
 export const GAME_ICONS: Record<string, any> = {
@@ -39,6 +41,7 @@ export const games: Game[] = [
         iconName: 'ListOrdered',
         setupRoute: 'ladderSetup',
         accent: 'accent1',
+        progressLabelKey: 'leaderboard.progress.ladder',
     },
     {
         id: 'the-drop',
@@ -46,6 +49,7 @@ export const games: Game[] = [
         iconName: 'Banknote',
         setupRoute: 'dropSetup',
         accent: 'accent2',
+        progressLabelKey: 'leaderboard.progress.drop',
     },
     {
         id: 'the-wheel',
@@ -53,5 +57,6 @@ export const games: Game[] = [
         iconName: 'Disc3',
         setupRoute: 'wheelSetup',
         accent: 'accent3',
+        progressLabelKey: 'leaderboard.progress.wheel',
     },
 ];

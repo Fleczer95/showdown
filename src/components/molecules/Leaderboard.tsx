@@ -7,6 +7,7 @@ import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { games } from '../../data/games';
 import {
     getBoard,
     saveScore,
@@ -48,12 +49,11 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     const formatDate = (timestamp: number): string =>
         new Date(timestamp).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 
-    // Per-game label for the ranking metric shown beneath each nickname.
+    // Per-game label for the ranking metric shown beneath each nickname, taken
+    // from the game registry (same source as the accent/route config).
     const formatProgress = (progress: number): string => {
-        if (gameId === 'the-ladder') return t('leaderboard.progress.ladder', { n: progress });
-        if (gameId === 'the-wheel') return t('leaderboard.progress.wheel', { n: progress });
-        if (gameId === 'the-drop') return t('leaderboard.progress.drop', { n: progress });
-        return '';
+        const game = games.find((g) => g.id === gameId);
+        return game ? t(game.progressLabelKey, { n: progress }) : '';
     };
 
     const handleSave = () => {

@@ -1,42 +1,49 @@
 {
-    "expo": {
-        "name": "ShowDown",
-        "slug": "showdown",
-        "version": "0.8.0",
-        "scheme": "showdown",
-        "icon": "./assets/icon.png",
-        "orientation": "portrait",
-        "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
-        "splash": {
-            "backgroundColor": "#1A1A2E"
-        },
-        "ios": {
-            "supportsTablet": true,
-            "bundleIdentifier": "com.showdown.app",
-            "googleServicesFile": "./GoogleService-Info.plist",
-            "infoPlist": {
-                "CFBundleName": "ShowDown"
-            },
-            "config": {
-                "usesNonExemptEncryption": false
-            }
-        },
-        "android": {
-            "edgeToEdgeEnabled": true,
-            "package": "com.showdown.app",
-            "googleServicesFile": "./google-services.json",
-            "permissions": ["com.android.vending.BILLING"],
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/icon.png",
-                "monochromeImage": "./assets/icon.png",
-                "backgroundColor": "#1A1A2E"
-            },
-            "versionCode": 1
-        },
-        "plugins": ["expo-localization", "@react-native-firebase/app", "expo-audio", "expo-asset"],
-        "extra": {
-            "sentryDsn": "https://8cacf301cd3ad357974428f5e981422a@o4510449415553024.ingest.de.sentry.io/4511477176926288"
-        }
+  "expo": {
+    "name": "ShowDown",
+    "slug": "showdown",
+    "version": "0.8.1",
+    "scheme": "showdown",
+    "icon": "./assets/icon.png",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#1A1A2E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.showdown.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "CFBundleName": "ShowDown"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.showdown.app",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "com.android.vending.BILLING"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "monochromeImage": "./assets/icon.png",
+        "backgroundColor": "#1A1A2E"
+      },
+      "versionCode": 2
+    },
+    "plugins": [
+      "expo-localization",
+      "@react-native-firebase/app",
+      "expo-audio",
+      "expo-asset"
+    ],
+    "extra": {
+      "sentryDsn": "https://8cacf301cd3ad357974428f5e981422a@o4510449415553024.ingest.de.sentry.io/4511477176926288"
     }
+  }
 }

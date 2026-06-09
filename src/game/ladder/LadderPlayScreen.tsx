@@ -182,7 +182,11 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                         </Button>
                     </Stack>
                     <View style={[styles.progressGlow, { shadowColor: accent }]}>
-                        <ProgressBar progress={run.currentIndex / RUN_LENGTH} color={accent} height={10} />
+                        <ProgressBar
+                            progress={(run.currentIndex + (selected !== null ? 1 : 0)) / RUN_LENGTH}
+                            color={accent}
+                            height={10}
+                        />
                     </View>
                 </Stack>
 

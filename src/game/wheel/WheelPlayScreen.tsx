@@ -9,6 +9,7 @@ import Animated, {
     FadeIn,
     FadeOutUp,
     FadeInDown,
+    useReducedMotion,
 } from 'react-native-reanimated';
 import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
@@ -70,6 +71,7 @@ function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
 
 export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
@@ -305,12 +307,12 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                         </Card>
                     </Stack>
                     <View style={[styles.progressGlow, { shadowColor: accent }]}>
-                        <ProgressBar progress={game.currentPuzzle / TOTAL_PUZZLES} color={accent} height={10} />
+                        <ProgressBar progress={(game.currentPuzzle + 1) / TOTAL_PUZZLES} color={accent} height={10} />
                     </View>
                 </Stack>
 
                 {/* Puzzle */}
-                <Animated.View key={currentId} entering={FadeInDown.springify().damping(20).stiffness(150)}>
+                <Animated.View key={currentId} entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}>
                     <Card variant='elevated' padding='lg' gap='sm' style={glow}>
                         <View style={[styles.accentTab, { backgroundColor: accent }]} />
                         <Text variant='overline' color={accent} weight='bold' align='center'>
@@ -327,7 +329,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                     the leftover vertical space and stays centered. */}
                 {phase === 'awaitGuess' && !solveMode ? null : (
                     <Animated.View
-                        entering={FadeIn.duration(250)}
+                        entering={reduceMotion ? undefined : FadeIn.duration(250)}
                         exiting={FadeOutUp.duration(200)}
                         style={styles.centerRegion}
                     >
@@ -364,7 +366,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
 
                 {phase === 'awaitGuess' && !solveMode ? (
                     <Animated.View
-                        entering={FadeInDown.duration(250)}
+                        entering={reduceMotion ? undefined : FadeInDown.duration(250)}
                         exiting={FadeOutUp.duration(200)}
                         style={styles.centerRegion}
                     >
@@ -382,7 +384,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                     const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
                                     const keyColor = vowel ? t.colors.secondary : accent;
                                     return (
-                                        <Animated.View key={ch} entering={FadeInDown.delay(i * 12).springify().damping(20).stiffness(150)}>
+                                        <Animated.View key={ch} entering={reduceMotion ? undefined : FadeInDown.delay(i * 12).springify().damping(20).stiffness(150)}>
                                             <Pressable
                                                 haptic='light'
                                                 disabled={disabled}

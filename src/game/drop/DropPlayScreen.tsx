@@ -343,7 +343,11 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                 </Stack>
 
                 <View style={[styles.progressGlow, { shadowColor: accent }]}>
-                    <ProgressBar progress={state.round / TOTAL_ROUNDS} color={accent} height={10} />
+                    <ProgressBar
+                        progress={(state.round + (phase === 'reveal' ? 1 : 0)) / TOTAL_ROUNDS}
+                        color={accent}
+                        height={10}
+                    />
                 </View>
 
                 {/* Question */}

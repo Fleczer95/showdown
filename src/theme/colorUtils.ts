@@ -30,6 +30,13 @@ export function readableOn(hex: string): string {
     return lum > 0.6 ? '#1A1A2E' : '#FFFFFF';
 }
 
+/** Pick a strict black or white contrast color for text sitting on `hex`. */
+export function getContrastColor(hex: string): string {
+    const [r, g, b] = toRgb(hex);
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum > 0.6 ? '#000000' : '#FFFFFF';
+}
+
 /** Resolve a game's themeable accent, falling back to a role token. */
 const ACCENT_FALLBACK: Record<GameAccent, 'primary' | 'secondary' | 'warning'> = {
     accent1: 'primary',

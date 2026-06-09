@@ -24,8 +24,12 @@ import Leaderboard from '../../components/molecules/Leaderboard';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
+import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
+import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
+import AccentTab from '../../components/atoms/AccentTab';
 import Slider from '../../components/molecules/Slider';
+import { springEnter } from '../transitions';
 import { useTheme, useAnimationPresets } from '../../theme';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -73,6 +77,7 @@ const formatMoney = (value: number): string => value.toLocaleString('en-US');
 
 export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { fade } = useAnimationPresets();
     const haptics = useHaptics();
@@ -338,12 +343,22 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                     </Stack>
                 </Stack>
 
+                <ProgressBar
+                    progress={(state.round + (phase === 'reveal' ? 1 : 0)) / TOTAL_ROUNDS}
+                    color={accent}
+                    glowColor={accent}
+                    height={10}
+                />
+
                 {/* Question */}
-                <Card variant='elevated' padding='md' style={glow}>
-                    <Text variant='subheading' weight='bold' align='center'>
-                        {question.prompt[lang]}
-                    </Text>
-                </Card>
+                <Animated.View key={question.id} entering={reduceMotion ? undefined : springEnter()}>
+                    <Card variant='elevated' padding='md' gap='sm' style={glow}>
+                        <AccentTab color={accent} />
+                        <Text variant='subheading' weight='bold' align='center'>
+                            {question.prompt[lang]}
+                        </Text>
+                    </Card>
+                </Animated.View>
 
                 {phase === 'allocating' && (
                     <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
@@ -564,6 +579,8 @@ function DropOption({
         sliderAccent = t.colors.error;
     }
 
+    const badgeState: IndexBadgeState = reveal === 'win' ? 'correct' : reveal === 'drop' ? 'wrong' : 'default';
+
     let cardOpacity = 1;
     if (lockedByCover) {
         cardOpacity = 0.5;
@@ -598,37 +615,45 @@ function DropOption({
     }
 
     return (
-        <Animated.View style={cardStyle}>
+        <Animated.View
+            entering={reduceMotion ? undefined : springEnter(index * 70)}
+            style={cardStyle}
+        >
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center' style={styles.optionHeader}>
-                        <Stack direction='horizontal' gap='xs' align='center' flex={1}>
-                            <Text variant='body' weight='bold' color={accent}>
-                                {prefix}:
-                            </Text>
+                        <Stack direction='horizontal' gap='md' align='center' flex={1}>
+                            <IndexBadge label={prefix} accent={accent} state={badgeState} size={36} />
                             <Text variant='body' weight='semibold' style={styles.optionText}>
                                 {label}
                             </Text>
                         </Stack>
-                        {reveal !== 'none' && (
+                        {phase === 'allocating' ? (
+                            <Stack gap='xs' align='end'>
+                                <Text variant='overline' weight='semibold' color={t.colors.textSecondary}>
+                                    {translate('game.the-drop.active.placed')}
+                                </Text>
+                                <Text variant='body' weight='bold' color={sliderAccent}>
+                                    {formatMoney(amount)}
+                                </Text>
+                            </Stack>
+                        ) : reveal !== 'none' ? (
                             <Icon
                                 name={reveal === 'win' ? Check : X}
                                 size={20}
                                 color={reveal === 'win' ? t.colors.success : t.colors.error}
                             />
-                        )}
+                        ) : null}
                     </Stack>
 
                     {phase === 'allocating' ? (
                         <Slider
-                            label={translate('game.the-drop.active.placed')}
                             value={amount}
                             min={0}
                             max={Math.max(BUNDLE, sliderMax)}
                             step={BUNDLE}
                             onChange={(v) => !lockedByCover && onChange(v)}
                             accentColor={sliderAccent}
-                            renderValue={() => formatMoney(amount)}
                         />
                     ) : (
                         <Animated.View style={[textStyle, styles.optionOutcome]}>

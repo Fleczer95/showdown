@@ -10,9 +10,9 @@ source: showdown (custom)
 
 | Field     | Value                                                            |
 | --------- | ---------------------------------------------------------------- |
-| Key ID    | `4T9DC2QVQF`                                                     |
+| Key ID    | `TYBAQ9XDGV`                                                     |
 | Issuer ID | `2d8516f5-a643-4741-88a9-28bfe52778fd`                           |
-| Key file  | `AuthKey_4T9DC2QVQF.p8` — repo root, covered by `*.p8` gitignore |
+| Key file  | `AuthKey_TYBAQ9XDGV.p8` — repo root, covered by `*.p8` gitignore |
 | App ID    | `6774886649` (numeric — used in API calls; create_iap.py also resolves it from the bundle ID) |
 | Bundle ID | `com.showdown.app`                                              |
 
@@ -21,9 +21,9 @@ source: showdown (custom)
 ```python
 import jwt, time
 
-KEY_ID    = "4T9DC2QVQF"
+KEY_ID    = "TYBAQ9XDGV"
 ISSUER_ID = "2d8516f5-a643-4741-88a9-28bfe52778fd"
-KEY_FILE  = "AuthKey_4T9DC2QVQF.p8"  # repo root
+KEY_FILE  = "AuthKey_TYBAQ9XDGV.p8"  # repo root
 BASE_URL  = "https://api.appstoreconnect.apple.com"
 
 def make_token():

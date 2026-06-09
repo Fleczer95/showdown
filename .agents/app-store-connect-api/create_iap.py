@@ -2,7 +2,7 @@
 """
 Creates all ShowDown in-app purchases via App Store Connect API.
 Run from anywhere: python3 .agents/app-store-connect-api/create_iap.py
-Key file: AuthKey_4T9DC2QVQF.p8 at repo root (gitignored via *.p8).
+Key file: AuthKey_TYBAQ9XDGV.p8 at repo root (gitignored via *.p8).
 """
 
 import json
@@ -14,9 +14,9 @@ from pathlib import Path
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-KEY_ID = "4T9DC2QVQF"
+KEY_ID = "TYBAQ9XDGV"
 ISSUER_ID = "2d8516f5-a643-4741-88a9-28bfe52778fd"
-KEY_FILE = (Path(__file__).parent / "../../AuthKey_4T9DC2QVQF.p8").resolve()
+KEY_FILE = (Path(__file__).parent / "../../AuthKey_TYBAQ9XDGV.p8").resolve()
 BUNDLE_ID = "com.showdown.app"
 BASE_URL = "https://api.appstoreconnect.apple.com"
 

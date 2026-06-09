@@ -9,6 +9,7 @@ import Animated, {
     FadeIn,
     FadeOutUp,
     FadeInDown,
+    useReducedMotion,
 } from 'react-native-reanimated';
 import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
@@ -21,7 +22,11 @@ import WheelGraphic from './WheelGraphic';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
+import ProgressBar from '../../components/molecules/ProgressBar';
+import AccentTab from '../../components/atoms/AccentTab';
+import { springEnter } from '../transitions';
 import { useTheme } from '../../theme';
+import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { getPack } from './content';
@@ -68,6 +73,7 @@ function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
 
 export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
@@ -265,59 +271,70 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         >
             <Stack gap='lg' flex={1}>
                 {/* Header: progress + banked score + round cash */}
-                <Stack direction='horizontal' gap='sm'>
-                    <Card variant='outlined' padding='sm' style={styles.headerCard}>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='caption' weight='semibold' color='textSecondary'>
-                                {tr('game.the-wheel.active.puzzle')}
-                            </Text>
-                            <Text variant='subheading' weight='bold'>
-                                {game.currentPuzzle + 1}/{TOTAL_PUZZLES}
-                            </Text>
-                        </Stack>
-                    </Card>
-                    <Card variant='outlined' padding='sm' style={styles.headerCard}>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='caption' weight='semibold' color='textSecondary'>
-                                {tr('game.the-wheel.active.banked')}
-                            </Text>
-                            <Text variant='subheading' weight='bold'>
-                                {game.score}
-                            </Text>
-                        </Stack>
-                    </Card>
-                    <Card
-                        variant='elevated'
-                        padding='sm'
-                        style={[styles.headerCard, { borderColor: accent, borderWidth: 2 }]}
-                    >
-                        <Stack gap='xs' align='center'>
-                            <Text variant='caption' weight='semibold' color={accent}>
-                                {tr('game.the-wheel.active.roundCash')}
-                            </Text>
-                            <Text variant='subheading' weight='bold' color={accent}>
-                                {game.roundCash}
-                            </Text>
-                        </Stack>
-                    </Card>
+                <Stack gap='sm'>
+                    <Stack direction='horizontal' gap='sm'>
+                        <Card variant='outlined' padding='sm' style={styles.headerCard}>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='caption' weight='semibold' color='textSecondary'>
+                                    {tr('game.the-wheel.active.puzzle')}
+                                </Text>
+                                <Text variant='subheading' weight='bold'>
+                                    {game.currentPuzzle + 1}/{TOTAL_PUZZLES}
+                                </Text>
+                            </Stack>
+                        </Card>
+                        <Card variant='outlined' padding='sm' style={styles.headerCard}>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='caption' weight='semibold' color='textSecondary'>
+                                    {tr('game.the-wheel.active.banked')}
+                                </Text>
+                                <Text variant='subheading' weight='bold'>
+                                    {game.score}
+                                </Text>
+                            </Stack>
+                        </Card>
+                        <Card
+                            variant='elevated'
+                            padding='sm'
+                            style={[styles.headerCard, { borderColor: accent, borderWidth: 2 }]}
+                        >
+                            <Stack gap='xs' align='center'>
+                                <Text variant='caption' weight='semibold' color={accent}>
+                                    {tr('game.the-wheel.active.roundCash')}
+                                </Text>
+                                <Text variant='subheading' weight='bold' color={accent}>
+                                    {game.roundCash}
+                                </Text>
+                            </Stack>
+                        </Card>
+                    </Stack>
+                    <ProgressBar
+                        progress={(game.currentPuzzle + 1) / TOTAL_PUZZLES}
+                        color={accent}
+                        glowColor={accent}
+                        height={10}
+                    />
                 </Stack>
 
                 {/* Puzzle */}
-                <Card variant='elevated' padding='lg' gap='sm' style={glow}>
-                    <Text variant='overline' color={accent} weight='bold' align='center'>
-                        {puzzle.category}
-                    </Text>
-                    <Text variant='heading' weight='bold' align='center' style={styles.phrase}>
-                        {masked}
-                    </Text>
-                </Card>
+                <Animated.View key={currentId} entering={reduceMotion ? undefined : springEnter()}>
+                    <Card variant='elevated' padding='lg' gap='sm' style={glow}>
+                        <AccentTab color={accent} />
+                        <Text variant='overline' color={accent} weight='bold' align='center'>
+                            {puzzle.category}
+                        </Text>
+                        <Text variant='heading' weight='bold' align='center' style={styles.phrase}>
+                            {masked}
+                        </Text>
+                    </Card>
+                </Animated.View>
 
                 {/* Wheel — slides up and hides while the letter keyboard is up so
                     the keyboard can rise into the freed space. Otherwise it absorbs
                     the leftover vertical space and stays centered. */}
                 {phase === 'awaitGuess' && !solveMode ? null : (
                     <Animated.View
-                        entering={FadeIn.duration(250)}
+                        entering={reduceMotion ? undefined : FadeIn.duration(250)}
                         exiting={FadeOutUp.duration(200)}
                         style={styles.centerRegion}
                     >
@@ -326,11 +343,13 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             <Animated.View style={[styles.wheel, wheelStyle]}>
                                 <WheelGraphic accent={accent} />
                             </Animated.View>
-                            {status ? (
-                                <Text variant='subheading' weight='bold' color={accent} align='center'>
-                                    {status}
-                                </Text>
-                            ) : null}
+                            <View style={styles.statusSlot}>
+                                {status ? (
+                                    <Text variant='subheading' weight='bold' color={accent} align='center'>
+                                        {status}
+                                    </Text>
+                                ) : null}
+                            </View>
                         </Stack>
                     </Animated.View>
                 )}
@@ -352,7 +371,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
 
                 {phase === 'awaitGuess' && !solveMode ? (
                     <Animated.View
-                        entering={FadeInDown.duration(250)}
+                        entering={reduceMotion ? undefined : FadeInDown.duration(250)}
                         exiting={FadeOutUp.duration(200)}
                         style={styles.centerRegion}
                     >
@@ -364,36 +383,37 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                 {')'}
                             </Text>
                             <View style={styles.keyboard}>
-                                {ALPHABET.map((ch) => {
+                                {ALPHABET.map((ch, i) => {
                                     const vowel = isVowel(ch);
                                     const guessed = alreadyGuessed(game, ch);
                                     const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
                                     const keyColor = vowel ? t.colors.secondary : accent;
                                     return (
-                                        <Pressable
-                                            key={ch}
-                                            haptic='light'
-                                            disabled={disabled}
-                                            onPress={() => (vowel ? handleBuyVowel(ch) : handleGuessConsonant(ch))}
-                                            accessibilityLabel={ch}
-                                            style={[
-                                                styles.key,
-                                                {
-                                                    borderColor: guessed ? t.colors.border : keyColor,
-                                                    backgroundColor: guessed
-                                                        ? t.colors.surfaceVariant
-                                                        : t.colors.surface,
-                                                },
-                                            ]}
-                                        >
-                                            <Text
-                                                variant='subheading'
-                                                weight='bold'
-                                                color={guessed ? t.colors.textMuted : keyColor}
+                                        <Animated.View key={ch} entering={reduceMotion ? undefined : springEnter(i * 12)}>
+                                            <Pressable
+                                                haptic='light'
+                                                disabled={disabled}
+                                                onPress={() => (vowel ? handleBuyVowel(ch) : handleGuessConsonant(ch))}
+                                                accessibilityLabel={ch}
+                                                style={[
+                                                    styles.key,
+                                                    {
+                                                        borderColor: guessed ? t.colors.border : keyColor,
+                                                        backgroundColor: guessed
+                                                            ? t.colors.surfaceVariant
+                                                            : hexToRgba(keyColor, 0.14),
+                                                    },
+                                                ]}
                                             >
-                                                {ch}
-                                            </Text>
-                                        </Pressable>
+                                                <Text
+                                                    variant='subheading'
+                                                    weight='bold'
+                                                    color={guessed ? t.colors.textMuted : keyColor}
+                                                >
+                                                    {ch}
+                                                </Text>
+                                            </Pressable>
+                                        </Animated.View>
                                     );
                                 })}
                             </View>
@@ -475,6 +495,10 @@ const styles = StyleSheet.create({
     },
     centerRegion: {
         flex: 1,
+        justifyContent: 'center',
+    },
+    statusSlot: {
+        minHeight: 32,
         justifyContent: 'center',
     },
     phrase: {

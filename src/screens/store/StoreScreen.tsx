@@ -1,35 +1,29 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Platform, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Check, ChevronLeft, History } from 'lucide-react-native';
 import SafeContainer from '../../responsive/SafeContainer';
 import Text from '../../components/atoms/Text';
-import Stack from '../../components/atoms/Stack';
+import Spacer from '../../components/atoms/Spacer';
 import Icon from '../../components/atoms/Icon';
+import BottomSheet from '../../components/molecules/BottomSheet';
 import Pressable from '../../components/atoms/HapticPressable';
 import ActivityIndicator from '../../components/atoms/ActivityIndicator';
 import Button from '../../components/molecules/Button';
 import IconButton from '../../components/molecules/IconButton';
 import { useResponsive } from '../../responsive/useResponsive';
 import { useTheme } from '../../theme';
+import { getContrastColor } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { STORE_CATEGORIES, STORE_ICONS, type StoreCategory } from '../../data/store';
 import type { CatalogEntry, PackDefinition } from '../../data/store/types';
 import { useStore } from '../../hooks/store/useStore';
 import { useResolvedStoreEntries } from '../../hooks/store/useStoreCatalog';
 import type { RootStackParamList } from '../../navigation/types';
+import { ThemePreview } from './ThemePreview';
 
 type StoreScreenProps = NativeStackScreenProps<RootStackParamList, 'Store'>;
-
-function getContrastColor(hexColor: string): string {
-    const color = hexColor.replace('#', '');
-    const r = parseInt(color.substring(0, 2), 16);
-    const g = parseInt(color.substring(2, 4), 16);
-    const b = parseInt(color.substring(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.6 ? '#000000' : '#FFFFFF';
-}
 
 function StoreItemCard({
     entry,
@@ -315,112 +309,139 @@ export default function StoreScreen() {
                         </Text>
                     </View>
                 )}
+            </View>
 
-                <Modal
-                    visible={!!detailItem}
-                    transparent
-                    animationType='slide'
-                    onRequestClose={() => !isProcessing && setDetailItem(null)}
-                >
-                    <View style={styles.modalRoot}>
-                        <Pressable style={styles.scrim} onPress={() => !isProcessing && setDetailItem(null)}>
-                            <View />
-                        </Pressable>
-                        {detailItem && (
+            <BottomSheet scrollable visible={!!detailItem} onClose={() => !isProcessing && setDetailItem(null)}>
+                {detailItem && (
+                    <View style={[styles.detailContainer, { paddingBottom: theme.spacing.sm }]}>
+                        <View style={styles.detailHeader}>
                             <View
                                 style={[
-                                    styles.detail,
+                                    styles.detailIcon,
                                     {
-                                        backgroundColor: theme.colors.surface,
-                                        borderTopLeftRadius: theme.radii.xl,
-                                        borderTopRightRadius: theme.radii.xl,
-                                        padding: theme.spacing.xl,
+                                        backgroundColor: detailItem.presentation.accentColor + '15',
+                                        borderColor: detailItem.presentation.accentColor + '2E',
+                                        width: scale(64, 80),
+                                        height: scale(64, 80),
+                                        borderRadius: scale(18, 22),
                                     },
                                 ]}
                             >
-                                <Stack gap='md' align='center'>
-                                    <Icon
-                                        name={STORE_ICONS[detailItem.presentation.iconName] ?? STORE_ICONS.themes}
-                                        size={iconSize(48)}
-                                        color={detailItem.presentation.accentColor}
-                                        backgroundColor={detailItem.presentation.accentColor + '18'}
-                                        borderRadius={theme.radii.xl}
-                                        padding={scale(24)}
-                                    />
-                                    <Text variant='heading' weight='bold' align='center'>
-                                        {t(detailItem.presentation.titleKey)}
-                                    </Text>
-                                    <Text variant='body' color={theme.colors.textSecondary} align='center'>
-                                        {t(detailItem.presentation.descriptionKey)}
-                                    </Text>
-                                </Stack>
+                                {React.createElement(
+                                    STORE_ICONS[detailItem.presentation.iconName] ?? STORE_ICONS.themes,
+                                    {
+                                        size: iconSize(32),
+                                        color: detailItem.presentation.accentColor,
+                                    },
+                                )}
+                            </View>
 
-                                {detailItem.presentation.featuresKey?.length ? (
-                                    <Stack gap='sm' style={{ marginTop: theme.spacing.xl }}>
-                                        {detailItem.presentation.featuresKey.map((featureKey) => (
-                                            <View key={featureKey} style={styles.featureRow}>
-                                                <View
-                                                    style={[
-                                                        styles.featureDot,
-                                                        { backgroundColor: detailItem.presentation.accentColor },
-                                                    ]}
-                                                />
-                                                <Text variant='body' color={theme.colors.textSecondary}>
-                                                    {t(featureKey)}
-                                                </Text>
-                                            </View>
-                                        ))}
-                                    </Stack>
-                                ) : null}
+                            <View style={styles.detailHeaderText}>
+                                <Text variant='heading' weight='bold'>
+                                    {t(detailItem.presentation.titleKey)}
+                                </Text>
+                                <Spacer size='xs' />
+                                <Text variant='body' color={theme.colors.textSecondary}>
+                                    {t(detailItem.presentation.descriptionKey)}
+                                </Text>
+                            </View>
+                        </View>
 
-                                <View style={{ marginTop: theme.spacing.xl }}>
-                                    {detailUnlocked ? (
+                        {detailItem.kind === 'theme' && (
+                            <>
+                                <Spacer size='lg' />
+                                <ThemePreview tokens={detailItem.tokens} />
+                            </>
+                        )}
+
+                        {detailItem.presentation.featuresKey?.length ? (
+                            <View
+                                style={[
+                                    styles.featuresCard,
+                                    {
+                                        backgroundColor: detailItem.presentation.accentColor + '14',
+                                        borderColor: detailItem.presentation.accentColor + '33',
+                                    },
+                                ]}
+                            >
+                                {detailItem.presentation.featuresKey.map((featureKey) => (
+                                    <View key={featureKey} style={styles.featureRow}>
                                         <View
                                             style={[
-                                                styles.purchasedNotice,
-                                                {
-                                                    backgroundColor: theme.colors.success + '12',
-                                                    borderRadius: theme.radii.md,
-                                                    padding: theme.spacing.lg,
-                                                },
+                                                styles.featureDot,
+                                                { backgroundColor: detailItem.presentation.accentColor },
                                             ]}
+                                        />
+                                        <Text
+                                            variant='body'
+                                            color={theme.colors.textSecondary}
+                                            style={styles.featureText}
                                         >
-                                            <Check size={iconSize(20)} color={theme.colors.success} />
-                                            <Text variant='body' weight='bold' color={theme.colors.success}>
-                                                {t('screen.store.unlocked')}
-                                            </Text>
-                                        </View>
-                                    ) : (
-                                        <Button
-                                            variant='primary'
-                                            size='lg'
-                                            fullWidth
-                                            onPress={handlePurchase}
-                                            loading={isProcessing}
-                                            style={{ backgroundColor: detailItem.presentation.accentColor }}
-                                            textColor={getContrastColor(detailItem.presentation.accentColor)}
-                                        >
-                                            {t('screen.store.buy', { price: resolvePrice(detailItem) })}
-                                        </Button>
-                                    )}
-                                </View>
-
-                                {!detailUnlocked && !isProcessing ? (
-                                    <Pressable
-                                        onPress={() => setDetailItem(null)}
-                                        haptic='light'
-                                        style={{ paddingVertical: theme.spacing.lg }}
-                                    >
-                                        <Text variant='body' color={theme.colors.textMuted} align='center'>
-                                            {t('common.cancel')}
+                                            {t(featureKey)}
                                         </Text>
-                                    </Pressable>
-                                ) : null}
+                                    </View>
+                                ))}
+                            </View>
+                        ) : null}
+
+                        <Spacer size='xl' />
+
+                        {detailUnlocked ? (
+                            <View
+                                style={[
+                                    styles.purchasedNotice,
+                                    {
+                                        backgroundColor: theme.colors.success + '12',
+                                        borderColor: theme.colors.success + '2E',
+                                    },
+                                ]}
+                            >
+                                <Check size={iconSize(20)} color={theme.colors.success} />
+                                <Spacer size='sm' direction='horizontal' />
+                                <Text variant='body' weight='bold' color={theme.colors.success}>
+                                    {t('screen.store.unlocked')}
+                                </Text>
+                            </View>
+                        ) : (
+                            <View
+                                style={[
+                                    styles.buyButtonShadow,
+                                    {
+                                        borderRadius: theme.radii.full,
+                                        backgroundColor: detailItem.presentation.accentColor,
+                                        shadowColor: detailItem.presentation.accentColor,
+                                    },
+                                ]}
+                            >
+                                <Button
+                                    variant='primary'
+                                    size='lg'
+                                    fullWidth
+                                    onPress={handlePurchase}
+                                    loading={isProcessing}
+                                    style={{
+                                        backgroundColor: detailItem.presentation.accentColor,
+                                        borderColor: detailItem.presentation.accentColor,
+                                    }}
+                                    textColor={getContrastColor(detailItem.presentation.accentColor)}
+                                >
+                                    {t('screen.store.buy', { price: resolvePrice(detailItem) })}
+                                </Button>
                             </View>
                         )}
+
+                        <Spacer size='md' />
+
+                        {!detailUnlocked && !isProcessing ? (
+                            <Pressable onPress={() => setDetailItem(null)} haptic='light'>
+                                <Text variant='body' color={theme.colors.textMuted} align='center'>
+                                    {t('common.cancel')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
                     </View>
-                </Modal>
-            </View>
+                )}
+            </BottomSheet>
         </SafeContainer>
     );
 }
@@ -489,31 +510,59 @@ const styles = StyleSheet.create({
         right: 20,
         padding: 14,
     },
-    modalRoot: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0,0,0,0.35)',
+    detailContainer: {
+        alignItems: 'center',
+        paddingTop: 8,
     },
-    scrim: {
-        flex: 1,
-    },
-    detail: {
+    detailHeader: {
         width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    detailHeaderText: {
+        flex: 1,
+    },
+    detailIcon: {
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    featuresCard: {
+        width: '100%',
+        marginTop: 24,
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        gap: 14,
     },
     featureRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+    },
+    featureText: {
+        flex: 1,
     },
     featureDot: {
-        width: 7,
-        height: 7,
-        borderRadius: 4,
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginRight: 12,
     },
     purchasedNotice: {
+        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        padding: 18,
+        borderRadius: 9999,
+        borderWidth: 1,
+    },
+    buyButtonShadow: {
+        width: '100%',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+        elevation: 10,
     },
 });

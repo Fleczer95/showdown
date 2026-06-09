@@ -12,6 +12,8 @@ export interface ProgressBarProps {
     indeterminate?: boolean;
     color?: ColorToken | string;
     trackColor?: string;
+    /** When set, casts a soft glow in this color around the bar. */
+    glowColor?: string;
     height?: number;
     /** Animation duration in ms (default: 300) */
     animationDuration?: number;
@@ -26,6 +28,7 @@ function ProgressBar({
     indeterminate = false,
     color,
     trackColor,
+    glowColor,
     height,
     animationDuration,
     label,
@@ -85,7 +88,10 @@ function ProgressBar({
     );
 
     return (
-        <View testID={testID} style={labelText ? styles.labeledContainer : undefined}>
+        <View
+            testID={testID}
+            style={[labelText && styles.labeledContainer, glowColor && [styles.glow, { shadowColor: glowColor }]]}
+        >
             <View
                 style={trackStyle}
                 accessible
@@ -114,6 +120,11 @@ const styles = StyleSheet.create({
     },
     labeledContainer: {
         gap: 4,
+    },
+    glow: {
+        shadowOpacity: 0.45,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 0 },
     },
     label: {
         textAlign: 'right' as const,

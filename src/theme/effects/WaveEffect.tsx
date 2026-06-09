@@ -10,10 +10,22 @@ import {
     Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '../context';
+import type { ThemeColors } from '../contract';
 
-export const WaveEffect = () => {
-    const { width, height } = useWindowDimensions();
+interface WaveEffectProps {
+    /** Override the canvas size (defaults to the full window). Used by previews. */
+    width?: number;
+    height?: number;
+    /** Override the wave colors (defaults to the active theme). */
+    colors?: ThemeColors;
+}
+
+export const WaveEffect = ({ width: widthProp, height: heightProp, colors: colorsProp }: WaveEffectProps = {}) => {
+    const window = useWindowDimensions();
+    const width = widthProp ?? window.width;
+    const height = heightProp ?? window.height;
     const t = useTheme();
+    const colors = colorsProp ?? t.colors;
     const time = useSharedValue(0);
 
     useEffect(() => {
@@ -59,7 +71,7 @@ export const WaveEffect = () => {
                 <LinearGradient
                     start={vec(0, height * 0.8)}
                     end={vec(0, height)}
-                    colors={[t.colors.surfaceVariant, t.colors.background]}
+                    colors={[colors.surfaceVariant, colors.background]}
                 />
             </Path>
 
@@ -68,7 +80,7 @@ export const WaveEffect = () => {
                 <LinearGradient
                     start={vec(0, height * 0.85)}
                     end={vec(0, height)}
-                    colors={[t.colors.secondary, t.colors.surface]}
+                    colors={[colors.secondary, colors.surface]}
                 />
             </Path>
 
@@ -77,7 +89,7 @@ export const WaveEffect = () => {
                 <LinearGradient
                     start={vec(0, height * 0.9)}
                     end={vec(0, height)}
-                    colors={[t.colors.primary, t.colors.surfaceVariant]}
+                    colors={[colors.primary, colors.surfaceVariant]}
                 />
             </Path>
         </Group>

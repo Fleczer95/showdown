@@ -21,7 +21,9 @@ import WheelGraphic from './WheelGraphic';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
+import ProgressBar from '../../components/molecules/ProgressBar';
 import { useTheme } from '../../theme';
+import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { getPack } from './content';
@@ -265,41 +267,44 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         >
             <Stack gap='lg' flex={1}>
                 {/* Header: progress + banked score + round cash */}
-                <Stack direction='horizontal' gap='sm'>
-                    <Card variant='outlined' padding='sm' style={styles.headerCard}>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='caption' weight='semibold' color='textSecondary'>
-                                {tr('game.the-wheel.active.puzzle')}
-                            </Text>
-                            <Text variant='subheading' weight='bold'>
-                                {game.currentPuzzle + 1}/{TOTAL_PUZZLES}
-                            </Text>
-                        </Stack>
-                    </Card>
-                    <Card variant='outlined' padding='sm' style={styles.headerCard}>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='caption' weight='semibold' color='textSecondary'>
-                                {tr('game.the-wheel.active.banked')}
-                            </Text>
-                            <Text variant='subheading' weight='bold'>
-                                {game.score}
-                            </Text>
-                        </Stack>
-                    </Card>
-                    <Card
-                        variant='elevated'
-                        padding='sm'
-                        style={[styles.headerCard, { borderColor: accent, borderWidth: 2 }]}
-                    >
-                        <Stack gap='xs' align='center'>
-                            <Text variant='caption' weight='semibold' color={accent}>
-                                {tr('game.the-wheel.active.roundCash')}
-                            </Text>
-                            <Text variant='subheading' weight='bold' color={accent}>
-                                {game.roundCash}
-                            </Text>
-                        </Stack>
-                    </Card>
+                <Stack gap='sm'>
+                    <Stack direction='horizontal' gap='sm'>
+                        <Card variant='outlined' padding='sm' style={styles.headerCard}>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='caption' weight='semibold' color='textSecondary'>
+                                    {tr('game.the-wheel.active.puzzle')}
+                                </Text>
+                                <Text variant='subheading' weight='bold'>
+                                    {game.currentPuzzle + 1}/{TOTAL_PUZZLES}
+                                </Text>
+                            </Stack>
+                        </Card>
+                        <Card variant='outlined' padding='sm' style={styles.headerCard}>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='caption' weight='semibold' color='textSecondary'>
+                                    {tr('game.the-wheel.active.banked')}
+                                </Text>
+                                <Text variant='subheading' weight='bold'>
+                                    {game.score}
+                                </Text>
+                            </Stack>
+                        </Card>
+                        <Card
+                            variant='elevated'
+                            padding='sm'
+                            style={[styles.headerCard, { borderColor: accent, borderWidth: 2 }]}
+                        >
+                            <Stack gap='xs' align='center'>
+                                <Text variant='caption' weight='semibold' color={accent}>
+                                    {tr('game.the-wheel.active.roundCash')}
+                                </Text>
+                                <Text variant='subheading' weight='bold' color={accent}>
+                                    {game.roundCash}
+                                </Text>
+                            </Stack>
+                        </Card>
+                    </Stack>
+                    <ProgressBar progress={game.currentPuzzle / TOTAL_PUZZLES} color={accent} height={6} />
                 </Stack>
 
                 {/* Puzzle */}
@@ -382,7 +387,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                                     borderColor: guessed ? t.colors.border : keyColor,
                                                     backgroundColor: guessed
                                                         ? t.colors.surfaceVariant
-                                                        : t.colors.surface,
+                                                        : hexToRgba(keyColor, 0.14),
                                                 },
                                             ]}
                                         >

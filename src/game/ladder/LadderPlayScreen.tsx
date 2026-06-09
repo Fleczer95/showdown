@@ -9,8 +9,11 @@ import Leaderboard from '../../components/molecules/Leaderboard';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
+import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
+import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
 import { useTheme, useColor } from '../../theme';
+import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { ALL_PACK } from './content';
@@ -186,13 +189,16 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
             ]}
         >
             <Stack gap='lg'>
-                <Stack direction='horizontal' justify='between' align='center'>
-                    <Text variant='overline' color={accent} weight='bold'>
-                        {t('game.the-ladder.active.question', { number: run.currentIndex + 1 })}
-                    </Text>
-                    <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
-                        {t('game.the-ladder.active.leave')}
-                    </Button>
+                <Stack gap='sm'>
+                    <Stack direction='horizontal' justify='between' align='center'>
+                        <Text variant='overline' color={accent} weight='bold'>
+                            {t('game.the-ladder.active.question', { number: run.currentIndex + 1 })}
+                        </Text>
+                        <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
+                            {t('game.the-ladder.active.leave')}
+                        </Button>
+                    </Stack>
+                    <ProgressBar progress={run.currentIndex / RUN_LENGTH} color={accent} height={6} />
                 </Stack>
 
                 <Card variant='elevated' padding='lg' style={glow}>
@@ -209,8 +215,22 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                         const revealWrong = isSelected && index !== question.correctIndex;
 
                         let borderColor = theme.colors.border;
-                        if (revealCorrect) borderColor = success;
-                        else if (revealWrong) borderColor = error;
+                        let backgroundColor = surface;
+                        if (revealCorrect) {
+                            borderColor = success;
+                            backgroundColor = hexToRgba(success, 0.12);
+                        } else if (revealWrong) {
+                            borderColor = error;
+                            backgroundColor = hexToRgba(error, 0.12);
+                        }
+
+                        const badgeState: IndexBadgeState = revealCorrect
+                            ? 'correct'
+                            : revealWrong
+                              ? 'wrong'
+                              : isHidden
+                                ? 'muted'
+                                : 'default';
 
                         return (
                             <Card
@@ -219,15 +239,20 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                                 padding='md'
                                 onPress={() => handleAnswer(index)}
                                 disabled={isHidden || selected !== null}
-                                style={[
-                                    styles.answer,
-                                    { borderColor, opacity: isHidden ? 0.3 : 1, backgroundColor: surface },
-                                ]}
+                                style={[styles.answer, { borderColor, opacity: isHidden ? 0.3 : 1, backgroundColor }]}
                             >
-                                <Stack direction='horizontal' gap='sm' align='center' justify='between'>
-                                    <Text variant='body' weight='medium' style={styles.answerText}>
-                                        {isHidden ? '' : option}
-                                    </Text>
+                                <Stack direction='horizontal' gap='md' align='center' justify='between'>
+                                    <Stack direction='horizontal' gap='md' align='center' flex={1}>
+                                        <IndexBadge
+                                            label={String.fromCharCode(65 + index)}
+                                            accent={accent}
+                                            state={badgeState}
+                                            size={36}
+                                        />
+                                        <Text variant='body' weight='semibold' style={styles.answerText}>
+                                            {isHidden ? '' : option}
+                                        </Text>
+                                    </Stack>
                                     {revealCorrect ? <Icon name={Check} size={20} color={success} /> : null}
                                     {revealWrong ? <Icon name={X} size={20} color={error} /> : null}
                                 </Stack>

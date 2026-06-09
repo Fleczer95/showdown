@@ -51,9 +51,20 @@ const Leaf = ({ particle, time, path, width, height, color }: LeafProps) => {
     return <Path path={path} matrix={matrix} color={color} />;
 };
 
-export const LeafEffect = () => {
-    const { width, height } = useWindowDimensions();
+interface LeafEffectProps {
+    /** Override the canvas size (defaults to the full window). Used by previews. */
+    width?: number;
+    height?: number;
+    /** Override the leaf color (defaults to the active theme's primary). */
+    color?: string;
+}
+
+export const LeafEffect = ({ width: widthProp, height: heightProp, color: colorProp }: LeafEffectProps = {}) => {
+    const window = useWindowDimensions();
+    const width = widthProp ?? window.width;
+    const height = heightProp ?? window.height;
     const t = useTheme();
+    const color = colorProp ?? t.colors.primary;
 
     const path = useMemo(() => Skia.Path.MakeFromSVGString(LEAF_PATH)!, []);
 
@@ -87,7 +98,7 @@ export const LeafEffect = () => {
                     path={path}
                     width={width}
                     height={height}
-                    color={t.colors.primary}
+                    color={color}
                 />
             ))}
         </Group>

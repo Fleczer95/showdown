@@ -304,18 +304,23 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             </Stack>
                         </Card>
                     </Stack>
-                    <ProgressBar progress={game.currentPuzzle / TOTAL_PUZZLES} color={accent} height={6} />
+                    <View style={[styles.progressGlow, { shadowColor: accent }]}>
+                        <ProgressBar progress={game.currentPuzzle / TOTAL_PUZZLES} color={accent} height={10} />
+                    </View>
                 </Stack>
 
                 {/* Puzzle */}
-                <Card variant='elevated' padding='lg' gap='sm' style={glow}>
-                    <Text variant='overline' color={accent} weight='bold' align='center'>
-                        {puzzle.category}
-                    </Text>
-                    <Text variant='heading' weight='bold' align='center' style={styles.phrase}>
-                        {masked}
-                    </Text>
-                </Card>
+                <Animated.View key={currentId} entering={FadeInDown.springify().damping(20).stiffness(150)}>
+                    <Card variant='elevated' padding='lg' gap='sm' style={glow}>
+                        <View style={[styles.accentTab, { backgroundColor: accent }]} />
+                        <Text variant='overline' color={accent} weight='bold' align='center'>
+                            {puzzle.category}
+                        </Text>
+                        <Text variant='heading' weight='bold' align='center' style={styles.phrase}>
+                            {masked}
+                        </Text>
+                    </Card>
+                </Animated.View>
 
                 {/* Wheel — slides up and hides while the letter keyboard is up so
                     the keyboard can rise into the freed space. Otherwise it absorbs
@@ -331,11 +336,13 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             <Animated.View style={[styles.wheel, wheelStyle]}>
                                 <WheelGraphic accent={accent} />
                             </Animated.View>
-                            {status ? (
-                                <Text variant='subheading' weight='bold' color={accent} align='center'>
-                                    {status}
-                                </Text>
-                            ) : null}
+                            <View style={styles.statusSlot}>
+                                {status ? (
+                                    <Text variant='subheading' weight='bold' color={accent} align='center'>
+                                        {status}
+                                    </Text>
+                                ) : null}
+                            </View>
                         </Stack>
                     </Animated.View>
                 )}
@@ -369,36 +376,37 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                 {')'}
                             </Text>
                             <View style={styles.keyboard}>
-                                {ALPHABET.map((ch) => {
+                                {ALPHABET.map((ch, i) => {
                                     const vowel = isVowel(ch);
                                     const guessed = alreadyGuessed(game, ch);
                                     const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
                                     const keyColor = vowel ? t.colors.secondary : accent;
                                     return (
-                                        <Pressable
-                                            key={ch}
-                                            haptic='light'
-                                            disabled={disabled}
-                                            onPress={() => (vowel ? handleBuyVowel(ch) : handleGuessConsonant(ch))}
-                                            accessibilityLabel={ch}
-                                            style={[
-                                                styles.key,
-                                                {
-                                                    borderColor: guessed ? t.colors.border : keyColor,
-                                                    backgroundColor: guessed
-                                                        ? t.colors.surfaceVariant
-                                                        : hexToRgba(keyColor, 0.14),
-                                                },
-                                            ]}
-                                        >
-                                            <Text
-                                                variant='subheading'
-                                                weight='bold'
-                                                color={guessed ? t.colors.textMuted : keyColor}
+                                        <Animated.View key={ch} entering={FadeInDown.delay(i * 12).springify().damping(20).stiffness(150)}>
+                                            <Pressable
+                                                haptic='light'
+                                                disabled={disabled}
+                                                onPress={() => (vowel ? handleBuyVowel(ch) : handleGuessConsonant(ch))}
+                                                accessibilityLabel={ch}
+                                                style={[
+                                                    styles.key,
+                                                    {
+                                                        borderColor: guessed ? t.colors.border : keyColor,
+                                                        backgroundColor: guessed
+                                                            ? t.colors.surfaceVariant
+                                                            : hexToRgba(keyColor, 0.14),
+                                                    },
+                                                ]}
                                             >
-                                                {ch}
-                                            </Text>
-                                        </Pressable>
+                                                <Text
+                                                    variant='subheading'
+                                                    weight='bold'
+                                                    color={guessed ? t.colors.textMuted : keyColor}
+                                                >
+                                                    {ch}
+                                                </Text>
+                                            </Pressable>
+                                        </Animated.View>
                                     );
                                 })}
                             </View>
@@ -482,8 +490,23 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
     },
+    statusSlot: {
+        minHeight: 32,
+        justifyContent: 'center',
+    },
     phrase: {
         letterSpacing: 2,
+    },
+    progressGlow: {
+        shadowOpacity: 0.45,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 0 },
+    },
+    accentTab: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        alignSelf: 'center',
     },
     keyboard: {
         flexDirection: 'row',

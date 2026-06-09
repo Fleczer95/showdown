@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Animated, {
     FadeIn,
+    FadeInDown,
     Easing,
     cancelAnimation,
     runOnJS,
@@ -75,6 +76,7 @@ const formatMoney = (value: number): string => value.toLocaleString('en-US');
 
 export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { fade } = useAnimationPresets();
     const haptics = useHaptics();
@@ -340,14 +342,22 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                     </Stack>
                 </Stack>
 
-                <ProgressBar progress={state.round / TOTAL_ROUNDS} color={accent} height={6} />
+                <View style={[styles.progressGlow, { shadowColor: accent }]}>
+                    <ProgressBar progress={state.round / TOTAL_ROUNDS} color={accent} height={10} />
+                </View>
 
                 {/* Question */}
-                <Card variant='elevated' padding='md' style={glow}>
-                    <Text variant='subheading' weight='bold' align='center'>
-                        {question.prompt[lang]}
-                    </Text>
-                </Card>
+                <Animated.View
+                    key={question.id}
+                    entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}
+                >
+                    <Card variant='elevated' padding='md' gap='sm' style={glow}>
+                        <View style={[styles.accentTab, { backgroundColor: accent }]} />
+                        <Text variant='subheading' weight='bold' align='center'>
+                            {question.prompt[lang]}
+                        </Text>
+                    </Card>
+                </Animated.View>
 
                 {phase === 'allocating' && (
                     <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
@@ -604,7 +614,10 @@ function DropOption({
     }
 
     return (
-        <Animated.View style={cardStyle}>
+        <Animated.View
+            entering={reduceMotion ? undefined : FadeInDown.delay(index * 70).springify().damping(20).stiffness(150)}
+            style={cardStyle}
+        >
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center' style={styles.optionHeader}>
@@ -725,5 +738,16 @@ const styles = StyleSheet.create({
     },
     optionOutcome: {
         paddingHorizontal: 0,
+    },
+    progressGlow: {
+        shadowOpacity: 0.45,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 0 },
+    },
+    accentTab: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        alignSelf: 'center',
     },
 });

@@ -1,8 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import Animated, {
+    FadeInDown,
+    useSharedValue,
+    useAnimatedStyle,
+    withSequence,
+    withSpring,
+    useReducedMotion,
+} from 'react-native-reanimated';
 import { Scissors, HelpCircle, SkipForward, Check, X } from 'lucide-react-native';
 import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
+import Pressable from '../../components/atoms/HapticPressable';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
 import Leaderboard from '../../components/molecules/Leaderboard';
@@ -12,11 +21,11 @@ import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
-import { useTheme, useColor } from '../../theme';
+import { useTheme, useColor, useAnimationPresets } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
-import { ALL_PACK } from './content';
+import { buildLocalizedRungs, type Language } from './buildRuns';
 import { getHistory, markShown } from '../history';
 import {
     buildRun,
@@ -29,40 +38,11 @@ import {
     reachedRung,
     RUN_LENGTH,
     type LadderRun,
-    type LadderQuestion,
     type Lifeline,
 } from './logic';
 import { speedBonus, ladderScore, LADDER_RUNG_POINTS, type ScoreBreakdown } from '../scoring';
 
-type Language = 'en' | 'pl';
-
 const GAME_ID = 'the-ladder';
-
-/** Turn the bilingual content pack into a per-rung pool for the chosen locale. */
-function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
-    const rawRungs = ALL_PACK.rungs.map((rung) =>
-        rung.map((q) => ({
-            id: q.id,
-            prompt: q.question[lang],
-            options: q.options.map((o) => o[lang]),
-            correctIndex: 0,
-            hint: q.hint[lang],
-        })),
-    );
-
-    // We group the 15 rungs into 5 broader difficulty pools (3 rungs each).
-    // This increases variety at each step (e.g. any question from levels 1-3
-    // can appear in any of the first three rungs of a run).
-    const pooled: LadderQuestion[][] = [];
-    for (let i = 0; i < 5; i++) {
-        const startIndex = i * 3;
-        const combinedPool = [...rawRungs[startIndex], ...rawRungs[startIndex + 1], ...rawRungs[startIndex + 2]];
-        // We push the same large pool for all 3 rungs in the group.
-        // buildRun() will then pick distinct least-shown questions for each.
-        pooled.push(combinedPool, combinedPool, combinedPool);
-    }
-    return pooled;
-}
 
 const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[] = [
     { key: 'fiftyFifty', icon: Scissors, labelKey: 'game.the-ladder.lifelines.fiftyFifty' },
@@ -72,6 +52,7 @@ const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[
 
 export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const theme = useTheme();
+    const reduceMotion = useReducedMotion();
     const { accent, glow } = useGameAccent(GAME_ID);
     const { t, locale } = useTranslation();
     const lang = (locale === 'pl' ? 'pl' : 'en') as Language;
@@ -191,21 +172,28 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
             <Stack gap='lg'>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center'>
-                        <Text variant='overline' color={accent} weight='bold'>
-                            {t('game.the-ladder.active.question', { number: run.currentIndex + 1 })}
-                        </Text>
+                        <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16) }]}>
+                            <Text variant='overline' color={accent} weight='bold'>
+                                {`${t('game.the-ladder.active.question', { number: run.currentIndex + 1 })} / ${RUN_LENGTH}`}
+                            </Text>
+                        </View>
                         <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
                             {t('game.the-ladder.active.leave')}
                         </Button>
                     </Stack>
-                    <ProgressBar progress={run.currentIndex / RUN_LENGTH} color={accent} height={6} />
+                    <View style={[styles.progressGlow, { shadowColor: accent }]}>
+                        <ProgressBar progress={run.currentIndex / RUN_LENGTH} color={accent} height={10} />
+                    </View>
                 </Stack>
 
-                <Card variant='elevated' padding='lg' style={glow}>
-                    <Text variant='subheading' weight='bold' align='center'>
-                        {question.prompt}
-                    </Text>
-                </Card>
+                <Animated.View key={run.currentIndex} entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}>
+                    <Card variant='elevated' padding='lg' gap='md' style={glow}>
+                        <View style={[styles.accentTab, { backgroundColor: accent }]} />
+                        <Text variant='heading' weight='bold' align='center'>
+                            {question.prompt}
+                        </Text>
+                    </Card>
+                </Animated.View>
 
                 <Stack gap='sm'>
                     {question.options.map((option, index) => {
@@ -233,65 +221,59 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                                 : 'default';
 
                         return (
-                            <Card
-                                key={index}
-                                variant='outlined'
-                                padding='md'
-                                onPress={() => handleAnswer(index)}
+                            <AnswerOption
+                                key={`${run.currentIndex}-${index}`}
+                                index={index}
+                                label={isHidden ? '' : option}
+                                letter={String.fromCharCode(65 + index)}
+                                accent={accent}
+                                badgeState={badgeState}
+                                borderColor={borderColor}
+                                backgroundColor={backgroundColor}
+                                isHidden={isHidden}
+                                revealCorrect={revealCorrect}
+                                revealWrong={revealWrong}
+                                success={success}
+                                error={error}
                                 disabled={isHidden || selected !== null}
-                                style={[styles.answer, { borderColor, opacity: isHidden ? 0.3 : 1, backgroundColor }]}
-                            >
-                                <Stack direction='horizontal' gap='md' align='center' justify='between'>
-                                    <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                                        <IndexBadge
-                                            label={String.fromCharCode(65 + index)}
-                                            accent={accent}
-                                            state={badgeState}
-                                            size={36}
-                                        />
-                                        <Text variant='body' weight='semibold' style={styles.answerText}>
-                                            {isHidden ? '' : option}
-                                        </Text>
-                                    </Stack>
-                                    {revealCorrect ? <Icon name={Check} size={20} color={success} /> : null}
-                                    {revealWrong ? <Icon name={X} size={20} color={error} /> : null}
-                                </Stack>
-                            </Card>
+                                onPress={() => handleAnswer(index)}
+                            />
                         );
                     })}
                 </Stack>
 
                 {studioHint ? (
-                    <Card variant='flat' padding='md'>
-                        <Stack direction='horizontal' gap='sm' align='center'>
-                            <Icon name={HelpCircle} size={18} color={accent} />
-                            <Text variant='caption' color='textSecondary' style={styles.answerText}>
-                                {studioHint}
-                            </Text>
-                        </Stack>
-                    </Card>
+                    <Animated.View entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}>
+                        <Card variant='flat' padding='md'>
+                            <Stack direction='horizontal' gap='sm' align='center'>
+                                <Icon name={HelpCircle} size={18} color={accent} />
+                                <Text variant='caption' color='textSecondary' style={styles.answerText}>
+                                    {studioHint}
+                                </Text>
+                            </Stack>
+                        </Card>
+                    </Animated.View>
                 ) : null}
 
                 <Stack gap='sm'>
                     <Text variant='overline' color={accent} weight='bold'>
                         {`${t('game.the-ladder.active.lifelinesLeft')}: ${lifelinesLeft}`}
                     </Text>
-                    {LIFELINE_META.map((meta) => {
-                        const available = canUseLifeline(run, meta.key);
-                        return (
-                            <Button
+                    <Stack direction='horizontal' gap='sm' align='stretch'>
+                        {LIFELINE_META.map((meta) => (
+                            <LifelineChip
                                 key={meta.key}
-                                variant='secondary'
-                                size='md'
-                                fullWidth
-                                disabled={!available || selected !== null}
+                                icon={meta.icon}
+                                label={t(meta.labelKey)}
+                                accent={accent}
+                                textMuted={textMuted}
+                                surfaceVariant={theme.colors.surfaceVariant}
+                                border={theme.colors.border}
+                                available={canUseLifeline(run, meta.key) && selected === null}
                                 onPress={() => handleLifeline(meta.key)}
-                                icon={<Icon name={meta.icon} size={18} color={available ? accent : textMuted} />}
-                            >
-                                {t(meta.labelKey)}
-                            </Button>
-                        );
-                    })}
+                            />
+                        ))}
+                    </Stack>
                 </Stack>
             </Stack>
             <LeaveConfirmModal
@@ -301,6 +283,135 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                 onCancel={() => setShowLeaveConfirm(false)}
             />
         </ScrollView>
+    );
+}
+
+/**
+ * One answer option: staggered entrance as the question appears, then a springy
+ * "pop" the moment it resolves correct/wrong. Press feedback comes from Card's
+ * underlying HapticPressable.
+ */
+function AnswerOption({
+    index,
+    label,
+    letter,
+    accent,
+    badgeState,
+    borderColor,
+    backgroundColor,
+    isHidden,
+    revealCorrect,
+    revealWrong,
+    success,
+    error,
+    disabled,
+    onPress,
+}: {
+    index: number;
+    label: string;
+    letter: string;
+    accent: string;
+    badgeState: IndexBadgeState;
+    borderColor: string;
+    backgroundColor: string;
+    isHidden: boolean;
+    revealCorrect: boolean;
+    revealWrong: boolean;
+    success: string;
+    error: string;
+    disabled: boolean;
+    onPress: () => void;
+}) {
+    const reduceMotion = useReducedMotion();
+    const { springBouncy, spring } = useAnimationPresets();
+    const pop = useSharedValue(1);
+    const resolved = revealCorrect || revealWrong;
+
+    useEffect(() => {
+        if (resolved && !reduceMotion) {
+            pop.value = withSequence(withSpring(1.04, springBouncy as never), withSpring(1, spring as never));
+        }
+    }, [resolved, reduceMotion, pop, springBouncy, spring]);
+
+    const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
+
+    return (
+        <Animated.View
+            entering={reduceMotion ? undefined : FadeInDown.delay(index * 70).springify().damping(20).stiffness(150)}
+            style={popStyle}
+        >
+            <Card
+                variant='outlined'
+                padding='md'
+                onPress={onPress}
+                disabled={disabled}
+                style={[styles.answer, { borderColor, opacity: isHidden ? 0.3 : 1, backgroundColor }]}
+            >
+                <Stack direction='horizontal' gap='md' align='center' justify='between'>
+                    <Stack direction='horizontal' gap='md' align='center' flex={1}>
+                        <IndexBadge label={letter} accent={accent} state={badgeState} size={36} />
+                        <Text variant='body' weight='semibold' style={styles.answerText}>
+                            {label}
+                        </Text>
+                    </Stack>
+                    {revealCorrect ? <Icon name={Check} size={20} color={success} /> : null}
+                    {revealWrong ? <Icon name={X} size={20} color={error} /> : null}
+                </Stack>
+            </Card>
+        </Animated.View>
+    );
+}
+
+/** Game-show style lifeline: an accent-tinted chip with a stacked icon + label. */
+function LifelineChip({
+    icon,
+    label,
+    accent,
+    textMuted,
+    surfaceVariant,
+    border,
+    available,
+    onPress,
+}: {
+    icon: typeof Scissors;
+    label: string;
+    accent: string;
+    textMuted: string;
+    surfaceVariant: string;
+    border: string;
+    available: boolean;
+    onPress: () => void;
+}) {
+    return (
+        <View style={styles.chipCol}>
+            <Pressable
+                haptic='light'
+                disabled={!available}
+                onPress={onPress}
+                accessibilityLabel={label}
+                style={[
+                    styles.chip,
+                    {
+                        borderColor: available ? accent : border,
+                        backgroundColor: available ? hexToRgba(accent, 0.12) : surfaceVariant,
+                        opacity: available ? 1 : 0.5,
+                    },
+                ]}
+            >
+                <Stack gap='xs' align='center'>
+                    <Icon name={icon} size={22} color={available ? accent : textMuted} />
+                    <Text
+                        variant='caption'
+                        weight='semibold'
+                        align='center'
+                        color={available ? accent : textMuted}
+                        numberOfLines={2}
+                    >
+                        {label}
+                    </Text>
+                </Stack>
+            </Pressable>
+        </View>
     );
 }
 
@@ -377,6 +488,35 @@ const styles = StyleSheet.create({
     },
     answerText: {
         flexShrink: 1,
+    },
+    counterPill: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 999,
+        alignSelf: 'flex-start',
+    },
+    progressGlow: {
+        shadowOpacity: 0.45,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 0 },
+    },
+    accentTab: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        alignSelf: 'center',
+    },
+    chipCol: {
+        flex: 1,
+    },
+    chip: {
+        width: '100%',
+        borderWidth: 2,
+        borderRadius: 16,
+        paddingHorizontal: 8,
+        height: 84,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     center: {
         flexGrow: 1,

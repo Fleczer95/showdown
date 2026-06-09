@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
-import { Settings, ChevronRight, ShoppingBag } from 'lucide-react-native';
+import { Settings, ArrowRight, ShoppingBag } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -9,8 +10,111 @@ import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
 import { useTheme } from '../theme';
+import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
-import { games, GAME_ICONS } from '../data/games';
+import { games, GAME_ICONS, type Game } from '../data/games';
+
+/**
+ * Accent-forward game card: a dark elevated card whose per-game color shows up
+ * as an icon medallion, accent chevron, and a soft accent border + glow.
+ */
+function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
+    const theme = useTheme();
+    const { t } = useTranslation();
+    const accent = resolveAccent(theme, game.accent);
+    const onAccent = readableOn(accent);
+    const GameIcon = GAME_ICONS[game.iconName];
+    const gradientId = `medallion-${game.id}`;
+
+    return (
+        <Card
+            variant='elevated'
+            padding='lg'
+            onPress={onPress}
+            haptic='light'
+            accessibilityLabel={t(`game.${game.id}.name`)}
+            style={{
+                borderRadius: theme.radii.xl,
+                borderColor: hexToRgba(accent, 0.5),
+                shadowColor: accent,
+                shadowOpacity: 0.45,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+            }}
+        >
+            <Stack direction='horizontal' gap='lg' align='center'>
+                <View style={[styles.iconContainer, { borderRadius: theme.radii.xl }]}>
+                    <View style={StyleSheet.absoluteFill} pointerEvents='none'>
+                        <Svg width='100%' height='100%'>
+                            <Defs>
+                                <SvgGradient id={gradientId} x1='0' y1='0' x2='1' y2='1'>
+                                    <Stop offset='0' stopColor={accent} />
+                                    <Stop offset='1' stopColor={darken(accent, 0.4)} />
+                                </SvgGradient>
+                            </Defs>
+                            <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${gradientId})`} />
+                        </Svg>
+                    </View>
+                    {GameIcon ? <Icon name={GameIcon} size={28} color={onAccent} /> : null}
+                </View>
+                <Stack gap='xs' flex={1}>
+                    <Text variant='heading' weight='bold'>
+                        {t(`game.${game.id}.name`)}
+                    </Text>
+                    <Text variant='caption' color='textSecondary' numberOfLines={2}>
+                        {t(`game.${game.id}.desc`)}
+                    </Text>
+                </Stack>
+                <View
+                    style={[styles.ctaPill, { backgroundColor: hexToRgba(accent, 0.16), borderRadius: theme.radii.full }]}
+                    pointerEvents='none'
+                >
+                    <Icon name={ArrowRight} size={20} color={accent} />
+                </View>
+            </Stack>
+        </Card>
+    );
+}
+
+/**
+ * Brand wordmark: "ShowDown" rendered as an SVG gradient (theme.wordmarkGradient)
+ * on a transparent background. Auto-fits the font size to the measured width so it
+ * never clips beside the header icons.
+ */
+function Wordmark() {
+    const theme = useTheme();
+    const [width, setWidth] = useState(220);
+    const stops = theme.wordmarkGradient;
+    const fontSize = Math.min(40, Math.max(24, width / 4.6));
+    const h = Math.round(fontSize * 1.25);
+
+    return (
+        <View
+            style={{ height: h, justifyContent: 'center' }}
+            onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        >
+            <Svg width={width} height={h}>
+                <Defs>
+                    <SvgGradient id='home-wordmark' x1='0' y1='0' x2='1' y2='0'>
+                        <Stop offset='0' stopColor={stops[0]} />
+                        <Stop offset='1' stopColor={stops[stops.length - 1]} />
+                    </SvgGradient>
+                </Defs>
+                <SvgText
+                    fill='url(#home-wordmark)'
+                    fontFamily='Fredoka_700Bold'
+                    fontSize={fontSize}
+                    x={0}
+                    y={fontSize}
+                    letterSpacing={-1}
+                >
+                    ShowDown
+                </SvgText>
+            </Svg>
+        </View>
+    );
+}
 
 /**
  * Home screen. Lists the ShowDown game modes; tapping a card opens that game's
@@ -20,7 +124,8 @@ export function HomeScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
-    const primary = theme.colors.primary;
+
+    const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
 
     // Themed container style
     const contentContainerStyle = [
@@ -29,7 +134,7 @@ export function HomeScreen() {
             paddingHorizontal: theme.spacing.xl,
             paddingTop: theme.spacing.xxl,
             paddingBottom: theme.spacing.xxl + theme.spacing.sm, // approx 40
-            gap: theme.spacing.xxl,
+            gap: theme.spacing.xl,
         },
     ];
 
@@ -40,70 +145,30 @@ export function HomeScreen() {
                 contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
             >
-                <Stack gap='md'>
-                    <View style={styles.header}>
-                        <Stack gap='xs' style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
-                            <Text variant='display' weight='bold' color='primary' style={styles.title}>
-                                ShowDown
-                            </Text>
-                            <Text variant='subheading' color='textSecondary' weight='medium'>
-                                {t('screen.home.tagline')}
-                            </Text>
-                        </Stack>
-                        <View style={styles.headerActions}>
-                            <IconButton
-                                icon={<ShoppingBag size={24} color={theme.colors.text} />}
-                                onPress={() => navigation.navigate('Store')}
-                                size='md'
-                                accessibilityLabel={t('screen.home.store')}
-                            />
-                            <IconButton
-                                icon={<Settings size={24} color={theme.colors.text} />}
-                                onPress={() => navigation.navigate('Settings')}
-                                size='md'
-                                accessibilityLabel={t('screen.home.settings')}
-                            />
-                        </View>
+                <View style={styles.header}>
+                    <View style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
+                        <Wordmark />
                     </View>
-                </Stack>
+                    <View style={styles.headerActions}>
+                        <IconButton
+                            icon={<ShoppingBag size={24} color={theme.colors.text} />}
+                            onPress={() => navigation.navigate('Store')}
+                            size='md'
+                            accessibilityLabel={t('screen.home.store')}
+                        />
+                        <IconButton
+                            icon={<Settings size={24} color={theme.colors.text} />}
+                            onPress={() => navigation.navigate('Settings')}
+                            size='md'
+                            accessibilityLabel={t('screen.home.settings')}
+                        />
+                    </View>
+                </View>
 
-                <Stack gap='lg' style={[styles.list, { marginTop: theme.spacing.sm }]}>
-                    {games.map((game) => {
-                        const GameIcon = GAME_ICONS[game.iconName];
-                        return (
-                            <Card
-                                key={game.id}
-                                variant='elevated'
-                                padding='lg'
-                                onPress={() => navigation.navigate(game.setupRoute, { gameId: game.id })}
-                                haptic='light'
-                                accessibilityLabel={t(`game.${game.id}.name`)}
-                            >
-                                <Stack direction='horizontal' gap='lg' align='center'>
-                                    <View
-                                        style={[
-                                            styles.iconContainer,
-                                            {
-                                                backgroundColor: theme.colors.surfaceVariant,
-                                                borderRadius: theme.radii.lg,
-                                            },
-                                        ]}
-                                    >
-                                        {GameIcon ? <Icon name={GameIcon} size={32} color={primary} /> : null}
-                                    </View>
-                                    <Stack gap='xs' flex={1}>
-                                        <Text variant='subheading' weight='bold'>
-                                            {game.emoji} {t(`game.${game.id}.name`)}
-                                        </Text>
-                                        <Text variant='caption' color='textSecondary' numberOfLines={2}>
-                                            {t(`game.${game.id}.desc`)}
-                                        </Text>
-                                    </Stack>
-                                    <Icon name={ChevronRight} size={20} color={theme.colors.textMuted} />
-                                </Stack>
-                            </Card>
-                        );
-                    })}
+                <Stack gap='lg'>
+                    {games.map((game) => (
+                        <GameCard key={game.id} game={game} onPress={() => openGame(game)} />
+                    ))}
                 </Stack>
             </ScrollView>
         </SafeContainer>
@@ -119,25 +184,26 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'space-between',
     },
     titleContainer: {
         flex: 1,
     },
     headerActions: {
-        flexDirection: 'column',
+        flexDirection: 'row',
         gap: 8,
     },
-    title: {
-        letterSpacing: -1,
-    },
-    list: {
-        // marginTop moved to themed style
-    },
     iconContainer: {
-        width: 60,
-        height: 60,
+        width: 56,
+        height: 56,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    ctaPill: {
+        width: 40,
+        height: 40,
         alignItems: 'center',
         justifyContent: 'center',
     },

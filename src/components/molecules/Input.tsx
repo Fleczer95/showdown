@@ -118,21 +118,33 @@ function Input({
         [onBlurProp],
     );
 
-    const containerStyle = useMemo(
+    // The bordered box lives on the row so the clear button and any accessories
+    // sit *inside* the field; the TextInput itself is borderless and fills it.
+    const boxStyle = useMemo(
+        () => ({
+            backgroundColor: bgColor,
+            borderColor,
+            borderWidth: 1,
+            borderRadius: t.radii.md,
+            paddingHorizontal: t.spacing.md,
+            // Match the 44px button touch-target height so inputs and buttons
+            // align when stacked (e.g. the leaderboard nickname + Save).
+            minHeight: 44,
+        }),
+        [bgColor, borderColor, t.radii.md, t.spacing.md],
+    );
+
+    const inputTextStyle = useMemo(
         () => [
-            styles.input,
+            styles.flexInput,
             {
-                backgroundColor: bgColor,
-                borderColor,
-                borderRadius: t.radii.md,
-                paddingHorizontal: t.spacing.md,
                 paddingVertical: t.spacing.sm,
                 color: v.text,
                 fontSize: t.typography.md,
                 textAlign: textAlign ?? 'left',
             },
         ],
-        [bgColor, borderColor, t.radii.md, t.spacing.md, t.spacing.sm, v.text, t.typography.md, textAlign],
+        [t.spacing.sm, v.text, t.typography.md, textAlign],
     );
 
     const placeholderColor = useMemo(() => v.placeholder, [v.placeholder]);
@@ -149,14 +161,14 @@ function Input({
                     {label}
                 </Text>
             ) : null}
-            <View style={styles.inputRow}>
+            <View style={[styles.inputRow, boxStyle]}>
                 {leftAccessory ? (
                     <View style={styles.accessory} pointerEvents='none'>
                         {leftAccessory}
                     </View>
                 ) : null}
                 <RNTextInput
-                    style={[containerStyle, styles.flexInput]}
+                    style={inputTextStyle}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
@@ -209,10 +221,6 @@ function Input({
 }
 
 const styles = StyleSheet.create({
-    input: {
-        borderWidth: 1,
-        includeFontPadding: false,
-    },
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -220,10 +228,17 @@ const styles = StyleSheet.create({
     },
     flexInput: {
         flex: 1,
+        includeFontPadding: false,
     },
     clearButton: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        // Overlay on the right so it never consumes layout width — keeps a
+        // centered field truly centered and avoids a shift when it appears.
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        paddingHorizontal: 4,
     },
     accessory: {
         justifyContent: 'center',

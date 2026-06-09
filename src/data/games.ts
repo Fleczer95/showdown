@@ -6,11 +6,18 @@ import { ListOrdered, Grid3x3, BarChart3, Disc3, Banknote } from 'lucide-react-n
  */
 export type SetupRoute = 'ladderSetup' | 'wheelSetup' | 'dropSetup';
 
+/** Themeable per-game accent token (falls back to a role token if a theme omits it). */
+export type GameAccent = 'accent1' | 'accent2' | 'accent3';
+
 export interface Game {
     id: string;
     emoji: string;
     iconName: string;
     setupRoute: SetupRoute;
+    /** Per-game accent, resolved against the active theme's palette. */
+    accent: GameAccent;
+    /** i18n key for the leaderboard ranking metric, interpolated with the run's progress count (`%{n}`). */
+    progressLabelKey: string;
 }
 
 export const GAME_ICONS: Record<string, any> = {
@@ -33,17 +40,23 @@ export const games: Game[] = [
         emoji: '🪜',
         iconName: 'ListOrdered',
         setupRoute: 'ladderSetup',
+        accent: 'accent1',
+        progressLabelKey: 'leaderboard.progress.ladder',
     },
     {
         id: 'the-drop',
         emoji: '💰',
         iconName: 'Banknote',
         setupRoute: 'dropSetup',
+        accent: 'accent2',
+        progressLabelKey: 'leaderboard.progress.drop',
     },
     {
         id: 'the-wheel',
         emoji: '🎡',
         iconName: 'Disc3',
         setupRoute: 'wheelSetup',
+        accent: 'accent3',
+        progressLabelKey: 'leaderboard.progress.wheel',
     },
 ];

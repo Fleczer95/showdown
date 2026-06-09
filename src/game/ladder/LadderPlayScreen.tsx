@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Scissors, HelpCircle, SkipForward, Trophy, Check, X } from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Scissors, HelpCircle, SkipForward, Check, X } from 'lucide-react-native';
 import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
+import Leaderboard from '../../components/molecules/Leaderboard';
+import GameOverCard from '../../components/molecules/GameOverCard';
+import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import { useTheme, useColor } from '../../theme';
+import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { ALL_PACK } from './content';
 import { getHistory, markShown } from '../history';
@@ -20,12 +24,16 @@ import {
     skipQuestion,
     currentQuestion,
     reachedRung,
+    RUN_LENGTH,
     type LadderRun,
     type LadderQuestion,
     type Lifeline,
 } from './logic';
+import { speedBonus, ladderScore, LADDER_RUNG_POINTS, type ScoreBreakdown } from '../scoring';
 
 type Language = 'en' | 'pl';
+
+const GAME_ID = 'the-ladder';
 
 /** Turn the bilingual content pack into a per-rung pool for the chosen locale. */
 function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
@@ -45,11 +53,7 @@ function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
     const pooled: LadderQuestion[][] = [];
     for (let i = 0; i < 5; i++) {
         const startIndex = i * 3;
-        const combinedPool = [
-            ...rawRungs[startIndex],
-            ...rawRungs[startIndex + 1],
-            ...rawRungs[startIndex + 2],
-        ];
+        const combinedPool = [...rawRungs[startIndex], ...rawRungs[startIndex + 1], ...rawRungs[startIndex + 2]];
         // We push the same large pool for all 3 rungs in the group.
         // buildRun() will then pick distinct least-shown questions for each.
         pooled.push(combinedPool, combinedPool, combinedPool);
@@ -65,24 +69,30 @@ const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[
 
 export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const theme = useTheme();
+    const { accent, glow } = useGameAccent(GAME_ID);
     const { t, locale } = useTranslation();
     const lang = (locale === 'pl' ? 'pl' : 'en') as Language;
 
-    const primary = useColor('primary');
     const success = useColor('success');
     const error = useColor('error');
     const textMuted = useColor('textMuted');
     const surface = useColor('surface');
 
-    const [run, setRun] = useState<LadderRun>(() =>
-        buildRun(buildLocalizedRungs(lang), getHistory('the-ladder')),
-    );
+    const [run, setRun] = useState<LadderRun>(() => buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
 
-    // Count a question as shown once per distinct question displayed. Skipping
-    // changes the current id, so this refires for the swapped-in question while
-    // the skipped one was already counted when it was first shown.
+    // Hidden per-decision stopwatch + run accumulators for the unified points
+    // score. The timer resets on every new question (including after a Skip);
+    // base + speed accrue only on correct answers, the lifeline bonus at run end.
+    const decisionStartedAt = useRef(Date.now());
+    const baseTotal = useRef(0);
+    const speedTotal = useRef(0);
+
+    // Count a question as shown once per distinct question displayed, and restart
+    // the decision timer. Skipping changes the current id, so this refires for the
+    // swapped-in question while the skipped one was already counted when first shown.
     useEffect(() => {
-        markShown('the-ladder', currentQuestion(run).id);
+        markShown(GAME_ID, currentQuestion(run).id);
+        decisionStartedAt.current = Date.now();
     }, [currentQuestion(run).id]);
     // Per-question transient UI state.
     const [hidden, setHidden] = useState<number[]>([]);
@@ -99,7 +109,9 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     }
 
     function startFreshRun() {
-        setRun(buildRun(buildLocalizedRungs(lang), getHistory('the-ladder')));
+        setRun(buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
+        baseTotal.current = 0;
+        speedTotal.current = 0;
         resetTransient();
     }
 
@@ -108,6 +120,14 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
             return;
         }
         setSelected(index);
+        // Score a correct answer at press time (the reveal delay must not count
+        // against the speed timer): base = rung × points, plus its speed bonus.
+        if (index === question.correctIndex) {
+            const base = (run.currentIndex + 1) * LADDER_RUNG_POINTS;
+            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+            baseTotal.current += base;
+            speedTotal.current += speedBonus(base, seconds);
+        }
         // Brief reveal of correct/incorrect before transitioning.
         const next = applyAnswer(run, index);
         setTimeout(() => {
@@ -136,10 +156,20 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     }
 
     if (run.status !== 'active') {
+        const breakdown = ladderScore({
+            base: baseTotal.current,
+            speed: speedTotal.current,
+            usedLifelines: run.usedLifelines.length,
+        });
+        // Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
+        // never reaches the board), a win clears all RUN_LENGTH rungs.
+        const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
         return (
             <GameOverView
                 won={run.status === 'won'}
                 rung={reachedRung(run)}
+                progress={correctAnswered}
+                breakdown={breakdown}
                 onPlayAgain={startFreshRun}
                 onExit={onExit}
             />
@@ -150,11 +180,14 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
 
     return (
         <ScrollView
-            contentContainerStyle={styles.scroll}
+            contentContainerStyle={[
+                styles.scroll,
+                { padding: theme.spacing.lg, paddingBottom: theme.spacing.xxl + theme.spacing.lg },
+            ]}
         >
             <Stack gap='lg'>
                 <Stack direction='horizontal' justify='between' align='center'>
-                    <Text variant='caption' color='textSecondary' weight='semibold'>
+                    <Text variant='overline' color={accent} weight='bold'>
                         {t('game.the-ladder.active.question', { number: run.currentIndex + 1 })}
                     </Text>
                     <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
@@ -162,7 +195,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                     </Button>
                 </Stack>
 
-                <Card variant='outlined' padding='lg'>
+                <Card variant='elevated' padding='lg' style={glow}>
                     <Text variant='subheading' weight='bold' align='center'>
                         {question.prompt}
                     </Text>
@@ -206,7 +239,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                 {studioHint ? (
                     <Card variant='flat' padding='md'>
                         <Stack direction='horizontal' gap='sm' align='center'>
-                            <Icon name={HelpCircle} size={18} color={primary} />
+                            <Icon name={HelpCircle} size={18} color={accent} />
                             <Text variant='caption' color='textSecondary' style={styles.answerText}>
                                 {studioHint}
                             </Text>
@@ -215,34 +248,25 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                 ) : null}
 
                 <Stack gap='sm'>
-                    <Text variant='overline' color='textMuted'>
+                    <Text variant='overline' color={accent} weight='bold'>
                         {`${t('game.the-ladder.active.lifelinesLeft')}: ${lifelinesLeft}`}
                     </Text>
-                    <Stack direction='horizontal' gap='sm' justify='between'>
-                        {LIFELINE_META.map((meta) => {
-                            const available = canUseLifeline(run, meta.key);
-                            return (
-                                <View key={meta.key} style={styles.lifeline}>
-                                    <Button
-                                        variant='secondary'
-                                        size='sm'
-                                        fullWidth
-                                        disabled={!available || selected !== null}
-                                        onPress={() => handleLifeline(meta.key)}
-                                        icon={
-                                            <Icon
-                                                name={meta.icon}
-                                                size={16}
-                                                color={available ? primary : textMuted}
-                                            />
-                                        }
-                                    >
-                                        {t(meta.labelKey)}
-                                    </Button>
-                                </View>
-                            );
-                        })}
-                    </Stack>
+                    {LIFELINE_META.map((meta) => {
+                        const available = canUseLifeline(run, meta.key);
+                        return (
+                            <Button
+                                key={meta.key}
+                                variant='secondary'
+                                size='md'
+                                fullWidth
+                                disabled={!available || selected !== null}
+                                onPress={() => handleLifeline(meta.key)}
+                                icon={<Icon name={meta.icon} size={18} color={available ? accent : textMuted} />}
+                            >
+                                {t(meta.labelKey)}
+                            </Button>
+                        );
+                    })}
                 </Stack>
             </Stack>
             <LeaveConfirmModal
@@ -258,46 +282,70 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
 function GameOverView({
     won,
     rung,
+    progress,
+    breakdown,
     onPlayAgain,
     onExit,
 }: {
     won: boolean;
     rung: number;
+    progress: number;
+    breakdown: ScoreBreakdown;
     onPlayAgain: () => void;
     onExit: () => void;
 }) {
-    const theme = useTheme();
-    const { t } = useTranslation();
-    const success = useColor('success');
-    const textMuted = useColor('textMuted');
+    const { t, locale } = useTranslation();
 
     return (
-        <View style={styles.center}>
-            <Stack gap='lg' align='center'>
-                <Icon name={Trophy} size={64} color={won ? success : textMuted} />
-                <Text variant='heading' weight='bold' align='center'>
-                    {won ? t('game.the-ladder.score.youWon') : t('game.the-ladder.score.gameOver')}
-                </Text>
-                <Text variant='body' color='textSecondary' align='center'>
-                    {t('game.the-ladder.score.reached', { number: rung })}
-                </Text>
-                <Stack gap='sm' align='stretch' style={styles.actions}>
-                    <Button variant='primary' fullWidth onPress={onPlayAgain}>
-                        {t('game.the-ladder.score.playAgain')}
-                    </Button>
-                    <Button variant='ghost' fullWidth onPress={onExit}>
-                        {t('game.the-ladder.score.endGame')}
-                    </Button>
-                </Stack>
-            </Stack>
-        </View>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.center} keyboardShouldPersistTaps='handled'>
+            <GameOverCard gameId={GAME_ID}>
+                {({ accent, onAccent }) => (
+                    <>
+                        <Stack gap='xs' align='center'>
+                            <Text variant='heading' weight='bold' align='center'>
+                                {won ? t('game.the-ladder.score.youWon') : t('game.the-ladder.score.gameOver')}
+                            </Text>
+                            <Text variant='body' color='textSecondary' align='center'>
+                                {t('game.the-ladder.score.reached', { number: rung })}
+                            </Text>
+                        </Stack>
+                        <Stack gap='xs' align='center'>
+                            <Text variant='overline' weight='semibold' color='textMuted'>
+                                {t('leaderboard.totalPoints')}
+                            </Text>
+                            <Text variant='display' weight='bold' align='center' color={accent}>
+                                {breakdown.total.toLocaleString(locale)}
+                            </Text>
+                            <ScoreBreakdownLine breakdown={breakdown} />
+                        </Stack>
+                        <Leaderboard gameId={GAME_ID} pendingScore={breakdown.total} pendingProgress={progress} />
+                        <Stack gap='sm' align='stretch'>
+                            <Button
+                                variant='primary'
+                                fullWidth
+                                onPress={onPlayAgain}
+                                style={{ backgroundColor: accent, borderColor: accent }}
+                                textColor={onAccent}
+                            >
+                                {t('game.the-ladder.score.playAgain')}
+                            </Button>
+                            <Button variant='ghost' fullWidth onPress={onExit}>
+                                {t('game.the-ladder.score.endGame')}
+                            </Button>
+                        </Stack>
+                    </>
+                )}
+            </GameOverCard>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
+    flex: {
+        flex: 1,
+    },
     scroll: {
-        padding: 16,
-        paddingBottom: 48,
+        // padding moved to themed inline style
     },
     answer: {
         borderWidth: 2,
@@ -305,17 +353,10 @@ const styles = StyleSheet.create({
     answerText: {
         flexShrink: 1,
     },
-    lifeline: {
-        flex: 1,
-    },
     center: {
-        flex: 1,
+        flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
-    },
-    actions: {
-        width: '100%',
-        maxWidth: 320,
     },
 });

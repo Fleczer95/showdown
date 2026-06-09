@@ -1,7 +1,6 @@
 {
     "screen": {
         "home": {
-            "tagline": "Telewizyjne teleturnieje na imprezowy wieczór",
             "settings": "Ustawienia",
             "store": "Sklep",
             "recentlyPlayed": "Ostatnio grane",
@@ -241,6 +240,24 @@
         "teams": "Drużyny",
         "team": "Drużyna"
     },
+    "leaderboard": {
+        "title": "Tabela wyników",
+        "view": "Tabela wyników",
+        "empty": "Brak wyników. Bądź pierwszy!",
+        "nicknamePlaceholder": "Wpisz pseudonim",
+        "save": "Zapisz wynik",
+        "saved": "Zapisano!",
+        "points": "pkt",
+        "totalPoints": "Łączne punkty",
+        "base": "Baza",
+        "speed": "Tempo",
+        "bonus": "Bonus",
+        "progress": {
+            "ladder": "%{n} poprawnych",
+            "wheel": "%{n} rozwiązane",
+            "drop": "%{n} rund"
+        }
+    },
     "game": {
         "the-ladder": {
             "name": "Drabina",
@@ -329,7 +346,7 @@
                 "leaveOk": "Tak, wychodzę",
                 "roundCash": "Kasa rundy",
                 "banked": "Zebrane",
-                "puzzleProgress": "Hasło %{current}/%{total}"
+                "puzzle": "Hasło"
             },
             "score": {
                 "gameOver": "Koniec gry!",

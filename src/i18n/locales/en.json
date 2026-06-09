@@ -1,7 +1,6 @@
 {
     "screen": {
         "home": {
-            "tagline": "TV quiz party games for game night",
             "settings": "Settings",
             "store": "Store",
             "recentlyPlayed": "Recently Played",
@@ -238,6 +237,24 @@
         "teams": "Teams",
         "team": "Team"
     },
+    "leaderboard": {
+        "title": "Leaderboard",
+        "view": "Leaderboard",
+        "empty": "No scores yet. Be the first!",
+        "nicknamePlaceholder": "Enter a nickname",
+        "save": "Save score",
+        "saved": "Saved!",
+        "points": "pts",
+        "totalPoints": "Total points",
+        "base": "Base",
+        "speed": "Speed",
+        "bonus": "Bonus",
+        "progress": {
+            "ladder": "%{n} correct",
+            "wheel": "%{n} solved",
+            "drop": "%{n} rounds"
+        }
+    },
     "game": {
         "the-ladder": {
             "name": "The Ladder",
@@ -326,7 +343,7 @@
                 "leaveOk": "Yes, leave",
                 "roundCash": "Round cash",
                 "banked": "Banked",
-                "puzzleProgress": "Puzzle %{current}/%{total}"
+                "puzzle": "Puzzle"
             },
             "score": {
                 "gameOver": "Game Over!",

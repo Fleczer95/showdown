@@ -42,6 +42,17 @@ export interface ThemeColors {
 
 export type ColorToken = keyof ThemeColors;
 
+/**
+ * Optional per-game accent overrides. When a theme omits a key, consumers fall
+ * back to a role token (primary/secondary/warning) so accents still vary per
+ * theme automatically; a theme (e.g. a light one) can set these to override.
+ */
+export interface ThemeGameAccents {
+    accent1?: string;
+    accent2?: string;
+    accent3?: string;
+}
+
 // ── Typography ────────────────────────────────────────────────────
 
 export type FontSizeToken = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'display';
@@ -63,6 +74,8 @@ export interface ThemeTypography {
         medium?: string;
         semibold?: string;
         bold?: string;
+        /** Display face for the `display`/`heading` variants (brand wordmark + section titles). */
+        display?: string;
     };
 }
 
@@ -265,6 +278,9 @@ export interface ResolvedComponentVariants {
 
 export interface Theme extends ThemeIdentity {
     colors?: Partial<ThemeColors>;
+    gameAccents?: ThemeGameAccents;
+    /** Gradient stops for the home wordmark. Hex or color-token names. Defaults to [primary, secondary]. */
+    wordmarkGradient?: string[];
     typography?: Partial<ThemeTypography>;
     spacing?: Partial<ThemeSpacing>;
     radii?: Partial<ThemeRadii>;
@@ -278,6 +294,9 @@ export interface Theme extends ThemeIdentity {
 
 export interface ResolvedTheme extends ThemeIdentity {
     colors: ThemeColors;
+    gameAccents?: ThemeGameAccents;
+    /** Resolved gradient stops (hex) for the home wordmark. */
+    wordmarkGradient: string[];
     typography: ThemeTypography;
     spacing: ThemeSpacing;
     radii: ThemeRadii;

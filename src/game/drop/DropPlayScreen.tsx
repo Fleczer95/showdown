@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Animated, {
     FadeIn,
-    FadeInDown,
     Easing,
     cancelAnimation,
     runOnJS,
@@ -28,7 +27,9 @@ import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
+import AccentTab from '../../components/atoms/AccentTab';
 import Slider from '../../components/molecules/Slider';
+import { springEnter } from '../transitions';
 import { useTheme, useAnimationPresets } from '../../theme';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -342,21 +343,17 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                     </Stack>
                 </Stack>
 
-                <View style={[styles.progressGlow, { shadowColor: accent }]}>
-                    <ProgressBar
-                        progress={(state.round + (phase === 'reveal' ? 1 : 0)) / TOTAL_ROUNDS}
-                        color={accent}
-                        height={10}
-                    />
-                </View>
+                <ProgressBar
+                    progress={(state.round + (phase === 'reveal' ? 1 : 0)) / TOTAL_ROUNDS}
+                    color={accent}
+                    glowColor={accent}
+                    height={10}
+                />
 
                 {/* Question */}
-                <Animated.View
-                    key={question.id}
-                    entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}
-                >
+                <Animated.View key={question.id} entering={reduceMotion ? undefined : springEnter()}>
                     <Card variant='elevated' padding='md' gap='sm' style={glow}>
-                        <View style={[styles.accentTab, { backgroundColor: accent }]} />
+                        <AccentTab color={accent} />
                         <Text variant='subheading' weight='bold' align='center'>
                             {question.prompt[lang]}
                         </Text>
@@ -619,7 +616,7 @@ function DropOption({
 
     return (
         <Animated.View
-            entering={reduceMotion ? undefined : FadeInDown.delay(index * 70).springify().damping(20).stiffness(150)}
+            entering={reduceMotion ? undefined : springEnter(index * 70)}
             style={cardStyle}
         >
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
@@ -742,16 +739,5 @@ const styles = StyleSheet.create({
     },
     optionOutcome: {
         paddingHorizontal: 0,
-    },
-    progressGlow: {
-        shadowOpacity: 0.45,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 0 },
-    },
-    accentTab: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
-        alignSelf: 'center',
     },
 });

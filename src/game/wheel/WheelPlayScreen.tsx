@@ -23,6 +23,8 @@ import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
+import AccentTab from '../../components/atoms/AccentTab';
+import { springEnter } from '../transitions';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
@@ -306,15 +308,18 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             </Stack>
                         </Card>
                     </Stack>
-                    <View style={[styles.progressGlow, { shadowColor: accent }]}>
-                        <ProgressBar progress={(game.currentPuzzle + 1) / TOTAL_PUZZLES} color={accent} height={10} />
-                    </View>
+                    <ProgressBar
+                        progress={(game.currentPuzzle + 1) / TOTAL_PUZZLES}
+                        color={accent}
+                        glowColor={accent}
+                        height={10}
+                    />
                 </Stack>
 
                 {/* Puzzle */}
-                <Animated.View key={currentId} entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}>
+                <Animated.View key={currentId} entering={reduceMotion ? undefined : springEnter()}>
                     <Card variant='elevated' padding='lg' gap='sm' style={glow}>
-                        <View style={[styles.accentTab, { backgroundColor: accent }]} />
+                        <AccentTab color={accent} />
                         <Text variant='overline' color={accent} weight='bold' align='center'>
                             {puzzle.category}
                         </Text>
@@ -384,7 +389,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                     const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
                                     const keyColor = vowel ? t.colors.secondary : accent;
                                     return (
-                                        <Animated.View key={ch} entering={reduceMotion ? undefined : FadeInDown.delay(i * 12).springify().damping(20).stiffness(150)}>
+                                        <Animated.View key={ch} entering={reduceMotion ? undefined : springEnter(i * 12)}>
                                             <Pressable
                                                 haptic='light'
                                                 disabled={disabled}
@@ -498,17 +503,6 @@ const styles = StyleSheet.create({
     },
     phrase: {
         letterSpacing: 2,
-    },
-    progressGlow: {
-        shadowOpacity: 0.45,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 0 },
-    },
-    accentTab: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
-        alignSelf: 'center',
     },
     keyboard: {
         flexDirection: 'row',

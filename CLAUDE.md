@@ -84,7 +84,7 @@ A solo game-show collection for a single phone: four "legally distinct" TV-quiz 
 ## App Store Connect API
 
 Credentials, endpoints, and IAP bulk-creation script are in the `app-store-connect-api` skill.
-Key file: `AuthKey_4T9DC2QVQF.p8` (repo root, gitignored).
+Key file: `AuthKey_TYBAQ9XDGV.p8` (repo root, gitignored).
 
 ## Google Play Developer API
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Text from './Text';
 import { useTheme } from '../../theme';
@@ -26,31 +26,16 @@ export interface IndexBadgeProps {
 function IndexBadge({ label, accent, state = 'default', size = 40, testID }: IndexBadgeProps) {
     const t = useTheme();
 
-    const fill =
-        state === 'correct'
-            ? t.colors.success
-            : state === 'wrong'
-              ? t.colors.error
-              : state === 'muted'
-                ? t.colors.surfaceVariant
-                : accent;
+    const stateFill = { correct: t.colors.success, wrong: t.colors.error, muted: t.colors.surfaceVariant };
+    const fill = stateFill[state as keyof typeof stateFill] ?? accent;
     const glyph = state === 'muted' ? t.colors.textMuted : readableOn(fill);
 
-    const containerStyle = useMemo(
-        () => [
-            styles.base,
-            {
-                width: size,
-                height: size,
-                borderRadius: t.radii.md,
-                backgroundColor: fill,
-            },
-        ],
-        [size, t.radii.md, fill],
-    );
-
     return (
-        <View style={containerStyle} testID={testID} pointerEvents='none'>
+        <View
+            style={[styles.base, { width: size, height: size, borderRadius: t.radii.md, backgroundColor: fill }]}
+            testID={testID}
+            pointerEvents='none'
+        >
             <Text variant='subheading' weight='bold' color={glyph}>
                 {label}
             </Text>

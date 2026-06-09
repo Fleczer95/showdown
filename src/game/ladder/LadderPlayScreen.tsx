@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
-    FadeInDown,
     useSharedValue,
     useAnimatedStyle,
     withSequence,
@@ -21,6 +20,8 @@ import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
+import AccentTab from '../../components/atoms/AccentTab';
+import { springEnter } from '../transitions';
 import { useTheme, useColor, useAnimationPresets } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
@@ -181,18 +182,17 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                             {t('game.the-ladder.active.leave')}
                         </Button>
                     </Stack>
-                    <View style={[styles.progressGlow, { shadowColor: accent }]}>
-                        <ProgressBar
-                            progress={(run.currentIndex + (selected !== null ? 1 : 0)) / RUN_LENGTH}
-                            color={accent}
-                            height={10}
-                        />
-                    </View>
+                    <ProgressBar
+                        progress={(run.currentIndex + (selected !== null ? 1 : 0)) / RUN_LENGTH}
+                        color={accent}
+                        glowColor={accent}
+                        height={10}
+                    />
                 </Stack>
 
-                <Animated.View key={run.currentIndex} entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}>
+                <Animated.View key={run.currentIndex} entering={reduceMotion ? undefined : springEnter()}>
                     <Card variant='elevated' padding='lg' gap='md' style={glow}>
-                        <View style={[styles.accentTab, { backgroundColor: accent }]} />
+                        <AccentTab color={accent} />
                         <Text variant='heading' weight='bold' align='center'>
                             {question.prompt}
                         </Text>
@@ -216,14 +216,6 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                             backgroundColor = hexToRgba(error, 0.12);
                         }
 
-                        const badgeState: IndexBadgeState = revealCorrect
-                            ? 'correct'
-                            : revealWrong
-                              ? 'wrong'
-                              : isHidden
-                                ? 'muted'
-                                : 'default';
-
                         return (
                             <AnswerOption
                                 key={`${run.currentIndex}-${index}`}
@@ -231,7 +223,6 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                                 label={isHidden ? '' : option}
                                 letter={String.fromCharCode(65 + index)}
                                 accent={accent}
-                                badgeState={badgeState}
                                 borderColor={borderColor}
                                 backgroundColor={backgroundColor}
                                 isHidden={isHidden}
@@ -247,7 +238,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
                 </Stack>
 
                 {studioHint ? (
-                    <Animated.View entering={reduceMotion ? undefined : FadeInDown.springify().damping(20).stiffness(150)}>
+                    <Animated.View entering={reduceMotion ? undefined : springEnter()}>
                         <Card variant='flat' padding='md'>
                             <Stack direction='horizontal' gap='sm' align='center'>
                                 <Icon name={HelpCircle} size={18} color={accent} />
@@ -300,7 +291,6 @@ function AnswerOption({
     label,
     letter,
     accent,
-    badgeState,
     borderColor,
     backgroundColor,
     isHidden,
@@ -315,7 +305,6 @@ function AnswerOption({
     label: string;
     letter: string;
     accent: string;
-    badgeState: IndexBadgeState;
     borderColor: string;
     backgroundColor: string;
     isHidden: boolean;
@@ -330,6 +319,7 @@ function AnswerOption({
     const { springBouncy, spring } = useAnimationPresets();
     const pop = useSharedValue(1);
     const resolved = revealCorrect || revealWrong;
+    const badgeState: IndexBadgeState = revealCorrect ? 'correct' : revealWrong ? 'wrong' : isHidden ? 'muted' : 'default';
 
     useEffect(() => {
         if (resolved && !reduceMotion) {
@@ -341,7 +331,7 @@ function AnswerOption({
 
     return (
         <Animated.View
-            entering={reduceMotion ? undefined : FadeInDown.delay(index * 70).springify().damping(20).stiffness(150)}
+            entering={reduceMotion ? undefined : springEnter(index * 70)}
             style={popStyle}
         >
             <Card
@@ -498,17 +488,6 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 999,
         alignSelf: 'flex-start',
-    },
-    progressGlow: {
-        shadowOpacity: 0.45,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 0 },
-    },
-    accentTab: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
-        alignSelf: 'center',
     },
     chipCol: {
         flex: 1,

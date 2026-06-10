@@ -20,35 +20,64 @@ export interface ThemeSwatchProps {
     testID?: string;
 }
 
-const Bar = ({ w, color, h = 5 }: { w: DimensionValue; color: string; h?: number }) => (
+const Bar = ({ w, color, h = 4 }: { w: DimensionValue; color: string; h?: number }) => (
     <View style={{ width: w, height: h, borderRadius: h / 2, backgroundColor: color }} />
 );
 
-/** A miniature home-screen mockup painted in the theme's own colors. */
+/** A single Home-style game card: accent medallion · two text lines · CTA pill. */
+const GameRow = ({ colors, accent, lines }: { colors: ThemeColors; accent: string; lines: 1 | 2 }) => (
+    <View style={[styles.mockCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+        <View style={[styles.mockMedallion, { backgroundColor: accent }]} />
+        <View style={styles.mockCardBody}>
+            <Bar w='75%' color={colors.text} h={3} />
+            {lines === 2 ? (
+                <>
+                    <View style={{ height: 3 }} />
+                    <Bar w='50%' color={colors.textSecondary} h={3} />
+                </>
+            ) : null}
+        </View>
+        <View style={[styles.mockCta, { backgroundColor: accent + '2E' }]} />
+    </View>
+);
+
+/**
+ * A miniature of the Home screen painted in the theme's own colors: the
+ * wordmark + header icons, the level bar (chip + progress pips), then two game
+ * cards — so a swatch reads as "what the app looks like" in that theme.
+ */
 const MiniMockup = ({ colors }: { colors: ThemeColors }) => (
     <View style={styles.mockup}>
+        {/* Header: wordmark + two icon buttons */}
         <View style={styles.mockHeader}>
-            <View style={[styles.mockHeaderIcon, { backgroundColor: colors.primary }]} />
-            <View style={styles.mockHeaderText}>
-                <Bar w='75%' color={colors.text} h={4} />
-                <View style={{ height: 3 }} />
-                <Bar w='45%' color={colors.textMuted} h={3} />
+            <Bar w='42%' color={colors.primary} h={7} />
+            <View style={styles.mockHeaderIcons}>
+                <View style={[styles.mockIconDot, { backgroundColor: colors.textMuted }]} />
+                <View style={[styles.mockIconDot, { backgroundColor: colors.textMuted }]} />
             </View>
         </View>
-        <View style={[styles.mockCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-            <View style={[styles.mockDot, { backgroundColor: colors.primary }]} />
-            <View style={styles.mockCardBody}>
-                <Bar w='80%' color={colors.text} h={3} />
-                <View style={{ height: 3 }} />
-                <Bar w='55%' color={colors.textSecondary} h={3} />
+
+        {/* Level bar: chip + progress pips */}
+        <View
+            style={[
+                styles.mockLevelBar,
+                { backgroundColor: colors.primary + '1A', borderColor: colors.primary + '2E' },
+            ]}
+        >
+            <View style={[styles.mockLevelChip, { backgroundColor: colors.primary }]} />
+            <View style={styles.mockPips}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                    <View
+                        key={i}
+                        style={[styles.mockPip, { backgroundColor: i < 3 ? colors.primary : colors.borderLight }]}
+                    />
+                ))}
             </View>
         </View>
-        <View style={[styles.mockCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-            <View style={[styles.mockDot, { backgroundColor: colors.secondary }]} />
-            <View style={styles.mockCardBody}>
-                <Bar w='65%' color={colors.text} h={3} />
-            </View>
-        </View>
+
+        {/* Game cards */}
+        <GameRow colors={colors} accent={colors.primary} lines={2} />
+        <GameRow colors={colors} accent={colors.secondary} lines={1} />
     </View>
 );
 
@@ -125,7 +154,7 @@ const styles = StyleSheet.create({
     },
     preview: {
         width: '100%',
-        aspectRatio: 1,
+        aspectRatio: 0.82,
         overflow: 'hidden',
     },
     dim: {
@@ -134,37 +163,66 @@ const styles = StyleSheet.create({
     mockup: {
         flex: 1,
         padding: 7,
+        gap: 6,
     },
     mockHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 7,
+        justifyContent: 'space-between',
     },
-    mockHeaderIcon: {
-        width: 13,
-        height: 13,
-        borderRadius: 4,
-        marginRight: 5,
+    mockHeaderIcons: {
+        flexDirection: 'row',
+        gap: 3,
     },
-    mockHeaderText: {
+    mockIconDot: {
+        width: 5,
+        height: 5,
+        borderRadius: 2.5,
+    },
+    mockLevelBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        borderRadius: 999,
+        borderWidth: StyleSheet.hairlineWidth,
+        paddingHorizontal: 4,
+        paddingVertical: 3,
+    },
+    mockLevelChip: {
+        width: 12,
+        height: 6,
+        borderRadius: 3,
+    },
+    mockPips: {
         flex: 1,
+        flexDirection: 'row',
+        gap: 2,
+    },
+    mockPip: {
+        flex: 1,
+        height: 4,
+        borderRadius: 2,
     },
     mockCard: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 5,
         borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: 6,
-        padding: 4,
-        marginBottom: 4,
+        borderRadius: 7,
+        padding: 5,
     },
-    mockDot: {
-        width: 9,
-        height: 9,
-        borderRadius: 4.5,
-        marginRight: 5,
+    mockMedallion: {
+        width: 14,
+        height: 14,
+        borderRadius: 5,
     },
     mockCardBody: {
         flex: 1,
+    },
+    mockCta: {
+        width: 9,
+        height: 9,
+        borderRadius: 4.5,
     },
     badge: {
         position: 'absolute',

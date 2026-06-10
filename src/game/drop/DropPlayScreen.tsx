@@ -248,7 +248,6 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
-            progress: roundsSurvived,
             won,
             finalBank: state.bank,
             roundsSurvived,

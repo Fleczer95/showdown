@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Sparkles, ArrowUpCircle, Award } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
@@ -12,26 +12,37 @@ import { recordRun, levelProgress, type GameRunResult, type RecordRunDiff } from
 import { SafeAnalytics } from '../../utils/firebase/init';
 
 /**
- * Inline game-over celebration: records the finished run (exactly once on mount,
- * via the lazy state initializer) and animates the XP gain. Escalated beats
- * (level-up, a new earned theme, a new achievement) appear as extra lines.
+ * Inline game-over celebration: records the finished run (exactly once) and shows
+ * the XP gain. Escalated beats (level-up, a new earned theme, a new achievement)
+ * appear as extra lines.
  */
 function RunCelebration({ result, accent }: { result: GameRunResult; accent: string }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
 
-    // Lazy initializer → recordRun runs once per finished run, never on re-render.
-    const [diff] = useState<RecordRunDiff>(() => recordRun(result));
+    const [diff, setDiff] = useState<RecordRunDiff | null>(null);
+    const recorded = useRef(false);
+
+    // Persist the finished run as a real side effect (not in render) and exactly
+    // once — the ref guards against a StrictMode setup/cleanup/setup double-call.
+    // useLayoutEffect commits the diff before paint, so the card never flashes empty.
+    useLayoutEffect(() => {
+        if (recorded.current) return;
+        recorded.current = true;
+        setDiff(recordRun(result));
+    }, [result]);
 
     // Report a level-up exactly once, when this run crossed a threshold.
     useEffect(() => {
-        if (diff.leveledUp) {
+        if (diff?.leveledUp) {
             SafeAnalytics.logEvent({
                 name: 'level_up',
                 params: { from_level: diff.previousLevel, to_level: diff.level, lifetime_xp: diff.lifetimeXp },
             });
         }
     }, [diff]);
+
+    if (!diff) return null;
 
     const band = levelProgress(diff.lifetimeXp);
     const fill = band.span > 0 ? band.intoLevel / band.span : 1;

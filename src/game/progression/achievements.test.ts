@@ -24,7 +24,7 @@ function stats(overrides: Partial<ProgressionStats> = {}): ProgressionStats {
 }
 
 function result(overrides: Partial<GameRunResult> & Pick<GameRunResult, 'gameId'>): GameRunResult {
-    return { score: 0, progress: 0, won: false, ...overrides };
+    return { score: 0, won: false, ...overrides };
 }
 
 describe('ACHIEVEMENTS catalog', () => {
@@ -137,6 +137,10 @@ describe('detectFeats', () => {
         expect(detectFeats(result({ gameId: 'the-ladder', quickWit: true }))).toContain('quick-wit');
         expect(detectFeats(result({ gameId: 'the-wheel', bankruptRecovered: true }))).toContain('comeback');
     });
+
+    it('does not award a feat for a fact from another game', () => {
+        expect(detectFeats(result({ gameId: 'the-drop', rungReached: 15 }))).not.toContain('to-the-top');
+    });
 });
 
 describe('isQuickWit', () => {
@@ -148,10 +152,6 @@ describe('isQuickWit', () => {
     it('is false for a low rung or a slow answer', () => {
         expect(isQuickWit(9, 1)).toBe(false);
         expect(isQuickWit(15, 5.1)).toBe(false);
-    });
-
-    it('does not award cross-game feats', () => {
-        expect(detectFeats(result({ gameId: 'the-drop', rungReached: 15 }))).not.toContain('to-the-top');
     });
 });
 

@@ -7,7 +7,7 @@ function stats(overrides: Partial<ProgressionStats> = {}): ProgressionStats {
 }
 
 function result(overrides: Partial<GameRunResult> & Pick<GameRunResult, 'gameId'>): GameRunResult {
-    return { score: 0, progress: 0, won: false, ...overrides };
+    return { score: 0, won: false, ...overrides };
 }
 
 const TODAY = '2026-06-10';

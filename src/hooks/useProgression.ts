@@ -19,12 +19,10 @@ import {
 export function useProgression() {
     const [stats, setStats] = useState<ProgressionStats>(() => loadStats());
 
-    const refresh = useCallback(() => setStats(loadStats()), []);
-    useFocusEffect(refresh);
+    useFocusEffect(useCallback(() => setStats(loadStats()), []));
 
     return {
         stats,
-        refresh,
         level: level(stats.lifetimeXp),
         progress: levelProgress(stats.lifetimeXp),
         unlockedRewards: unlockedRewards(stats.lifetimeXp),

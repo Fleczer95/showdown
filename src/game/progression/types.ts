@@ -2,17 +2,15 @@
 // only; levels, rewards and achievements are pure functions derived from it.
 
 /**
- * Facts a finished run hands to the progression engine at game-over. `gameId`,
- * `score` and `progress` are universal; the rest are the few per-game facts the
- * achievements check (all optional — a game only sets what's relevant to it).
+ * Facts a finished run hands to the progression engine at game-over. `gameId` and
+ * `score` are universal; the rest are the few per-game facts the achievements
+ * check (all optional — a game only sets what's relevant to it).
  */
 export interface GameRunResult {
     /** `games.ts` id: 'the-ladder' | 'the-drop' | 'the-wheel'. */
     gameId: string;
     /** Unified points total (the value also stored on the leaderboard). */
     score: number;
-    /** How far the run got — Ladder rungs / Drop rounds survived / Wheel puzzles solved. */
-    progress: number;
     /** Whether the run was a win for its game. */
     won: boolean;
 

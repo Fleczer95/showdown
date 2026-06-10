@@ -159,7 +159,6 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
-            progress: correctAnswered,
             won: run.status === 'won',
             rungReached: reachedRung(run),
             lifelinesUsed: run.usedLifelines.length,

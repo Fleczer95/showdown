@@ -55,9 +55,19 @@ export function countLetter(phrase: string, letter: string): number {
     return n;
 }
 
-/** Normalize a phrase for solve comparison: uppercase, collapse whitespace. */
+/**
+ * Normalize a phrase for solve comparison: strip accents (incl. Polish ł→l),
+ * uppercase, collapse whitespace. Lets CAFE match CAFÉ and LODZ match ŁÓDŹ so a
+ * missing diacritic doesn't cost the run.
+ */
 export function normalize(phrase: string): string {
-    return phrase.trim().toUpperCase().replace(/\s+/g, ' ');
+    return phrase
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .replace(/ł/gi, 'l')
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, ' ');
 }
 
 /** Correct when the normalized guess matches the phrase. */
@@ -87,7 +97,7 @@ export interface PuzzleContent {
     category: string;
 }
 
-export type GameStatus = 'playing' | 'over';
+export type GameStatus = 'playing' | 'over' | 'lost';
 
 export interface GameState {
     /** The puzzles for this run (length is TOTAL_PUZZLES). */
@@ -216,9 +226,13 @@ function advance(state: GameState, banked: number): GameState {
 /**
  * Attempt to solve the current puzzle.
  * - Correct: bank round cash into score, advance to the next puzzle.
- * - Wrong: end the current puzzle with 0 banked, advance to the next puzzle.
+ * - Wrong: end the whole run as 'lost'. Already-banked score is kept; the
+ *   current puzzle's unbanked round cash is forfeited.
  */
 export function solve(state: GameState, guess: string): GameState {
     const correct = attemptSolve(currentPuzzle(state).phrase, guess);
-    return advance(state, correct ? state.roundCash : 0);
+    if (!correct) {
+        return { ...state, roundCash: 0, status: 'lost' };
+    }
+    return advance(state, state.roundCash);
 }

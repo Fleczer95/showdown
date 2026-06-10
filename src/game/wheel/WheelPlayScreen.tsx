@@ -56,7 +56,7 @@ import {
 } from './logic';
 import { speedBonus, wheelScore } from '../scoring';
 
-type Phase = 'awaitSpin' | 'awaitGuess';
+type Phase = 'awaitSpin' | 'awaitGuess' | 'resolving';
 
 const GAME_ID = 'the-wheel';
 
@@ -122,6 +122,32 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         setSolveMode(false);
     }, []);
 
+    // Bank a solved puzzle (typed correctly or board fully revealed) after the
+    // shared reveal beat. `solvedState` must already be a correct/complete board;
+    // its phrase is used to drive the win path through `solve`.
+    const finishSolvedPuzzle = useCallback(
+        (solvedState: GameState) => {
+            // Bank cash earns a speed bonus (puzzle shown → solved), plus a
+            // clean-solve bonus if no vowel was bought for this puzzle.
+            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+            speedTotal.current += speedBonus(solvedState.roundCash, seconds);
+            solvedCount.current += 1;
+            if (!boughtVowel.current) cleanPuzzles.current += 1;
+            if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
+            const next = solve(solvedState, currentPuzzle(solvedState).phrase);
+            setStatus('✓');
+            setSolveMode(false);
+            setSpinValue(0);
+            setPhase('resolving');
+            setTimeout(() => {
+                setGame(next);
+                resetTurnInputs();
+                setStatus('');
+            }, 800);
+        },
+        [resetTurnInputs],
+    );
+
     const settleSpin = useCallback(
         (result: SpinResult) => {
             setSpinning(false);
@@ -170,39 +196,50 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         (ch: string) => {
             if (alreadyGuessed(game, ch)) return;
             const next = guessConsonant(game, ch, spinValue);
-            const award = next.roundCash - game.roundCash;
             setGame(next);
+            // Revealing the final letter completes the puzzle — bank it instead of
+            // stranding the player on a full board with the wheel still up.
+            if (isFullyRevealed(next)) {
+                finishSolvedPuzzle(next);
+                return;
+            }
+            const award = next.roundCash - game.roundCash;
             setSpinValue(0);
             setPhase('awaitSpin');
             setStatus(award > 0 ? `${ch}: +${award}` : `${ch}: 0`);
         },
-        [game, spinValue],
+        [game, spinValue, finishSolvedPuzzle],
     );
 
     const handleBuyVowel = useCallback(
         (ch: string) => {
             if (alreadyGuessed(game, ch) || game.roundCash < VOWEL_COST) return;
             boughtVowel.current = true;
-            setGame(buyVowel(game, ch));
+            const next = buyVowel(game, ch);
+            setGame(next);
+            // Buying the last hidden letter completes the puzzle.
+            if (isFullyRevealed(next)) finishSolvedPuzzle(next);
         },
-        [game],
+        [game, finishSolvedPuzzle],
     );
 
     const handleSolve = useCallback(() => {
-        const correct = attemptSolve(currentPuzzle(game).phrase, solveText);
-        if (correct) {
-            // Bank cash earns a speed bonus (puzzle shown → correct solve), plus a
-            // clean-solve bonus if no vowel was bought for this puzzle.
-            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
-            speedTotal.current += speedBonus(game.roundCash, seconds);
-            solvedCount.current += 1;
-            if (!boughtVowel.current) cleanPuzzles.current += 1;
-            if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
+        if (attemptSolve(currentPuzzle(game).phrase, solveText)) {
+            finishSolvedPuzzle(game);
+            return;
         }
-        setStatus(correct ? '✓' : '✗');
-        setGame(solve(game, solveText));
-        resetTurnInputs();
-    }, [game, solveText, resetTurnInputs]);
+        // Reveal the full answer for a beat before moving on, so a miss reads as a
+        // clear wrong answer instead of an instant jump. A wrong solve ends the run.
+        const next = solve(game, solveText);
+        setStatus('✗');
+        setSolveMode(false);
+        setPhase('resolving');
+        setTimeout(() => {
+            setGame(next);
+            resetTurnInputs();
+            setStatus('');
+        }, 1400);
+    }, [game, solveText, finishSolvedPuzzle, resetTurnInputs]);
 
     const handlePlayAgain = useCallback(() => {
         speedTotal.current = 0;
@@ -218,7 +255,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         rotation.value = 0;
     }, [locale, resetTurnInputs, rotation]);
 
-    if (game.status === 'over') {
+    if (game.status === 'over' || game.status === 'lost') {
         const breakdown = wheelScore({
             bankedCash: game.score,
             speed: speedTotal.current,
@@ -227,8 +264,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
-            progress: solvedCount.current,
-            won: solvedCount.current >= TOTAL_PUZZLES,
+            won: game.status === 'over',
             puzzlesSolved: solvedCount.current,
             cleanPuzzles: cleanPuzzles.current,
             bankruptRecovered: bankruptRecovered.current,
@@ -278,7 +314,8 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     }
 
     const puzzle = currentPuzzle(game);
-    const masked = maskedPhrase(game);
+    // During the brief resolve beat, show the full answer so a miss reads clearly.
+    const masked = phase === 'resolving' ? puzzle.phrase : maskedPhrase(game);
     const canSolve = !isFullyRevealed(game);
 
     return (
@@ -464,7 +501,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             </View>
                         </Stack>
                     </Stack>
-                ) : (
+                ) : phase === 'resolving' ? null : (
                     <Stack direction='horizontal' gap='sm'>
                         <View style={styles.flex}>
                             <Button

@@ -3,7 +3,7 @@ import { RUN_XP_FLOOR, SKILL_CAP, BREADTH_BONUS } from './constants';
 import type { GameRunResult } from './types';
 
 function result(overrides: Partial<GameRunResult> & Pick<GameRunResult, 'gameId'>): GameRunResult {
-    return { score: 0, progress: 0, won: false, ...overrides };
+    return { score: 0, won: false, ...overrides };
 }
 
 describe('performanceFraction', () => {

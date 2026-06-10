@@ -118,16 +118,23 @@ function Wordmark() {
     );
 }
 
+/** Number of segments in the level progress meter. */
+const LEVEL_SEGMENTS = 12;
+
 /**
- * Full-width level progress strip for the Home header: "Poz. N ▰▰▰▱▱▱". Sits on its
- * own row below the wordmark so it never competes for width. Opens the Progress
- * screen, the home for the Level Map, achievements and earned cosmetics.
+ * Full-width level progress strip for the Home header: a solid level chip, a row
+ * of glowing segmented pips (▰▰▰▱▱), then the XP count. Sits on its own row below
+ * the wordmark so it never competes for width. Opens the Progress screen, the
+ * home for the Level Map, achievements and earned cosmetics.
  */
 function LevelBar({ onPress }: { onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
     const { level, progress } = useProgression();
     const fill = progress.span > 0 ? Math.max(0, Math.min(1, progress.intoLevel / progress.span)) : 1;
+    const filledExact = fill * LEVEL_SEGMENTS;
+    const fullPips = Math.floor(filledExact);
+    const partial = filledExact - fullPips; // fractional fill of the leading segment (0–1)
 
     return (
         <Pressable
@@ -139,19 +146,57 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                 {
                     backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderRadius: theme.radii.full,
-                    paddingHorizontal: theme.spacing.md,
                 },
             ]}
         >
-            <Text variant='caption' weight='bold' color={theme.colors.primary}>
-                {t('progression.levelShort', { n: level })}
-            </Text>
-            <View style={[styles.levelBarTrack, { backgroundColor: hexToRgba(theme.colors.primary, 0.25) }]}>
-                <View style={[styles.levelBarFill, { width: `${fill * 100}%`, backgroundColor: theme.colors.primary }]} />
+            <View style={[styles.levelChip, { backgroundColor: theme.colors.primary, borderRadius: theme.radii.full }]}>
+                <Text variant='caption' weight='bold' color={readableOn(theme.colors.primary)}>
+                    {t('progression.levelShort', { n: level })}
+                </Text>
+            </View>
+            <View style={styles.levelPips}>
+                {Array.from({ length: LEVEL_SEGMENTS }).map((_, i) => {
+                    if (i < fullPips) {
+                        return (
+                            <View
+                                key={i}
+                                style={[
+                                    styles.levelPip,
+                                    { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary },
+                                ]}
+                            />
+                        );
+                    }
+                    if (i === fullPips && partial > 0) {
+                        return (
+                            <View
+                                key={i}
+                                style={[styles.levelPip, { backgroundColor: hexToRgba(theme.colors.primary, 0.2) }]}
+                            >
+                                <View
+                                    style={[
+                                        styles.levelPipPartial,
+                                        {
+                                            width: `${partial * 100}%`,
+                                            backgroundColor: theme.colors.primary,
+                                            shadowColor: theme.colors.primary,
+                                        },
+                                    ]}
+                                />
+                            </View>
+                        );
+                    }
+                    return (
+                        <View
+                            key={i}
+                            style={[styles.levelPip, { backgroundColor: hexToRgba(theme.colors.primary, 0.2) }]}
+                        />
+                    );
+                })}
             </View>
             {progress.span > 0 ? (
                 <Text variant='caption' weight='bold' color='textSecondary'>
-                    {`${progress.intoLevel} / ${t('progression.xp', { n: progress.span })}`}
+                    {`${progress.intoLevel}/${progress.span}`}
                 </Text>
             ) : null}
         </Pressable>
@@ -244,16 +289,34 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
-        height: 36,
+        height: 40,
+        paddingLeft: 6,
+        paddingRight: 14,
     },
-    levelBarTrack: {
+    levelChip: {
+        paddingHorizontal: 12,
+        height: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    levelPips: {
         flex: 1,
-        height: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    levelPip: {
+        flex: 1,
+        height: 8,
         borderRadius: 9999,
         overflow: 'hidden',
+        shadowOpacity: 0.6,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 3,
     },
-    levelBarFill: {
-        height: 6,
+    levelPipPartial: {
+        height: 8,
         borderRadius: 9999,
     },
     iconContainer: {

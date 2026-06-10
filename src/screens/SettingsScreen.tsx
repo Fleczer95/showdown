@@ -15,6 +15,7 @@ import { useTranslation } from '../i18n';
 import { useSettings } from '../hooks/useSettings';
 import { useStore } from '../hooks/store/useStore';
 import { useProgression } from '../hooks/useProgression';
+import { LEVEL_MAP } from '../game/progression';
 import { useResponsive } from '../responsive/useResponsive';
 import { FULL_VERSION_STRING } from '../utils/version';
 
@@ -34,23 +35,38 @@ export function SettingsScreen() {
 
     const handleBack = () => navigation.goBack();
 
-    const themeOptions = themeRegistry.map((opt) => ({
-        value: opt.value,
-        label: opt.isEarned ? `${t(opt.labelKey as any)} ✦` : t(opt.labelKey as any),
-        icon: opt.icon,
-        isPremium: opt.isPremium,
-        isEarned: opt.isEarned,
+    const themeOptions = themeRegistry.map((opt) => {
         // Earned themes resolve their lock against unlocked map rewards, not purchases.
-        isLocked: opt.isEarned
+        const isLocked = opt.isEarned
             ? !unlockedRewards.has(opt.rewardId!)
-            : opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`),
-    }));
+            : !!opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`);
+        // The Level Map node that grants this earned theme — surfaced as a "Lv N" chip.
+        const requiredLevel = opt.isEarned
+            ? LEVEL_MAP.find((node) => node.rewardId === opt.rewardId)?.level
+            : undefined;
+        return {
+            value: opt.value,
+            label: opt.isEarned ? `${t(opt.labelKey as any)} ✦` : t(opt.labelKey as any),
+            icon: opt.icon,
+            isPremium: opt.isPremium,
+            isEarned: opt.isEarned,
+            rewardId: opt.rewardId,
+            isLocked,
+            lockLabel:
+                isLocked && requiredLevel ? t('progression.levelShort', { n: requiredLevel }) : undefined,
+        };
+    });
 
     const handleThemeChange = (nextThemeId: string) => {
         const option = themeOptions.find((themeOption) => themeOption.value === nextThemeId);
         if (option?.isLocked) {
-            // Earned themes aren't for sale — point at the Progress screen, not the Store.
-            navigation.navigate((option.isEarned ? 'Progress' : 'Store') as any, { gameId: 'themes' });
+            // Earned themes aren't for sale — point at the Progress screen (and the exact
+            // level that unlocks them), not the Store.
+            if (option.isEarned) {
+                navigation.navigate('Progress' as any, { focusRewardId: option.rewardId });
+            } else {
+                navigation.navigate('Store' as any, { gameId: 'themes' });
+            }
             return;
         }
         setTheme(nextThemeId);

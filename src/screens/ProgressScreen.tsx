@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronLeft, Check, Lock, Map, Sparkles, Star, Trophy } from 'lucide-react-native';
+import type { RootStackParamList } from '../navigation/types';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -20,8 +30,54 @@ import { LEVEL_MAP, ACHIEVEMENTS, ACHIEVEMENT_FAMILIES, ONE_OFF_IDS, familyProgr
 
 type ProgressTab = 'map' | 'achievements';
 
+type ProgressScreenProps = NativeStackScreenProps<RootStackParamList, 'Progress'>;
+
+/**
+ * Wraps the level node a deep-link points at and plays a brief accent halo that
+ * pulses a few times then fades, so it's obvious which level unlocks the theme.
+ */
+function FocusGlow({
+    active,
+    accent,
+    radius,
+    onLayout,
+    children,
+}: {
+    active: boolean;
+    accent: string;
+    radius: number;
+    onLayout?: (event: LayoutChangeEvent) => void;
+    children: React.ReactNode;
+}) {
+    const glow = useSharedValue(0);
+
+    useEffect(() => {
+        if (!active) return;
+        // Delay lets the auto-scroll settle before the halo draws attention.
+        glow.value = withDelay(
+            400,
+            withSequence(withRepeat(withTiming(1, { duration: 450 }), 3, true), withTiming(0, { duration: 350 })),
+        );
+    }, [active, glow]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        shadowColor: accent,
+        shadowOpacity: glow.value * 0.6,
+        shadowRadius: glow.value * 18,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: glow.value * 14,
+    }));
+
+    return (
+        <Animated.View onLayout={onLayout} style={[{ borderRadius: radius }, animatedStyle]}>
+            {children}
+        </Animated.View>
+    );
+}
+
 export function ProgressScreen() {
     const navigation = useNavigation();
+    const route = useRoute<ProgressScreenProps['route']>();
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { level, progress, unlockedRewards, achievements, stats } = useProgression();
@@ -30,6 +86,28 @@ export function ProgressScreen() {
 
     const accent = theme.colors.primary;
     const fill = progress.span > 0 ? progress.intoLevel / progress.span : 1;
+
+    // Deep link from Settings: the level that unlocks the tapped earned theme.
+    const focusRewardId = route.params?.focusRewardId;
+    const focusLevel = focusRewardId
+        ? (LEVEL_MAP.find((node) => node.rewardId === focusRewardId)?.level ?? null)
+        : null;
+
+    const scrollRef = useRef<ScrollView>(null);
+    const didScrollRef = useRef(false);
+    const focusTopInset = theme.spacing.xl;
+
+    const handleFocusLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            if (didScrollRef.current) return;
+            didScrollRef.current = true;
+            const y = event.nativeEvent.layout.y;
+            requestAnimationFrame(() =>
+                scrollRef.current?.scrollTo({ y: Math.max(0, y - focusTopInset), animated: true }),
+            );
+        },
+        [focusTopInset],
+    );
 
     return (
         <SafeContainer edges={['top', 'bottom']}>
@@ -81,6 +159,7 @@ export function ProgressScreen() {
             </View>
 
             <ScrollView
+                ref={scrollRef}
                 contentContainerStyle={{
                     paddingHorizontal: theme.spacing.xl,
                     paddingTop: theme.spacing.md,
@@ -96,9 +175,9 @@ export function ProgressScreen() {
                         const rewardName = node.rewardId
                             ? t(`progression.themes.${node.rewardId.replace('theme-', '')}`)
                             : null;
-                        return (
+                        const isFocus = node.level === focusLevel;
+                        const card = (
                             <Card
-                                key={node.level}
                                 variant={node.level === level ? 'elevated' : 'outlined'}
                                 padding='md'
                                 style={node.level === level ? { borderColor: accent } : undefined}
@@ -149,6 +228,19 @@ export function ProgressScreen() {
                                     ) : null}
                                 </Stack>
                             </Card>
+                        );
+                        return isFocus ? (
+                            <FocusGlow
+                                key={node.level}
+                                active
+                                accent={accent}
+                                radius={theme.radii.lg}
+                                onLayout={handleFocusLayout}
+                            >
+                                {card}
+                            </FocusGlow>
+                        ) : (
+                            <React.Fragment key={node.level}>{card}</React.Fragment>
                         );
                     })}
 

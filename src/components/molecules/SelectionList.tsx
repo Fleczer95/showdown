@@ -15,6 +15,8 @@ export interface SelectionOption {
     description?: string;
     isPremium?: boolean;
     isLocked?: boolean;
+    /** Short hint shown as a chip on a locked tile, e.g. the level required to unlock it. */
+    lockLabel?: string;
 }
 
 export interface SelectionListProps {
@@ -153,11 +155,18 @@ function SelectionList({
                                                     styles.iconContainer,
                                                     isGrid ? styles.gridIconContainer : undefined,
                                                     iconContainerOverride,
+                                                    option.isLocked && styles.lockedDim,
                                                 ] as any
                                             }
                                         />
                                     )}
-                                    <View style={[styles.textContainer, isGrid && styles.gridTextContainer]}>
+                                    <View
+                                        style={[
+                                            styles.textContainer,
+                                            isGrid && styles.gridTextContainer,
+                                            option.isLocked && styles.lockedDim,
+                                        ]}
+                                    >
                                         <Text
                                             variant='body'
                                             weight={isActive ? 'bold' : 'semibold'}
@@ -168,7 +177,26 @@ function SelectionList({
                                             {option.label}
                                         </Text>
                                     </View>
-                                    {option.isPremium && option.isLocked && (
+                                    {option.isLocked && option.lockLabel && (
+                                        <View
+                                            style={[
+                                                styles.levelChip,
+                                                isGrid && { marginTop: theme.spacing.xs },
+                                                {
+                                                    backgroundColor: theme.colors.borderLight + '60',
+                                                    borderColor: theme.colors.border,
+                                                    paddingHorizontal: theme.spacing.sm,
+                                                    paddingVertical: 2,
+                                                    borderRadius: theme.radii.full,
+                                                },
+                                            ]}
+                                        >
+                                            <Text variant='caption' weight='bold' color={theme.colors.textSecondary}>
+                                                {option.lockLabel}
+                                            </Text>
+                                        </View>
+                                    )}
+                                    {option.isLocked && (
                                         <View
                                             style={[
                                                 styles.lockBadge,
@@ -297,6 +325,13 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 0,
         right: 0,
+    },
+    lockedDim: {
+        opacity: 0.4,
+    },
+    levelChip: {
+        borderWidth: 1,
+        alignSelf: 'center',
     },
     gridCheckmark: {
         position: 'absolute',

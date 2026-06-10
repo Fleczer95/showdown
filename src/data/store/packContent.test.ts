@@ -42,4 +42,21 @@ describe('getOwnedPackContentBilingual', () => {
             { en: 'one', pl: 'jeden' },
         ]);
     });
+
+    it('skips a pack whose en/pl arrays disagree in length instead of crashing', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        mockPlayable.mockReturnValue(['pack-bad', 'pack-ok']);
+        mockContent.mockImplementation((id, locale) => {
+            if (id === 'pack-bad') return (locale === 'en' ? [{ t: 'a' }, { t: 'b' }] : [{ t: 'x' }]) as never;
+            return (locale === 'en' ? [{ t: 'c' }] : [{ t: 'y' }]) as never;
+        });
+
+        const zip = (en: { t: string }, pl: { t: string }) => ({ en: en.t, pl: pl.t });
+        // The malformed pack contributes nothing; the well-formed one still plays.
+        expect(getOwnedPackContentBilingual('the-drop', new Set(['pack-bad', 'pack-ok']), zip)).toEqual([
+            { en: 'c', pl: 'y' },
+        ]);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('pack-bad'));
+        warn.mockRestore();
+    });
 });

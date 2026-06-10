@@ -23,8 +23,12 @@ export function getOwnedPackContent<TCard>(
 /**
  * Bilingual cards reconstructed from a pack's parallel en/pl arrays, for games
  * that keep bilingual content and localize at render time (The Drop). `zip`
- * combines the i-th English and Polish card into the game's bilingual shape;
- * parity is guaranteed by construction (same pack, same index).
+ * combines the i-th English and Polish card into the game's bilingual shape.
+ *
+ * Cards are authored content, so parity (same length, same order) is expected
+ * but not enforced upstream. A pack whose en/pl arrays disagree is skipped
+ * whole — a missing translation would otherwise crash the run as `zip` reads an
+ * undefined card — and warned about so the bad pack is diagnosable.
  */
 export function getOwnedPackContentBilingual<TMono, TCard>(
     gameId: string,
@@ -34,6 +38,12 @@ export function getOwnedPackContentBilingual<TMono, TCard>(
     return getPlayablePackIds(gameId, ownedIds).flatMap((id) => {
         const en = getPackContent<TMono>(id, 'en');
         const pl = getPackContent<TMono>(id, 'pl');
+        if (en.length !== pl.length) {
+            console.warn(
+                `[packContent] Skipping pack "${id}": en/pl length mismatch (${en.length} vs ${pl.length}).`,
+            );
+            return [];
+        }
         return en.map((card, i) => zip(card, pl[i]));
     });
 }

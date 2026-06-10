@@ -10,7 +10,24 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ChevronLeft, Check, Lock, Map, Sparkles, Star, Trophy } from 'lucide-react-native';
+import {
+    ChevronLeft,
+    Check,
+    Lock,
+    Map,
+    Sparkles,
+    Trophy,
+    Globe,
+    Swords,
+    Mountain,
+    Shield,
+    Landmark,
+    Eraser,
+    Brush,
+    Zap,
+    RotateCcw,
+    type LucideIcon,
+} from 'lucide-react-native';
 import type { RootStackParamList } from '../navigation/types';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
@@ -29,6 +46,20 @@ import { useProgression } from '../hooks/useProgression';
 import { LEVEL_MAP, ACHIEVEMENTS, ACHIEVEMENT_FAMILIES, ONE_OFF_IDS, familyProgress } from '../game/progression';
 
 type ProgressTab = 'map' | 'achievements';
+
+/** A distinctive sticker per one-off achievement (Sparkles is the locked-grid fallback). */
+const ONEOFF_ICONS: Record<string, LucideIcon> = {
+    'well-rounded': Globe,
+    'triple-threat': Swords,
+    'to-the-top': Mountain,
+    spotless: Sparkles,
+    survivor: Shield,
+    'iron-bank': Landmark,
+    'vowel-free': Eraser,
+    'clean-sweep': Brush,
+    'quick-wit': Zap,
+    comeback: RotateCcw,
+};
 
 type ProgressScreenProps = NativeStackScreenProps<RootStackParamList, 'Progress'>;
 
@@ -317,7 +348,7 @@ export function ProgressScreen() {
                                         >
                                             <Stack gap='xs' align='center'>
                                                 <Icon
-                                                    name={done ? Star : Lock}
+                                                    name={done ? (ONEOFF_ICONS[id] ?? Sparkles) : Lock}
                                                     size={22}
                                                     color={done ? accent : theme.colors.textMuted}
                                                 />

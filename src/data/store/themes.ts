@@ -1,16 +1,15 @@
 import { defaultTokens } from '../../theme/defaults';
-import { cyberpunkTheme } from '../../theme/themes';
+import { cyberpunkTheme, oceanTheme, forestTheme } from '../../theme/themes';
 import type { ThemeDefinition } from './types';
 
 /**
- * Theme catalog — MOCKED until ShowDown's visual design (the 2.5D "Studio
- * Interface") is introduced. We expose a single neutral default theme built from
- * the framework's `defaultTokens`, which keeps the theme provider and picker
- * working without committing to any palette.
+ * Theme catalog. One free `default` theme built from the framework's
+ * `defaultTokens`, plus the premium themes for sale. Earned (level-reward)
+ * themes live in `src/game/progression/themes.ts`, outside the commercial
+ * catalog. The full theme-token library lives in `src/theme/themes/`.
  *
- * When the design lands, register the real ShowDown themes here (and any paid
- * `com.showdown.*` theme SKUs + `screen.store.item` / `screen.store.feature`
- * copy). The full theme-token library still lives in `src/theme/themes/`.
+ * To add a paid theme: register it here with a `com.showdown.*` SKU and the
+ * `screen.store.item` / `screen.store.feature` copy in the locale files.
  */
 export const themes: ThemeDefinition[] = [
     {
@@ -41,5 +40,37 @@ export const themes: ThemeDefinition[] = [
             fallbackPrice: '$2.49',
         },
         tokens: cyberpunkTheme,
+    },
+    {
+        id: 'theme-ocean',
+        kind: 'theme',
+        status: 'live',
+        tier: 'premium',
+        sku: 'com.showdown.theme_ocean',
+        presentation: {
+            titleKey: 'screen.store.item.theme_ocean.title',
+            descriptionKey: 'screen.store.item.theme_ocean.desc',
+            iconName: 'sparkles',
+            accentColor: '#38bdf8',
+            featuresKey: ['screen.store.feature.theme_ocean_1', 'screen.store.feature.theme_ocean_2'],
+            fallbackPrice: '$1.99',
+        },
+        tokens: oceanTheme,
+    },
+    {
+        id: 'theme-forest',
+        kind: 'theme',
+        status: 'live',
+        tier: 'premium',
+        sku: 'com.showdown.theme_forest',
+        presentation: {
+            titleKey: 'screen.store.item.theme_forest.title',
+            descriptionKey: 'screen.store.item.theme_forest.desc',
+            iconName: 'trees',
+            accentColor: '#22c55e',
+            featuresKey: ['screen.store.feature.theme_forest_1', 'screen.store.feature.theme_forest_2'],
+            fallbackPrice: '$1.99',
+        },
+        tokens: forestTheme,
     },
 ];

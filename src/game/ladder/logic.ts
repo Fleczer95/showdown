@@ -70,12 +70,27 @@ export function buildRun(
     if (rungPool.length < RUN_LENGTH) {
         throw new Error(`Need at least ${RUN_LENGTH} rungs, got ${rungPool.length}`);
     }
+    // Track questions already chosen as a rung's `current` so that rungs sharing
+    // a pool (buildLocalizedRungs feeds the same pool to a group of 3) never show
+    // the same question on two rungs. Alternates may still overlap — Skip is rare
+    // and reserving them would starve small shared pools.
+    const usedCurrentIds = new Set<string>();
     const rungs: LadderRung[] = rungPool.slice(0, RUN_LENGTH).map((candidates) => {
         if (candidates.length < 1) {
             throw new Error('Each rung needs at least one question');
         }
-        const ordered = createDeck(candidates, history, rng).map((q) => shuffleOptions(q, rng));
-        const [current, ...alternates] = ordered;
+        const ordered = createDeck(candidates, history, rng);
+        // Prefer the least-shown question not already used this run; fall back to
+        // the least-shown one if a tiny pool leaves no fresh option.
+        const pickIndex = Math.max(
+            ordered.findIndex((q) => !usedCurrentIds.has(q.id)),
+            0,
+        );
+        usedCurrentIds.add(ordered[pickIndex].id);
+        const current = shuffleOptions(ordered[pickIndex], rng);
+        const alternates = ordered
+            .filter((_, i) => i !== pickIndex)
+            .map((q) => shuffleOptions(q, rng));
         return { current, alternates };
     });
     return {

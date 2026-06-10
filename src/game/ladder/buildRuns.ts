@@ -7,8 +7,19 @@ import type { LadderQuestion } from './logic';
 
 export type Language = 'en' | 'pl';
 
-/** Turn the bilingual content pack into a per-rung pool for the chosen locale. */
-export function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
+/**
+ * A localized question from an owned premium pack, tagged with its target rung
+ * (1–15). Unlike the free bank — where the rung is the array position — pack
+ * cards are a flat list, so they carry `difficulty` to slot into the right rung.
+ */
+export type LadderPackCard = LadderQuestion & { difficulty: number };
+
+/**
+ * Turn the bilingual content pack into a per-rung pool for the chosen locale,
+ * optionally merging in already-localized cards from owned premium packs. Each
+ * owned card is slotted into the rung named by its `difficulty` (1–15).
+ */
+export function buildLocalizedRungs(lang: Language, ownedCards: LadderPackCard[] = []): LadderQuestion[][] {
     const rawRungs = ALL_PACK.rungs.map((rung) =>
         rung.map((q) => ({
             id: q.id,
@@ -20,6 +31,21 @@ export function buildLocalizedRungs(lang: Language): LadderQuestion[][] {
             hint: q.hint[lang],
         })),
     );
+
+    // Merge owned-pack cards into their target rung (difficulty 1 → rawRungs[0]).
+    // Out-of-range difficulties are ignored rather than crashing a run.
+    for (const card of ownedCards) {
+        const rungIndex = card.difficulty - 1;
+        if (rungIndex >= 0 && rungIndex < rawRungs.length) {
+            rawRungs[rungIndex].push({
+                id: card.id,
+                prompt: card.prompt,
+                options: card.options,
+                correctIndex: card.correctIndex,
+                hint: card.hint ?? '',
+            });
+        }
+    }
 
     // We group the 15 rungs into 5 broader difficulty pools (3 rungs each).
     // This increases variety at each step (e.g. any question from levels 1-3

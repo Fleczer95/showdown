@@ -8,6 +8,7 @@ import type { SetupRoute } from '../data/games';
 export type RootStackParamList = {
     Home: undefined;
     Settings: undefined;
+    Theme: undefined;
     Store: { gameId?: string } | undefined;
     Progress: { focusRewardId?: string } | undefined;
     privacyPolicy: undefined;

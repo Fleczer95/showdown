@@ -7,6 +7,28 @@ import type { DropQuestion } from './logic';
 
 export type Language = 'en' | 'pl';
 
+/** A single-locale Drop card, as stored in a premium pack's `content.en`/`.pl`. */
+export interface DropPackCard {
+    id: string;
+    prompt: string;
+    options: string[];
+    correctIndex: number;
+}
+
+/**
+ * Combine the English and Polish single-locale cards of an owned pack (same
+ * index) into the bilingual {@link DropQuestion} the game plays. Lets owned
+ * packs merge into the bilingual pool without touching the render path.
+ */
+export function zipDropCard(en: DropPackCard, pl: DropPackCard): DropQuestion {
+    return {
+        id: en.id,
+        prompt: { en: en.prompt, pl: pl.prompt },
+        options: en.options.map((opt, i) => ({ en: opt, pl: pl.options[i] })),
+        correctIndex: en.correctIndex,
+    };
+}
+
 export const dropQuestions: DropQuestion[] = [
     { id: 'drop-001', prompt: { en: 'How many times does an average human heart beat in a day?', pl: 'Ile razy na dobę bije średnio ludzkie serce?' }, options: [{ en: '10,000', pl: '10 000' }, { en: '100,000', pl: '100 000' }, { en: '1,000,000', pl: '1 000 000' }, { en: '10,000,000', pl: '10 000 000' }], correctIndex: 1 },
     { id: 'drop-002', prompt: { en: 'How many languages are spoken in the world today?', pl: 'Iloma językami mówi się obecnie na świecie?' }, options: [{ en: '700', pl: '700' }, { en: '3,000', pl: '3 000' }, { en: '7,000', pl: '7 000' }, { en: '15,000', pl: '15 000' }], correctIndex: 2 },

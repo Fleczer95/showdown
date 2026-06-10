@@ -36,6 +36,9 @@ export function skillXp(result: GameRunResult): number {
  * played today.
  */
 export function runXp(result: GameRunResult, alreadyPlayedTodayThisGame: boolean): number {
+    // A run that achieved nothing earns nothing — no floor, no breadth. You have to
+    // put something on the board (a rung, a bank, a solved puzzle) to gain XP.
+    if (performanceFraction(result) === 0) return 0;
     const breadth = alreadyPlayedTodayThisGame ? 0 : BREADTH_BONUS;
     return RUN_XP_FLOOR + skillXp(result) + breadth;
 }

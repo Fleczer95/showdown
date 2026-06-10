@@ -50,7 +50,14 @@ describe('runXp', () => {
         expect(xp).toBe(RUN_XP_FLOOR + SKILL_CAP);
     });
 
-    it('pays the floor even for a zero-skill run', () => {
-        expect(runXp(result({ gameId: 'the-drop', finalBank: 0 }), true)).toBe(RUN_XP_FLOOR);
+    it('pays no XP for a zero-performance run', () => {
+        expect(runXp(result({ gameId: 'the-drop', finalBank: 0 }), false)).toBe(0);
+        expect(runXp(result({ gameId: 'the-wheel', puzzlesSolved: 0 }), false)).toBe(0);
+    });
+
+    it('pays the floor for a low- but non-zero-performance run', () => {
+        // Tiny bank: skill rounds to 0 but the floor still applies because the run
+        // put something on the board.
+        expect(runXp(result({ gameId: 'the-drop', finalBank: 1000 }), true)).toBe(RUN_XP_FLOOR);
     });
 });

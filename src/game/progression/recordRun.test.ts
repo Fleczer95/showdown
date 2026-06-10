@@ -26,20 +26,21 @@ describe('applyRun — XP and stats', () => {
     });
 
     it('drops the breadth bonus on a second run of the same game that day', () => {
-        const first = applyRun(stats(), result({ gameId: 'the-ladder', rungReached: 0 }), TODAY).stats;
-        const { diff } = applyRun(first, result({ gameId: 'the-ladder', rungReached: 0 }), TODAY);
+        // finalBank 1000 → skill rounds to 0 but performance is non-zero, so the floor applies.
+        const first = applyRun(stats(), result({ gameId: 'the-drop', finalBank: 1000 }), TODAY).stats;
+        const { diff } = applyRun(first, result({ gameId: 'the-drop', finalBank: 1000 }), TODAY);
         expect(diff.xpGained).toBe(RUN_XP_FLOOR);
     });
 
     it('resets the day set and re-awards breadth when the date rolls over', () => {
-        const yesterday = applyRun(stats(), result({ gameId: 'the-ladder', rungReached: 0 }), TODAY).stats;
+        const yesterday = applyRun(stats(), result({ gameId: 'the-drop', finalBank: 1000 }), TODAY).stats;
         const { stats: next, diff } = applyRun(
             yesterday,
-            result({ gameId: 'the-ladder', rungReached: 0 }),
+            result({ gameId: 'the-drop', finalBank: 1000 }),
             '2026-06-11',
         );
         expect(diff.xpGained).toBe(RUN_XP_FLOOR + BREADTH_BONUS);
-        expect(next.todayGameIds).toEqual(['the-ladder']);
+        expect(next.todayGameIds).toEqual(['the-drop']);
         expect(next.datesPlayed).toEqual([TODAY, '2026-06-11']);
     });
 
@@ -58,7 +59,11 @@ describe('applyRun — XP and stats', () => {
 
 describe('applyRun — level-ups and rewards', () => {
     it('reports a level-up and the crossed level', () => {
-        const { diff } = applyRun(stats({ lifetimeXp: 140 }), result({ gameId: 'the-drop', finalBank: 0 }), TODAY);
+        const { diff } = applyRun(
+            stats({ lifetimeXp: 140, todayGameIds: ['the-drop'] }),
+            result({ gameId: 'the-drop', finalBank: 1000 }),
+            TODAY,
+        );
         expect(diff.previousLevel).toBe(1);
         expect(diff.level).toBe(2); // 140 + 50 floor = 190 ≥ 150
         expect(diff.leveledUp).toBe(true);
@@ -68,7 +73,7 @@ describe('applyRun — level-ups and rewards', () => {
         // 3550 + (floor 50) = 3600 → crosses the L8 champion theme node.
         const { diff } = applyRun(
             stats({ lifetimeXp: 3550, today: TODAY, todayGameIds: ['the-drop'] }),
-            result({ gameId: 'the-drop', finalBank: 0 }),
+            result({ gameId: 'the-drop', finalBank: 1000 }),
             TODAY,
         );
         expect(diff.newRewards).toEqual(['theme-champion']);
@@ -77,8 +82,8 @@ describe('applyRun — level-ups and rewards', () => {
 
 describe('applyRun — achievements pay XP into the spine', () => {
     it('completes Contestant Bronze on the 10th run and adds its XP', () => {
-        const nine = stats({ runsPlayed: 9, today: TODAY, todayGameIds: ['the-ladder'] });
-        const { stats: next, diff } = applyRun(nine, result({ gameId: 'the-ladder', rungReached: 0 }), TODAY);
+        const nine = stats({ runsPlayed: 9, today: TODAY, todayGameIds: ['the-drop'] });
+        const { stats: next, diff } = applyRun(nine, result({ gameId: 'the-drop', finalBank: 1000 }), TODAY);
         expect(diff.newAchievements).toContain('contestant-bronze');
         // floor only (already played today) + the bronze achievement XP
         expect(diff.xpGained).toBe(RUN_XP_FLOOR + ACHIEVEMENT_XP_TIERS.bronze);

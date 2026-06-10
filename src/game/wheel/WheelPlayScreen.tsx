@@ -324,7 +324,9 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
 
     const puzzle = currentPuzzle(game);
     // During the brief resolve beat, show the full answer so a miss reads clearly.
-    const masked = phase === 'resolving' ? puzzle.phrase : maskedPhrase(game);
+    // We add extra spaces between words to make it easier to read.
+    const rawMasked = phase === 'resolving' ? puzzle.phrase : maskedPhrase(game);
+    const masked = rawMasked.replace(/ /g, '   ');
     const canSolve = !isFullyRevealed(game);
 
     return (
@@ -568,7 +570,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     phrase: {
-        letterSpacing: 2,
+        letterSpacing: 4,
     },
     keyboard: {
         flexDirection: 'row',

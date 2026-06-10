@@ -76,6 +76,7 @@ function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
 
 export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const insets = useSafeAreaInsets();
     const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
@@ -280,7 +281,14 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             bankruptRecovered: bankruptRecovered.current,
         };
         return (
-            <ScrollView style={styles.flex} contentContainerStyle={styles.gameOver} keyboardShouldPersistTaps='handled'>
+            <ScrollView
+                style={styles.flex}
+                contentContainerStyle={[
+                    styles.gameOver,
+                    { paddingBottom: Math.max(insets.bottom, 24) + 24 },
+                ]}
+                keyboardShouldPersistTaps='handled'
+            >
                 <GameOverCard gameId={GAME_ID}>
                     {({ accent, onAccent }) => (
                         <>
@@ -334,7 +342,10 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         <ScrollView
             contentContainerStyle={[
                 styles.content,
-                { padding: t.spacing.lg, paddingBottom: t.spacing.xxl + t.spacing.lg },
+                {
+                    padding: t.spacing.lg,
+                    paddingBottom: Math.max(insets.bottom, t.spacing.lg) + t.spacing.xxl,
+                },
             ]}
             keyboardShouldPersistTaps='handled'
         >

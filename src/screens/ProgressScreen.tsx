@@ -8,7 +8,7 @@ import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
-import ProgressBar from '../components/molecules/ProgressBar';
+import SegmentedProgress from '../components/molecules/SegmentedProgress';
 import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
@@ -68,7 +68,7 @@ export function ProgressScreen() {
                                 {t('progression.xp', { n: stats.lifetimeXp.toLocaleString(locale) })}
                             </Text>
                         </Stack>
-                        <ProgressBar progress={fill} color={accent} glowColor={accent} />
+                        <SegmentedProgress progress={fill} color={accent} />
                         <Text variant='caption' color='textMuted'>
                             {progress.nextLevelXp === null
                                 ? t('progression.maxLevel')

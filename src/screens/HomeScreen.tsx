@@ -15,6 +15,7 @@ import { useTranslation } from '../i18n';
 import { games, GAME_ICONS, type Game } from '../data/games';
 import { useProgression } from '../hooks/useProgression';
 import Pressable from '../components/atoms/HapticPressable';
+import SegmentedProgress from '../components/molecules/SegmentedProgress';
 
 /**
  * Accent-forward game card: a dark elevated card whose per-game color shows up
@@ -118,9 +119,6 @@ function Wordmark() {
     );
 }
 
-/** Number of segments in the level progress meter. */
-const LEVEL_SEGMENTS = 12;
-
 /**
  * Full-width level progress strip for the Home header: a solid level chip, a row
  * of glowing segmented pips (▰▰▰▱▱), then the XP count. Sits on its own row below
@@ -132,9 +130,6 @@ function LevelBar({ onPress }: { onPress: () => void }) {
     const { t } = useTranslation();
     const { level, progress } = useProgression();
     const fill = progress.span > 0 ? Math.max(0, Math.min(1, progress.intoLevel / progress.span)) : 1;
-    const filledExact = fill * LEVEL_SEGMENTS;
-    const fullPips = Math.floor(filledExact);
-    const partial = filledExact - fullPips; // fractional fill of the leading segment (0–1)
 
     return (
         <Pressable
@@ -143,9 +138,12 @@ function LevelBar({ onPress }: { onPress: () => void }) {
             accessibilityLabel={t('progression.title')}
             style={[
                 styles.levelBar,
+                theme.shadows.sm,
                 {
                     backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderRadius: theme.radii.full,
+                    borderWidth: 1,
+                    borderColor: hexToRgba(theme.colors.primary, 0.18),
                 },
             ]}
         >
@@ -154,46 +152,7 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                     {t('progression.levelShort', { n: level })}
                 </Text>
             </View>
-            <View style={styles.levelPips}>
-                {Array.from({ length: LEVEL_SEGMENTS }).map((_, i) => {
-                    if (i < fullPips) {
-                        return (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.levelPip,
-                                    { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary },
-                                ]}
-                            />
-                        );
-                    }
-                    if (i === fullPips && partial > 0) {
-                        return (
-                            <View
-                                key={i}
-                                style={[styles.levelPip, { backgroundColor: hexToRgba(theme.colors.primary, 0.2) }]}
-                            >
-                                <View
-                                    style={[
-                                        styles.levelPipPartial,
-                                        {
-                                            width: `${partial * 100}%`,
-                                            backgroundColor: theme.colors.primary,
-                                            shadowColor: theme.colors.primary,
-                                        },
-                                    ]}
-                                />
-                            </View>
-                        );
-                    }
-                    return (
-                        <View
-                            key={i}
-                            style={[styles.levelPip, { backgroundColor: hexToRgba(theme.colors.primary, 0.2) }]}
-                        />
-                    );
-                })}
-            </View>
+            <SegmentedProgress progress={fill} color='primary' style={styles.levelPips} />
             {progress.span > 0 ? (
                 <Text variant='caption' weight='bold' color='textSecondary'>
                     {`${progress.intoLevel}/${progress.span}`}
@@ -288,10 +247,10 @@ const styles = StyleSheet.create({
     levelBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
-        height: 40,
-        paddingLeft: 6,
-        paddingRight: 14,
+        gap: 12,
+        height: 44,
+        paddingLeft: 8,
+        paddingRight: 16,
     },
     levelChip: {
         paddingHorizontal: 12,
@@ -301,23 +260,6 @@ const styles = StyleSheet.create({
     },
     levelPips: {
         flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    levelPip: {
-        flex: 1,
-        height: 8,
-        borderRadius: 9999,
-        overflow: 'hidden',
-        shadowOpacity: 0.6,
-        shadowRadius: 4,
-        shadowOffset: { width: 0, height: 0 },
-        elevation: 3,
-    },
-    levelPipPartial: {
-        height: 8,
-        borderRadius: 9999,
     },
     iconContainer: {
         width: 56,

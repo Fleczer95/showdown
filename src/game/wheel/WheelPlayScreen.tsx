@@ -101,6 +101,9 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const sawBankruptThisPuzzle = useRef(false);
     const bankruptRecovered = useRef(false);
 
+    // Timer refs for cleanup on unmount
+    const resolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Mark each puzzle shown the moment it begins (display-time), and restart the
     // solve timer + clean-solve tracking. Fires once per puzzle actually reached,
     // so quitting early only marks puzzles played.
@@ -110,6 +113,10 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         decisionStartedAt.current = Date.now();
         boughtVowel.current = false;
         sawBankruptThisPuzzle.current = false;
+
+        return () => {
+            if (resolveTimer.current) clearTimeout(resolveTimer.current);
+        };
     }, [currentId]);
 
     const rotation = useSharedValue(0);
@@ -139,10 +146,11 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             setSolveMode(false);
             setSpinValue(0);
             setPhase('resolving');
-            setTimeout(() => {
+            resolveTimer.current = setTimeout(() => {
                 setGame(next);
                 resetTurnInputs();
                 setStatus('');
+                resolveTimer.current = null;
             }, 800);
         },
         [resetTurnInputs],
@@ -234,10 +242,11 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         setStatus('✗');
         setSolveMode(false);
         setPhase('resolving');
-        setTimeout(() => {
+        resolveTimer.current = setTimeout(() => {
             setGame(next);
             resetTurnInputs();
             setStatus('');
+            resolveTimer.current = null;
         }, 1400);
     }, [game, solveText, finishSolvedPuzzle, resetTurnInputs]);
 

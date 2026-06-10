@@ -505,7 +505,7 @@
     },
     "progression": {
         "title": "Postępy",
-        "levelShort": "Poz. %{n}",
+        "levelShort": "Lv %{n}",
         "level": "Poziom %{n}",
         "xp": "%{n} XP",
         "toNextLevel": "%{n} XP do poziomu %{m}",

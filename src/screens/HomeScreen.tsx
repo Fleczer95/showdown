@@ -149,6 +149,11 @@ function LevelBar({ onPress }: { onPress: () => void }) {
             <View style={[styles.levelBarTrack, { backgroundColor: hexToRgba(theme.colors.primary, 0.25) }]}>
                 <View style={[styles.levelBarFill, { width: `${fill * 100}%`, backgroundColor: theme.colors.primary }]} />
             </View>
+            {progress.span > 0 ? (
+                <Text variant='caption' weight='bold' color='textSecondary'>
+                    {`${progress.intoLevel} / ${t('progression.xp', { n: progress.span })}`}
+                </Text>
+            ) : null}
         </Pressable>
     );
 }
@@ -184,7 +189,7 @@ export function HomeScreen() {
             >
                 <View style={{ gap: theme.spacing.md }}>
                     <View style={styles.header}>
-                        <View style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
+                        <View style={[styles.titleContainer, { paddingLeft: theme.spacing.md }]}>
                             <Wordmark />
                         </View>
                         <View style={styles.headerActions}>

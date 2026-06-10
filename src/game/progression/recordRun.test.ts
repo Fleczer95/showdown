@@ -43,16 +43,16 @@ describe('applyRun — XP and stats', () => {
         expect(next.datesPlayed).toEqual([TODAY, '2026-06-11']);
     });
 
-    it('records wins and best single-run score', () => {
+    it('records wins and best single-run score per game', () => {
         const { stats: next } = applyRun(stats(), result({ gameId: 'the-drop', won: true, score: 12345 }), TODAY);
         expect(next.winsByGame).toEqual({ 'the-drop': 1 });
-        expect(next.bestSingleRunScore).toBe(12345);
+        expect(next.bestScoreByGame).toEqual({ 'the-drop': 12345 });
     });
 
     it('does not lower the best score on a weaker later run', () => {
         const strong = applyRun(stats(), result({ gameId: 'the-drop', score: 9000 }), TODAY).stats;
         const { stats: next } = applyRun(strong, result({ gameId: 'the-drop', score: 100 }), TODAY);
-        expect(next.bestSingleRunScore).toBe(9000);
+        expect(next.bestScoreByGame['the-drop']).toBe(9000);
     });
 });
 

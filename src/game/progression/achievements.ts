@@ -3,7 +3,7 @@
 //
 // Two kinds:
 //  - Cumulative — derived straight from aggregate stats, so they stay unlocked and
-//    are retroactive (Contestant, On a Roll, Regular, Winner, Big Scorer, Well-Rounded).
+//    are retroactive (Contestant, On a Roll, Regular, Winner, the per-game Scorers, Well-Rounded).
 //  - Feats — momentary skill/breadth moments that can't be derived from aggregates,
 //    so recordRun records them into `stats.feats` (monotonic) via `detectFeats`.
 
@@ -34,7 +34,12 @@ export const ACHIEVEMENT_FAMILIES: readonly AchievementFamily[] = [
     { family: 'on-a-roll', axis: (s) => longestStreak(s.datesPlayed), thresholds: [3, 7, 30] },
     { family: 'regular', axis: (s) => s.datesPlayed.length, thresholds: [5, 15, 40] },
     { family: 'winner', axis: totalWins, thresholds: [5, 25, 100] },
-    { family: 'big-scorer', axis: (s) => s.bestSingleRunScore, thresholds: [5000, 20000, 50000] },
+    // Per-game best-run score. Scores aren't normalized across games (The Drop is
+    // denominated in bank currency, ~100× the Ladder/Wheel point scales), so each
+    // game gets its own family calibrated to its own ceiling.
+    { family: 'ladder-scorer', axis: (s) => s.bestScoreByGame['the-ladder'] ?? 0, thresholds: [8000, 15000, 22000] },
+    { family: 'drop-scorer', axis: (s) => s.bestScoreByGame['the-drop'] ?? 0, thresholds: [200000, 600000, 1200000] },
+    { family: 'wheel-scorer', axis: (s) => s.bestScoreByGame['the-wheel'] ?? 0, thresholds: [5000, 10000, 18000] },
 ];
 
 const TIER_NAMES = ['bronze', 'silver', 'gold'] as const;

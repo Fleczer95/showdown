@@ -535,14 +535,18 @@
             "on-a-roll": "On a Roll",
             "regular": "Regular",
             "winner": "Winner",
-            "big-scorer": "Big Scorer"
+            "ladder-scorer": "Ladder Scorer",
+            "drop-scorer": "Drop Scorer",
+            "wheel-scorer": "Wheel Scorer"
         },
         "requirement": {
             "contestant": "Play %{n} runs",
             "on-a-roll": "Reach a %{n}-day streak",
             "regular": "Play on %{n} separate days",
             "winner": "Win %{n} games",
-            "big-scorer": "Score %{n} in a single run"
+            "ladder-scorer": "Score %{n} in a single Ladder run",
+            "drop-scorer": "Score %{n} in a single Drop run",
+            "wheel-scorer": "Score %{n} in a single Wheel run"
         },
         "oneoff": {
             "well-rounded": "Well-Rounded",

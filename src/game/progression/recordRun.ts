@@ -17,7 +17,7 @@ export function defaultStats(): ProgressionStats {
         datesPlayed: [],
         today: '',
         todayGameIds: [],
-        bestSingleRunScore: 0,
+        bestScoreByGame: {},
         feats: [],
     };
 }
@@ -49,6 +49,9 @@ export function applyRun(
     const datesPlayed = prev.datesPlayed.includes(today) ? [...prev.datesPlayed] : [...prev.datesPlayed, today];
     if (!alreadyPlayed) todayGameIds.push(result.gameId);
 
+    const bestScoreByGame = { ...prev.bestScoreByGame };
+    bestScoreByGame[result.gameId] = Math.max(bestScoreByGame[result.gameId] ?? 0, result.score);
+
     // Feats: per-run feats, plus Triple Threat once all three games are played today.
     const feats = new Set(prev.feats);
     for (const id of detectFeats(result)) feats.add(id);
@@ -61,7 +64,7 @@ export function applyRun(
         datesPlayed,
         today,
         todayGameIds,
-        bestSingleRunScore: Math.max(prev.bestSingleRunScore, result.score),
+        bestScoreByGame,
         feats: [...feats],
     };
 

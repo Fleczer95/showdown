@@ -56,8 +56,8 @@ export interface ProgressionStats {
     today: string;
     /** gameIds already played on `today` (resets when the date rolls over). */
     todayGameIds: string[];
-    /** Best single-run unified score. Powers "Big Scorer". */
-    bestSingleRunScore: number;
+    /** Best single-run score per gameId. Powers the per-game Scorer families. */
+    bestScoreByGame: Record<string, number>;
     /** Momentary feats already earned — monotonic; not derivable from aggregates. */
     feats: string[];
 }

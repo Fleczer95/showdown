@@ -535,14 +535,18 @@
             "on-a-roll": "Dobra passa",
             "regular": "Bywalec",
             "winner": "Zwycięzca",
-            "big-scorer": "Wysoki wynik"
+            "ladder-scorer": "Wynik w Drabinie",
+            "drop-scorer": "Wynik w Zrzucie",
+            "wheel-scorer": "Wynik w Kole"
         },
         "requirement": {
             "contestant": "Rozegraj %{n} rozgrywek",
             "on-a-roll": "Osiągnij passę %{n} dni",
             "regular": "Zagraj w %{n} różnych dniach",
             "winner": "Wygraj %{n} gier",
-            "big-scorer": "Zdobądź %{n} punktów w jednej rozgrywce"
+            "ladder-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Drabiny",
+            "drop-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Zrzutu",
+            "wheel-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Koła"
         },
         "oneoff": {
             "well-rounded": "Wszechstronny",

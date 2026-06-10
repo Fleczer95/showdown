@@ -17,7 +17,7 @@ function stats(overrides: Partial<ProgressionStats> = {}): ProgressionStats {
         datesPlayed: [],
         today: '2026-06-10',
         todayGameIds: [],
-        bestSingleRunScore: 0,
+        bestScoreByGame: {},
         feats: [],
         ...overrides,
     };
@@ -28,9 +28,9 @@ function result(overrides: Partial<GameRunResult> & Pick<GameRunResult, 'gameId'
 }
 
 describe('ACHIEVEMENTS catalog', () => {
-    it('defines exactly 25 achievements with unique ids', () => {
-        expect(ACHIEVEMENTS).toHaveLength(25);
-        expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(25);
+    it('defines exactly 31 achievements with unique ids', () => {
+        expect(ACHIEVEMENTS).toHaveLength(31);
+        expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(31);
     });
 
     it('pays tier and one-off XP per the spec', () => {
@@ -69,10 +69,19 @@ describe('achievementsUnlocked — tiered families', () => {
         ).toBe(true);
     });
 
-    it('Big Scorer unlocks on best single-run score (5k / 20k / 50k)', () => {
-        expect(achievementsUnlocked(stats({ bestSingleRunScore: 5000 })).has('big-scorer-bronze')).toBe(true);
-        expect(achievementsUnlocked(stats({ bestSingleRunScore: 49999 })).has('big-scorer-gold')).toBe(false);
-        expect(achievementsUnlocked(stats({ bestSingleRunScore: 50000 })).has('big-scorer-gold')).toBe(true);
+    it('per-game Scorer families unlock on that game\'s best run, calibrated per scale', () => {
+        const ladder = achievementsUnlocked(stats({ bestScoreByGame: { 'the-ladder': 15000 } }));
+        expect(ladder.has('ladder-scorer-silver')).toBe(true);
+        expect(ladder.has('ladder-scorer-gold')).toBe(false);
+        // The same point total clears nothing on The Drop's (much larger) scale.
+        expect(ladder.has('drop-scorer-bronze')).toBe(false);
+
+        expect(achievementsUnlocked(stats({ bestScoreByGame: { 'the-drop': 1200000 } })).has('drop-scorer-gold')).toBe(
+            true,
+        );
+        expect(achievementsUnlocked(stats({ bestScoreByGame: { 'the-wheel': 18000 } })).has('wheel-scorer-gold')).toBe(
+            true,
+        );
     });
 });
 

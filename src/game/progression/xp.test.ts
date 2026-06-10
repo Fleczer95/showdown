@@ -27,7 +27,12 @@ describe('performanceFraction', () => {
     it('clamps to 0..1 and treats missing facts as 0', () => {
         expect(performanceFraction(result({ gameId: 'the-ladder' }))).toBe(0);
         expect(performanceFraction(result({ gameId: 'the-drop', finalBank: 2_000_000 }))).toBe(1);
-        expect(performanceFraction(result({ gameId: 'unknown-game', score: 999 }))).toBe(0);
+    });
+
+    it('throws on an unrecognized gameId so a new game can not silently earn 0 XP', () => {
+        expect(() => performanceFraction(result({ gameId: 'unknown-game', score: 999 }))).toThrow(
+            /no XP rule for gameId/,
+        );
     });
 });
 

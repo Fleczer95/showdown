@@ -5,7 +5,9 @@ import type { GameRunResult } from './types';
 
 /**
  * Each game's own normalized result, in 0..1, so games are comparable despite
- * wildly different raw scales. Missing facts and unknown games read as 0.
+ * wildly different raw scales. Missing facts read as 0. An unrecognized gameId is
+ * a wiring bug (a new game added without an XP rule here) — throw so it surfaces in
+ * tests/dev rather than silently paying that game 0 XP forever.
  */
 export function performanceFraction(result: GameRunResult): number {
     let raw: number;
@@ -20,7 +22,7 @@ export function performanceFraction(result: GameRunResult): number {
             raw = (result.puzzlesSolved ?? 0) / 3;
             break;
         default:
-            raw = 0;
+            throw new Error(`performanceFraction: no XP rule for gameId "${result.gameId}"`);
     }
     return Math.max(0, Math.min(1, raw));
 }

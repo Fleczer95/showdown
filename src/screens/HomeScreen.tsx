@@ -119,10 +119,11 @@ function Wordmark() {
 }
 
 /**
- * Compact level chip for the Home header: "Lv N ▰▰▱". Opens the Progress screen,
- * the home for the Level Map, achievements and earned cosmetics.
+ * Full-width level progress strip for the Home header: "Poz. N ▰▰▰▱▱▱". Sits on its
+ * own row below the wordmark so it never competes for width. Opens the Progress
+ * screen, the home for the Level Map, achievements and earned cosmetics.
  */
-function LevelChip({ onPress }: { onPress: () => void }) {
+function LevelBar({ onPress }: { onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
     const { level, progress } = useProgression();
@@ -134,9 +135,9 @@ function LevelChip({ onPress }: { onPress: () => void }) {
             haptic='light'
             accessibilityLabel={t('progression.title')}
             style={[
-                styles.levelChip,
+                styles.levelBar,
                 {
-                    backgroundColor: hexToRgba(theme.colors.primary, 0.16),
+                    backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderRadius: theme.radii.full,
                     paddingHorizontal: theme.spacing.md,
                 },
@@ -145,8 +146,8 @@ function LevelChip({ onPress }: { onPress: () => void }) {
             <Text variant='caption' weight='bold' color={theme.colors.primary}>
                 {t('progression.levelShort', { n: level })}
             </Text>
-            <View style={[styles.levelChipTrack, { backgroundColor: hexToRgba(theme.colors.primary, 0.25) }]}>
-                <View style={[styles.levelChipFill, { width: `${fill * 100}%`, backgroundColor: theme.colors.primary }]} />
+            <View style={[styles.levelBarTrack, { backgroundColor: hexToRgba(theme.colors.primary, 0.25) }]}>
+                <View style={[styles.levelBarFill, { width: `${fill * 100}%`, backgroundColor: theme.colors.primary }]} />
             </View>
         </Pressable>
     );
@@ -181,25 +182,27 @@ export function HomeScreen() {
                 contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.header}>
-                    <View style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
-                        <Wordmark />
+                <View style={{ gap: theme.spacing.md }}>
+                    <View style={styles.header}>
+                        <View style={[styles.titleContainer, { paddingLeft: theme.spacing.xs }]}>
+                            <Wordmark />
+                        </View>
+                        <View style={styles.headerActions}>
+                            <IconButton
+                                icon={<ShoppingBag size={24} color={theme.colors.text} />}
+                                onPress={() => navigation.navigate('Store')}
+                                size='md'
+                                accessibilityLabel={t('screen.home.store')}
+                            />
+                            <IconButton
+                                icon={<Settings size={24} color={theme.colors.text} />}
+                                onPress={() => navigation.navigate('Settings')}
+                                size='md'
+                                accessibilityLabel={t('screen.home.settings')}
+                            />
+                        </View>
                     </View>
-                    <View style={styles.headerActions}>
-                        <LevelChip onPress={() => navigation.navigate('Progress')} />
-                        <IconButton
-                            icon={<ShoppingBag size={24} color={theme.colors.text} />}
-                            onPress={() => navigation.navigate('Store')}
-                            size='md'
-                            accessibilityLabel={t('screen.home.store')}
-                        />
-                        <IconButton
-                            icon={<Settings size={24} color={theme.colors.text} />}
-                            onPress={() => navigation.navigate('Settings')}
-                            size='md'
-                            accessibilityLabel={t('screen.home.settings')}
-                        />
-                    </View>
+                    <LevelBar onPress={() => navigation.navigate('Progress')} />
                 </View>
 
                 <Stack gap='lg'>
@@ -232,20 +235,20 @@ const styles = StyleSheet.create({
         gap: 8,
         alignItems: 'center',
     },
-    levelChip: {
+    levelBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        height: 32,
+        gap: 10,
+        height: 36,
     },
-    levelChipTrack: {
-        width: 36,
-        height: 5,
+    levelBarTrack: {
+        flex: 1,
+        height: 6,
         borderRadius: 9999,
         overflow: 'hidden',
     },
-    levelChipFill: {
-        height: 5,
+    levelBarFill: {
+        height: 6,
         borderRadius: 9999,
     },
     iconContainer: {

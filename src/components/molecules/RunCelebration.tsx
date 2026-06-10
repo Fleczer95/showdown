@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Sparkles, ArrowUpCircle, Award } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
@@ -9,6 +9,7 @@ import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n';
 import { recordRun, levelProgress, type GameRunResult, type RecordRunDiff } from '../../game/progression';
+import { SafeAnalytics } from '../../utils/firebase/init';
 
 /**
  * Inline game-over celebration: records the finished run (exactly once on mount,
@@ -21,6 +22,16 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
 
     // Lazy initializer → recordRun runs once per finished run, never on re-render.
     const [diff] = useState<RecordRunDiff>(() => recordRun(result));
+
+    // Report a level-up exactly once, when this run crossed a threshold.
+    useEffect(() => {
+        if (diff.leveledUp) {
+            SafeAnalytics.logEvent({
+                name: 'level_up',
+                params: { from_level: diff.previousLevel, to_level: diff.level, lifetime_xp: diff.lifetimeXp },
+            });
+        }
+    }, [diff]);
 
     const band = levelProgress(diff.lifetimeXp);
     const fill = band.span > 0 ? band.intoLevel / band.span : 1;

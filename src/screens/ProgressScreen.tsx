@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, Check, Lock, Sparkles, Star } from 'lucide-react-native';
+import { ChevronLeft, Check, Lock, Map, Sparkles, Star, Trophy } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
+import ToggleGroup from '../components/molecules/ToggleGroup';
 import SegmentedProgress from '../components/molecules/SegmentedProgress';
 import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
@@ -25,11 +26,14 @@ function achievementLabel(t: (key: string, o?: any) => string, id: string): stri
     return t(`progression.oneoff.${id}`);
 }
 
+type ProgressTab = 'map' | 'achievements';
+
 export function ProgressScreen() {
     const navigation = useNavigation();
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { level, progress, unlockedRewards, achievements, stats } = useProgression();
+    const [tab, setTab] = useState<ProgressTab>('map');
 
     const accent = theme.colors.primary;
     const fill = progress.span > 0 ? progress.intoLevel / progress.span : 1;
@@ -49,15 +53,8 @@ export function ProgressScreen() {
                 <View style={styles.headerSpacer} />
             </View>
 
-            <ScrollView
-                contentContainerStyle={{
-                    paddingHorizontal: theme.spacing.xl,
-                    paddingBottom: theme.spacing.xxl,
-                    gap: theme.spacing.xl,
-                }}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Level summary */}
+            {/* Level summary + tabs (fixed above the scrollable section) */}
+            <View style={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }}>
                 <Card variant='elevated' padding='lg'>
                     <Stack gap='sm'>
                         <Stack direction='horizontal' justify='between' align='center'>
@@ -80,12 +77,27 @@ export function ProgressScreen() {
                     </Stack>
                 </Card>
 
-                {/* Level Map */}
-                <Stack gap='sm'>
-                    <Text variant='overline' weight='semibold' color='textSecondary'>
-                        {t('progression.mapTitle')}
-                    </Text>
-                    {LEVEL_MAP.map((node) => {
+                <ToggleGroup
+                    value={tab}
+                    onChange={(value) => setTab(value as ProgressTab)}
+                    options={[
+                        { value: 'map', label: t('progression.mapTitle'), icon: Map },
+                        { value: 'achievements', label: t('progression.achievementsTitle'), icon: Trophy },
+                    ]}
+                />
+            </View>
+
+            <ScrollView
+                contentContainerStyle={{
+                    paddingHorizontal: theme.spacing.xl,
+                    paddingTop: theme.spacing.md,
+                    paddingBottom: theme.spacing.xxl,
+                    gap: theme.spacing.sm,
+                }}
+                showsVerticalScrollIndicator={false}
+            >
+                {tab === 'map' &&
+                    LEVEL_MAP.map((node) => {
                         const reached = level >= node.level;
                         const isReward = !!node.rewardId;
                         const rewardName = node.rewardId
@@ -121,12 +133,17 @@ export function ProgressScreen() {
                                             {t('progression.level', { n: node.level })}
                                         </Text>
                                         <Text variant='caption' color='textMuted'>
-                                            {isReward
-                                                ? `${t('progression.rewardTheme')}: ${rewardName} ✦`
-                                                : node.reserved
-                                                  ? t('progression.reserved')
-                                                  : t('progression.xp', { n: node.xp.toLocaleString(locale) })}
+                                            {t('progression.xp', { n: node.xp.toLocaleString(locale) })}
                                         </Text>
+                                        {isReward ? (
+                                            <Text variant='caption' color='textMuted'>
+                                                {`${t('progression.rewardTheme')}: ${rewardName} ✦`}
+                                            </Text>
+                                        ) : node.reserved ? (
+                                            <Text variant='caption' color='textMuted'>
+                                                {t('progression.reserved')}
+                                            </Text>
+                                        ) : null}
                                     </Stack>
                                     {isReward ? (
                                         <Icon
@@ -141,19 +158,15 @@ export function ProgressScreen() {
                             </Card>
                         );
                     })}
-                </Stack>
 
-                {/* Achievements */}
-                <Stack gap='sm'>
-                    <Stack direction='horizontal' justify='between' align='center'>
-                        <Text variant='overline' weight='semibold' color='textSecondary'>
-                            {t('progression.achievementsTitle')}
-                        </Text>
-                        <Text variant='caption' color='textMuted'>
-                            {t('progression.achievementsCount', { n: achievements.size, m: ACHIEVEMENTS.length })}
-                        </Text>
-                    </Stack>
-                    <View style={styles.grid}>
+                {tab === 'achievements' && (
+                    <Stack gap='sm'>
+                        <Stack direction='horizontal' justify='end' align='center'>
+                            <Text variant='caption' color='textMuted'>
+                                {t('progression.achievementsCount', { n: achievements.size, m: ACHIEVEMENTS.length })}
+                            </Text>
+                        </Stack>
+                        <View style={styles.grid}>
                         {ACHIEVEMENTS.map((a) => {
                             const done = achievements.has(a.id);
                             return (
@@ -176,8 +189,9 @@ export function ProgressScreen() {
                                 </Card>
                             );
                         })}
-                    </View>
-                </Stack>
+                        </View>
+                    </Stack>
+                )}
             </ScrollView>
         </SafeContainer>
     );

@@ -21,17 +21,52 @@ export interface AchievementDef {
 const totalWins = (s: ProgressionStats) => Object.values(s.winsByGame).reduce((sum, n) => sum + n, 0);
 const distinctGamesWon = (s: ProgressionStats) => Object.values(s.winsByGame).filter((n) => n > 0).length;
 
-/** Build a Bronze/Silver/Gold trio from a numeric axis and its three thresholds. */
-function tiers(
-    family: string,
-    axis: (s: ProgressionStats) => number,
-    [bronze, silver, gold]: [number, number, number],
-): AchievementDef[] {
-    return [
-        { id: `${family}-bronze`, xp: ACHIEVEMENT_XP_TIERS.bronze, test: (s) => axis(s) >= bronze },
-        { id: `${family}-silver`, xp: ACHIEVEMENT_XP_TIERS.silver, test: (s) => axis(s) >= silver },
-        { id: `${family}-gold`, xp: ACHIEVEMENT_XP_TIERS.gold, test: (s) => axis(s) >= gold },
-    ];
+/** A Bronze/Silver/Gold family: one numeric axis with three escalating thresholds. */
+export interface AchievementFamily {
+    family: string;
+    axis: (s: ProgressionStats) => number;
+    thresholds: [number, number, number];
+}
+
+/** The tiered families, in display order — the single source of truth for tiers. */
+export const ACHIEVEMENT_FAMILIES: readonly AchievementFamily[] = [
+    { family: 'contestant', axis: (s) => s.runsPlayed, thresholds: [10, 50, 200] },
+    { family: 'on-a-roll', axis: (s) => longestStreak(s.datesPlayed), thresholds: [3, 7, 30] },
+    { family: 'regular', axis: (s) => s.datesPlayed.length, thresholds: [5, 15, 40] },
+    { family: 'winner', axis: totalWins, thresholds: [5, 25, 100] },
+    { family: 'big-scorer', axis: (s) => s.bestSingleRunScore, thresholds: [5000, 20000, 50000] },
+];
+
+const TIER_NAMES = ['bronze', 'silver', 'gold'] as const;
+const TIER_XP = [ACHIEVEMENT_XP_TIERS.bronze, ACHIEVEMENT_XP_TIERS.silver, ACHIEVEMENT_XP_TIERS.gold];
+
+/** Build the Bronze/Silver/Gold trio of defs for a family. */
+function tiers({ family, axis, thresholds }: AchievementFamily): AchievementDef[] {
+    return TIER_NAMES.map((tier, i) => ({
+        id: `${family}-${tier}`,
+        xp: TIER_XP[i],
+        test: (s: ProgressionStats) => axis(s) >= thresholds[i],
+    }));
+}
+
+export interface FamilyProgress {
+    /** How many of the three tiers are earned (0–3). */
+    earnedTiers: number;
+    /** Current value on the family's axis. */
+    current: number;
+    /** Threshold of the next unearned tier, or null when all three are earned. */
+    nextTarget: number | null;
+    /** 0–1 toward the next tier (1 when fully maxed). */
+    fraction: number;
+}
+
+/** Pure progress summary for a tiered family — drives the row + detail sheet. */
+export function familyProgress(fam: AchievementFamily, stats: ProgressionStats): FamilyProgress {
+    const current = fam.axis(stats);
+    const earnedTiers = fam.thresholds.filter((threshold) => current >= threshold).length;
+    const nextTarget = earnedTiers < 3 ? fam.thresholds[earnedTiers] : null;
+    const fraction = nextTarget === null ? 1 : Math.max(0, Math.min(1, current / nextTarget));
+    return { earnedTiers, current, nextTarget, fraction };
 }
 
 /** Ids of the momentary feats — kept in sync with `detectFeats`. */
@@ -53,13 +88,12 @@ const feat = (id: string): AchievementDef => ({
     test: (s) => s.feats.includes(id),
 });
 
+/** One-off (non-tiered) achievement ids, in display order: Well-Rounded + the feats. */
+export const ONE_OFF_IDS = ['well-rounded', ...FEAT_IDS] as const;
+
 export const ACHIEVEMENTS: readonly AchievementDef[] = [
     // Tiered families (15)
-    ...tiers('contestant', (s) => s.runsPlayed, [10, 50, 200]),
-    ...tiers('on-a-roll', (s) => longestStreak(s.datesPlayed), [3, 7, 30]),
-    ...tiers('regular', (s) => s.datesPlayed.length, [5, 15, 40]),
-    ...tiers('winner', totalWins, [5, 25, 100]),
-    ...tiers('big-scorer', (s) => s.bestSingleRunScore, [5000, 20000, 50000]),
+    ...ACHIEVEMENT_FAMILIES.flatMap(tiers),
 
     // One-offs (10): Well-Rounded is derivable; the rest are recorded feats.
     { id: 'well-rounded', xp: ACHIEVEMENT_XP_ONE_OFF, test: (s) => distinctGamesWon(s) >= 3 },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, Check, Lock, Map, Sparkles, Star, Trophy } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -7,24 +7,16 @@ import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
+import ProgressBar from '../components/molecules/ProgressBar';
 import IconButton from '../components/molecules/IconButton';
 import ToggleGroup from '../components/molecules/ToggleGroup';
 import SegmentedProgress from '../components/molecules/SegmentedProgress';
+import AchievementDetailSheet, { type SelectedAchievement } from '../components/molecules/AchievementDetailSheet';
 import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { useProgression } from '../hooks/useProgression';
-import { LEVEL_MAP, ACHIEVEMENTS } from '../game/progression';
-
-/** Human label for an achievement id (tiered families compose family + tier). */
-function achievementLabel(t: (key: string, o?: any) => string, id: string): string {
-    const tierMatch = id.match(/-(bronze|silver|gold)$/);
-    if (tierMatch) {
-        const family = id.slice(0, id.length - tierMatch[0].length);
-        return `${t(`progression.family.${family}`)} · ${t(`progression.tier.${tierMatch[1]}`)}`;
-    }
-    return t(`progression.oneoff.${id}`);
-}
+import { LEVEL_MAP, ACHIEVEMENTS, ACHIEVEMENT_FAMILIES, ONE_OFF_IDS, familyProgress } from '../game/progression';
 
 type ProgressTab = 'map' | 'achievements';
 
@@ -34,6 +26,7 @@ export function ProgressScreen() {
     const { t, locale } = useTranslation();
     const { level, progress, unlockedRewards, achievements, stats } = useProgression();
     const [tab, setTab] = useState<ProgressTab>('map');
+    const [selected, setSelected] = useState<SelectedAchievement>(null);
 
     const accent = theme.colors.primary;
     const fill = progress.span > 0 ? progress.intoLevel / progress.span : 1;
@@ -166,33 +159,95 @@ export function ProgressScreen() {
                                 {t('progression.achievementsCount', { n: achievements.size, m: ACHIEVEMENTS.length })}
                             </Text>
                         </Stack>
-                        <View style={styles.grid}>
-                        {ACHIEVEMENTS.map((a) => {
-                            const done = achievements.has(a.id);
+
+                        <Text variant='caption' weight='bold' color='textMuted'>
+                            {t('progression.challenges')}
+                        </Text>
+                        {ACHIEVEMENT_FAMILIES.map((fam) => {
+                            const prog = familyProgress(fam, stats);
                             return (
-                                <Card
-                                    key={a.id}
-                                    variant='outlined'
-                                    padding='md'
-                                    style={[styles.badge, done ? { borderColor: accent } : { opacity: 0.55 }]}
-                                >
-                                    <Stack gap='xs' align='center'>
-                                        <Icon
-                                            name={done ? Star : Lock}
-                                            size={22}
-                                            color={done ? accent : theme.colors.textMuted}
-                                        />
-                                        <Text variant='caption' weight='semibold' align='center' numberOfLines={2}>
-                                            {achievementLabel(t, a.id)}
-                                        </Text>
-                                    </Stack>
-                                </Card>
+                                <Pressable key={fam.family} onPress={() => setSelected({ kind: 'family', family: fam.family })}>
+                                    <Card variant='outlined' padding='md'>
+                                        <Stack gap='sm'>
+                                            <Stack direction='horizontal' justify='between' align='center'>
+                                                <Text variant='body' weight='semibold'>
+                                                    {t(`progression.family.${fam.family}`)}
+                                                </Text>
+                                                <Stack direction='horizontal' gap='xs' align='center'>
+                                                    {[0, 1, 2].map((i) => (
+                                                        <View
+                                                            key={i}
+                                                            style={[
+                                                                styles.tierPip,
+                                                                {
+                                                                    borderRadius: theme.radii.full,
+                                                                    backgroundColor:
+                                                                        prog.earnedTiers > i
+                                                                            ? accent
+                                                                            : hexToRgba(theme.colors.text, 0.1),
+                                                                },
+                                                            ]}
+                                                        />
+                                                    ))}
+                                                </Stack>
+                                            </Stack>
+                                            <ProgressBar progress={prog.fraction} color={accent} />
+                                            <Text variant='caption' color='textMuted'>
+                                                {prog.nextTarget === null
+                                                    ? t('progression.unlocked')
+                                                    : t('progression.tierCount', {
+                                                          n: prog.current.toLocaleString(locale),
+                                                          m: prog.nextTarget.toLocaleString(locale),
+                                                      })}
+                                            </Text>
+                                        </Stack>
+                                    </Card>
+                                </Pressable>
                             );
                         })}
+
+                        <Text variant='caption' weight='bold' color='textMuted'>
+                            {t('progression.feats')}
+                        </Text>
+                        <View style={styles.grid}>
+                            {ONE_OFF_IDS.map((id) => {
+                                const done = achievements.has(id);
+                                return (
+                                    <Pressable
+                                        key={id}
+                                        style={styles.badge}
+                                        onPress={() => setSelected({ kind: 'oneoff', id })}
+                                    >
+                                        <Card
+                                            variant='outlined'
+                                            padding='md'
+                                            style={[styles.badgeCard, done ? { borderColor: accent } : { opacity: 0.55 }]}
+                                        >
+                                            <Stack gap='xs' align='center'>
+                                                <Icon
+                                                    name={done ? Star : Lock}
+                                                    size={22}
+                                                    color={done ? accent : theme.colors.textMuted}
+                                                />
+                                                <Text variant='caption' weight='semibold' align='center' numberOfLines={2}>
+                                                    {t(`progression.oneoff.${id}`)}
+                                                </Text>
+                                            </Stack>
+                                        </Card>
+                                    </Pressable>
+                                );
+                            })}
                         </View>
                     </Stack>
                 )}
             </ScrollView>
+
+            <AchievementDetailSheet
+                selected={selected}
+                onClose={() => setSelected(null)}
+                stats={stats}
+                unlocked={achievements}
+            />
         </SafeContainer>
     );
 }
@@ -219,9 +274,15 @@ const styles = StyleSheet.create({
     },
     badge: {
         width: '31%',
+    },
+    badgeCard: {
         minHeight: 92,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    tierPip: {
+        width: 10,
+        height: 10,
     },
 });
 

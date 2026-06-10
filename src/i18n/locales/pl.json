@@ -520,6 +520,11 @@
         "xpGained": "+%{n} XP",
         "newReward": "Nowy motyw odblokowany!",
         "newAchievement": "Osiągnięcie odblokowane!",
+        "challenges": "Wyzwania",
+        "feats": "Wyczyny",
+        "tierCount": "%{n} / %{m}",
+        "locked": "Zablokowane",
+        "unlocked": "Odblokowane",
         "tier": {
             "bronze": "Brąz",
             "silver": "Srebro",
@@ -532,6 +537,13 @@
             "winner": "Zwycięzca",
             "big-scorer": "Wysoki wynik"
         },
+        "requirement": {
+            "contestant": "Rozegraj %{n} rozgrywek",
+            "on-a-roll": "Osiągnij passę %{n} dni",
+            "regular": "Zagraj w %{n} różnych dniach",
+            "winner": "Wygraj %{n} gier",
+            "big-scorer": "Zdobądź %{n} punktów w jednej rozgrywce"
+        },
         "oneoff": {
             "well-rounded": "Wszechstronny",
             "triple-threat": "Potrójne zagrożenie",
@@ -543,6 +555,18 @@
             "clean-sweep": "Czyste zwycięstwo",
             "quick-wit": "Bystry umysł",
             "comeback": "Powrót"
+        },
+        "requirementOneoff": {
+            "well-rounded": "Wygraj każdą z trzech gier przynajmniej raz",
+            "triple-threat": "Zagraj we wszystkie trzy gry jednego dnia",
+            "to-the-top": "Dotrzyj do 15. szczebla w Drabinie",
+            "spotless": "Wygraj rozgrywkę Drabiny bez użycia kół ratunkowych",
+            "survivor": "Przetrwaj wszystkie 9 rund Zrzutu",
+            "iron-bank": "Zakończ Zrzut, zachowując co najmniej połowę banku",
+            "vowel-free": "Rozwiąż zagadkę Koła bez kupowania samogłoski",
+            "clean-sweep": "Rozwiąż wszystkie 3 zagadki Koła w jednej rozgrywce",
+            "quick-wit": "Odpowiedz w mniej niż 5 s na wysokim szczeblu Drabiny",
+            "comeback": "Rozwiąż zagadkę Koła po odrobieniu Bankructwa"
         },
         "themes": {
             "champion": "Mistrz",

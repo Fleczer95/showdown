@@ -520,6 +520,11 @@
         "xpGained": "+%{n} XP",
         "newReward": "New theme unlocked!",
         "newAchievement": "Achievement unlocked!",
+        "challenges": "Challenges",
+        "feats": "Feats",
+        "tierCount": "%{n} / %{m}",
+        "locked": "Locked",
+        "unlocked": "Unlocked",
         "tier": {
             "bronze": "Bronze",
             "silver": "Silver",
@@ -532,6 +537,13 @@
             "winner": "Winner",
             "big-scorer": "Big Scorer"
         },
+        "requirement": {
+            "contestant": "Play %{n} runs",
+            "on-a-roll": "Reach a %{n}-day streak",
+            "regular": "Play on %{n} separate days",
+            "winner": "Win %{n} games",
+            "big-scorer": "Score %{n} in a single run"
+        },
         "oneoff": {
             "well-rounded": "Well-Rounded",
             "triple-threat": "Triple Threat",
@@ -543,6 +555,18 @@
             "clean-sweep": "Clean Sweep",
             "quick-wit": "Quick Wit",
             "comeback": "Comeback"
+        },
+        "requirementOneoff": {
+            "well-rounded": "Win each of the three games at least once",
+            "triple-threat": "Play all three games in one day",
+            "to-the-top": "Reach Rung 15 on The Ladder",
+            "spotless": "Win a Ladder run using no lifelines",
+            "survivor": "Survive all 9 rounds of The Drop",
+            "iron-bank": "Finish The Drop keeping at least half the starting bank",
+            "vowel-free": "Solve a Wheel puzzle without buying a vowel",
+            "clean-sweep": "Solve all 3 Wheel puzzles in one run",
+            "quick-wit": "Answer under 5s at a high rung on The Ladder",
+            "comeback": "Solve a Wheel puzzle after recovering from a Bankrupt"
         },
         "themes": {
             "champion": "Champion",

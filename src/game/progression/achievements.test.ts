@@ -1,4 +1,11 @@
-import { ACHIEVEMENTS, achievementsUnlocked, detectFeats, isQuickWit } from './achievements';
+import {
+    ACHIEVEMENTS,
+    ACHIEVEMENT_FAMILIES,
+    achievementsUnlocked,
+    detectFeats,
+    familyProgress,
+    isQuickWit,
+} from './achievements';
 import { ACHIEVEMENT_XP_ONE_OFF, ACHIEVEMENT_XP_TIERS } from './constants';
 import type { GameRunResult, ProgressionStats } from './types';
 
@@ -136,5 +143,30 @@ describe('isQuickWit', () => {
 
     it('does not award cross-game feats', () => {
         expect(detectFeats(result({ gameId: 'the-drop', rungReached: 15 }))).not.toContain('to-the-top');
+    });
+});
+
+describe('familyProgress', () => {
+    const contestant = ACHIEVEMENT_FAMILIES.find((f) => f.family === 'contestant')!; // [10, 50, 200]
+
+    it('reports zero progress at the start', () => {
+        const p = familyProgress(contestant, stats({ runsPlayed: 0 }));
+        expect(p).toEqual({ earnedTiers: 0, current: 0, nextTarget: 10, fraction: 0 });
+    });
+
+    it('counts earned tiers and points the bar at the next threshold', () => {
+        const p = familyProgress(contestant, stats({ runsPlayed: 37 }));
+        expect(p.earnedTiers).toBe(1); // bronze (10) cleared, silver (50) not
+        expect(p.nextTarget).toBe(50);
+        expect(p.fraction).toBeCloseTo(37 / 50);
+    });
+
+    it('counts a tier reached exactly at its threshold', () => {
+        expect(familyProgress(contestant, stats({ runsPlayed: 50 })).earnedTiers).toBe(2);
+    });
+
+    it('maxes out a fully-earned family', () => {
+        const p = familyProgress(contestant, stats({ runsPlayed: 999 }));
+        expect(p).toEqual({ earnedTiers: 3, current: 999, nextTarget: null, fraction: 1 });
     });
 });

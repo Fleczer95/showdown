@@ -17,9 +17,12 @@ import {
     Tag,
     MessageCircle,
     BookOpen,
+    Trophy,
+    Crown,
 } from 'lucide-react-native';
 import { STORE_CATALOG } from '../data/store/catalog';
 import type { ThemeDefinition } from '../data/store/types';
+import { PROGRESSION_THEMES } from '../game/progression/themes';
 
 export interface ThemeOption {
     value: string;
@@ -27,6 +30,10 @@ export interface ThemeOption {
     icon: any;
     theme: any;
     isPremium?: boolean;
+    /** Earned via the Level Map — its lock resolves against unlockedRewards, not purchases. */
+    isEarned?: boolean;
+    /** The reward id used to resolve an earned theme's lock. Set iff `isEarned`. */
+    rewardId?: string;
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -48,6 +55,8 @@ const ICON_MAP: Record<string, any> = {
     tag: Tag,
     message: MessageCircle,
     book: BookOpen,
+    trophy: Trophy,
+    crown: Crown,
 };
 
 const getIcon = (name: string) => ICON_MAP[name] ?? Palette;
@@ -57,7 +66,7 @@ const getIcon = (name: string) => ICON_MAP[name] ?? Palette;
  * same rule the Store Catalog resolver uses (`status: 'hidden'` is never
  * visible) — so the picker and `useResolvedThemes` cannot drift apart.
  */
-export const themeRegistry: ThemeOption[] = STORE_CATALOG.filter(
+const storeThemes: ThemeOption[] = STORE_CATALOG.filter(
     (entry): entry is ThemeDefinition => entry.kind === 'theme' && entry.status === 'live',
 ).map((entry) => ({
     value: entry.id.replace('theme-', ''),
@@ -66,5 +75,22 @@ export const themeRegistry: ThemeOption[] = STORE_CATALOG.filter(
     theme: entry.tokens,
     isPremium: entry.tier === 'premium',
 }));
+
+/**
+ * Earned themes union into the same picker as store themes; their lock is resolved
+ * against `unlockedRewards(lifetimeXp)` instead of purchases (see SettingsScreen).
+ * Store and earned theme tokens are otherwise identical, so the theme
+ * provider/persistence need no changes.
+ */
+const progressionThemes: ThemeOption[] = PROGRESSION_THEMES.map((earned) => ({
+    value: earned.value,
+    labelKey: earned.titleKey,
+    icon: getIcon(earned.iconName),
+    theme: earned.tokens,
+    isEarned: true,
+    rewardId: earned.id,
+}));
+
+export const themeRegistry: ThemeOption[] = [...storeThemes, ...progressionThemes];
 
 export default themeRegistry;

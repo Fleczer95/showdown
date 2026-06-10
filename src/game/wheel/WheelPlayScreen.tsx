@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -21,9 +22,11 @@ import Leaderboard from '../../components/molecules/Leaderboard';
 import WheelGraphic from './WheelGraphic';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
+import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import AccentTab from '../../components/atoms/AccentTab';
+import type { GameRunResult } from '../progression';
 import { springEnter } from '../transitions';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
@@ -54,7 +57,7 @@ import {
 } from './logic';
 import { speedBonus, wheelScore } from '../scoring';
 
-type Phase = 'awaitSpin' | 'awaitGuess';
+type Phase = 'awaitSpin' | 'awaitGuess' | 'resolving';
 
 const GAME_ID = 'the-wheel';
 
@@ -73,6 +76,7 @@ function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
 
 export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const t = useTheme();
+    const insets = useSafeAreaInsets();
     const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
@@ -86,6 +90,11 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const [solveMode, setSolveMode] = useState(false);
     const [status, setStatus] = useState('');
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    // Set when a puzzle resolves: the state to apply once the player taps Continue.
+    // Holds the result on screen so the outcome can be read before advancing.
+    const [pendingNext, setPendingNext] = useState<GameState | null>(null);
+    // The player's incorrect solve attempt, shown alongside the answer on a miss.
+    const [wrongGuess, setWrongGuess] = useState<string | null>(null);
 
     // Hidden per-puzzle stopwatch + run accumulators for the unified points
     // score. `boughtVowel` tracks the clean-solve (no-vowel) bonus per puzzle.
@@ -95,6 +104,9 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const boughtVowel = useRef(false);
     // Puzzles solved correctly — the board's primary ranking key for The Wheel.
     const solvedCount = useRef(0);
+    // "Comeback": did the player solve a puzzle after surviving a Bankrupt this run?
+    const sawBankruptThisPuzzle = useRef(false);
+    const bankruptRecovered = useRef(false);
 
     // Mark each puzzle shown the moment it begins (display-time), and restart the
     // solve timer + clean-solve tracking. Fires once per puzzle actually reached,
@@ -104,6 +116,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         markShown(GAME_ID, currentId);
         decisionStartedAt.current = Date.now();
         boughtVowel.current = false;
+        sawBankruptThisPuzzle.current = false;
     }, [currentId]);
 
     const rotation = useSharedValue(0);
@@ -116,10 +129,33 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         setSolveMode(false);
     }, []);
 
+    // Bank a solved puzzle (typed correctly or board fully revealed) after the
+    // shared reveal beat. `solvedState` must already be a correct/complete board;
+    // its phrase is used to drive the win path through `solve`.
+    const finishSolvedPuzzle = useCallback(
+        (solvedState: GameState) => {
+            // Bank cash earns a speed bonus (puzzle shown → solved), plus a
+            // clean-solve bonus if no vowel was bought for this puzzle.
+            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+            speedTotal.current += speedBonus(solvedState.roundCash, seconds);
+            solvedCount.current += 1;
+            if (!boughtVowel.current) cleanPuzzles.current += 1;
+            if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
+            const next = solve(solvedState, currentPuzzle(solvedState).phrase);
+            setStatus('✓');
+            setSolveMode(false);
+            setSpinValue(0);
+            setPhase('resolving');
+            setPendingNext(next);
+        },
+        [],
+    );
+
     const settleSpin = useCallback(
         (result: SpinResult) => {
             setSpinning(false);
             if (result.segment.bankrupt) {
+                sawBankruptThisPuzzle.current = true;
                 setGame((g) => applyBankrupt(g));
                 setStatus(tr('game.the-wheel.active.bankrupt'));
                 setPhase('awaitSpin');
@@ -163,59 +199,97 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         (ch: string) => {
             if (alreadyGuessed(game, ch)) return;
             const next = guessConsonant(game, ch, spinValue);
-            const award = next.roundCash - game.roundCash;
             setGame(next);
+            // Revealing the final letter completes the puzzle — bank it instead of
+            // stranding the player on a full board with the wheel still up.
+            if (isFullyRevealed(next)) {
+                finishSolvedPuzzle(next);
+                return;
+            }
+            const award = next.roundCash - game.roundCash;
             setSpinValue(0);
             setPhase('awaitSpin');
             setStatus(award > 0 ? `${ch}: +${award}` : `${ch}: 0`);
         },
-        [game, spinValue],
+        [game, spinValue, finishSolvedPuzzle],
     );
 
     const handleBuyVowel = useCallback(
         (ch: string) => {
             if (alreadyGuessed(game, ch) || game.roundCash < VOWEL_COST) return;
             boughtVowel.current = true;
-            setGame(buyVowel(game, ch));
+            const next = buyVowel(game, ch);
+            setGame(next);
+            // Buying the last hidden letter completes the puzzle.
+            if (isFullyRevealed(next)) finishSolvedPuzzle(next);
         },
-        [game],
+        [game, finishSolvedPuzzle],
     );
 
     const handleSolve = useCallback(() => {
-        const correct = attemptSolve(currentPuzzle(game).phrase, solveText);
-        if (correct) {
-            // Bank cash earns a speed bonus (puzzle shown → correct solve), plus a
-            // clean-solve bonus if no vowel was bought for this puzzle.
-            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
-            speedTotal.current += speedBonus(game.roundCash, seconds);
-            solvedCount.current += 1;
-            if (!boughtVowel.current) cleanPuzzles.current += 1;
+        if (attemptSolve(currentPuzzle(game).phrase, solveText)) {
+            finishSolvedPuzzle(game);
+            return;
         }
-        setStatus(correct ? '✓' : '✗');
-        setGame(solve(game, solveText));
+        // Reveal the full answer and hold it on screen; the player taps Continue to
+        // see the result before the run ends. A wrong solve ends the run.
+        const next = solve(game, solveText);
+        setWrongGuess(solveText.trim());
+        setStatus('✗');
+        setSolveMode(false);
+        setPhase('resolving');
+        setPendingNext(next);
+    }, [game, solveText, finishSolvedPuzzle]);
+
+    // Apply the resolved state once the player has read the result.
+    const handleContinue = useCallback(() => {
+        if (!pendingNext) return;
+        setGame(pendingNext);
+        setPendingNext(null);
+        setWrongGuess(null);
         resetTurnInputs();
-    }, [game, solveText, resetTurnInputs]);
+        setStatus('');
+    }, [pendingNext, resetTurnInputs]);
 
     const handlePlayAgain = useCallback(() => {
         speedTotal.current = 0;
         cleanPuzzles.current = 0;
         solvedCount.current = 0;
         boughtVowel.current = false;
+        sawBankruptThisPuzzle.current = false;
+        bankruptRecovered.current = false;
         decisionStartedAt.current = Date.now();
         setGame(createGame(pickPuzzles(locale, TOTAL_PUZZLES)));
+        setPendingNext(null);
+        setWrongGuess(null);
         resetTurnInputs();
         setStatus('');
         rotation.value = 0;
     }, [locale, resetTurnInputs, rotation]);
 
-    if (game.status === 'over') {
+    if (game.status === 'over' || game.status === 'lost') {
         const breakdown = wheelScore({
             bankedCash: game.score,
             speed: speedTotal.current,
             cleanPuzzles: cleanPuzzles.current,
         });
+        const runResult: GameRunResult = {
+            gameId: GAME_ID,
+            score: breakdown.total,
+            won: game.status === 'over',
+            puzzlesSolved: solvedCount.current,
+            cleanPuzzles: cleanPuzzles.current,
+            bankruptRecovered: bankruptRecovered.current,
+        };
         return (
-            <ScrollView style={styles.flex} contentContainerStyle={styles.gameOver} keyboardShouldPersistTaps='handled'>
+            <ScrollView
+                style={styles.flex}
+                contentContainerStyle={[
+                    styles.gameOver,
+                    { paddingBottom: Math.max(insets.bottom, 24) + 24 },
+                ]}
+                keyboardShouldPersistTaps='handled'
+            >
                 <GameOverCard gameId={GAME_ID}>
                     {({ accent, onAccent }) => (
                         <>
@@ -231,6 +305,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                 </Text>
                                 <ScoreBreakdownLine breakdown={breakdown} />
                             </Stack>
+                            <RunCelebration result={runResult} accent={accent} />
                             <Leaderboard
                                 gameId={GAME_ID}
                                 pendingScore={breakdown.total}
@@ -258,14 +333,21 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     }
 
     const puzzle = currentPuzzle(game);
-    const masked = maskedPhrase(game);
+    // On a successful resolve the board fills in to show the solved answer. On a
+    // miss we keep the partial board — the answer + the wrong guess are shown in a
+    // dedicated comparison card below. We widen word gaps to make it easier to read.
+    const rawMasked = phase === 'resolving' && wrongGuess === null ? puzzle.phrase : maskedPhrase(game);
+    const masked = rawMasked.replace(/ /g, '   ');
     const canSolve = !isFullyRevealed(game);
 
     return (
         <ScrollView
             contentContainerStyle={[
                 styles.content,
-                { padding: t.spacing.lg, paddingBottom: t.spacing.xxl + t.spacing.lg },
+                {
+                    padding: t.spacing.lg,
+                    paddingBottom: Math.max(insets.bottom, t.spacing.lg) + t.spacing.xxl,
+                },
             ]}
             keyboardShouldPersistTaps='handled'
         >
@@ -328,6 +410,33 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                         </Text>
                     </Card>
                 </Animated.View>
+
+                {/* Failed solve: show the wrong guess next to the answer to compare. */}
+                {phase === 'resolving' && wrongGuess !== null ? (
+                    <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(250)}>
+                        <Card variant='outlined' padding='md' gap='sm' style={{ borderColor: t.colors.error }}>
+                            <Text variant='subheading' weight='bold' color={t.colors.error} align='center'>
+                                {tr('game.the-wheel.active.failed')}
+                            </Text>
+                            <Stack gap='xs'>
+                                <Text variant='overline' color='textSecondary' align='center'>
+                                    {tr('game.the-wheel.active.yourGuess')}
+                                </Text>
+                                <Text variant='subheading' weight='bold' color={t.colors.error} align='center'>
+                                    {wrongGuess.toUpperCase()}
+                                </Text>
+                            </Stack>
+                            <Stack gap='xs'>
+                                <Text variant='overline' color='textSecondary' align='center'>
+                                    {tr('game.the-wheel.active.correctAnswer')}
+                                </Text>
+                                <Text variant='subheading' weight='bold' color={accent} align='center'>
+                                    {puzzle.phrase}
+                                </Text>
+                            </Stack>
+                        </Card>
+                    </Animated.View>
+                ) : null}
 
                 {/* Wheel — slides up and hides while the letter keyboard is up so
                     the keyboard can rise into the freed space. Otherwise it absorbs
@@ -405,13 +514,32 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                                     },
                                                 ]}
                                             >
-                                                <Text
-                                                    variant='subheading'
-                                                    weight='bold'
-                                                    color={guessed ? t.colors.textMuted : keyColor}
-                                                >
-                                                    {ch}
-                                                </Text>
+                                                {vowel ? (
+                                                    <View style={styles.vowelKey}>
+                                                        <Text
+                                                            variant='body'
+                                                            weight='bold'
+                                                            color={guessed ? t.colors.textMuted : keyColor}
+                                                        >
+                                                            {ch}
+                                                        </Text>
+                                                        <Text
+                                                            variant='overline'
+                                                            weight='bold'
+                                                            color={guessed ? t.colors.textMuted : keyColor}
+                                                        >
+                                                            {VOWEL_COST}
+                                                        </Text>
+                                                    </View>
+                                                ) : (
+                                                    <Text
+                                                        variant='subheading'
+                                                        weight='bold'
+                                                        color={guessed ? t.colors.textMuted : keyColor}
+                                                    >
+                                                        {ch}
+                                                    </Text>
+                                                )}
                                             </Pressable>
                                         </Animated.View>
                                     );
@@ -444,6 +572,17 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                             </View>
                         </Stack>
                     </Stack>
+                ) : phase === 'resolving' ? (
+                    <Button
+                        variant='primary'
+                        size='lg'
+                        fullWidth
+                        onPress={handleContinue}
+                        style={{ backgroundColor: accent, borderColor: accent }}
+                        textColor={onAccent}
+                    >
+                        {tr('common.continue')}
+                    </Button>
                 ) : (
                     <Stack direction='horizontal' gap='sm'>
                         <View style={styles.flex}>
@@ -502,7 +641,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     phrase: {
-        letterSpacing: 2,
+        letterSpacing: 4,
     },
     keyboard: {
         flexDirection: 'row',
@@ -515,6 +654,10 @@ const styles = StyleSheet.create({
         height: 44,
         borderRadius: 8,
         borderWidth: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    vowelKey: {
         alignItems: 'center',
         justifyContent: 'center',
     },

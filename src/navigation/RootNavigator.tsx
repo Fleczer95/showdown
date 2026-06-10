@@ -8,6 +8,7 @@ import { GameSetupScreen } from '../screens/GameSetupScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { DocumentScreen } from '../screens/DocumentScreen';
 import StoreScreen from '../screens/store/StoreScreen';
+import { ProgressScreen } from '../screens/ProgressScreen';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -49,6 +50,7 @@ export function RootNavigator() {
                 <Stack.Screen name='Home' component={HomeScreen} />
                 <Stack.Screen name='Settings' component={SettingsScreen} />
                 <Stack.Screen name='Store' component={StoreScreen} />
+                <Stack.Screen name='Progress' component={ProgressScreen} />
                 <Stack.Screen name='privacyPolicy' component={DocumentScreen} />
                 <Stack.Screen name='termsOfUse' component={DocumentScreen} />
                 {games.map((game) => (

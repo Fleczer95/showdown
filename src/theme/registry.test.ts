@@ -1,8 +1,15 @@
 import { themeRegistry } from './registry';
 
 describe('themeRegistry', () => {
-    it('exposes live free and premium themes', () => {
-        expect(themeRegistry.map((t) => t.value)).toEqual(['default', 'cyberpunk']);
+    it('exposes live store themes then earned progression themes', () => {
+        expect(themeRegistry.map((t) => t.value)).toEqual(['default', 'cyberpunk', 'champion', 'legend']);
+    });
+
+    it('tags earned themes with their reward id and not as premium', () => {
+        const champion = themeRegistry.find((theme) => theme.value === 'champion');
+        expect(champion?.isEarned).toBe(true);
+        expect(champion?.rewardId).toBe('theme-champion');
+        expect(champion?.isPremium).toBeUndefined();
     });
 
     it('the default theme is free and has a label + tokens', () => {

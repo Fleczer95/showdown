@@ -16,7 +16,9 @@ import Card from '../../components/molecules/Card';
 import Leaderboard from '../../components/molecules/Leaderboard';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
+import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
+import { isQuickWit, type GameRunResult } from '../progression';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
@@ -71,6 +73,8 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const decisionStartedAt = useRef(Date.now());
     const baseTotal = useRef(0);
     const speedTotal = useRef(0);
+    // "Quick Wit": a single fast, correct answer at a high rung this run.
+    const quickWit = useRef(false);
 
     // Count a question as shown once per distinct question displayed, and restart
     // the decision timer. Skipping changes the current id, so this refires for the
@@ -97,6 +101,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
         setRun(buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
         baseTotal.current = 0;
         speedTotal.current = 0;
+        quickWit.current = false;
         resetTransient();
     }
 
@@ -108,10 +113,12 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
         // Score a correct answer at press time (the reveal delay must not count
         // against the speed timer): base = rung × points, plus its speed bonus.
         if (index === question.correctIndex) {
-            const base = (run.currentIndex + 1) * LADDER_RUNG_POINTS;
+            const rung = run.currentIndex + 1;
+            const base = rung * LADDER_RUNG_POINTS;
             const seconds = (Date.now() - decisionStartedAt.current) / 1000;
             baseTotal.current += base;
             speedTotal.current += speedBonus(base, seconds);
+            if (isQuickWit(rung, seconds)) quickWit.current = true;
         }
         // Brief reveal of correct/incorrect before transitioning.
         const next = applyAnswer(run, index);
@@ -149,12 +156,21 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
         // Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
         // never reaches the board), a win clears all RUN_LENGTH rungs.
         const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
+        const runResult: GameRunResult = {
+            gameId: GAME_ID,
+            score: breakdown.total,
+            won: run.status === 'won',
+            rungReached: reachedRung(run),
+            lifelinesUsed: run.usedLifelines.length,
+            quickWit: quickWit.current,
+        };
         return (
             <GameOverView
                 won={run.status === 'won'}
                 rung={reachedRung(run)}
                 progress={correctAnswered}
                 breakdown={breakdown}
+                runResult={runResult}
                 onPlayAgain={startFreshRun}
                 onExit={onExit}
             />
@@ -319,7 +335,13 @@ function AnswerOption({
     const { springBouncy, spring } = useAnimationPresets();
     const pop = useSharedValue(1);
     const resolved = revealCorrect || revealWrong;
-    const badgeState: IndexBadgeState = revealCorrect ? 'correct' : revealWrong ? 'wrong' : isHidden ? 'muted' : 'default';
+    const badgeState: IndexBadgeState = revealCorrect
+        ? 'correct'
+        : revealWrong
+          ? 'wrong'
+          : isHidden
+            ? 'muted'
+            : 'default';
 
     useEffect(() => {
         if (resolved && !reduceMotion) {
@@ -330,10 +352,7 @@ function AnswerOption({
     const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
 
     return (
-        <Animated.View
-            entering={reduceMotion ? undefined : springEnter(index * 70)}
-            style={popStyle}
-        >
+        <Animated.View entering={reduceMotion ? undefined : springEnter(index * 70)} style={popStyle}>
             <Card
                 variant='outlined'
                 padding='md'
@@ -414,6 +433,7 @@ function GameOverView({
     rung,
     progress,
     breakdown,
+    runResult,
     onPlayAgain,
     onExit,
 }: {
@@ -421,6 +441,7 @@ function GameOverView({
     rung: number;
     progress: number;
     breakdown: ScoreBreakdown;
+    runResult: GameRunResult;
     onPlayAgain: () => void;
     onExit: () => void;
 }) {
@@ -448,6 +469,7 @@ function GameOverView({
                             </Text>
                             <ScoreBreakdownLine breakdown={breakdown} />
                         </Stack>
+                        <RunCelebration result={runResult} accent={accent} />
                         <Leaderboard gameId={GAME_ID} pendingScore={breakdown.total} pendingProgress={progress} />
                         <Stack gap='sm' align='stretch'>
                             <Button

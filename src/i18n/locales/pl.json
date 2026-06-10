@@ -104,7 +104,10 @@
                 {
                     "title": "5. Cele Przetwarzania",
                     "content": "Przetwarzamy zebrane dane w celu:",
-                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                    "listItems": [
+                        "Diagnostyki błędów",
+                        "Poprawy jakości działania aplikacji"
+                    ]
                 },
                 {
                     "title": "6. Podstawa Prawna",
@@ -238,7 +241,8 @@
         "stop": "Stop",
         "remove": "Usuń",
         "teams": "Drużyny",
-        "team": "Drużyna"
+        "team": "Drużyna",
+        "back": "Wstecz"
     },
     "leaderboard": {
         "title": "Tabela wyników",
@@ -339,6 +343,9 @@
                 "buyVowel": "Kup samogłoskę (%{cost})",
                 "vowelHint": "Samogłoski kosztują %{cost}",
                 "solve": "Rozwiąż hasło",
+                "failed": "Zła odpowiedź!",
+                "yourGuess": "Twoja odpowiedź",
+                "correctAnswer": "Poprawna odpowiedź",
                 "bankrupt": "Bankrut!",
                 "leave": "Opuść grę",
                 "leaveConfirm": "Na pewno chcesz wyjść? Cały postęp przepadnie.",
@@ -427,7 +434,10 @@
             {
                 "title": "5. Cele Przetwarzania",
                 "content": "Przetwarzamy zebrane dane w celu:",
-                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                "listItems": [
+                    "Diagnostyki błędów",
+                    "Poprawy jakości działania aplikacji"
+                ]
             },
             {
                 "title": "6. Podstawa Prawna",
@@ -495,5 +505,79 @@
             }
         ],
         "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+    },
+    "progression": {
+        "title": "Postępy",
+        "levelShort": "Lv %{n}",
+        "level": "Poziom %{n}",
+        "xp": "%{n} XP",
+        "toNextLevel": "%{n} XP do poziomu %{m}",
+        "maxLevel": "Osiągnięto najwyższy poziom",
+        "mapTitle": "Mapa poziomów",
+        "achievementsTitle": "Osiągnięcia",
+        "achievementsCount": "%{n} z %{m}",
+        "reserved": "Wkrótce więcej",
+        "rewardTheme": "Motyw",
+        "earnedThemeHint": "Zdobytych motywów nie można kupić — odblokuj je, wspinając się po mapie poziomów.",
+        "levelUp": "Poziom %{n}!",
+        "xpGained": "+%{n} XP",
+        "newReward": "Nowy motyw odblokowany!",
+        "newAchievement": "Osiągnięcie odblokowane!",
+        "challenges": "Wyzwania",
+        "feats": "Wyczyny",
+        "tierCount": "%{n} / %{m}",
+        "locked": "Zablokowane",
+        "unlocked": "Odblokowane",
+        "tier": {
+            "bronze": "Brąz",
+            "silver": "Srebro",
+            "gold": "Złoto"
+        },
+        "family": {
+            "contestant": "Uczestnik",
+            "on-a-roll": "Dobra passa",
+            "regular": "Bywalec",
+            "winner": "Zwycięzca",
+            "ladder-scorer": "Wynik w Drabinie",
+            "drop-scorer": "Wynik w Zrzucie",
+            "wheel-scorer": "Wynik w Kole"
+        },
+        "requirement": {
+            "contestant": "Rozegraj %{n} rozgrywek",
+            "on-a-roll": "Osiągnij passę %{n} dni",
+            "regular": "Zagraj w %{n} różnych dniach",
+            "winner": "Wygraj %{n} gier",
+            "ladder-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Drabiny",
+            "drop-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Zrzutu",
+            "wheel-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Koła"
+        },
+        "oneoff": {
+            "well-rounded": "Wszechstronny",
+            "triple-threat": "Potrójne zagrożenie",
+            "to-the-top": "Na sam szczyt",
+            "spotless": "Bez skazy",
+            "survivor": "Ocalały",
+            "iron-bank": "Żelazny bank",
+            "vowel-free": "Bez samogłosek",
+            "clean-sweep": "Czyste zwycięstwo",
+            "quick-wit": "Bystry umysł",
+            "comeback": "Powrót"
+        },
+        "requirementOneoff": {
+            "well-rounded": "Wygraj każdą z trzech gier przynajmniej raz",
+            "triple-threat": "Zagraj we wszystkie trzy gry jednego dnia",
+            "to-the-top": "Dotrzyj do 15. szczebla w Drabinie",
+            "spotless": "Wygraj rozgrywkę Drabiny bez użycia kół ratunkowych",
+            "survivor": "Przetrwaj wszystkie 9 rund Zrzutu",
+            "iron-bank": "Zakończ Zrzut, zachowując co najmniej połowę banku",
+            "vowel-free": "Rozwiąż zagadkę Koła bez kupowania samogłoski",
+            "clean-sweep": "Rozwiąż wszystkie 3 zagadki Koła w jednej rozgrywce",
+            "quick-wit": "Odpowiedz w mniej niż 5 s na wysokim szczeblu Drabiny",
+            "comeback": "Rozwiąż zagadkę Koła po odrobieniu Bankructwa"
+        },
+        "themes": {
+            "champion": "Mistrz",
+            "legend": "Legenda"
+        }
     }
 }

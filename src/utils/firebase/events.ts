@@ -145,6 +145,8 @@ export type AnalyticsEvent =
           name: 'theme_purchase_failed';
           params: { theme_id: string; error_code: string; error_category: PurchaseErrorCategory };
       }
+    // --- Progression events ---
+    | { name: 'level_up'; params: { from_level: number; to_level: number; lifetime_xp: number } }
     // --- Settings events ---
     | { name: 'language_changed'; params: { from_locale: string; to_locale: string } }
     | { name: 'theme_changed'; params: { theme_id: string; is_premium: boolean } }

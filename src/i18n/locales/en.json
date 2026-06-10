@@ -104,7 +104,10 @@
                 {
                     "title": "5. Purposes of Processing",
                     "content": "We use the collected data for:",
-                    "listItems": ["Diagnosing technical issues", "Improving app performance"]
+                    "listItems": [
+                        "Diagnosing technical issues",
+                        "Improving app performance"
+                    ]
                 },
                 {
                     "title": "6. Legal Basis",
@@ -121,7 +124,10 @@
                 {
                     "title": "9. User Rights",
                     "content": "You have the right to:",
-                    "listItems": ["Access, rectification, restriction, deletion", "Contact us at: contact@showdown.app"]
+                    "listItems": [
+                        "Access, rectification, restriction, deletion",
+                        "Contact us at: contact@showdown.app"
+                    ]
                 }
             ],
             "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -235,7 +241,8 @@
         "stop": "Stop",
         "remove": "Remove",
         "teams": "Teams",
-        "team": "Team"
+        "team": "Team",
+        "back": "Back"
     },
     "leaderboard": {
         "title": "Leaderboard",
@@ -336,6 +343,9 @@
                 "buyVowel": "Buy Vowel (%{cost})",
                 "vowelHint": "Vowels cost %{cost}",
                 "solve": "Solve the Puzzle",
+                "failed": "Wrong answer!",
+                "yourGuess": "Your guess",
+                "correctAnswer": "Correct answer",
                 "bankrupt": "Bankrupt!",
                 "leave": "Leave Game",
                 "leaveConfirm": "Are you sure you want to leave? All progress will be lost.",
@@ -424,7 +434,10 @@
             {
                 "title": "5. Purposes of Processing",
                 "content": "We use the collected data for:",
-                "listItems": ["Diagnosing technical issues", "Improving app performance"]
+                "listItems": [
+                    "Diagnosing technical issues",
+                    "Improving app performance"
+                ]
             },
             {
                 "title": "6. Legal Basis",
@@ -441,7 +454,10 @@
             {
                 "title": "9. User Rights",
                 "content": "You have the right to:",
-                "listItems": ["Access, rectification, restriction, deletion", "Contact us at: {{email}}"]
+                "listItems": [
+                    "Access, rectification, restriction, deletion",
+                    "Contact us at: {{email}}"
+                ]
             }
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -489,5 +505,79 @@
             }
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"
+    },
+    "progression": {
+        "title": "Progress",
+        "levelShort": "Lv %{n}",
+        "level": "Level %{n}",
+        "xp": "%{n} XP",
+        "toNextLevel": "%{n} XP to Level %{m}",
+        "maxLevel": "Top level reached",
+        "mapTitle": "Level Map",
+        "achievementsTitle": "Achievements",
+        "achievementsCount": "%{n} of %{m}",
+        "reserved": "More soon",
+        "rewardTheme": "Theme",
+        "earnedThemeHint": "Earned themes can't be bought — climb the Level Map to unlock them.",
+        "levelUp": "Level %{n}!",
+        "xpGained": "+%{n} XP",
+        "newReward": "New theme unlocked!",
+        "newAchievement": "Achievement unlocked!",
+        "challenges": "Challenges",
+        "feats": "Feats",
+        "tierCount": "%{n} / %{m}",
+        "locked": "Locked",
+        "unlocked": "Unlocked",
+        "tier": {
+            "bronze": "Bronze",
+            "silver": "Silver",
+            "gold": "Gold"
+        },
+        "family": {
+            "contestant": "Contestant",
+            "on-a-roll": "On a Roll",
+            "regular": "Regular",
+            "winner": "Winner",
+            "ladder-scorer": "Ladder Scorer",
+            "drop-scorer": "Drop Scorer",
+            "wheel-scorer": "Wheel Scorer"
+        },
+        "requirement": {
+            "contestant": "Play %{n} runs",
+            "on-a-roll": "Reach a %{n}-day streak",
+            "regular": "Play on %{n} separate days",
+            "winner": "Win %{n} games",
+            "ladder-scorer": "Score %{n} in a single Ladder run",
+            "drop-scorer": "Score %{n} in a single Drop run",
+            "wheel-scorer": "Score %{n} in a single Wheel run"
+        },
+        "oneoff": {
+            "well-rounded": "Well-Rounded",
+            "triple-threat": "Triple Threat",
+            "to-the-top": "To the Top",
+            "spotless": "Spotless",
+            "survivor": "Survivor",
+            "iron-bank": "Iron Bank",
+            "vowel-free": "Vowel-Free",
+            "clean-sweep": "Clean Sweep",
+            "quick-wit": "Quick Wit",
+            "comeback": "Comeback"
+        },
+        "requirementOneoff": {
+            "well-rounded": "Win each of the three games at least once",
+            "triple-threat": "Play all three games in one day",
+            "to-the-top": "Reach Rung 15 on The Ladder",
+            "spotless": "Win a Ladder run using no lifelines",
+            "survivor": "Survive all 9 rounds of The Drop",
+            "iron-bank": "Finish The Drop keeping at least half the starting bank",
+            "vowel-free": "Solve a Wheel puzzle without buying a vowel",
+            "clean-sweep": "Solve all 3 Wheel puzzles in one run",
+            "quick-wit": "Answer under 5s at a high rung on The Ladder",
+            "comeback": "Solve a Wheel puzzle after recovering from a Bankrupt"
+        },
+        "themes": {
+            "champion": "Champion",
+            "legend": "Legend"
+        }
     }
 }

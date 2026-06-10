@@ -63,7 +63,7 @@ export function GameSetupScreen() {
 
     if (isPlaying && PlayScreen) {
         return (
-            <SafeContainer edges={['top', 'bottom']}>
+            <SafeContainer edges={['top']}>
                 <PlayScreen onExit={() => send({ type: 'EXIT' })} />
             </SafeContainer>
         );

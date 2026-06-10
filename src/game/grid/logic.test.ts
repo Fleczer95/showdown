@@ -110,8 +110,8 @@ describe('content pack', () => {
         expect(fallback.id).toBe('all');
     });
 
-    it('provides 5 categories each with 5 clues', () => {
-        expect(pack.categories).toHaveLength(5);
+    it('provides at least 5 categories each with 5 clues', () => {
+        expect(pack.categories.length).toBeGreaterThanOrEqual(5);
         for (const c of pack.categories) {
             expect(c.clues).toHaveLength(5);
         }

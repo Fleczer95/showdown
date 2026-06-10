@@ -125,13 +125,17 @@ describe('solve', () => {
         expect(currentPuzzle(g).phrase).toBe('TIME IS MONEY');
     });
 
-    it('advances with 0 banked on a wrong solve', () => {
+    it('ends the run as lost on a wrong solve, keeping banked score', () => {
         let g = createGame(PUZZLES);
-        g = guessConsonant(g, 'L', 300); // round cash 900
+        // Bank puzzle 1, then miss puzzle 2.
+        g = guessConsonant(g, 'L', 100); // round cash 300
+        g = solve(g, 'HELLO WORLD'); // banks 300, advances to puzzle 2
+        g = guessConsonant(g, 'M', 500); // round cash 500 (unbanked)
         g = solve(g, 'GOODBYE WORLD');
-        expect(g.score).toBe(0);
-        expect(g.currentPuzzle).toBe(1);
-        expect(g.roundCash).toBe(0);
+        expect(g.status).toBe('lost');
+        expect(g.score).toBe(300); // earlier banked score is kept
+        expect(g.roundCash).toBe(0); // current round cash forfeited
+        expect(g.currentPuzzle).toBe(1); // stays on the missed puzzle
     });
 
     it('clears revealed and guessed letters for the next puzzle', () => {
@@ -144,19 +148,19 @@ describe('solve', () => {
 });
 
 describe('game over after the last puzzle', () => {
-    it(`ends after ${TOTAL_PUZZLES} puzzles with score = sum of banked`, () => {
+    it(`ends 'over' after solving all ${TOTAL_PUZZLES} puzzles with score = sum of banked`, () => {
         let g = createGame(PUZZLES);
         // Puzzle 1: bank 300
         g = guessConsonant(g, 'L', 100); // 300
         g = solve(g, 'HELLO WORLD');
-        // Puzzle 2: wrong solve, bank 0
-        g = guessConsonant(g, 'M', 500); // 'TIME IS MONEY' has 1 M -> 500
-        g = solve(g, 'WRONG');
+        // Puzzle 2: bank 1000
+        g = guessConsonant(g, 'M', 500); // 'TIME IS MONEY' has 2 M -> 1000
+        g = solve(g, 'TIME IS MONEY');
         // Puzzle 3: bank 400
         g = guessConsonant(g, 'C', 200); // 'PIECE OF CAKE' has 2 C -> 400
         g = solve(g, 'PIECE OF CAKE');
         expect(g.status).toBe('over');
-        expect(g.score).toBe(700);
+        expect(g.score).toBe(1700);
     });
 });
 
@@ -164,6 +168,12 @@ describe('helpers', () => {
     it('attemptSolve is case/space-insensitive', () => {
         expect(attemptSolve('TIME IS MONEY', '  time   is money ')).toBe(true);
         expect(attemptSolve('TIME IS MONEY', 'TIME IS HONEY')).toBe(false);
+    });
+
+    it('attemptSolve ignores accents and Polish ł', () => {
+        expect(attemptSolve('CAFÉ', 'cafe')).toBe(true);
+        expect(attemptSolve('ŁÓDŹ', 'lodz')).toBe(true);
+        expect(attemptSolve('ZAŻÓŁĆ GĘŚLĄ JAŹŃ', 'zazolc gesla jazn')).toBe(true);
     });
 
     it('isFullyRevealed reflects the current puzzle', () => {

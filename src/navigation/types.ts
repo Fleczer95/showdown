@@ -9,6 +9,7 @@ export type RootStackParamList = {
     Home: undefined;
     Settings: undefined;
     Store: { gameId?: string } | undefined;
+    Progress: undefined;
     privacyPolicy: undefined;
     termsOfUse: undefined;
 } & Record<SetupRoute, { gameId: string }>;

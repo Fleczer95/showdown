@@ -24,3 +24,5 @@ export * from './magma';
 export * from './prism';
 export * from './zen';
 export * from './lavender';
+export * from './champion';
+export * from './legend';

@@ -13,6 +13,8 @@ import { useTheme } from '../theme';
 import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { games, GAME_ICONS, type Game } from '../data/games';
+import { useProgression } from '../hooks/useProgression';
+import Pressable from '../components/atoms/HapticPressable';
 
 /**
  * Accent-forward game card: a dark elevated card whose per-game color shows up
@@ -117,6 +119,40 @@ function Wordmark() {
 }
 
 /**
+ * Compact level chip for the Home header: "Lv N ▰▰▱". Opens the Progress screen,
+ * the home for the Level Map, achievements and earned cosmetics.
+ */
+function LevelChip({ onPress }: { onPress: () => void }) {
+    const theme = useTheme();
+    const { t } = useTranslation();
+    const { level, progress } = useProgression();
+    const fill = progress.span > 0 ? Math.max(0, Math.min(1, progress.intoLevel / progress.span)) : 1;
+
+    return (
+        <Pressable
+            onPress={onPress}
+            haptic='light'
+            accessibilityLabel={t('progression.title')}
+            style={[
+                styles.levelChip,
+                {
+                    backgroundColor: hexToRgba(theme.colors.primary, 0.16),
+                    borderRadius: theme.radii.full,
+                    paddingHorizontal: theme.spacing.md,
+                },
+            ]}
+        >
+            <Text variant='caption' weight='bold' color={theme.colors.primary}>
+                {t('progression.levelShort', { n: level })}
+            </Text>
+            <View style={[styles.levelChipTrack, { backgroundColor: hexToRgba(theme.colors.primary, 0.25) }]}>
+                <View style={[styles.levelChipFill, { width: `${fill * 100}%`, backgroundColor: theme.colors.primary }]} />
+            </View>
+        </Pressable>
+    );
+}
+
+/**
  * Home screen. Lists the ShowDown game modes; tapping a card opens that game's
  * setup screen via the root navigator.
  */
@@ -150,6 +186,7 @@ export function HomeScreen() {
                         <Wordmark />
                     </View>
                     <View style={styles.headerActions}>
+                        <LevelChip onPress={() => navigation.navigate('Progress')} />
                         <IconButton
                             icon={<ShoppingBag size={24} color={theme.colors.text} />}
                             onPress={() => navigation.navigate('Store')}
@@ -193,6 +230,23 @@ const styles = StyleSheet.create({
     headerActions: {
         flexDirection: 'row',
         gap: 8,
+        alignItems: 'center',
+    },
+    levelChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        height: 32,
+    },
+    levelChipTrack: {
+        width: 36,
+        height: 5,
+        borderRadius: 9999,
+        overflow: 'hidden',
+    },
+    levelChipFill: {
+        height: 5,
+        borderRadius: 9999,
     },
     iconContainer: {
         width: 56,

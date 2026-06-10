@@ -23,8 +23,10 @@ import Card from '../../components/molecules/Card';
 import Leaderboard from '../../components/molecules/Leaderboard';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
+import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
+import type { GameRunResult } from '../progression';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
 import AccentTab from '../../components/atoms/AccentTab';
@@ -243,6 +245,14 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         // Rounds survived ranks the board; a win cleared them all, a bust survived
         // every round before the one that wiped the bank.
         const roundsSurvived = Math.max(0, won ? state.round : state.round - 1);
+        const runResult: GameRunResult = {
+            gameId: GAME_ID,
+            score: breakdown.total,
+            progress: roundsSurvived,
+            won,
+            finalBank: state.bank,
+            roundsSurvived,
+        };
         return (
             <View style={styles.container}>
                 <ScrollView
@@ -282,6 +292,7 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
                                     </Text>
                                     <ScoreBreakdownLine breakdown={breakdown} />
                                 </Stack>
+                                <RunCelebration result={runResult} accent={accent} />
                                 <Leaderboard
                                     gameId={GAME_ID}
                                     pendingScore={breakdown.total}

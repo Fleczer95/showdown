@@ -104,7 +104,10 @@
                 {
                     "title": "5. Purposes of Processing",
                     "content": "We use the collected data for:",
-                    "listItems": ["Diagnosing technical issues", "Improving app performance"]
+                    "listItems": [
+                        "Diagnosing technical issues",
+                        "Improving app performance"
+                    ]
                 },
                 {
                     "title": "6. Legal Basis",
@@ -121,7 +124,10 @@
                 {
                     "title": "9. User Rights",
                     "content": "You have the right to:",
-                    "listItems": ["Access, rectification, restriction, deletion", "Contact us at: contact@showdown.app"]
+                    "listItems": [
+                        "Access, rectification, restriction, deletion",
+                        "Contact us at: contact@showdown.app"
+                    ]
                 }
             ],
             "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -235,7 +241,8 @@
         "stop": "Stop",
         "remove": "Remove",
         "teams": "Teams",
-        "team": "Team"
+        "team": "Team",
+        "back": "Back"
     },
     "leaderboard": {
         "title": "Leaderboard",
@@ -424,7 +431,10 @@
             {
                 "title": "5. Purposes of Processing",
                 "content": "We use the collected data for:",
-                "listItems": ["Diagnosing technical issues", "Improving app performance"]
+                "listItems": [
+                    "Diagnosing technical issues",
+                    "Improving app performance"
+                ]
             },
             {
                 "title": "6. Legal Basis",
@@ -441,7 +451,10 @@
             {
                 "title": "9. User Rights",
                 "content": "You have the right to:",
-                "listItems": ["Access, rectification, restriction, deletion", "Contact us at: {{email}}"]
+                "listItems": [
+                    "Access, rectification, restriction, deletion",
+                    "Contact us at: {{email}}"
+                ]
             }
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -489,5 +502,51 @@
             }
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"
+    },
+    "progression": {
+        "title": "Progress",
+        "levelShort": "Lv %{n}",
+        "level": "Level %{n}",
+        "xp": "%{n} XP",
+        "toNextLevel": "%{n} XP to Level %{m}",
+        "maxLevel": "Top level reached",
+        "mapTitle": "Level Map",
+        "achievementsTitle": "Achievements",
+        "achievementsCount": "%{n} of %{m}",
+        "reserved": "More soon",
+        "rewardTheme": "Theme",
+        "earnedThemeHint": "Earned themes can't be bought — climb the Level Map to unlock them.",
+        "levelUp": "Level %{n}!",
+        "xpGained": "+%{n} XP",
+        "newReward": "New theme unlocked!",
+        "newAchievement": "Achievement unlocked!",
+        "tier": {
+            "bronze": "Bronze",
+            "silver": "Silver",
+            "gold": "Gold"
+        },
+        "family": {
+            "contestant": "Contestant",
+            "on-a-roll": "On a Roll",
+            "regular": "Regular",
+            "winner": "Winner",
+            "big-scorer": "Big Scorer"
+        },
+        "oneoff": {
+            "well-rounded": "Well-Rounded",
+            "triple-threat": "Triple Threat",
+            "to-the-top": "To the Top",
+            "spotless": "Spotless",
+            "survivor": "Survivor",
+            "iron-bank": "Iron Bank",
+            "vowel-free": "Vowel-Free",
+            "clean-sweep": "Clean Sweep",
+            "quick-wit": "Quick Wit",
+            "comeback": "Comeback"
+        },
+        "themes": {
+            "champion": "Champion",
+            "legend": "Legend"
+        }
     }
 }

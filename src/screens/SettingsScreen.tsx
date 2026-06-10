@@ -14,6 +14,7 @@ import { useTheme, useThemeActions, themeRegistry } from '../theme';
 import { useTranslation } from '../i18n';
 import { useSettings } from '../hooks/useSettings';
 import { useStore } from '../hooks/store/useStore';
+import { useProgression } from '../hooks/useProgression';
 import { useResponsive } from '../responsive/useResponsive';
 import { FULL_VERSION_STRING } from '../utils/version';
 
@@ -28,22 +29,28 @@ export function SettingsScreen() {
     const { themeId, setTheme } = useThemeActions();
     const settings = useSettings();
     const { purchasedItemIds } = useStore();
+    const { unlockedRewards } = useProgression();
     const { scale } = useResponsive();
 
     const handleBack = () => navigation.goBack();
 
     const themeOptions = themeRegistry.map((opt) => ({
         value: opt.value,
-        label: t(opt.labelKey as any),
+        label: opt.isEarned ? `${t(opt.labelKey as any)} ✦` : t(opt.labelKey as any),
         icon: opt.icon,
         isPremium: opt.isPremium,
-        isLocked: opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`),
+        isEarned: opt.isEarned,
+        // Earned themes resolve their lock against unlocked map rewards, not purchases.
+        isLocked: opt.isEarned
+            ? !unlockedRewards.has(opt.rewardId!)
+            : opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`),
     }));
 
     const handleThemeChange = (nextThemeId: string) => {
         const option = themeOptions.find((themeOption) => themeOption.value === nextThemeId);
         if (option?.isLocked) {
-            navigation.navigate('Store' as any, { gameId: 'themes' });
+            // Earned themes aren't for sale — point at the Progress screen, not the Store.
+            navigation.navigate((option.isEarned ? 'Progress' : 'Store') as any, { gameId: 'themes' });
             return;
         }
         setTheme(nextThemeId);

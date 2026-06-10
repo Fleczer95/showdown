@@ -104,7 +104,10 @@
                 {
                     "title": "5. Cele Przetwarzania",
                     "content": "Przetwarzamy zebrane dane w celu:",
-                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                    "listItems": [
+                        "Diagnostyki błędów",
+                        "Poprawy jakości działania aplikacji"
+                    ]
                 },
                 {
                     "title": "6. Podstawa Prawna",
@@ -238,7 +241,8 @@
         "stop": "Stop",
         "remove": "Usuń",
         "teams": "Drużyny",
-        "team": "Drużyna"
+        "team": "Drużyna",
+        "back": "Wstecz"
     },
     "leaderboard": {
         "title": "Tabela wyników",
@@ -427,7 +431,10 @@
             {
                 "title": "5. Cele Przetwarzania",
                 "content": "Przetwarzamy zebrane dane w celu:",
-                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                "listItems": [
+                    "Diagnostyki błędów",
+                    "Poprawy jakości działania aplikacji"
+                ]
             },
             {
                 "title": "6. Podstawa Prawna",
@@ -495,5 +502,51 @@
             }
         ],
         "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
+    },
+    "progression": {
+        "title": "Postępy",
+        "levelShort": "Poz. %{n}",
+        "level": "Poziom %{n}",
+        "xp": "%{n} XP",
+        "toNextLevel": "%{n} XP do poziomu %{m}",
+        "maxLevel": "Osiągnięto najwyższy poziom",
+        "mapTitle": "Mapa poziomów",
+        "achievementsTitle": "Osiągnięcia",
+        "achievementsCount": "%{n} z %{m}",
+        "reserved": "Wkrótce więcej",
+        "rewardTheme": "Motyw",
+        "earnedThemeHint": "Zdobytych motywów nie można kupić — odblokuj je, wspinając się po mapie poziomów.",
+        "levelUp": "Poziom %{n}!",
+        "xpGained": "+%{n} XP",
+        "newReward": "Nowy motyw odblokowany!",
+        "newAchievement": "Osiągnięcie odblokowane!",
+        "tier": {
+            "bronze": "Brąz",
+            "silver": "Srebro",
+            "gold": "Złoto"
+        },
+        "family": {
+            "contestant": "Uczestnik",
+            "on-a-roll": "Dobra passa",
+            "regular": "Bywalec",
+            "winner": "Zwycięzca",
+            "big-scorer": "Wysoki wynik"
+        },
+        "oneoff": {
+            "well-rounded": "Wszechstronny",
+            "triple-threat": "Potrójne zagrożenie",
+            "to-the-top": "Na sam szczyt",
+            "spotless": "Bez skazy",
+            "survivor": "Ocalały",
+            "iron-bank": "Żelazny bank",
+            "vowel-free": "Bez samogłosek",
+            "clean-sweep": "Czyste zwycięstwo",
+            "quick-wit": "Bystry umysł",
+            "comeback": "Powrót"
+        },
+        "themes": {
+            "champion": "Mistrz",
+            "legend": "Legenda"
+        }
     }
 }

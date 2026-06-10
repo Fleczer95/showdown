@@ -21,9 +21,11 @@ import Leaderboard from '../../components/molecules/Leaderboard';
 import WheelGraphic from './WheelGraphic';
 import GameOverCard from '../../components/molecules/GameOverCard';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
+import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import AccentTab from '../../components/atoms/AccentTab';
+import type { GameRunResult } from '../progression';
 import { springEnter } from '../transitions';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
@@ -95,6 +97,9 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const boughtVowel = useRef(false);
     // Puzzles solved correctly — the board's primary ranking key for The Wheel.
     const solvedCount = useRef(0);
+    // "Comeback": did the player solve a puzzle after surviving a Bankrupt this run?
+    const sawBankruptThisPuzzle = useRef(false);
+    const bankruptRecovered = useRef(false);
 
     // Mark each puzzle shown the moment it begins (display-time), and restart the
     // solve timer + clean-solve tracking. Fires once per puzzle actually reached,
@@ -104,6 +109,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         markShown(GAME_ID, currentId);
         decisionStartedAt.current = Date.now();
         boughtVowel.current = false;
+        sawBankruptThisPuzzle.current = false;
     }, [currentId]);
 
     const rotation = useSharedValue(0);
@@ -120,6 +126,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         (result: SpinResult) => {
             setSpinning(false);
             if (result.segment.bankrupt) {
+                sawBankruptThisPuzzle.current = true;
                 setGame((g) => applyBankrupt(g));
                 setStatus(tr('game.the-wheel.active.bankrupt'));
                 setPhase('awaitSpin');
@@ -190,6 +197,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             speedTotal.current += speedBonus(game.roundCash, seconds);
             solvedCount.current += 1;
             if (!boughtVowel.current) cleanPuzzles.current += 1;
+            if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
         }
         setStatus(correct ? '✓' : '✗');
         setGame(solve(game, solveText));
@@ -201,6 +209,8 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         cleanPuzzles.current = 0;
         solvedCount.current = 0;
         boughtVowel.current = false;
+        sawBankruptThisPuzzle.current = false;
+        bankruptRecovered.current = false;
         decisionStartedAt.current = Date.now();
         setGame(createGame(pickPuzzles(locale, TOTAL_PUZZLES)));
         resetTurnInputs();
@@ -214,6 +224,15 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             speed: speedTotal.current,
             cleanPuzzles: cleanPuzzles.current,
         });
+        const runResult: GameRunResult = {
+            gameId: GAME_ID,
+            score: breakdown.total,
+            progress: solvedCount.current,
+            won: solvedCount.current >= TOTAL_PUZZLES,
+            puzzlesSolved: solvedCount.current,
+            cleanPuzzles: cleanPuzzles.current,
+            bankruptRecovered: bankruptRecovered.current,
+        };
         return (
             <ScrollView style={styles.flex} contentContainerStyle={styles.gameOver} keyboardShouldPersistTaps='handled'>
                 <GameOverCard gameId={GAME_ID}>
@@ -231,6 +250,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                 </Text>
                                 <ScoreBreakdownLine breakdown={breakdown} />
                             </Stack>
+                            <RunCelebration result={runResult} accent={accent} />
                             <Leaderboard
                                 gameId={GAME_ID}
                                 pendingScore={breakdown.total}

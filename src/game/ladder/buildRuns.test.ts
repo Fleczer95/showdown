@@ -1,5 +1,5 @@
 import { ALL_PACK } from './content';
-import { buildLocalizedRungs } from './buildRuns';
+import { buildLocalizedRungs, type LadderPackCard } from './buildRuns';
 
 // Source questions keyed by id, for cross-checking what the loader produced.
 const sourceById = new Map(ALL_PACK.rungs.flat().map((q) => [q.id, q]));
@@ -37,5 +37,36 @@ describe('buildLocalizedRungs', () => {
             expect(hummus).toBeDefined();
             expect(hummus!.options[hummus!.correctIndex]).toBe(expected[lang]);
         }
+    });
+
+    it('defaults to no owned-pack cards (behaviour unchanged when nothing is owned)', () => {
+        expect(buildLocalizedRungs('en')).toEqual(buildLocalizedRungs('en', []));
+    });
+
+    it('slots an owned-pack card into the rung named by its difficulty', () => {
+        const card: LadderPackCard = {
+            id: 'ladder-premium-001',
+            prompt: 'Premium question',
+            options: ['A', 'B', 'C', 'D'],
+            correctIndex: 2,
+            hint: 'a hint',
+            difficulty: 5, // rung 5 → pool 2 (rungs 4–6), which fills run-rungs 3,4,5
+        };
+        const pooled = buildLocalizedRungs('en', [card]);
+        // Pool 2 is shared across the 4th–6th run-rungs (indices 3,4,5).
+        for (const rungIndex of [3, 4, 5]) {
+            expect(pooled[rungIndex].some((q) => q.id === card.id)).toBe(true);
+        }
+        // It must NOT leak into other pools (e.g. the first rung / pool 1).
+        expect(pooled[0].some((q) => q.id === card.id)).toBe(false);
+    });
+
+    it('ignores owned cards whose difficulty is out of range', () => {
+        const base = buildLocalizedRungs('en');
+        const merged = buildLocalizedRungs('en', [
+            { id: 'oob-0', prompt: 'x', options: ['a', 'b', 'c', 'd'], correctIndex: 0, difficulty: 0 },
+            { id: 'oob-16', prompt: 'x', options: ['a', 'b', 'c', 'd'], correctIndex: 0, difficulty: 16 },
+        ]);
+        expect(merged).toEqual(base);
     });
 });

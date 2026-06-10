@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -35,6 +35,8 @@ import { useTranslation } from '../../i18n/TranslationContext';
 import { getPack } from './content';
 import { createDeck } from '../deck';
 import { getHistory, markShown } from '../history';
+import { useStore } from '../../hooks/store/useStore';
+import { getOwnedPackContent } from '../../data/store/packContent';
 import {
     WHEEL,
     VOWEL_COST,
@@ -64,13 +66,19 @@ const GAME_ID = 'the-wheel';
 const EN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const PL_ALPHABET = 'AĄBCĆDEĘFGHIJKLŁMNŃOÓPQRSŚTUVWXYZŹŻ'.split('');
 
-/** Pick `count` puzzles from the pack, localized, ordered least-shown-first. */
-function pickPuzzles(locale: 'en' | 'pl', count: number): PuzzleContent[] {
-    const pool = getPack('all').puzzles.map((p) => ({
-        id: p.id,
-        phrase: p.phrase[locale],
-        category: p.category[locale],
-    }));
+/**
+ * Pick `count` puzzles from the free pack plus any owned premium pack puzzles,
+ * localized, ordered least-shown-first.
+ */
+function pickPuzzles(locale: 'en' | 'pl', count: number, owned: PuzzleContent[] = []): PuzzleContent[] {
+    const pool = [
+        ...getPack('all').puzzles.map((p) => ({
+            id: p.id,
+            phrase: p.phrase[locale],
+            category: p.category[locale],
+        })),
+        ...owned,
+    ];
     return createDeck(pool, getHistory(GAME_ID)).slice(0, count);
 }
 
@@ -82,7 +90,14 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     const { t: tr, locale } = useTranslation();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
 
-    const [game, setGame] = useState<GameState>(() => createGame(pickPuzzles(locale, TOTAL_PUZZLES)));
+    // Owned premium pack puzzles, localized, merged into the puzzle pool.
+    const { purchasedItemIds } = useStore();
+    const ownedPuzzles = useMemo(
+        () => getOwnedPackContent<PuzzleContent>(GAME_ID, locale, new Set(purchasedItemIds)),
+        [purchasedItemIds, locale],
+    );
+
+    const [game, setGame] = useState<GameState>(() => createGame(pickPuzzles(locale, TOTAL_PUZZLES, ownedPuzzles)));
     const [phase, setPhase] = useState<Phase>('awaitSpin');
     const [spinValue, setSpinValue] = useState(0);
     const [spinning, setSpinning] = useState(false);
@@ -259,13 +274,13 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         sawBankruptThisPuzzle.current = false;
         bankruptRecovered.current = false;
         decisionStartedAt.current = Date.now();
-        setGame(createGame(pickPuzzles(locale, TOTAL_PUZZLES)));
+        setGame(createGame(pickPuzzles(locale, TOTAL_PUZZLES, ownedPuzzles)));
         setPendingNext(null);
         setWrongGuess(null);
         resetTurnInputs();
         setStatus('');
         rotation.value = 0;
-    }, [locale, resetTurnInputs, rotation]);
+    }, [locale, ownedPuzzles, resetTurnInputs, rotation]);
 
     if (game.status === 'over' || game.status === 'lost') {
         const breakdown = wheelScore({
@@ -438,10 +453,11 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                     </Animated.View>
                 ) : null}
 
-                {/* Wheel — slides up and hides while the letter keyboard is up so
-                    the keyboard can rise into the freed space. Otherwise it absorbs
-                    the leftover vertical space and stays centered. */}
-                {phase === 'awaitGuess' && !solveMode ? null : (
+                {/* Wheel — slides up and hides while either keyboard is up (the
+                    letter keys or the solve-text input) so the keyboard can rise
+                    into the freed space and the input stays visible. Otherwise it
+                    absorbs the leftover vertical space and stays centered. */}
+                {solveMode || phase === 'awaitGuess' ? null : (
                     <Animated.View
                         entering={reduceMotion ? undefined : FadeIn.duration(250)}
                         exiting={FadeOutUp.duration(200)}

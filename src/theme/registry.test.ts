@@ -2,7 +2,12 @@ import { themeRegistry } from './registry';
 
 describe('themeRegistry', () => {
     it('exposes live store themes then earned progression themes', () => {
-        expect(themeRegistry.map((t) => t.value)).toEqual(['default', 'cyberpunk', 'champion', 'legend']);
+        const values = themeRegistry.map((t) => t.value);
+        // Earned (progression) themes are always appended after every store theme.
+        expect(values.slice(-2)).toEqual(['champion', 'legend']);
+        const firstEarned = values.indexOf('champion');
+        expect(values.indexOf('default')).toBeLessThan(firstEarned);
+        expect(values.indexOf('cyberpunk')).toBeLessThan(firstEarned);
     });
 
     it('tags earned themes with their reward id and not as premium', () => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Animated, {
     FadeIn,
@@ -37,8 +37,10 @@ import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useHaptics } from '../../hooks/useHaptics';
 
-import { dropQuestions, type Language } from './content';
+import { dropQuestions, zipDropCard, type DropPackCard, type Language } from './content';
 import { getHistory, markShown } from '../history';
+import { useStore } from '../../hooks/store/useStore';
+import { getOwnedPackContentBilingual } from '../../data/store/packContent';
 import {
     buildGame,
     applyRound,
@@ -47,6 +49,7 @@ import {
     BUNDLE,
     TOTAL_ROUNDS,
     type DropState,
+    type DropQuestion,
 } from './logic';
 import { dropScore, SPEED_WINDOW_SECONDS } from '../scoring';
 
@@ -86,7 +89,17 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
 
-    const [state, setState] = useState<DropState>(() => buildGame(dropQuestions, getHistory(GAME_ID)));
+    // Free bank plus any owned premium pack questions (reconstructed bilingual).
+    const { purchasedItemIds } = useStore();
+    const pool = useMemo(
+        () => [
+            ...dropQuestions,
+            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(GAME_ID, new Set(purchasedItemIds), zipDropCard),
+        ],
+        [purchasedItemIds],
+    );
+
+    const [state, setState] = useState<DropState>(() => buildGame(pool, getHistory(GAME_ID)));
     const [allocation, setAllocation] = useState<number[]>(EMPTY_ALLOCATION);
     // Drives the lock-in → suspense → reveal choreography.
     const [phase, setPhase] = useState<Phase>('allocating');
@@ -123,12 +136,12 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         secondsTotal.current = 0;
         roundsTimed.current = 0;
         // Re-read history so the next run reflects questions just shown.
-        setState(buildGame(dropQuestions, getHistory(GAME_ID)));
+        setState(buildGame(pool, getHistory(GAME_ID)));
         setAllocation(EMPTY_ALLOCATION);
         setPhase('allocating');
         setReveals(['none', 'none', 'none', 'none']);
         setCanAdvance(false);
-    }, [clearTicks]);
+    }, [clearTicks, pool]);
 
     const placed = allocation.reduce((sum, a) => sum + a, 0);
     const remaining = state.bank - placed;

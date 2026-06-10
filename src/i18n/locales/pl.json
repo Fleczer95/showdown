@@ -69,6 +69,16 @@
                 }
             }
         },
+        "themePicker": {
+            "title": "Motyw",
+            "subtitle": "Dotknij motywu, aby zastosować go od razu.",
+            "sections": {
+                "free": "DARMOWE",
+                "premium": "PREMIUM",
+                "earned": "ZDOBYTE"
+            },
+            "store": "Przeglądaj sklep z motywami"
+        },
         "privacyPolicy": {
             "title": "Polityka Prywatności",
             "subtitle": "Zgodna z RODO, App Store i Google Play",
@@ -206,11 +216,23 @@
                 "theme_cyberpunk": {
                     "title": "Cyberpunk",
                     "desc": "Kontrastowy neonowy motyw z elektrycznymi akcentami i nocnym, arcade'owym klimatem."
+                },
+                "theme_ocean": {
+                    "title": "Ocean Breeze",
+                    "desc": "Chłodna, głębinowa paleta z jasnymi akwamarynowymi akcentami i kojącym klimatem."
+                },
+                "theme_forest": {
+                    "title": "Enchanted Forest",
+                    "desc": "Soczyste leśne zielenie z ciepłymi odcieniami kory dla naturalnego wyglądu."
                 }
             },
             "feature": {
                 "theme_cyberpunk_1": "Neonowe turkusowe kontrolki i podświetlenia",
-                "theme_cyberpunk_2": "Ciemna paleta premium na wieczór z grami"
+                "theme_cyberpunk_2": "Ciemna paleta premium na wieczór z grami",
+                "theme_ocean_1": "Akwamarynowe kontrolki i podświetlenia",
+                "theme_ocean_2": "Głębinowa paleta przyjazna dla oczu",
+                "theme_forest_1": "Świeże zielone kontrolki i podświetlenia",
+                "theme_forest_2": "Ziemista paleta na spokojny wieczór z grami"
             },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",
@@ -292,7 +314,7 @@
                 "youWon": "Dotarłeś na szczyt!",
                 "reached": "Dotarłeś do pytania %{number}.",
                 "playAgain": "Zagraj ponownie",
-                "endGame": "Menu główne"
+                "endGame": "Ekran główny"
             },
             "rules": "1. Odpowiedz na 15 pytań o rosnącym poziomie trudności.\n2. Każda poprawna odpowiedź to jeden szczebel wyżej.\n3. Błędna odpowiedź kończy grę.\n4. Utknąłeś? Użyj jednego z trzech kół ratunkowych: 50:50, Pytanie do studia lub Pomiń.\n5. Dotrzyj na szczyt, aby zdobyć główną nagrodę!"
         },
@@ -322,7 +344,7 @@
                 "teamWins": "%{team} wygrywa!",
                 "draw": "Remis!",
                 "playAgain": "Zagraj ponownie",
-                "endGame": "Menu główne"
+                "endGame": "Ekran główny"
             },
             "rules": "1. Drużyny na zmianę wybierają kategorię i liczbę punktów z planszy.\n2. Przeczytajcie wskazówkę na głos i postawcie punkty na odpowiedź.\n3. Poprawna odpowiedź daje punkty, błędna je odbiera.\n4. Wyczyśćcie planszę — wygrywa drużyna z największą liczbą punktów!"
         },
@@ -360,7 +382,7 @@
                 "teamWins": "%{team} wygrywa!",
                 "draw": "Remis!",
                 "playAgain": "Zagraj ponownie",
-                "endGame": "Menu główne"
+                "endGame": "Ekran główny"
             },
             "rules": "1. Zakręć kołem, aby ustalić wartość kolejnej poprawnej litery.\n2. Zgadnij spółgłoskę, aby zdobyć wartość zakręcenia za każde jej wystąpienie.\n3. Kup samogłoskę za stałą opłatę.\n4. Rozwiąż hasło, aby wygrać rundę — ale uważaj na pole Bankrut!\n5. Wygrywa drużyna z największą liczbą punktów."
         },
@@ -395,7 +417,7 @@
                 "busted": "Straciłeś wszystko.",
                 "finalBank": "Końcowy bank",
                 "playAgain": "Zagraj ponownie",
-                "exit": "Wyjdź"
+                "exit": "Ekran główny"
             }
         }
     },

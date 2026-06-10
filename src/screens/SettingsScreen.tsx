@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, Store, Volume2, Smartphone } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Palette, Volume2, Smartphone } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -13,9 +13,6 @@ import Divider from '../components/atoms/Divider';
 import { useTheme, useThemeActions, themeRegistry } from '../theme';
 import { useTranslation } from '../i18n';
 import { useSettings } from '../hooks/useSettings';
-import { useStore } from '../hooks/store/useStore';
-import { useProgression } from '../hooks/useProgression';
-import { LEVEL_MAP } from '../game/progression';
 import { useResponsive } from '../responsive/useResponsive';
 import { FULL_VERSION_STRING } from '../utils/version';
 
@@ -27,50 +24,16 @@ export function SettingsScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
-    const { themeId, setTheme } = useThemeActions();
+    const { themeId } = useThemeActions();
     const settings = useSettings();
-    const { purchasedItemIds } = useStore();
-    const { unlockedRewards } = useProgression();
     const { scale } = useResponsive();
 
     const handleBack = () => navigation.goBack();
 
-    const themeOptions = themeRegistry.map((opt) => {
-        // Earned themes resolve their lock against unlocked map rewards, not purchases.
-        const isLocked = opt.isEarned
-            ? !unlockedRewards.has(opt.rewardId!)
-            : !!opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`);
-        // The Level Map node that grants this earned theme — surfaced as a "Lv N" chip.
-        const requiredLevel = opt.isEarned
-            ? LEVEL_MAP.find((node) => node.rewardId === opt.rewardId)?.level
-            : undefined;
-        return {
-            value: opt.value,
-            label: opt.isEarned ? `${t(opt.labelKey as any)} ✦` : t(opt.labelKey as any),
-            icon: opt.icon,
-            isPremium: opt.isPremium,
-            isEarned: opt.isEarned,
-            rewardId: opt.rewardId,
-            isLocked,
-            lockLabel:
-                isLocked && requiredLevel ? t('progression.levelShort', { n: requiredLevel }) : undefined,
-        };
-    });
-
-    const handleThemeChange = (nextThemeId: string) => {
-        const option = themeOptions.find((themeOption) => themeOption.value === nextThemeId);
-        if (option?.isLocked) {
-            // Earned themes aren't for sale — point at the Progress screen (and the exact
-            // level that unlocks them), not the Store.
-            if (option.isEarned) {
-                navigation.navigate('Progress' as any, { focusRewardId: option.rewardId });
-            } else {
-                navigation.navigate('Store' as any, { gameId: 'themes' });
-            }
-            return;
-        }
-        setTheme(nextThemeId);
-    };
+    // The picker now lives on its own screen; Settings just surfaces the current
+    // selection on a disclosure row.
+    const currentTheme = themeRegistry.find((opt) => opt.value === themeId);
+    const currentThemeLabel = currentTheme ? t(currentTheme.labelKey as any) : '';
 
     const languageOptions = [
         { value: 'en', label: t('screen.settings.labels.language_en') },
@@ -115,25 +78,25 @@ export function SettingsScreen() {
                         >
                             {t('screen.settings.sections.appearance')}
                         </Text>
-                        <SelectionList
-                            label={t('screen.settings.labels.theme')}
-                            value={[themeId]}
-                            options={themeOptions}
-                            onChange={handleThemeChange}
-                            numColumns={2}
-                        />
                         <Pressable
-                            style={[styles.storeButton, { paddingVertical: theme.spacing.sm }]}
-                            onPress={() => navigation.navigate('Store' as any, { gameId: 'themes' })}
+                            style={[styles.row, { paddingVertical: theme.spacing.sm }]}
+                            onPress={() => navigation.navigate('Theme' as any)}
                             haptic='light'
-                            accessibilityLabel={t('screen.store.title')}
+                            accessibilityRole='button'
+                            accessibilityLabel={t('screen.settings.labels.theme')}
                         >
-                            <View pointerEvents='none' style={styles.storeButtonContent}>
-                                <Store size={scale(18)} color={theme.colors.primary} />
-                                <Text variant='body' color={theme.colors.primary} weight='semibold'>
-                                    {t('screen.settings.labels.store')}
+                            <Stack direction='horizontal' gap='sm' align='center'>
+                                <Palette size={scale(20)} color={theme.colors.textSecondary} />
+                                <Text variant='body' weight='medium'>
+                                    {t('screen.settings.labels.theme')}
                                 </Text>
-                            </View>
+                            </Stack>
+                            <Stack direction='horizontal' gap='xs' align='center'>
+                                <Text variant='body' color={theme.colors.textSecondary}>
+                                    {currentThemeLabel}
+                                </Text>
+                                <ChevronRight size={scale(20)} color={theme.colors.textMuted} />
+                            </Stack>
                         </Pressable>
                     </Stack>
 
@@ -286,14 +249,6 @@ const styles = StyleSheet.create({
     },
     linkButton: {
         // dynamic spacing moved
-    },
-    storeButton: {
-        alignSelf: 'flex-start',
-    },
-    storeButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
     },
     footer: {
         // dynamic spacing moved

@@ -65,6 +65,22 @@ describe('buildRun', () => {
         expect(run.rungs[0].current.id).toBe('q0-alt1');
         expect(run.rungs[0].alternates[0].id).toBe('q0-alt0');
     });
+
+    it('never repeats a question on rungs that share a pool', () => {
+        // buildLocalizedRungs feeds the SAME pool array to a group of rungs and
+        // relies on buildRun to give each rung a distinct question. Without that,
+        // adjacent rungs show the same question back-to-back (the reported bug).
+        const pool: LadderQuestion[] = ['p0', 'p1', 'p2'].map((id) => ({
+            id,
+            prompt: id,
+            options: ['a', 'b', 'c', 'd'],
+            correctIndex: 0,
+        }));
+        const rungPool = Array.from({ length: RUN_LENGTH }, () => pool);
+        const run = buildRun(rungPool, {}, stableRng);
+        const firstThree = run.rungs.slice(0, 3).map((r) => r.current.id);
+        expect(new Set(firstThree).size).toBe(3);
+    });
 });
 
 describe('applyAnswer', () => {

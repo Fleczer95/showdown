@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -28,8 +28,10 @@ import { useTheme, useColor, useAnimationPresets } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
-import { buildLocalizedRungs, type Language } from './buildRuns';
+import { buildLocalizedRungs, type Language, type LadderPackCard } from './buildRuns';
 import { getHistory, markShown } from '../history';
+import { useStore } from '../../hooks/store/useStore';
+import { getOwnedPackContent } from '../../data/store/packContent';
 import {
     buildRun,
     applyAnswer,
@@ -60,12 +62,19 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const { t, locale } = useTranslation();
     const lang = (locale === 'pl' ? 'pl' : 'en') as Language;
 
+    // Owned premium pack questions, localized + slotted into rungs by difficulty.
+    const { purchasedItemIds } = useStore();
+    const ownedCards = useMemo(
+        () => getOwnedPackContent<LadderPackCard>(GAME_ID, lang, new Set(purchasedItemIds)),
+        [purchasedItemIds, lang],
+    );
+
     const success = useColor('success');
     const error = useColor('error');
     const textMuted = useColor('textMuted');
     const surface = useColor('surface');
 
-    const [run, setRun] = useState<LadderRun>(() => buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
+    const [run, setRun] = useState<LadderRun>(() => buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)));
 
     // Hidden per-decision stopwatch + run accumulators for the unified points
     // score. The timer resets on every new question (including after a Skip);
@@ -98,7 +107,7 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     }
 
     function startFreshRun() {
-        setRun(buildRun(buildLocalizedRungs(lang), getHistory(GAME_ID)));
+        setRun(buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)));
         baseTotal.current = 0;
         speedTotal.current = 0;
         quickWit.current = false;

@@ -62,9 +62,12 @@ export function GameSetupScreen() {
     ];
 
     if (isPlaying && PlayScreen) {
+        // Exiting a session (end-game "Main Menu" or mid-game Leave) returns to the
+        // Home screen, not this game's config view. Home is the stack root, so
+        // navigating to it pops the setup screen and resets its machine on remount.
         return (
             <SafeContainer edges={['top']}>
-                <PlayScreen onExit={() => send({ type: 'EXIT' })} />
+                <PlayScreen onExit={() => navigation.navigate('Home')} />
             </SafeContainer>
         );
     }

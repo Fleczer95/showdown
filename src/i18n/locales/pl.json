@@ -232,6 +232,10 @@
                 "drop_world-geography": {
                     "title": "Geografia świata",
                     "desc": "Rzeki, szczyty, miasta i oceany z całego globu — 180 zupełnie nowych pytań, na które warto postawić."
+                },
+                "wheel_world-cuisine": {
+                    "title": "Kuchnie świata",
+                    "desc": "Zakręć po dania, desery i smaki z całego globu — 60 apetycznych łamigłówek."
                 }
             },
             "feature": {
@@ -244,7 +248,9 @@
                 "ladder_ancient-history_1": "300 nowych pytań od Egiptu i Grecji po Rzym i dalej",
                 "ladder_ancient-history_2": "Rosnąca trudność: od szkolnej klasyki po wiedzę dla znawców",
                 "drop_world-geography_1": "180 nowych pytań o rzekach, górach, krajach i morzach",
-                "drop_world-geography_2": "Prawdziwe liczby z bliskimi dystraktorami, które sprawdzą twój instynkt"
+                "drop_world-geography_2": "Prawdziwe liczby z bliskimi dystraktorami, które sprawdzą twój instynkt",
+                "wheel_world-cuisine_1": "60 świeżych łamigłówek kulinarnych z kuchni świata",
+                "wheel_world-cuisine_2": "Dania, przyprawy, sery i słodkości w każdej rundzie"
             },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",

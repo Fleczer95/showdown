@@ -232,6 +232,10 @@
                 "drop_world-geography": {
                     "title": "World Geography",
                     "desc": "Rivers, peaks, cities, and oceans from across the globe — 180 brand-new questions to bank on."
+                },
+                "wheel_world-cuisine": {
+                    "title": "World Cuisine",
+                    "desc": "Spin through dishes, desserts, and flavors from around the globe — 60 mouth-watering puzzles."
                 }
             },
             "feature": {
@@ -244,7 +248,9 @@
                 "ladder_ancient-history_1": "300 fresh questions spanning Egypt, Greece, Rome, and beyond",
                 "ladder_ancient-history_2": "A difficulty climb from classroom classics to specialist deep cuts",
                 "drop_world-geography_1": "180 fresh questions on rivers, mountains, countries, and seas",
-                "drop_world-geography_2": "Real figures with tight distractors to test your gut"
+                "drop_world-geography_2": "Real figures with tight distractors to test your gut",
+                "wheel_world-cuisine_1": "60 fresh food puzzles from world kitchens",
+                "wheel_world-cuisine_2": "Dishes, spices, cheeses, and sweets in every round"
             },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",

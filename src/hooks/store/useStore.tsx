@@ -4,6 +4,7 @@ import { PurchaseEngine, StoreState } from '../../services/store/PurchaseEngine'
 import { MMKVPurchaseAdapter } from '../../services/store/MMKVPurchaseAdapter';
 import { IAPService } from '../../services/store/IAPService';
 import { ALL_SKUS, getIdForSku } from '../../data/store/catalog';
+import { seedUnlockedPack } from '../../game/packHistory';
 
 // Toggle this flag to switch between mock buying and real IAP
 // In a real app, you might want to use an environment variable or a developer setting
@@ -69,6 +70,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         return engine.subscribe(setState);
+    }, [engine]);
+
+    // Seed each owned pack's question history to its game's current pool floor so
+    // freshly-unlocked paid content blends into rotation instead of starving the
+    // base pool. One subscription covers purchase, mock buy and restore; `seen`
+    // starts empty so the initial fire also seeds packs owned before this shipped.
+    useEffect(() => {
+        const seen = new Set<string>();
+        return engine.subscribe((s) => {
+            for (const id of s.purchasedItemIds) {
+                if (!seen.has(id)) {
+                    seen.add(id);
+                    seedUnlockedPack(id);
+                }
+            }
+        });
     }, [engine]);
 
     const purchaseItem = useCallback(

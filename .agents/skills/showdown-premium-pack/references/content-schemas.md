@@ -42,6 +42,11 @@ A pack with the wrong per-card shape will type-check at the catalog boundary but
 
 ```ts
 // Ladder — content.ts. RUNGS is indexed by rung (15 entries); each entry is a pool.
+// PREMIUM PACKS: author cards as `QuestionContent & { difficulty: number }` — the
+// flat pack list carries `difficulty` (= rung number, 1..15) because the store
+// bridge slots each owned card by `difficulty`, NOT by array position. The free
+// bank omits difficulty (position = rung); a premium pack that omits it cannot be
+// slotted into a rung at runtime.
 interface QuestionContent {
   id: string;                 // `ladder-<slug>-NNN`
   question: { en: string; pl: string };
@@ -68,13 +73,20 @@ interface PuzzleContent {
 
 ## Authoring representation
 
-Author the pack as a **bilingual content module** matching the shapes above, at `src/game/<game>/packs/<slug>.ts`. This makes `audit_engine.cjs` and `validate-content.mjs` work directly (they expect the bilingual `{en,pl}`-per-field shape).
+Author the pack as a **bilingual content module** matching the shapes above, at `src/game/<game>/packs/<slug>.ts`. The audit engine's TS-file mode (`audit_engine.cjs`) works directly on it. (`validate-content.mjs` does NOT — see review-and-provision.md Stage 4.)
 
-The store's `PackContent<TCard>` is `{ en: TCard[]; pl: TCard[] }` — **monolingual arrays per locale**. Derive it from the bilingual module by splitting each field into its locale, so EN/PL parity is guaranteed by construction:
+**Single quotes, no apostrophes (hard rule).** The audit engine's TS mode validates parity by regex-counting single-quoted `en: '...'` vs `pl: '...'` literals, and dedups prompts via `question: { en: '...'`. So: author every `en`/`pl` string in **single quotes** (matching `content.ts`), and **avoid apostrophes inside strings** — an escaped apostrophe (`\'`) truncates the `[^']*` capture and desyncs the en/pl counts, producing a false `[MISMATCH]` error. Rephrase to dodge apostrophes (e.g. `of Rome` not `Rome's`; `cannot` not `can't`).
+
+The store's `PackContent<TCard>` is `{ en: TCard[]; pl: TCard[] }` — **monolingual arrays per locale**. Derive it by splitting each field into its locale so EN/PL parity is guaranteed by construction. **Match the GAME's runtime card shape, not the bilingual authoring shape** — e.g. The Ladder consumes `LadderPackCard` (`{ id, prompt, options: string[], correctIndex, hint, difficulty }`): note `prompt` (not `question`) and the carried `difficulty`. The Drop consumes `DropPackCard` (`{ id, prompt, options, correctIndex }`).
 
 ```ts
-const en = cards.map(c => ({ ...c, question: c.question.en, options: c.options.map(o => o.en), hint: c.hint?.en }));
-const pl = cards.map(c => ({ ...c, question: c.question.pl, options: c.options.map(o => o.pl), hint: c.hint?.pl }));
+// Ladder example (QuestionContent & { difficulty }):
+const toLocale = (lang: 'en' | 'pl') => (c) => ({
+  id: c.id, prompt: c.question[lang], options: c.options.map((o) => o[lang]),
+  correctIndex: c.correctIndex, hint: c.hint[lang], difficulty: c.difficulty,
+});
+export const en = cards.map(toLocale('en'));
+export const pl = cards.map(toLocale('pl'));
 // PackDefinition.content = { en, pl }
 ```
 
@@ -96,8 +108,8 @@ Total = 300. Each `QuestionContent.difficulty` (if present in the consuming shap
 
 - pack id: `pack-<game>-<slug>`
 - card ids: `<game>-<slug>-NNN` (zero-padded to 3; sequential within the pack)
-- sku: `com.showdown.pack_<game>_<slug>`
-- i18n key root: `<game>_<slug>` →
+- sku: `com.showdown.pack_<game>_<snake_slug>` — **store product IDs allow ONLY alphanumerics, underscores, and periods; hyphens are rejected by BOTH App Store Connect and Google Play.** Snake_case the slug for the sku (e.g. slug `ancient-history` → sku `...pack_ladder_ancient_history`). The pack id and i18n keys keep the kebab-case slug; only the sku must be sanitized. (Apple returns `ENTITY_ERROR.ATTRIBUTE.INVALID` on a hyphen.)
+- i18n key root: `<game>_<slug>` (kebab slug is fine here — i18next keys allow hyphens) →
   - `screen.store.item.<game>_<slug>.title`
   - `screen.store.item.<game>_<slug>.desc`
   - `screen.store.feature.<game>_<slug>_1`, `_2`, …

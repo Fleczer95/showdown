@@ -224,6 +224,10 @@
                 "theme_forest": {
                     "title": "Enchanted Forest",
                     "desc": "Rich woodland greens with warm bark tones for a grounded, natural look."
+                },
+                "ladder_ancient-history": {
+                    "title": "Ancient History",
+                    "desc": "Climb through 5,000 years of empires, pharaohs, and legendary battles — 300 brand-new questions."
                 }
             },
             "feature": {
@@ -232,7 +236,9 @@
                 "theme_ocean_1": "Aqua controls and highlights",
                 "theme_ocean_2": "Deep-sea palette that's easy on the eyes",
                 "theme_forest_1": "Fresh green controls and highlights",
-                "theme_forest_2": "Earthy palette for a calm game night"
+                "theme_forest_2": "Earthy palette for a calm game night",
+                "ladder_ancient-history_1": "300 fresh questions spanning Egypt, Greece, Rome, and beyond",
+                "ladder_ancient-history_2": "A difficulty climb from classroom classics to specialist deep cuts"
             },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",

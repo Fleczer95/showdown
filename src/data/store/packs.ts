@@ -1,5 +1,7 @@
 import { ancientHistoryEn, ancientHistoryPl } from '../../game/ladder/packs/ancient-history';
+import { worldGeographyEn, worldGeographyPl } from '../../game/drop/packs/world-geography';
 import type { LadderPackCard } from '../../game/ladder/buildRuns';
+import type { DropPackCard } from '../../game/drop/content';
 import type { PackDefinition } from './types';
 
 /**
@@ -44,6 +46,38 @@ export const gamePacks: PackDefinition[] = [
         content: { en: ancientHistoryEn, pl: ancientHistoryPl } satisfies {
             en: LadderPackCard[];
             pl: LadderPackCard[];
+        },
+    },
+    {
+        id: 'pack-drop-world-geography',
+        kind: 'pack',
+        gameId: 'the-drop',
+        status: 'hidden',
+        // SKU snake_cased (stores reject hyphens); catalog id and i18n keys keep
+        // the kebab slug. Stays status: 'hidden' until the IAP is approved in
+        // BOTH stores, then flip to 'live'.
+        //
+        // IAP PROVISIONING STATUS (2026-06-11):
+        //   App Store Connect — DRAFT created (id 6779168573, FUTURE/unsubmitted, $1.99).
+        //   Google Play       — PENDING: same account-level "request billing
+        //     permission" block that holds the Ancient History pack. Not a
+        //     code/sku issue — the google-play-key.json service account needs the
+        //     financial/billing grant in Play Console (and the payments profile
+        //     fully approved). Re-run once granted:
+        //     PYTHONPATH=<deps> /usr/bin/python3 .agents/google-play-iap/create_iap.py
+        tier: 'premium',
+        sku: 'com.showdown.pack_drop_world_geography',
+        presentation: {
+            titleKey: 'screen.store.item.drop_world-geography.title',
+            descriptionKey: 'screen.store.item.drop_world-geography.desc',
+            iconName: 'globe',
+            accentColor: '#1E88A8',
+            featuresKey: ['screen.store.feature.drop_world-geography_1', 'screen.store.feature.drop_world-geography_2'],
+            fallbackPrice: '$1.99',
+        },
+        content: { en: worldGeographyEn, pl: worldGeographyPl } satisfies {
+            en: DropPackCard[];
+            pl: DropPackCard[];
         },
     },
 ];

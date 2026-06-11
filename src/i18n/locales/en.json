@@ -228,6 +228,10 @@
                 "ladder_ancient-history": {
                     "title": "Ancient History",
                     "desc": "Climb through 5,000 years of empires, pharaohs, and legendary battles — 300 brand-new questions."
+                },
+                "drop_world-geography": {
+                    "title": "World Geography",
+                    "desc": "Rivers, peaks, cities, and oceans from across the globe — 180 brand-new questions to bank on."
                 }
             },
             "feature": {
@@ -238,7 +242,9 @@
                 "theme_forest_1": "Fresh green controls and highlights",
                 "theme_forest_2": "Earthy palette for a calm game night",
                 "ladder_ancient-history_1": "300 fresh questions spanning Egypt, Greece, Rome, and beyond",
-                "ladder_ancient-history_2": "A difficulty climb from classroom classics to specialist deep cuts"
+                "ladder_ancient-history_2": "A difficulty climb from classroom classics to specialist deep cuts",
+                "drop_world-geography_1": "180 fresh questions on rivers, mountains, countries, and seas",
+                "drop_world-geography_2": "Real figures with tight distractors to test your gut"
             },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",

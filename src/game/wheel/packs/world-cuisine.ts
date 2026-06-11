@@ -77,7 +77,7 @@ const puzzles: BiPuzzle[] = [
     // --- Breads ---
     { id: 'wheel-world-cuisine-041', phrase: { en: 'SOURDOUGH BREAD', pl: 'CHLEB NA ZAKWASIE' }, category: BREAD },
     { id: 'wheel-world-cuisine-042', phrase: { en: 'FRENCH BAGUETTE', pl: 'FRANCUSKA BAGIETKA' }, category: BREAD },
-    { id: 'wheel-world-cuisine-043', phrase: { en: 'WARM GARLIC NAAN', pl: 'CIEPŁY CHLEBEK NAAN' }, category: BREAD },
+    { id: 'wheel-world-cuisine-043', phrase: { en: 'WARM GARLIC NAAN', pl: 'CIEPŁY CZOSNKOWY NAAN' }, category: BREAD },
     { id: 'wheel-world-cuisine-044', phrase: { en: 'CORN TORTILLA', pl: 'TORTILLA KUKURYDZIANA' }, category: BREAD },
     { id: 'wheel-world-cuisine-045', phrase: { en: 'ITALIAN CIABATTA', pl: 'WŁOSKA CIABATTA' }, category: BREAD },
 

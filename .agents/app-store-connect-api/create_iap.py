@@ -30,6 +30,9 @@ PRODUCTS = [
     # Keep SKUs under the com.showdown.* namespace and mirror src/data/store.
     # Example:
     # {"sku": "com.showdown.ladder_history", "name": "History Ladder", "desc": "15 history questions.", "price": "1.99", "enabled": True},
+    {"sku": "com.showdown.pack_ladder_ancient_history", "name": "Ancient History", "desc": "300 ancient history questions for The Ladder", "price": "2.49", "enabled": False},
+    {"sku": "com.showdown.pack_drop_world_geography", "name": "World Geography", "desc": "180 world geography questions for The Drop", "price": "1.99", "enabled": False},
+    {"sku": "com.showdown.pack_wheel_world_cuisine", "name": "World Cuisine", "desc": "60 world cuisine puzzles for The Wheel", "price": "1.99", "enabled": False},
 ]
 
 # Obsolete SKUs to delete on next run. Add product IDs here when a pack is removed

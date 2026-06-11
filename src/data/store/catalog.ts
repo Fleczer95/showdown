@@ -1,3 +1,4 @@
+import { gamePacks } from './packs';
 import { resolveEntryState } from './resolver';
 import { themes } from './themes';
 import type { CatalogEntry } from './types';
@@ -9,10 +10,7 @@ import type { CatalogEntry } from './types';
  * ShowDown skeleton: game packs are added per-game during the content phase
  * (e.g. `...theLadderPacks`). Today only cosmetic themes ship.
  */
-export const STORE_CATALOG: readonly CatalogEntry[] = [
-    // ...gamePacks (added during the content phase)
-    ...(themes ?? []),
-];
+export const STORE_CATALOG: readonly CatalogEntry[] = [...gamePacks, ...(themes ?? [])];
 
 const idToEntry = new Map<string, CatalogEntry>();
 const idToSku = new Map<string, string>();

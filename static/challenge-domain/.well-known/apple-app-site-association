@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_APPLE_TEAM_ID.com.showdown.app"],
+        "components": [
+          {
+            "/": "/c/*",
+            "comment": "Async Challenge links open the app on the Challenge route"
+          }
+        ]
+      }
+    ]
+  }
+}

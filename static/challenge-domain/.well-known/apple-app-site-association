@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["REPLACE_WITH_APPLE_TEAM_ID.com.showdown.app"],
+        "appIDs": ["RA73B8WWF4.com.showdown.app"],
         "components": [
           {
             "/": "/c/*",

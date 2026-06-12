@@ -23,7 +23,7 @@ service cloud.firestore {
         && d.createdBy is map
         && d.createdBy.uuid is string && d.createdBy.uuid.size() <= 64
         && d.createdBy.nickname is string && d.createdBy.nickname.size() <= 24
-        && d.expiresAt is int;
+        && d.expiresAt is timestamp;
     }
 
     function isValidAttempt(d) {

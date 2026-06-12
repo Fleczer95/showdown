@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { springEnter } from '../game/transitions';
+import { SafeAnalytics } from '../utils/firebase/init';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -59,6 +62,7 @@ export function ChallengeScreen() {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { purchasedItemIds } = useStore();
+    const reduceMotion = useReducedMotion();
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
@@ -99,12 +103,14 @@ export function ChallengeScreen() {
                 return;
             }
             setRecord(rec);
+            SafeAnalytics.logEvent({ name: 'challenge_opened', params: { game: rec.game } });
             const gate = gateChallenge(rec, APP_VERSION, Date.now());
             if (gate === 'expired') {
                 setPhase('expired');
                 return;
             }
             if (gate === 'updateRequired') {
+                SafeAnalytics.logEvent({ name: 'challenge_update_required', params: { game: rec.game } });
                 setPhase('updateRequired');
                 return;
             }
@@ -137,12 +143,18 @@ export function ChallengeScreen() {
             try {
                 await submitAttempt(challengeId, deviceId, attempt);
                 pendingResult.current = null;
+                if (record) {
+                    SafeAnalytics.logEvent({
+                        name: 'challenge_completed',
+                        params: { game: record.game, progress: result.progress, score: result.score },
+                    });
+                }
                 await showResults(attempt.timestamp);
             } catch {
                 setPhase('submitOffline');
             }
         },
-        [challengeId, deviceId, showResults],
+        [challengeId, deviceId, record, showResults],
     );
 
     const handleComplete = useCallback((result: ChallengeResult) => submit(result), [submit]);
@@ -223,33 +235,40 @@ export function ChallengeScreen() {
                         onAction={exit}
                     />
                 ) : phase === 'intro' && record ? (
-                    <Card variant='elevated' padding='lg' gap='md' style={styles.card}>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='overline' color='textSecondary' weight='bold'>
-                                {t(`game.${record.game}.name`)}
-                            </Text>
-                            <Text variant='heading' weight='bold' align='center'>
-                                {t('challenge.vsTitle', { name: record.createdBy.nickname })}
-                            </Text>
-                            <Text variant='body' color='textSecondary' align='center'>
-                                {t('challenge.vsSubtitle')}
-                            </Text>
-                        </Stack>
-                        {getLastNickname().trim().length === 0 ? (
-                            <Input
-                                value={nickname}
-                                onChangeText={setNickname}
-                                placeholder={t('leaderboard.nicknamePlaceholder')}
-                                maxLength={MAX_NICKNAME_LENGTH}
-                                autoCapitalize='words'
-                                textAlign='center'
-                                wrapperStyle={styles.input}
-                            />
-                        ) : null}
-                        <Button variant='primary' fullWidth disabled={nickname.trim().length === 0} onPress={startPlay}>
-                            {t('challenge.start')}
-                        </Button>
-                    </Card>
+                    <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
+                        <Card variant='elevated' padding='lg' gap='md'>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='overline' color='textSecondary' weight='bold'>
+                                    {t(`game.${record.game}.name`)}
+                                </Text>
+                                <Text variant='heading' weight='bold' align='center'>
+                                    {t('challenge.vsTitle', { name: record.createdBy.nickname })}
+                                </Text>
+                                <Text variant='body' color='textSecondary' align='center'>
+                                    {t('challenge.vsSubtitle')}
+                                </Text>
+                            </Stack>
+                            {getLastNickname().trim().length === 0 ? (
+                                <Input
+                                    value={nickname}
+                                    onChangeText={setNickname}
+                                    placeholder={t('leaderboard.nicknamePlaceholder')}
+                                    maxLength={MAX_NICKNAME_LENGTH}
+                                    autoCapitalize='words'
+                                    textAlign='center'
+                                    wrapperStyle={styles.input}
+                                />
+                            ) : null}
+                            <Button
+                                variant='primary'
+                                fullWidth
+                                disabled={nickname.trim().length === 0}
+                                onPress={startPlay}
+                            >
+                                {t('challenge.start')}
+                            </Button>
+                        </Card>
+                    </Animated.View>
                 ) : phase === 'results' && record ? (
                     <ResultsCard
                         record={record}
@@ -320,6 +339,7 @@ function ResultsCard({
     locale: string;
 }) {
     const theme = useTheme();
+    const reduceMotion = useReducedMotion();
     const game = games.find((g) => g.id === record.game);
     const winner = attempts[0];
     const youWon = winner && myTimestamp !== null && winner.timestamp === myTimestamp;
@@ -343,8 +363,9 @@ function ResultsCard({
                 {attempts.map((entry, i) => {
                     const mine = myTimestamp !== null && entry.timestamp === myTimestamp;
                     return (
-                        <View
+                        <Animated.View
                             key={`${entry.timestamp}-${i}`}
+                            entering={reduceMotion ? undefined : springEnter(i * 80)}
                             style={[
                                 styles.row,
                                 { borderBottomColor: theme.colors.border },
@@ -368,7 +389,7 @@ function ResultsCard({
                             <Text variant='body' weight='bold' style={styles.score}>
                                 {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
                             </Text>
-                        </View>
+                        </Animated.View>
                     );
                 })}
             </Stack>

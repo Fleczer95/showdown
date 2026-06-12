@@ -25,6 +25,7 @@ import { buildChallenge } from '../game/challenge/build';
 import { createChallenge } from '../game/challenge/store';
 import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
+import { SafeAnalytics } from '../utils/firebase/init';
 import { getHistory } from '../game/history';
 import { getLastNickname, setLastNickname, MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { APP_VERSION } from '../utils/version';
@@ -66,6 +67,7 @@ export function GameSetupScreen() {
                 lang: locale === 'pl' ? 'pl' : 'en',
             });
             const id = await createChallenge(record);
+            SafeAnalytics.logEvent({ name: 'challenge_created', params: { game: game.id } });
             await shareChallenge(id);
             navigation.navigate('Challenge', { challengeId: id });
         } catch {

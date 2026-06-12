@@ -1,4 +1,4 @@
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import type { Attempt, ChallengeRecord } from './types';
 
 // The only Firestore touchpoint for challenges (ADR-0003). The app reads/writes
@@ -41,9 +41,14 @@ function withTimeout<T>(promise: Promise<T>): Promise<T> {
     });
 }
 
-/** Write a frozen challenge; returns the generated document id for the share URL. */
+/**
+ * Write a frozen challenge; returns the generated document id for the share URL.
+ * `expiresAt` is stored as a Firestore `Timestamp` (not the in-app epoch-ms
+ * number) because the Firestore TTL policy only prunes docs by a Timestamp field.
+ */
 export async function createChallenge(record: ChallengeRecord): Promise<string> {
-    const ref = await withTimeout(firestore().collection(CHALLENGES).add(record));
+    const payload = { ...record, expiresAt: firestore.Timestamp.fromMillis(record.expiresAt) };
+    const ref = await withTimeout(firestore().collection(CHALLENGES).add(payload));
     return ref.id;
 }
 
@@ -51,7 +56,12 @@ export async function createChallenge(record: ChallengeRecord): Promise<string> 
 export async function getChallenge(id: string): Promise<ChallengeRecord | null> {
     const snapshot = await withTimeout(firestore().collection(CHALLENGES).doc(id).get());
     if (!snapshot.exists) return null;
-    return snapshot.data() as ChallengeRecord;
+    // `expiresAt` is a Timestamp on the wire (see createChallenge); convert back
+    // to epoch-ms so the rest of the app keeps working with plain numbers.
+    const data = snapshot.data() as Omit<ChallengeRecord, 'expiresAt'> & {
+        expiresAt: FirebaseFirestoreTypes.Timestamp;
+    };
+    return { ...data, expiresAt: data.expiresAt.toMillis() };
 }
 
 /**

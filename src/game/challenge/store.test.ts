@@ -17,7 +17,10 @@ jest.mock('@react-native-firebase/firestore', () => {
     api.add = (...args: unknown[]) => mockAdd(...args);
     api.get = (...args: unknown[]) => mockGet(...args);
     api.set = (...args: unknown[]) => mockSet(...args);
-    return { __esModule: true, default: () => api };
+    // `firestore` is a callable with a static `Timestamp`. Our stub Timestamp is
+    // just a millis carrier with the `toMillis()` the store reads back.
+    const Timestamp = { fromMillis: (ms: number) => ({ toMillis: () => ms }) };
+    return { __esModule: true, default: Object.assign(() => api, { Timestamp }) };
 });
 
 import { createChallenge, getChallenge, submitAttempt, getAttempts, OfflineError } from './store';
@@ -39,16 +42,19 @@ const attempt: Attempt = { nickname: 'A', progress: 3, score: 100, timestamp: 5 
 beforeEach(() => jest.clearAllMocks());
 
 describe('createChallenge', () => {
-    it('returns the new document id', async () => {
+    it('returns the new document id and writes expiresAt as a Timestamp', async () => {
         mockAdd.mockResolvedValue({ id: 'doc123' });
         await expect(createChallenge(record)).resolves.toBe('doc123');
-        expect(mockAdd).toHaveBeenCalledWith(record);
+        const written = mockAdd.mock.calls[0][0] as ChallengeRecord & { expiresAt: { toMillis: () => number } };
+        expect(written).toMatchObject({ ...record, expiresAt: expect.anything() });
+        expect(written.expiresAt.toMillis()).toBe(record.expiresAt);
     });
 });
 
 describe('getChallenge', () => {
-    it('returns the record when the doc exists', async () => {
-        mockGet.mockResolvedValue({ exists: true, data: () => record });
+    it('returns the record, converting the Timestamp expiresAt back to epoch-ms', async () => {
+        const stored = { ...record, expiresAt: { toMillis: () => record.expiresAt } };
+        mockGet.mockResolvedValue({ exists: true, data: () => stored });
         await expect(getChallenge('doc123')).resolves.toEqual(record);
     });
 

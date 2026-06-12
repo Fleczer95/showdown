@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
-import { ChevronLeft, Play, Trophy } from 'lucide-react-native';
+import { ChevronLeft, Play, Trophy, Swords } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -12,6 +12,7 @@ import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
 import BottomSheet from '../components/molecules/BottomSheet';
+import Input from '../components/molecules/Input';
 import Leaderboard from '../components/molecules/Leaderboard';
 import { useTheme } from '../theme';
 import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
@@ -19,6 +20,14 @@ import { useTranslation } from '../i18n/TranslationContext';
 import { games, GAME_ICONS } from '../data/games';
 import { gameSessionMachine } from '../game/machines/gameSessionMachine';
 import { playScreens } from '../game/playScreens';
+import { useStore } from '../hooks/store/useStore';
+import { buildChallenge } from '../game/challenge/build';
+import { createChallenge } from '../game/challenge/store';
+import { shareChallenge } from '../game/challenge/share';
+import { getDeviceId } from '../game/challenge/deviceId';
+import { getHistory } from '../game/history';
+import { getLastNickname, setLastNickname, MAX_NICKNAME_LENGTH } from '../game/leaderboard';
+import { APP_VERSION } from '../utils/version';
 import type { RootStackParamList } from '../navigation/types';
 
 /**
@@ -29,13 +38,59 @@ import type { RootStackParamList } from '../navigation/types';
 export function GameSetupScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, keyof RootStackParamList>>();
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const theme = useTheme();
+    const { purchasedItemIds } = useStore();
 
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
 
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [nicknameSheet, setNicknameSheet] = useState(false);
+    const [nickname, setNickname] = useState(() => getLastNickname());
+
+    // Freeze the current round into a shareable challenge, then open the share
+    // sheet and drop the creator straight into it as the first attempt. Both the
+    // create and play steps are online; a failed create surfaces an offline alert.
+    const createAndShare = async (nick: string) => {
+        try {
+            setCreating(true);
+            const record = buildChallenge({
+                gameId: game.id,
+                settings: { category: null },
+                history: getHistory(game.id),
+                ownedIds: new Set(purchasedItemIds),
+                createdBy: { uuid: getDeviceId(), nickname: nick },
+                appVersion: APP_VERSION,
+                lang: locale === 'pl' ? 'pl' : 'en',
+            });
+            const id = await createChallenge(record);
+            await shareChallenge(id);
+            navigation.navigate('Challenge', { challengeId: id });
+        } catch {
+            Alert.alert(t('challenge.offline'), t('challenge.offlineDesc'));
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const onCreateChallenge = () => {
+        const saved = getLastNickname().trim();
+        if (saved.length === 0) {
+            setNicknameSheet(true);
+            return;
+        }
+        void createAndShare(saved);
+    };
+
+    const confirmNickname = () => {
+        const trimmed = nickname.trim();
+        if (trimmed.length === 0) return;
+        setLastNickname(trimmed);
+        setNicknameSheet(false);
+        void createAndShare(trimmed);
+    };
 
     // Per-game accent — mirrors the home card the player tapped to get here.
     const accent = resolveAccent(theme, game.accent);
@@ -177,22 +232,28 @@ export function GameSetupScreen() {
                 </Card>
             </ScrollView>
 
-            <View
-                style={[
-                    styles.footer,
-                    { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl },
-                ]}
-            >
-                <Button
-                    fullWidth
-                    size='lg'
-                    onPress={() => send({ type: 'START' })}
-                    style={{ backgroundColor: accent, borderColor: accent }}
-                    textColor={onAccent}
-                    icon={<Play size={20} color={onAccent} fill={onAccent} />}
-                >
-                    {t('common.start')}
-                </Button>
+            <View style={[styles.footer, { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl }]}>
+                <Stack gap='sm'>
+                    <Button
+                        fullWidth
+                        size='lg'
+                        onPress={() => send({ type: 'START' })}
+                        style={{ backgroundColor: accent, borderColor: accent }}
+                        textColor={onAccent}
+                        icon={<Play size={20} color={onAccent} fill={onAccent} />}
+                    >
+                        {t('common.start')}
+                    </Button>
+                    <Button
+                        fullWidth
+                        variant='secondary'
+                        onPress={onCreateChallenge}
+                        disabled={creating}
+                        icon={<Swords size={18} color={accent} />}
+                    >
+                        {creating ? t('challenge.creating') : t('challenge.create')}
+                    </Button>
+                </Stack>
             </View>
 
             <BottomSheet
@@ -202,6 +263,33 @@ export function GameSetupScreen() {
                 scrollable
             >
                 <Leaderboard gameId={game.id} />
+            </BottomSheet>
+
+            <BottomSheet
+                visible={nicknameSheet}
+                onClose={() => setNicknameSheet(false)}
+                title={t('challenge.nicknamePrompt')}
+            >
+                <Stack gap='sm' align='stretch'>
+                    <Input
+                        value={nickname}
+                        onChangeText={setNickname}
+                        placeholder={t('leaderboard.nicknamePlaceholder')}
+                        maxLength={MAX_NICKNAME_LENGTH}
+                        autoCapitalize='words'
+                        returnKeyType='done'
+                        onSubmitEditing={confirmNickname}
+                        textAlign='center'
+                    />
+                    <Button
+                        variant='primary'
+                        fullWidth
+                        disabled={nickname.trim().length === 0}
+                        onPress={confirmNickname}
+                    >
+                        {t('challenge.create')}
+                    </Button>
+                </Stack>
             </BottomSheet>
         </SafeContainer>
     );

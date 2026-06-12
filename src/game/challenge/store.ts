@@ -67,3 +67,10 @@ export async function getAttempts(id: string): Promise<Attempt[]> {
     const snapshot = await withTimeout(firestore().collection(CHALLENGES).doc(id).collection(ATTEMPTS).get());
     return snapshot.docs.map((doc) => doc.data() as Attempt);
 }
+
+/** Read this device's own attempt (null if it hasn't played yet) — gates straight-to-results. */
+export async function getAttempt(id: string, uuid: string): Promise<Attempt | null> {
+    const snapshot = await withTimeout(firestore().collection(CHALLENGES).doc(id).collection(ATTEMPTS).doc(uuid).get());
+    if (!snapshot.exists) return null;
+    return snapshot.data() as Attempt;
+}

@@ -2,7 +2,7 @@
     "expo": {
         "name": "ShowDown",
         "slug": "showdown",
-        "version": "0.8.2",
+        "version": "0.9.0",
         "scheme": "showdown",
         "icon": "./assets/icon.png",
         "orientation": "portrait",

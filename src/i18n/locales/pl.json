@@ -1,4 +1,26 @@
 {
+    "challenge": {
+        "create": "Wyzwij znajomego",
+        "creating": "Tworzenie…",
+        "nicknamePrompt": "Wybierz pseudonim",
+        "loading": "Ładowanie wyzwania…",
+        "vsTitle": "Ty kontra %{name}",
+        "vsSubtitle": "Pokonaj jego wynik na tych samych pytaniach.",
+        "start": "Rozpocznij wyzwanie",
+        "submitting": "Zapisywanie wyniku…",
+        "submitFailed": "Nie udało się zapisać wyniku — wygląda na to, że jesteś offline.",
+        "offline": "Jesteś offline",
+        "offlineDesc": "Połącz się z internetem, aby wczytać to wyzwanie.",
+        "retry": "Spróbuj ponownie",
+        "expired": "Wyzwanie wygasło",
+        "expiredDesc": "Ten link do wyzwania wygasł. Utwórz nowe!",
+        "updateRequired": "Wymagana aktualizacja",
+        "updateRequiredDesc": "Zaktualizuj aplikację, aby podjąć to wyzwanie.",
+        "results": "Wyniki",
+        "you": "Ty",
+        "youWin": "Wygrywasz! 🏆",
+        "won": "%{name} wygrywa! 🏆"
+    },
     "screen": {
         "home": {
             "settings": "Ustawienia",
@@ -114,10 +136,7 @@
                 {
                     "title": "5. Cele Przetwarzania",
                     "content": "Przetwarzamy zebrane dane w celu:",
-                    "listItems": [
-                        "Diagnostyki błędów",
-                        "Poprawy jakości działania aplikacji"
-                    ]
+                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
                 },
                 {
                     "title": "6. Podstawa Prawna",
@@ -474,10 +493,7 @@
             {
                 "title": "5. Cele Przetwarzania",
                 "content": "Przetwarzamy zebrane dane w celu:",
-                "listItems": [
-                    "Diagnostyki błędów",
-                    "Poprawy jakości działania aplikacji"
-                ]
+                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
             },
             {
                 "title": "6. Podstawa Prawna",

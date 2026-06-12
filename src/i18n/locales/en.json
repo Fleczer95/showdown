@@ -1,4 +1,26 @@
 {
+    "challenge": {
+        "create": "Challenge a friend",
+        "creating": "Creating…",
+        "nicknamePrompt": "Pick a nickname",
+        "loading": "Loading challenge…",
+        "vsTitle": "You vs %{name}",
+        "vsSubtitle": "Beat their run on the same questions.",
+        "start": "Start challenge",
+        "submitting": "Submitting your result…",
+        "submitFailed": "Couldn't submit your result — you appear to be offline.",
+        "offline": "You're offline",
+        "offlineDesc": "Connect to the internet to load this challenge.",
+        "retry": "Retry",
+        "expired": "Challenge expired",
+        "expiredDesc": "This challenge link has expired. Start a fresh one!",
+        "updateRequired": "Update required",
+        "updateRequiredDesc": "Update the app to take this challenge.",
+        "results": "Results",
+        "you": "You",
+        "youWin": "You win! 🏆",
+        "won": "%{name} wins! 🏆"
+    },
     "screen": {
         "home": {
             "settings": "Settings",
@@ -114,10 +136,7 @@
                 {
                     "title": "5. Purposes of Processing",
                     "content": "We use the collected data for:",
-                    "listItems": [
-                        "Diagnosing technical issues",
-                        "Improving app performance"
-                    ]
+                    "listItems": ["Diagnosing technical issues", "Improving app performance"]
                 },
                 {
                     "title": "6. Legal Basis",
@@ -134,10 +153,7 @@
                 {
                     "title": "9. User Rights",
                     "content": "You have the right to:",
-                    "listItems": [
-                        "Access, rectification, restriction, deletion",
-                        "Contact us at: contact@showdown.app"
-                    ]
+                    "listItems": ["Access, rectification, restriction, deletion", "Contact us at: contact@showdown.app"]
                 }
             ],
             "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -474,10 +490,7 @@
             {
                 "title": "5. Purposes of Processing",
                 "content": "We use the collected data for:",
-                "listItems": [
-                    "Diagnosing technical issues",
-                    "Improving app performance"
-                ]
+                "listItems": ["Diagnosing technical issues", "Improving app performance"]
             },
             {
                 "title": "6. Legal Basis",
@@ -494,10 +507,7 @@
             {
                 "title": "9. User Rights",
                 "content": "You have the right to:",
-                "listItems": [
-                    "Access, rectification, restriction, deletion",
-                    "Contact us at: {{email}}"
-                ]
+                "listItems": ["Access, rectification, restriction, deletion", "Contact us at: {{email}}"]
             }
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"

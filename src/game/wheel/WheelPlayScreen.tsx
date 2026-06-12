@@ -58,6 +58,7 @@ import {
     attemptSolve,
 } from './logic';
 import { speedBonus, wheelScore } from '../scoring';
+import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
 
 type Phase = 'awaitSpin' | 'awaitGuess' | 'resolving';
 
@@ -82,7 +83,13 @@ function pickPuzzles(locale: 'en' | 'pl', count: number, owned: PuzzleContent[] 
     return createDeck(pool, getHistory(GAME_ID)).slice(0, count);
 }
 
-export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
+export default function WheelPlayScreen({
+    onExit,
+    challenge,
+}: {
+    onExit: () => void;
+    challenge?: ChallengePlay<GameState>;
+}) {
     const t = useTheme();
     const insets = useSafeAreaInsets();
     const reduceMotion = useReducedMotion();
@@ -97,7 +104,9 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         [purchasedItemIds, locale],
     );
 
-    const [game, setGame] = useState<GameState>(() => createGame(pickPuzzles(locale, TOTAL_PUZZLES, ownedPuzzles)));
+    const [game, setGame] = useState<GameState>(
+        () => challenge?.initial ?? createGame(pickPuzzles(locale, TOTAL_PUZZLES, ownedPuzzles)),
+    );
     const [phase, setPhase] = useState<Phase>('awaitSpin');
     const [spinValue, setSpinValue] = useState(0);
     const [spinning, setSpinning] = useState(false);
@@ -128,11 +137,13 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     // so quitting early only marks puzzles played.
     const currentId = currentPuzzle(game).id;
     useEffect(() => {
-        markShown(GAME_ID, currentId);
+        // In challenge mode only mark owned puzzles, so embedded premium content
+        // the player doesn't own never pollutes their local rotation.
+        if (!challenge || challenge.ownedIds.has(currentId)) markShown(GAME_ID, currentId);
         decisionStartedAt.current = Date.now();
         boughtVowel.current = false;
         sawBankruptThisPuzzle.current = false;
-    }, [currentId]);
+    }, [currentId, challenge]);
 
     const rotation = useSharedValue(0);
     const wheelStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
@@ -147,24 +158,21 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
     // Bank a solved puzzle (typed correctly or board fully revealed) after the
     // shared reveal beat. `solvedState` must already be a correct/complete board;
     // its phrase is used to drive the win path through `solve`.
-    const finishSolvedPuzzle = useCallback(
-        (solvedState: GameState) => {
-            // Bank cash earns a speed bonus (puzzle shown → solved), plus a
-            // clean-solve bonus if no vowel was bought for this puzzle.
-            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
-            speedTotal.current += speedBonus(solvedState.roundCash, seconds);
-            solvedCount.current += 1;
-            if (!boughtVowel.current) cleanPuzzles.current += 1;
-            if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
-            const next = solve(solvedState, currentPuzzle(solvedState).phrase);
-            setStatus('✓');
-            setSolveMode(false);
-            setSpinValue(0);
-            setPhase('resolving');
-            setPendingNext(next);
-        },
-        [],
-    );
+    const finishSolvedPuzzle = useCallback((solvedState: GameState) => {
+        // Bank cash earns a speed bonus (puzzle shown → solved), plus a
+        // clean-solve bonus if no vowel was bought for this puzzle.
+        const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+        speedTotal.current += speedBonus(solvedState.roundCash, seconds);
+        solvedCount.current += 1;
+        if (!boughtVowel.current) cleanPuzzles.current += 1;
+        if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
+        const next = solve(solvedState, currentPuzzle(solvedState).phrase);
+        setStatus('✓');
+        setSolveMode(false);
+        setSpinValue(0);
+        setPhase('resolving');
+        setPendingNext(next);
+    }, []);
 
     const settleSpin = useCallback(
         (result: SpinResult) => {
@@ -288,6 +296,16 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
             speed: speedTotal.current,
             cleanPuzzles: cleanPuzzles.current,
         });
+        // Challenge mode reports the result to the orchestrator instead of the board.
+        if (challenge) {
+            return (
+                <ChallengeHandoff
+                    progress={solvedCount.current}
+                    score={breakdown.total}
+                    onComplete={challenge.onComplete}
+                />
+            );
+        }
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
@@ -299,10 +317,7 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
         return (
             <ScrollView
                 style={styles.flex}
-                contentContainerStyle={[
-                    styles.gameOver,
-                    { paddingBottom: Math.max(insets.bottom, 24) + 24 },
-                ]}
+                contentContainerStyle={[styles.gameOver, { paddingBottom: Math.max(insets.bottom, 24) + 24 }]}
                 keyboardShouldPersistTaps='handled'
             >
                 <GameOverCard gameId={GAME_ID}>
@@ -514,7 +529,10 @@ export default function WheelPlayScreen({ onExit }: { onExit: () => void }) {
                                     const disabled = guessed || (vowel && game.roundCash < VOWEL_COST);
                                     const keyColor = vowel ? t.colors.secondary : accent;
                                     return (
-                                        <Animated.View key={ch} entering={reduceMotion ? undefined : springEnter(i * 12)}>
+                                        <Animated.View
+                                            key={ch}
+                                            entering={reduceMotion ? undefined : springEnter(i * 12)}
+                                        >
                                             <Pressable
                                                 haptic='light'
                                                 disabled={disabled}

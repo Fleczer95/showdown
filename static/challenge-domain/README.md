@@ -5,9 +5,18 @@ backend logic — these files are served raw from the subdomain docroot.
 
 ## Deploy
 
-Serve the contents of this directory as the docroot of `showdown.lebene.pl`
-(seohost subdomain, own HTTPS cert). Mirror the existing rsync/SSH deploy with a
-different `REMOTE_DIR`. The `.well-known/*` files MUST be served:
+The subdomain has its own docroot on seohost (`/domains/showdown.lebene.pl/public_html`,
+own Let's Encrypt cert; DNS is delegated to seohost's nameservers). Push this
+directory there with:
+
+```sh
+scripts/deploy-challenge-domain.sh            # rsync + permissions + verify
+scripts/deploy-challenge-domain.sh --verify   # check live headers only, no upload
+```
+
+It rsyncs the static files (the `.htaccess` here forces `Content-Type:
+application/json` on the extension-less AASA file) and then verifies the live
+response. The `.well-known/*` files MUST be served:
 
 - over HTTPS, no redirect,
 - `apple-app-site-association` with `Content-Type: application/json` and **no**

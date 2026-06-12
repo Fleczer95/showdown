@@ -49,7 +49,7 @@
                 }
             ]
         },
-        "plugins": ["expo-localization", "@react-native-firebase/app", "expo-audio", "expo-asset"],
+        "plugins": ["expo-localization", "@react-native-firebase/app", "@react-native-firebase/app-check", "expo-audio", "expo-asset"],
         "extra": {
             "sentryDsn": "https://8cacf301cd3ad357974428f5e981422a@o4510449415553024.ingest.de.sentry.io/4511477176926288"
         }

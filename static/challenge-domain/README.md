@@ -3,6 +3,18 @@
 Static host for Universal Links (iOS) + App Links (Android), per ADR-0003. No
 backend logic — these files are served raw from the subdomain docroot.
 
+## Contents (what gets deployed)
+
+The deploy script pushes everything in this directory **except** `README.md` and
+`.DS_Store`:
+
+| File                                     | Purpose                                                                  |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| `.well-known/apple-app-site-association` | iOS Universal Links — maps `/c/*` on this domain to the app (AASA)        |
+| `.well-known/assetlinks.json`            | Android App Links — Digital Asset Links for `com.showdown.app`            |
+| `.htaccess`                              | Forces `Content-Type: application/json` on the extension-less AASA file   |
+| `index.html`                             | Fallback page shown to non-app visitors (store links)                    |
+
 ## Deploy
 
 The subdomain has its own docroot on seohost (`/domains/showdown.lebene.pl/public_html`,
@@ -46,5 +58,7 @@ Android SHA-256 (Play App Signing): Play Console → Release → Setup → App s
 
 - Deploy rules: `firebase deploy --only firestore:rules` (rules in
   repo-root `firestore.rules`).
-- Enable a **TTL policy** on the `c` collection group, field `expiresAt`
-  (Firestore console → TTL). Records self-delete 30 days after creation.
+- **TTL is intentionally not used** (it requires the paid Blaze plan; we stay on
+  free Spark). Expiry is enforced read-time by `gateChallenge`, and old docs are
+  pruned on demand via `npm run challenges:cleanup`. If the project ever moves to
+  Blaze, add a TTL policy on the `c` collection group, field `expiresAt`.

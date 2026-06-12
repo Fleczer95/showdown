@@ -22,13 +22,16 @@ own Let's Encrypt cert; DNS is delegated to seohost's nameservers). Push this
 directory there with:
 
 ```sh
-scripts/deploy-challenge-domain.sh            # rsync + permissions + verify
-scripts/deploy-challenge-domain.sh --verify   # check live headers only, no upload
+scripts/deploy-challenge-domain.sh             # preflight guard + rsync + permissions + verify
+scripts/deploy-challenge-domain.sh --preflight # safety guard only, no upload
+scripts/deploy-challenge-domain.sh --verify    # check live headers only, no upload
 ```
 
-It rsyncs the static files (the `.htaccess` here forces `Content-Type:
-application/json` on the extension-less AASA file) and then verifies the live
-response. The `.well-known/*` files MUST be served:
+A mandatory pre-flight guard runs before any upload and refuses to deploy a
+broken or wrong-target state (invalid JSON, missing/placeholder AASA appID, wrong
+docroot); see the `deploy-challenge-domain` skill. It then rsyncs the static files
+(the `.htaccess` here forces `Content-Type: application/json` on the
+extension-less AASA file) and verifies the live response. The `.well-known/*` files MUST be served:
 
 - over HTTPS, no redirect,
 - `apple-app-site-association` with `Content-Type: application/json` and **no**

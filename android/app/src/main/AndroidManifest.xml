@@ -29,6 +29,12 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="showdown"/>
       </intent-filter>
+      <intent-filter android:autoVerify="true" data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="https" android:host="showdown.lebene.pl" android:pathPrefix="/c"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+      </intent-filter>
     </activity>
   </application>
 </manifest>

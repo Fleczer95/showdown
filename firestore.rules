@@ -23,7 +23,10 @@ service cloud.firestore {
         && d.createdBy is map
         && d.createdBy.uuid is string && d.createdBy.uuid.size() <= 64
         && d.createdBy.nickname is string && d.createdBy.nickname.size() <= 24
-        && d.expiresAt is timestamp;
+        && d.expiresAt is timestamp
+        // Bound the lifetime so a client can't create a near-immortal doc; 31d
+        // leaves a day of slack over the app's 30d TTL for client/server clock skew.
+        && d.expiresAt < request.time + duration.value(31, 'd');
     }
 
     function isValidAttempt(d) {

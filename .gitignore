@@ -41,6 +41,14 @@ api_key_play_store.txt
 # Firebase Admin SDK key (challenge cleanup script)
 firebase-admin-key.json
 
+# Agent/CLI skill installs pulled in by `firebase init` — tooling, not app code
+# (no trailing slash: .claude/skills entries are symlinks, which `dir/` won't match)
+.agents/skills/firebase-*
+.agents/skills/xcode-project-setup
+.claude/skills/firebase-*
+.claude/skills/xcode-project-setup
+skills-lock.json
+
 # Firebase / Google Services
 google-services.json
 GoogleService-Info.plist

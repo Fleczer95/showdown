@@ -15,7 +15,7 @@ import BottomSheet from '../components/molecules/BottomSheet';
 import Input from '../components/molecules/Input';
 import Leaderboard from '../components/molecules/Leaderboard';
 import { useTheme } from '../theme';
-import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
+import { hexToRgba, blend, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
 import { games, GAME_ICONS } from '../data/games';
 import { gameSessionMachine } from '../game/machines/gameSessionMachine';
@@ -248,10 +248,20 @@ export function GameSetupScreen() {
                     </Button>
                     <Button
                         fullWidth
-                        variant='secondary'
                         onPress={onCreateChallenge}
                         disabled={creating}
-                        icon={<Swords size={18} color={accent} />}
+                        style={{
+                            backgroundColor: blend(accent, theme.colors.background, 0.22),
+                            borderColor: accent,
+                            borderWidth: 1.5,
+                            shadowColor: accent,
+                            shadowOpacity: 0.3,
+                            shadowRadius: 14,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 8,
+                        }}
+                        textColor={accent}
+                        icon={<Swords size={22} color={accent} />}
                     >
                         {creating ? t('challenge.creating') : t('challenge.create')}
                     </Button>

@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["RA73B8WWF4.com.showdown.app"],
+        "components": [
+          {
+            "/": "/c/*",
+            "comment": "Async Challenge links open the app on the Challenge route"
+          }
+        ]
+      }
+    ]
+  }
+}

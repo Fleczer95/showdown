@@ -27,11 +27,7 @@ function shuffle<T>(items: T[], rng: Rng): T[] {
  * take the first N for a run — guaranteeing the whole pool is cycled before any
  * repeat, while a just-seen item (higher count) sinks to the back.
  */
-export function createDeck<T extends { id: string }>(
-    items: T[],
-    history: History,
-    rng: Rng = Math.random,
-): T[] {
+export function createDeck<T extends { id: string }>(items: T[], history: History, rng: Rng = Math.random): T[] {
     const byCount = new Map<number, T[]>();
     for (const item of items) {
         const count = history[item.id] ?? 0;
@@ -48,4 +44,25 @@ export function createDeck<T extends { id: string }>(
         deck.push(...shuffle(byCount.get(count)!, rng));
     }
     return deck;
+}
+
+/**
+ * Seed `ids` that are absent from `history` to the pool's current floor — the
+ * least-shown count, or 0 when nothing has been shown. Returns a new History;
+ * counts already present are left untouched.
+ *
+ * Used when an IAP pack unlocks: its questions enter at count 0 by default,
+ * which would put them ahead of an already-played base pool and let them
+ * monopolize every deck until they caught up. Seeding them to the floor makes
+ * them tie with the least-shown existing questions, so the new content blends
+ * into rotation instead of starving the base pool.
+ */
+export function seedDeck(history: History, ids: string[]): History {
+    const counts = Object.values(history);
+    const floor = counts.length ? Math.min(...counts) : 0;
+    const seeded = { ...history };
+    for (const id of ids) {
+        if (!(id in seeded)) seeded[id] = floor;
+    }
+    return seeded;
 }

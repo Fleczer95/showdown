@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// Security rules for the Async Challenge (ADR-0003).
+//
+// Identity is a device UUID with no auth, so the rules — not a server — are what
+// keep challenges honest: the challenge document is immutable after create, and
+// each device may write exactly one attempt that it can never alter. This is the
+// strongest guarantee available without sign-in (dedup is honour-based: it stops
+// casual double-attempts, not a determined cheat).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidChallenge(d) {
+      return d.keys().hasOnly(['schemaVersion', 'minAppVersion', 'appVersion', 'lang',
+                               'game', 'questions', 'createdBy', 'expiresAt'])
+        && d.schemaVersion is int
+        && d.minAppVersion is string && d.minAppVersion.size() <= 16
+        && d.appVersion is string && d.appVersion.size() <= 16
+        && d.lang in ['en', 'pl']
+        && d.game is string && d.game.size() <= 40
+        && d.questions is list && d.questions.size() > 0 && d.questions.size() <= 50
+        && d.createdBy is map
+        && d.createdBy.uuid is string && d.createdBy.uuid.size() <= 64
+        && d.createdBy.nickname is string && d.createdBy.nickname.size() <= 24
+        && d.expiresAt is timestamp
+        // Bound the lifetime so a client can't create a near-immortal doc; 31d
+        // leaves a day of slack over the app's 30d TTL for client/server clock skew.
+        && d.expiresAt < request.time + duration.value(31, 'd');
+    }
+
+    function isValidAttempt(d) {
+      return d.keys().hasOnly(['nickname', 'progress', 'score', 'timestamp'])
+        && d.nickname is string && d.nickname.size() <= 24
+        && d.progress is int
+        && d.score is number
+        && d.timestamp is int;
+    }
+
+    match /c/{challengeId} {
+      // Anyone with the link may read and create; the round is immutable after.
+      allow read: if true;
+      allow create: if isValidChallenge(request.resource.data);
+      allow update, delete: if false;
+
+      match /attempts/{uuid} {
+        allow read: if true;
+        // One attempt per device UUID, create-only, validated, never mutated, and
+        // only under a challenge that actually exists — no orphan attempts.
+        allow create: if isValidAttempt(request.resource.data)
+          && exists(/databases/$(database)/documents/c/$(challengeId))
+          && !exists(/databases/$(database)/documents/c/$(challengeId)/attempts/$(uuid));
+        allow update, delete: if false;
+      }
+    }
+
+    // Default-deny everything outside the challenge tree.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

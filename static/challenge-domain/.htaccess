@@ -1,0 +1,5 @@
+# Serve the Apple App Site Association file (it has no extension) as JSON.
+# Universal Links require https, HTTP 200, application/json, and no redirect.
+<Files "apple-app-site-association">
+  ForceType application/json
+</Files>

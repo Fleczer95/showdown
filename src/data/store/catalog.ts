@@ -59,3 +59,15 @@ export function getPlayablePackIds(gameId: string, ownedIds: ReadonlySet<string>
 export function isPremiumCatalogId(id: string): boolean {
     return idToEntry.get(id)?.tier === 'premium';
 }
+
+/**
+ * A pack's game id and the ids of its questions, for seeding question history on
+ * unlock. Returns `undefined` for non-pack ids (e.g. themes). Question ids are
+ * locale-independent, so the `en` projection is authoritative.
+ */
+export function getPackSeedTargets(packId: string): { gameId: string; ids: string[] } | undefined {
+    const entry = idToEntry.get(packId);
+    if (!entry || entry.kind !== 'pack') return undefined;
+    const ids = (entry.content.en as { id: string }[]).map((card) => card.id);
+    return { gameId: entry.gameId, ids };
+}

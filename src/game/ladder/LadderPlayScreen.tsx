@@ -46,6 +46,7 @@ import {
     type Lifeline,
 } from './logic';
 import { speedBonus, ladderScore, LADDER_RUNG_POINTS, type ScoreBreakdown } from '../scoring';
+import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
 
 const GAME_ID = 'the-ladder';
 
@@ -55,7 +56,13 @@ const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[
     { key: 'skip', icon: SkipForward, labelKey: 'game.the-ladder.lifelines.skip' },
 ];
 
-export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
+export default function LadderPlayScreen({
+    onExit,
+    challenge,
+}: {
+    onExit: () => void;
+    challenge?: ChallengePlay<LadderRun>;
+}) {
     const theme = useTheme();
     const reduceMotion = useReducedMotion();
     const { accent, glow } = useGameAccent(GAME_ID);
@@ -74,7 +81,9 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     const textMuted = useColor('textMuted');
     const surface = useColor('surface');
 
-    const [run, setRun] = useState<LadderRun>(() => buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)));
+    const [run, setRun] = useState<LadderRun>(
+        () => challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
+    );
 
     // Hidden per-decision stopwatch + run accumulators for the unified points
     // score. The timer resets on every new question (including after a Skip);
@@ -89,9 +98,12 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
     // the decision timer. Skipping changes the current id, so this refires for the
     // swapped-in question while the skipped one was already counted when first shown.
     useEffect(() => {
-        markShown(GAME_ID, currentQuestion(run).id);
+        const id = currentQuestion(run).id;
+        // In challenge mode only mark questions the player owns, so embedded
+        // premium content they don't own never pollutes their local rotation.
+        if (!challenge || challenge.ownedIds.has(id)) markShown(GAME_ID, id);
         decisionStartedAt.current = Date.now();
-    }, [currentQuestion(run).id]);
+    }, [currentQuestion(run).id, challenge]);
     // Per-question transient UI state.
     const [hidden, setHidden] = useState<number[]>([]);
     const [studioHint, setStudioHint] = useState<string | null>(null);
@@ -165,6 +177,17 @@ export default function LadderPlayScreen({ onExit }: { onExit: () => void }) {
         // Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
         // never reaches the board), a win clears all RUN_LENGTH rungs.
         const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
+        // Challenge mode hands the result to the Challenge orchestrator (submit +
+        // reveal) instead of the normal game-over board.
+        if (challenge) {
+            return (
+                <ChallengeHandoff
+                    progress={correctAnswered}
+                    score={breakdown.total}
+                    onComplete={challenge.onComplete}
+                />
+            );
+        }
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,

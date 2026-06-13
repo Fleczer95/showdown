@@ -52,6 +52,7 @@ import {
     type DropQuestion,
 } from './logic';
 import { dropScore, SPEED_WINDOW_SECONDS } from '../scoring';
+import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
 
 const EMPTY_ALLOCATION = [0, 0, 0, 0];
 
@@ -80,7 +81,13 @@ type Reveal = 'none' | 'drop' | 'win';
 
 const formatMoney = (value: number): string => value.toLocaleString('en-US');
 
-export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
+export default function DropPlayScreen({
+    onExit,
+    challenge,
+}: {
+    onExit: () => void;
+    challenge?: ChallengePlay<DropState>;
+}) {
     const t = useTheme();
     const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
@@ -94,12 +101,16 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     const pool = useMemo(
         () => [
             ...dropQuestions,
-            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(GAME_ID, new Set(purchasedItemIds), zipDropCard),
+            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(
+                GAME_ID,
+                new Set(purchasedItemIds),
+                zipDropCard,
+            ),
         ],
         [purchasedItemIds],
     );
 
-    const [state, setState] = useState<DropState>(() => buildGame(pool, getHistory(GAME_ID)));
+    const [state, setState] = useState<DropState>(() => challenge?.initial ?? buildGame(pool, getHistory(GAME_ID)));
     const [allocation, setAllocation] = useState<number[]>(EMPTY_ALLOCATION);
     // Drives the lock-in → suspense → reveal choreography.
     const [phase, setPhase] = useState<Phase>('allocating');
@@ -169,10 +180,12 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
     // distinct question), so the next run can avoid repeating it.
     const currentQuestionId = question?.id;
     useEffect(() => {
-        if (currentQuestionId) {
+        // In challenge mode only mark owned questions, so embedded premium content
+        // the player doesn't own never pollutes their local rotation.
+        if (currentQuestionId && (!challenge || challenge.ownedIds.has(currentQuestionId))) {
             markShown(GAME_ID, currentQuestionId);
         }
-    }, [currentQuestionId]);
+    }, [currentQuestionId, challenge]);
 
     const onConfirm = useCallback(() => {
         if (!canConfirm) {
@@ -258,6 +271,12 @@ export default function DropPlayScreen({ onExit }: { onExit: () => void }) {
         // Rounds survived ranks the board; a win cleared them all, a bust survived
         // every round before the one that wiped the bank.
         const roundsSurvived = Math.max(0, won ? state.round : state.round - 1);
+        // Challenge mode reports the result to the orchestrator instead of the board.
+        if (challenge) {
+            return (
+                <ChallengeHandoff progress={roundsSurvived} score={breakdown.total} onComplete={challenge.onComplete} />
+            );
+        }
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
@@ -638,10 +657,7 @@ function DropOption({
     }
 
     return (
-        <Animated.View
-            entering={reduceMotion ? undefined : springEnter(index * 70)}
-            style={cardStyle}
-        >
+        <Animated.View entering={reduceMotion ? undefined : springEnter(index * 70)} style={cardStyle}>
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center' style={styles.optionHeader}>

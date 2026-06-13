@@ -81,7 +81,7 @@ via a static Universal/App Link domain. No bespoke application server.
 
 ```jsonc
 { schemaVersion: 1, minAppVersion: "0.9.0", appVersion, lang: "pl",
-  game, settings, questions: [{ id, byLocale: { en, pl } }], // ordered, frozen
+  game, questions: [{ id, byLocale: { en, pl } }], // ordered, frozen
   createdBy: { uuid, nickname },                             // attribution only
   expiresAt }
 // attempts/{uuid} -> { nickname, progress, score, timestamp }

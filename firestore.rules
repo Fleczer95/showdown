@@ -12,13 +12,12 @@ service cloud.firestore {
 
     function isValidChallenge(d) {
       return d.keys().hasOnly(['schemaVersion', 'minAppVersion', 'appVersion', 'lang',
-                               'game', 'settings', 'questions', 'createdBy', 'expiresAt'])
+                               'game', 'questions', 'createdBy', 'expiresAt'])
         && d.schemaVersion is int
         && d.minAppVersion is string && d.minAppVersion.size() <= 16
         && d.appVersion is string && d.appVersion.size() <= 16
         && d.lang in ['en', 'pl']
         && d.game is string && d.game.size() <= 40
-        && d.settings is map
         && d.questions is list && d.questions.size() > 0 && d.questions.size() <= 50
         && d.createdBy is map
         && d.createdBy.uuid is string && d.createdBy.uuid.size() <= 64
@@ -45,8 +44,10 @@ service cloud.firestore {
 
       match /attempts/{uuid} {
         allow read: if true;
-        // One attempt per device UUID, create-only, validated, never mutated.
+        // One attempt per device UUID, create-only, validated, never mutated, and
+        // only under a challenge that actually exists — no orphan attempts.
         allow create: if isValidAttempt(request.resource.data)
+          && exists(/databases/$(database)/documents/c/$(challengeId))
           && !exists(/databases/$(database)/documents/c/$(challengeId)/attempts/$(uuid));
         allow update, delete: if false;
       }

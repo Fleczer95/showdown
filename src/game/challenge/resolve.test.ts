@@ -21,7 +21,6 @@ const NOW = 1_700_000_000_000;
 function record(gameId: string): ChallengeRecord {
     return buildChallenge({
         gameId,
-        settings: { category: null },
         history: {},
         ownedIds: new Set<string>(),
         createdBy: { uuid: 'u1', nickname: 'Ada' },

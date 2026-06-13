@@ -77,8 +77,6 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 export interface BuildChallengeArgs {
     /** Game id, e.g. `the-ladder` / `the-drop` / `the-wheel`. */
     gameId: string;
-    /** Per-run config from the setup screen (currently just the selected category). */
-    settings: { category: string | null };
     /** Creator's local question history, so the frozen run favours least-shown questions. */
     history: History;
     /** Packs the creator owns; their content is embedded (bilingual) as a soft upsell. */
@@ -102,7 +100,6 @@ export function buildChallenge(args: BuildChallengeArgs): ChallengeRecord {
         appVersion: args.appVersion,
         lang: args.lang,
         game: args.gameId,
-        settings: args.settings,
         questions: freezeQuestions(args.gameId, args.history, args.ownedIds, rng),
         createdBy: args.createdBy,
         expiresAt: nowMs + CHALLENGE_TTL_DAYS * MS_PER_DAY,

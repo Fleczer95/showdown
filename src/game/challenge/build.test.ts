@@ -16,7 +16,6 @@ const NOW = 1_700_000_000_000;
 function build(gameId: string) {
     return buildChallenge({
         gameId,
-        settings: { category: null },
         history: {},
         ownedIds: new Set<string>(),
         createdBy: { uuid: 'u1', nickname: 'Ada' },
@@ -36,14 +35,13 @@ function expectBothLocales(questions: ChallengeQuestion[]) {
 }
 
 describe('buildChallenge metadata', () => {
-    it('stamps versions, attribution, settings and a 30-day expiry', () => {
+    it('stamps versions, attribution and a 30-day expiry', () => {
         const record = build('the-drop');
         expect(record.schemaVersion).toBe(SCHEMA_VERSION);
         expect(record.minAppVersion).toBe(MIN_APP_VERSION);
         expect(record.appVersion).toBe('0.9.0');
         expect(record.lang).toBe('en');
         expect(record.game).toBe('the-drop');
-        expect(record.settings).toEqual({ category: null });
         expect(record.createdBy).toEqual({ uuid: 'u1', nickname: 'Ada' });
         expect(record.expiresAt).toBe(NOW + CHALLENGE_TTL_DAYS * 24 * 60 * 60 * 1000);
     });

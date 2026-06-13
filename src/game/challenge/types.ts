@@ -41,8 +41,7 @@ export interface ChallengeCreator {
 
 /**
  * The challenge document at `c/{id}`. Immutable after create (enforced by
- * security rules). `settings` is the game's per-run config as chosen on the
- * setup screen (currently just the selected category, mirroring `GameConfig`).
+ * security rules).
  */
 export interface ChallengeRecord {
     schemaVersion: number;
@@ -53,7 +52,6 @@ export interface ChallengeRecord {
     lang: ChallengeLocale;
     /** Game id, e.g. `the-ladder` / `the-drop` / `the-wheel`. */
     game: string;
-    settings: { category: string | null };
     /** Ordered, frozen run. */
     questions: ChallengeQuestion[];
     createdBy: ChallengeCreator;

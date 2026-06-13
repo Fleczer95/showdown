@@ -59,7 +59,6 @@ export function GameSetupScreen() {
             setCreating(true);
             const record = buildChallenge({
                 gameId: game.id,
-                settings: { category: null },
                 history: getHistory(game.id),
                 ownedIds: new Set(purchasedItemIds),
                 createdBy: { uuid: getDeviceId(), nickname: nick },

@@ -5,9 +5,15 @@
 // We deliberately run the project on the Firestore free (Spark) plan, which does
 // not support TTL policies, so expired challenges are not auto-deleted. Expiry is
 // still enforced for users at read time by `gateChallenge` — this script is pure
-// storage hygiene: it permanently deletes challenge docs whose `expiresAt` has
-// passed, along with their `attempts/{uuid}` subcollections (a plain doc delete
-// does NOT cascade, hence `recursiveDelete`).
+// storage hygiene. It runs two sweeps:
+//
+//   1. Expired challenges — challenge docs whose `expiresAt` has passed, deleted
+//      along with their `attempts/{uuid}` subcollections (a plain doc delete does
+//      NOT cascade, hence `recursiveDelete`).
+//   2. Orphan attempts — `attempts` subcollections that survive under a `c/{id}`
+//      whose parent challenge doc no longer exists. The security rules now block
+//      creating these, but pre-guard data (or any future stray) is swept here so
+//      no attempt outlives its challenge.
 //
 // Auth: a Firebase service-account key (Admin SDK bypasses security rules, so the
 // "no client delete" rule does not block this). Generate one at
@@ -31,6 +37,7 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 
 const DEFAULT_PROJECT = 'showdown-tv-quiz';
 const CHALLENGES = 'c';
+const ATTEMPTS = 'attempts';
 
 function parseArgs(argv) {
     const args = { dryRun: false, project: DEFAULT_PROJECT, key: null };
@@ -57,6 +64,69 @@ function resolveKeyPath(explicit) {
     return candidate;
 }
 
+/** Sweep 1: delete challenge docs past their `expiresAt`, plus their attempts. */
+async function sweepExpired(db, dryRun) {
+    const now = admin.firestore.Timestamp.now();
+    const snapshot = await db.collection(CHALLENGES).where('expiresAt', '<', now).get();
+
+    if (snapshot.empty) {
+        console.log('No expired challenges.');
+        return;
+    }
+
+    console.log(`Found ${snapshot.size} expired challenge(s)${dryRun ? ' (dry run — not deleting):' : ':'}`);
+    for (const doc of snapshot.docs) {
+        const expiresAt = doc.get('expiresAt');
+        const when = expiresAt?.toDate ? expiresAt.toDate().toISOString() : String(expiresAt);
+        console.log(`  ${doc.id}  (expired ${when})`);
+    }
+
+    if (dryRun) return;
+
+    // recursiveDelete removes each challenge plus its attempts/{uuid} subcollection.
+    let deleted = 0;
+    for (const doc of snapshot.docs) {
+        await db.recursiveDelete(doc.ref);
+        deleted++;
+    }
+    console.log(`Deleted ${deleted} expired challenge(s) and their attempts.`);
+}
+
+/** Sweep 2: delete `attempts` subcollections left under a `c/{id}` with no challenge doc. */
+async function sweepOrphanAttempts(db, dryRun) {
+    // collectionGroup spans every `attempts` subcollection; the parent of each
+    // attempt's parent collection is the `c/{id}` challenge doc it belongs to.
+    const attempts = await db.collectionGroup(ATTEMPTS).get();
+    const parents = new Map();
+    for (const doc of attempts.docs) {
+        const challengeRef = doc.ref.parent.parent;
+        if (challengeRef) parents.set(challengeRef.path, challengeRef);
+    }
+
+    const orphans = [];
+    for (const ref of parents.values()) {
+        const snap = await ref.get();
+        if (!snap.exists) orphans.push(ref);
+    }
+
+    if (orphans.length === 0) {
+        console.log('No orphan attempts.');
+        return;
+    }
+
+    console.log(`Found ${orphans.length} orphan attempt group(s)${dryRun ? ' (dry run — not deleting):' : ':'}`);
+    for (const ref of orphans) console.log(`  ${ref.id}`);
+
+    if (dryRun) return;
+
+    let deleted = 0;
+    for (const ref of orphans) {
+        await db.recursiveDelete(ref);
+        deleted++;
+    }
+    console.log(`Deleted attempts under ${deleted} missing challenge(s).`);
+}
+
 async function main() {
     const args = parseArgs(process.argv.slice(2));
     const keyPath = resolveKeyPath(args.key);
@@ -67,30 +137,8 @@ async function main() {
     });
     const db = admin.firestore();
 
-    const now = admin.firestore.Timestamp.now();
-    const snapshot = await db.collection(CHALLENGES).where('expiresAt', '<', now).get();
-
-    if (snapshot.empty) {
-        console.log('No expired challenges. Nothing to clean up.');
-        return;
-    }
-
-    console.log(`Found ${snapshot.size} expired challenge(s)${args.dryRun ? ' (dry run — not deleting):' : ':'}`);
-    for (const doc of snapshot.docs) {
-        const expiresAt = doc.get('expiresAt');
-        const when = expiresAt?.toDate ? expiresAt.toDate().toISOString() : String(expiresAt);
-        console.log(`  ${doc.id}  (expired ${when})`);
-    }
-
-    if (args.dryRun) return;
-
-    // recursiveDelete removes each challenge plus its attempts/{uuid} subcollection.
-    let deleted = 0;
-    for (const doc of snapshot.docs) {
-        await db.recursiveDelete(doc.ref);
-        deleted++;
-    }
-    console.log(`Deleted ${deleted} expired challenge(s) and their attempts.`);
+    await sweepExpired(db, args.dryRun);
+    await sweepOrphanAttempts(db, args.dryRun);
 }
 
 main().then(

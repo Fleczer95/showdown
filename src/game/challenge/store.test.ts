@@ -32,7 +32,6 @@ const record: ChallengeRecord = {
     appVersion: '0.9.0',
     lang: 'en',
     game: 'the-ladder',
-    settings: { category: null },
     questions: [],
     createdBy: { uuid: 'u1', nickname: 'A' },
     expiresAt: 1,

@@ -24,12 +24,16 @@ public class AppDelegate: ExpoAppDelegate {
 
 #if os(iOS) || os(tvOS)
     window = UIWindow(frame: UIScreen.main.bounds)
-// @generated begin @react-native-firebase/app-didFinishLaunchingWithOptions - expo prebuild (DO NOT MODIFY) sync-10e8520570672fd76b2403b7e1e27f5198a6349a
-FirebaseApp.configure()
-// @generated end @react-native-firebase/app-didFinishLaunchingWithOptions
-        RNFBAppCheckModule.sharedInstance()
-        FirebaseApp.configure()
-      
+    // ⚠️ MANUAL FIX — RE-APPLY AFTER EVERY `expo prebuild` (prebuild reverts this).
+    // The @react-native-firebase/app config plugin emits a `FirebaseApp.configure()`
+    // inside a generated block here, and the @react-native-firebase/app-check plugin
+    // then appends ANOTHER `RNFBAppCheckModule.sharedInstance()` + `FirebaseApp.configure()`.
+    // Two `configure()` calls crash at launch — FirebaseCore throws
+    // "Default app has already been configured." on the second. Keep exactly ONE
+    // configure(), with App Check's provider factory installed immediately before it.
+    RNFBAppCheckModule.sharedInstance()
+    FirebaseApp.configure()
+
     factory.startReactNative(
       withModuleName: "main",
       in: window,

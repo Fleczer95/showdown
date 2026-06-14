@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { ChevronLeft, Play, Trophy, Swords } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -23,6 +23,8 @@ import { playScreens } from '../game/playScreens';
 import { useStore } from '../hooks/store/useStore';
 import { buildChallenge } from '../game/challenge/build';
 import { createChallenge } from '../game/challenge/store';
+import { countCreatedToday } from '../game/challenge/log';
+import { dailyCap, canUpsell } from '../game/challenge/limit';
 import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
@@ -49,7 +51,21 @@ export function GameSetupScreen() {
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [creating, setCreating] = useState(false);
     const [nicknameSheet, setNicknameSheet] = useState(false);
+    const [limitSheet, setLimitSheet] = useState(false);
     const [nickname, setNickname] = useState(() => getLastNickname());
+
+    // Daily challenge-creation limit (honour-based, client-side). The count is
+    // global across all games; the cap grows with owned premium themes. Refresh
+    // on focus so returning after a create reflects the new tally.
+    const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
+    const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
+    useFocusEffect(
+        useCallback(() => {
+            setCreatedToday(countCreatedToday());
+        }, []),
+    );
+    const cap = dailyCap(ownedIds);
+    const limitReached = createdToday >= cap;
 
     // Freeze the current round into a shareable challenge, then open the share
     // sheet and drop the creator straight into it as the first attempt. Both the
@@ -78,7 +94,13 @@ export function GameSetupScreen() {
 
     // Always confirm the name before inviting a friend — prefilled with the saved
     // default but editable per challenge (the edit also becomes the new default).
+    // Past the daily cap, open the limit/upsell sheet instead of creating.
     const onCreateChallenge = () => {
+        if (limitReached) {
+            SafeAnalytics.logEvent({ name: 'challenge_limit_hit', params: { game: game.id } });
+            setLimitSheet(true);
+            return;
+        }
         setNickname(getLastNickname());
         setNicknameSheet(true);
     };
@@ -256,11 +278,16 @@ export function GameSetupScreen() {
                             shadowRadius: 14,
                             shadowOffset: { width: 0, height: 6 },
                             elevation: 8,
+                            // Looks disabled at the cap but stays tappable to open
+                            // the limit/upsell sheet.
+                            opacity: limitReached ? 0.55 : 1,
                         }}
                         textColor={accent}
                         icon={<Swords size={22} color={accent} />}
                     >
-                        {creating ? t('challenge.creating') : t('challenge.create')}
+                        {creating
+                            ? t('challenge.creating')
+                            : t('challenge.createWithCount', { count: createdToday, cap })}
                     </Button>
                 </Stack>
             </View>
@@ -272,6 +299,37 @@ export function GameSetupScreen() {
                 scrollable
             >
                 <Leaderboard gameId={game.id} />
+            </BottomSheet>
+
+            <BottomSheet
+                visible={limitSheet}
+                onClose={() => setLimitSheet(false)}
+                title={t('challenge.limit.title')}
+            >
+                <Stack gap='md' align='stretch'>
+                    <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
+                        {t('challenge.limit.body')}
+                    </Text>
+                    {canUpsell(ownedIds) && (
+                        <Button
+                            variant='primary'
+                            fullWidth
+                            onPress={() => {
+                                setLimitSheet(false);
+                                navigation.navigate('Store' as any);
+                            }}
+                        >
+                            {t('challenge.limit.cta')}
+                        </Button>
+                    )}
+                    <Button
+                        variant={canUpsell(ownedIds) ? 'ghost' : 'primary'}
+                        fullWidth
+                        onPress={() => setLimitSheet(false)}
+                    >
+                        {t('challenge.limit.dismiss')}
+                    </Button>
+                </Stack>
             </BottomSheet>
 
             <BottomSheet
@@ -338,6 +396,9 @@ const styles = StyleSheet.create({
     },
     nicknameInput: {
         paddingHorizontal: 0,
+    },
+    limitBody: {
+        marginBottom: 4,
     },
     dot: {
         width: 8,

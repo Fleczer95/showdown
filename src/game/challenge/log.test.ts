@@ -16,10 +16,13 @@ import {
     markChallengePlayed,
     listChallenges,
     challengeStatus,
+    countCreatedToday,
     type ChallengeStub,
 } from './log';
 
-const stub = (over: Partial<Omit<ChallengeStub, 'updatedAt'>> = {}): Omit<ChallengeStub, 'updatedAt'> => ({
+type StubInput = Omit<ChallengeStub, 'updatedAt' | 'createdAt'>;
+
+const stub = (over: Partial<StubInput> = {}): StubInput => ({
     id: 'a',
     game: 'the-ladder',
     role: 'received',
@@ -73,8 +76,37 @@ describe('listChallenges', () => {
     });
 });
 
+describe('countCreatedToday', () => {
+    it('counts only created challenges, not received ones', () => {
+        let now = 10_000_000;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
+        recordChallenge(stub({ id: 'ct-mine', role: 'created' }));
+        recordChallenge(stub({ id: 'ct-theirs', role: 'received' }));
+        expect(countCreatedToday(now)).toBe(1);
+    });
+
+    it('does not count a created challenge from a previous day', () => {
+        const today = new Date('2026-06-14T10:00:00').getTime();
+        const yesterday = new Date('2026-06-13T10:00:00').getTime();
+        jest.spyOn(Date, 'now').mockImplementation(() => yesterday);
+        recordChallenge(stub({ id: 'ct-old', role: 'created' }));
+        expect(countCreatedToday(today)).toBe(0);
+    });
+
+    it('keeps createdAt write-once so a reopen today does not count an old create', () => {
+        const today = new Date('2026-06-14T12:00:00').getTime();
+        const yesterday = new Date('2026-06-13T09:00:00').getTime();
+        let now = yesterday;
+        jest.spyOn(Date, 'now').mockImplementation(() => now);
+        recordChallenge(stub({ id: 'ct-reopen', role: 'created' })); // created yesterday
+        now = today;
+        recordChallenge(stub({ id: 'ct-reopen', role: 'created' })); // reopened today
+        expect(countCreatedToday(today)).toBe(0);
+    });
+});
+
 describe('challengeStatus', () => {
-    const base: ChallengeStub = { ...stub(), updatedAt: 0, expiresAt: 100 };
+    const base: ChallengeStub = { ...stub(), createdAt: 0, updatedAt: 0, expiresAt: 100 };
 
     it('is expired once past expiresAt', () => {
         expect(challengeStatus({ ...base, expiresAt: 50 }, 100)).toBe('expired');

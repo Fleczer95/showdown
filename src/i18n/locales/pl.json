@@ -3,6 +3,13 @@
         "create": "Wyzwij znajomego",
         "creating": "Tworzenie…",
         "nicknamePrompt": "Wybierz pseudonim",
+        "createWithCount": "Wyzwij znajomego · %{count}/%{cap}",
+        "limit": {
+            "title": "Limit wyzwań na dziś wyczerpany",
+            "body": "Liczba wyzwań tworzonych dziennie jest ograniczona. Twój limit odnowi się o północy.",
+            "cta": "Odblokuj pakiet lub motyw — każdy daje +1 dziennie",
+            "dismiss": "Rozumiem"
+        },
         "loading": "Ładowanie wyzwania…",
         "vsTitle": "Ty kontra %{name}",
         "vsSubtitle": "Pokonaj jego wynik na tych samych pytaniach.",

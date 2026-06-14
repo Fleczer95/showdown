@@ -3,6 +3,13 @@
         "create": "Challenge a friend",
         "creating": "Creating…",
         "nicknamePrompt": "Pick a nickname",
+        "createWithCount": "Challenge a friend · %{count}/%{cap}",
+        "limit": {
+            "title": "Out of challenges for today",
+            "body": "Daily challenge creation is limited to keep things fair. Your challenges reset at midnight.",
+            "cta": "Unlock a pack or theme — each adds +1 a day",
+            "dismiss": "Got it"
+        },
         "loading": "Loading challenge…",
         "vsTitle": "You vs %{name}",
         "vsSubtitle": "Beat their run on the same questions.",

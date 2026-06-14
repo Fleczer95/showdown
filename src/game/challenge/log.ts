@@ -28,6 +28,10 @@ export interface ChallengeStub {
     opponent: string;
     /** True once this device has submitted its attempt. */
     played: boolean;
+    /** Epoch ms when this stub was first indexed — write-once, never bumped on
+     * reopen (unlike `updatedAt`). Drives the daily creation limit so a reopen
+     * of an old challenge never counts as a fresh create. */
+    createdAt: number;
     /** Epoch ms of the last create/open/play touch — used to sort newest first. */
     updatedAt: number;
     /** Epoch ms when the Firestore record is pruned (ADR-0003 TTL). */
@@ -54,13 +58,15 @@ function writeAll(map: Record<string, ChallengeStub>): void {
  * bumps `updatedAt`, but never downgrades a `played` flag back to false (a
  * reopen of an already-played challenge must stay "played").
  */
-export function recordChallenge(stub: Omit<ChallengeStub, 'updatedAt'>): void {
+export function recordChallenge(stub: Omit<ChallengeStub, 'updatedAt' | 'createdAt'>): void {
     const map = readAll();
     const prev = map[stub.id];
+    const now = Date.now();
     map[stub.id] = {
         ...stub,
         played: stub.played || prev?.played === true,
-        updatedAt: Date.now(),
+        createdAt: prev?.createdAt ?? now,
+        updatedAt: now,
     };
     writeAll(map);
 }
@@ -77,6 +83,28 @@ export function markChallengePlayed(id: string): void {
 /** Every indexed challenge, newest touch first. */
 export function listChallenges(): ChallengeStub[] {
     return Object.values(readAll()).sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+/** True when two epoch-ms instants fall on the same local calendar day. */
+function sameLocalDay(a: number, b: number): boolean {
+    const da = new Date(a);
+    const db = new Date(b);
+    return (
+        da.getFullYear() === db.getFullYear() &&
+        da.getMonth() === db.getMonth() &&
+        da.getDate() === db.getDate()
+    );
+}
+
+/**
+ * How many challenges this device *created* today (local day), for the daily
+ * creation limit. Counts by write-once `createdAt`, so reopening an older
+ * challenge today never inflates the tally.
+ */
+export function countCreatedToday(now: number = Date.now()): number {
+    return Object.values(readAll()).filter(
+        (s) => s.role === 'created' && sameLocalDay(s.createdAt, now),
+    ).length;
 }
 
 /** Derive the row status from a stub and the current time. */

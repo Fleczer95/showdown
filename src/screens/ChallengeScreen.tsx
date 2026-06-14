@@ -341,13 +341,19 @@ function ResultsCard({
     const theme = useTheme();
     const reduceMotion = useReducedMotion();
     const game = games.find((g) => g.id === record.game);
+    // Only one attempt so far means this device is the only one that has played —
+    // there's no opponent to beat yet, so show a "waiting" state rather than
+    // crowning the sole player the winner.
+    const waiting = attempts.length <= 1;
     const winner = attempts[0];
-    const youWon = winner && myTimestamp !== null && winner.timestamp === myTimestamp;
-    const headline = !winner
-        ? t('challenge.results')
-        : youWon
-          ? t('challenge.youWin')
-          : t('challenge.won', { name: winner.nickname });
+    const youWon = !waiting && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
+    const headline = waiting
+        ? t('challenge.waiting')
+        : !winner
+          ? t('challenge.results')
+          : youWon
+            ? t('challenge.youWin')
+            : t('challenge.won', { name: winner.nickname });
 
     return (
         <Card variant='elevated' padding='lg' gap='md' style={styles.card}>
@@ -358,6 +364,11 @@ function ResultsCard({
                 <Text variant='heading' weight='bold' align='center'>
                     {headline}
                 </Text>
+                {waiting ? (
+                    <Text variant='body' color='textSecondary' align='center'>
+                        {t('challenge.waitingDesc')}
+                    </Text>
+                ) : null}
             </Stack>
             <Stack gap='xs' align='stretch'>
                 {attempts.map((entry, i) => {

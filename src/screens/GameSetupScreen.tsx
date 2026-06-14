@@ -289,6 +289,7 @@ export function GameSetupScreen() {
                         returnKeyType='done'
                         onSubmitEditing={confirmNickname}
                         textAlign='center'
+                        wrapperStyle={styles.nicknameInput}
                     />
                     <Button
                         variant='primary'
@@ -334,6 +335,9 @@ const styles = StyleSheet.create({
     },
     rulesCard: {
         borderStyle: 'dashed',
+    },
+    nicknameInput: {
+        paddingHorizontal: 0,
     },
     dot: {
         width: 8,

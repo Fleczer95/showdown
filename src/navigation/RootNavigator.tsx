@@ -10,9 +10,25 @@ import { ThemeScreen } from '../screens/ThemeScreen';
 import { DocumentScreen } from '../screens/DocumentScreen';
 import StoreScreen from '../screens/store/StoreScreen';
 import { ProgressScreen } from '../screens/ProgressScreen';
+import { ChallengeScreen } from '../screens/ChallengeScreen';
+import { ChallengeHistoryScreen } from '../screens/ChallengeHistoryScreen';
+import { CHALLENGE_LINK_ORIGIN } from '../game/challenge/share';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+/**
+ * Deep-link map (ADR-0003). A Universal/App Link `https://showdown.lebene.pl/c/:id`
+ * (or the `showdown://c/:id` custom scheme) opens straight to the Challenge screen.
+ */
+const linking = {
+    prefixes: [CHALLENGE_LINK_ORIGIN, 'showdown://'],
+    config: {
+        screens: {
+            Challenge: 'c/:challengeId',
+        },
+    },
+};
 
 /**
  * Native-stack navigator for the app. Home plus one shared setup screen
@@ -40,7 +56,7 @@ export function RootNavigator() {
     );
 
     return (
-        <NavigationContainer theme={navTheme}>
+        <NavigationContainer theme={navTheme} linking={linking}>
             <Stack.Navigator
                 initialRouteName='Home'
                 screenOptions={{
@@ -53,6 +69,8 @@ export function RootNavigator() {
                 <Stack.Screen name='Theme' component={ThemeScreen} />
                 <Stack.Screen name='Store' component={StoreScreen} />
                 <Stack.Screen name='Progress' component={ProgressScreen} />
+                <Stack.Screen name='Challenge' component={ChallengeScreen} />
+                <Stack.Screen name='ChallengeHistory' component={ChallengeHistoryScreen} />
                 <Stack.Screen name='privacyPolicy' component={DocumentScreen} />
                 <Stack.Screen name='termsOfUse' component={DocumentScreen} />
                 {games.map((game) => (

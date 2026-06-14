@@ -17,6 +17,18 @@ export function hexToRgba(hex: string, alpha: number): string {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/**
+ * Flatten `fg` over opaque `bg` at `alpha` (0..1) into an opaque rgb. Looks
+ * identical to `hexToRgba(fg, alpha)` on top of `bg`, but stays solid so
+ * content scrolling behind a translucent surface can't bleed through.
+ */
+export function blend(fg: string, bg: string, alpha: number): string {
+    const f = toRgb(fg);
+    const b = toRgb(bg);
+    const [r, g, bl] = f.map((c, i) => Math.round(c * alpha + b[i] * (1 - alpha)));
+    return `rgb(${r}, ${g}, ${bl})`;
+}
+
 /** Darken a hex toward black by `amount` (0..1) — used for the medallion gradient. */
 export function darken(hex: string, amount: number): string {
     const [r, g, b] = toRgb(hex).map((c) => Math.round(c * (1 - amount)));

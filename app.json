@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShowDown",
     "slug": "showdown",
-    "version": "0.8.2",
+    "version": "0.9.5",
     "scheme": "showdown",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
@@ -15,6 +15,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.showdown.app",
       "googleServicesFile": "./GoogleService-Info.plist",
+      "associatedDomains": [
+        "applinks:showdown.lebene.pl"
+      ],
       "infoPlist": {
         "CFBundleName": "ShowDown"
       },
@@ -34,11 +37,29 @@
         "monochromeImage": "./assets/icon.png",
         "backgroundColor": "#1A1A2E"
       },
-      "versionCode": 3
+      "versionCode": 8,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "showdown.lebene.pl",
+              "pathPrefix": "/c"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "plugins": [
       "expo-localization",
       "@react-native-firebase/app",
+      "@react-native-firebase/app-check",
       "expo-audio",
       "expo-asset"
     ],

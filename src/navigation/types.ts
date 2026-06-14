@@ -13,6 +13,10 @@ export type RootStackParamList = {
     Progress: { focusRewardId?: string } | undefined;
     privacyPolicy: undefined;
     termsOfUse: undefined;
+    /** Async challenge opened from a shared link (`/c/:challengeId`) or after creating one. */
+    Challenge: { challengeId: string };
+    /** List of challenges this device created or opened — resume unplayed, revisit results. */
+    ChallengeHistory: undefined;
 } & Record<SetupRoute, { gameId: string }>;
 
 // Make `useNavigation()` / `Link` etc. globally aware of the param list.

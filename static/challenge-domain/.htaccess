@@ -1,0 +1,16 @@
+# Serve the Apple App Site Association file (it has no extension) as JSON.
+# Universal Links require https, HTTP 200, application/json, and no redirect.
+<Files "apple-app-site-association">
+  ForceType application/json
+</Files>
+
+# Serve the store-redirect fallback page for challenge links (/c/<id>) when the
+# app is not installed. An installed app intercepts /c/* via Universal/App Links
+# before the browser loads, so this only affects non-app visitors. Real files
+# (e.g. /.well-known/*) are served directly and never rewritten.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^c/ index.html [L]
+</IfModule>

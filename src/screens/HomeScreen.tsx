@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
-import { Settings, ArrowRight, ShoppingBag } from 'lucide-react-native';
+import { Settings, ArrowRight, ShoppingBag, Swords } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
+import Button from '../components/molecules/Button';
 import { useTheme } from '../theme';
 import { hexToRgba, darken, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
@@ -179,7 +180,7 @@ export function HomeScreen() {
         {
             paddingHorizontal: theme.spacing.xl,
             paddingTop: theme.spacing.xxl,
-            paddingBottom: theme.spacing.xxl + theme.spacing.sm, // approx 40
+            paddingBottom: theme.spacing.lg, // fixed footer holds the bottom action
             gap: theme.spacing.xl,
         },
     ];
@@ -220,6 +221,28 @@ export function HomeScreen() {
                     ))}
                 </Stack>
             </ScrollView>
+
+            {/* Fixed footer: the Challenges entry pinned to the very bottom, in the thumb zone. */}
+            <View
+                style={[
+                    styles.footer,
+                    {
+                        paddingHorizontal: theme.spacing.xl,
+                        paddingTop: theme.spacing.md,
+                        paddingBottom: theme.spacing.sm,
+                    },
+                ]}
+            >
+                <Button
+                    variant='secondary'
+                    fullWidth
+                    onPress={() => navigation.navigate('ChallengeHistory')}
+                    icon={<Swords size={20} color={theme.colors.text} />}
+                    accessibilityLabel={t('screen.home.challenges')}
+                >
+                    {t('challenge.history.title')}
+                </Button>
+            </View>
         </SafeContainer>
     );
 }
@@ -230,6 +253,9 @@ const styles = StyleSheet.create({
     },
     content: {
         // padding/gap moved to themed style
+    },
+    footer: {
+        // pinned below the ScrollView; horizontal/vertical padding from theme
     },
     header: {
         flexDirection: 'row',

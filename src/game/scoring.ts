@@ -19,6 +19,16 @@ export const LADDER_LIFELINE_COUNT = 3;
 /** The Wheel pays this per puzzle solved without buying a vowel. */
 export const WHEEL_NO_VOWEL_BONUS = 250;
 
+/**
+ * The Drop pays this per round survived (a correct allocation), on top of the
+ * money kept and per-round timing. It keeps a busted run from scoring nothing
+ * while guaranteeing any survivor outranks any loser: with BUNDLE = 25,000 the
+ * smallest a survivor can keep, a final-round loser (survived TOTAL_ROUNDS − 1
+ * rounds, max round-points + max timing) must stay below the lowest survivor.
+ * That holds while this stays under BUNDLE / (TOTAL_ROUNDS − 2) ≈ 3,571.
+ */
+export const DROP_ROUND_SURVIVAL_POINTS = 2_000;
+
 /** Total points plus the components that make it up, for the game-over breakdown. */
 export interface ScoreBreakdown {
     /** Core points: correct-answer base / final bank / banked cash. */
@@ -45,22 +55,27 @@ export function speedBonus(baseValue: number, seconds: number): number {
 
 /** Assemble The Ladder's final score: base + speed + (unused lifelines × bonus). */
 export function ladderScore(args: { base: number; speed: number; usedLifelines: number }): ScoreBreakdown {
-    const bonus = (LADDER_LIFELINE_COUNT - args.usedLifelines) * LADDER_LIFELINE_BONUS;
+    // The clean-play bonus rewards lifelines saved across a run that actually
+    // climbed. A run that answered nothing correctly (e.g. a first-question miss)
+    // has no base and scores zero rather than banking the full unused-lifeline
+    // bonus — which previously surfaced as a phantom 1500 on the challenge board.
+    const bonus = args.base > 0 ? (LADDER_LIFELINE_COUNT - args.usedLifelines) * LADDER_LIFELINE_BONUS : 0;
     return { base: args.base, speed: args.speed, bonus, total: args.base + args.speed + bonus };
 }
 
 /**
- * Assemble The Drop's final score: final bank + a speed bonus that scales the
- * *final* bank by the run's average decision time (no clean-play bonus).
+ * Assemble The Drop's final score: money kept (final bank) + per-round timing
+ * already summed over survived rounds + a flat reward per round survived.
  *
- * Computing speed once from the final bank — rather than summing a per-round
- * money-scaled bonus — keeps it honest for a game whose bank only ever shrinks:
- * a busted run (bank 0) scores 0, and the carried-forward bank isn't counted
- * again every round.
+ * The round-survival reward means a busted run still scores for how far it got
+ * (and faster play), while `DROP_ROUND_SURVIVAL_POINTS` is sized so any survivor
+ * — even one ending on the minimum bank — always outranks any loser, including
+ * one who busts on the final round. A first-round bust survives nothing and so
+ * still scores 0.
  */
-export function dropScore(args: { bank: number; avgSeconds: number }): ScoreBreakdown {
-    const speed = speedBonus(args.bank, args.avgSeconds);
-    return { base: args.bank, speed, bonus: 0, total: args.bank + speed };
+export function dropScore(args: { bank: number; roundsSurvived: number; speed: number }): ScoreBreakdown {
+    const bonus = args.roundsSurvived * DROP_ROUND_SURVIVAL_POINTS;
+    return { base: args.bank, speed: args.speed, bonus, total: args.bank + args.speed + bonus };
 }
 
 /** Assemble The Wheel's final score: banked cash + speed + (clean puzzles × bonus). */

@@ -1,8 +1,53 @@
 {
+    "challenge": {
+        "create": "Wyzwij znajomego",
+        "creating": "Tworzenie…",
+        "nicknamePrompt": "Wybierz pseudonim",
+        "createWithCount": "Wyzwij znajomego · %{count}/%{cap}",
+        "limit": {
+            "title": "Limit wyzwań na dziś wyczerpany",
+            "body": "Liczba wyzwań tworzonych dziennie jest ograniczona. Twój limit odnowi się o północy.",
+            "cta": "Odblokuj pakiet lub motyw — każdy daje +1 dziennie",
+            "dismiss": "Rozumiem"
+        },
+        "loading": "Ładowanie wyzwania…",
+        "vsTitle": "Ty kontra %{name}",
+        "vsSubtitle": "Pokonaj jego wynik na tych samych pytaniach.",
+        "vsTitleCreator": "Ty kontra przeciwnik",
+        "vsSubtitleCreator": "Ustaw wynik, który znajomy spróbuje pobić.",
+        "start": "Rozpocznij wyzwanie",
+        "submitting": "Zapisywanie wyniku…",
+        "submitFailed": "Nie udało się zapisać wyniku — wygląda na to, że jesteś offline.",
+        "offline": "Jesteś offline",
+        "offlineDesc": "Połącz się z internetem, aby wczytać to wyzwanie.",
+        "retry": "Spróbuj ponownie",
+        "expired": "Wyzwanie wygasło",
+        "expiredDesc": "Ten link do wyzwania wygasł. Utwórz nowe!",
+        "updateRequired": "Wymagana aktualizacja",
+        "updateRequiredDesc": "Zaktualizuj aplikację, aby podjąć to wyzwanie.",
+        "results": "Wyniki",
+        "waiting": "Czekamy na przeciwnika…",
+        "waitingDesc": "Jesteś pierwszą osobą, która zagrała. Zwycięzcę poznasz, gdy przeciwnik podejmie wyzwanie.",
+        "you": "Ty",
+        "youWin": "Wygrywasz!",
+        "won": "%{name} wygrywa!",
+        "playLater": "Zagraj później",
+        "history": {
+            "title": "Twoje wyzwania",
+            "empty": "Brak wyzwań",
+            "emptyDesc": "Wyzwij znajomego w dowolnej grze, aby zobaczyć je tutaj.",
+            "yourTurn": "Twoja kolej",
+            "viewResults": "Zagrane · zobacz wyniki",
+            "expiredStatus": "Wygasło",
+            "vs": "kontra %{name}",
+            "yours": "Wyzwanie utworzone przez Ciebie"
+        }
+    },
     "screen": {
         "home": {
             "settings": "Ustawienia",
             "store": "Sklep",
+            "challenges": "Wyzwania",
             "recentlyPlayed": "Ostatnio grane",
             "allGames": "Wszystkie gry"
         },
@@ -114,10 +159,7 @@
                 {
                     "title": "5. Cele Przetwarzania",
                     "content": "Przetwarzamy zebrane dane w celu:",
-                    "listItems": [
-                        "Diagnostyki błędów",
-                        "Poprawy jakości działania aplikacji"
-                    ]
+                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
                 },
                 {
                     "title": "6. Podstawa Prawna",
@@ -474,10 +516,7 @@
             {
                 "title": "5. Cele Przetwarzania",
                 "content": "Przetwarzamy zebrane dane w celu:",
-                "listItems": [
-                    "Diagnostyki błędów",
-                    "Poprawy jakości działania aplikacji"
-                ]
+                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
             },
             {
                 "title": "6. Podstawa Prawna",

@@ -1,0 +1,10 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.showdown.app",
+            "sha256_cert_fingerprints": ["6A:52:7D:2B:59:D2:42:33:97:81:28:65:64:FB:D8:C3:28:43:30:E4:7E:5F:F6:34:E9:F3:6A:53:5C:3B:F8:B0"]
+        }
+    }
+]

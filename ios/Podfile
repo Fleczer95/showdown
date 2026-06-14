@@ -2,6 +2,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
+require 'fileutils'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
@@ -64,5 +65,50 @@ target 'ShowDown' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    # gRPC-Core modulemap workaround (Xcode 16+ explicitly-built modules).
+    # The pod build settings reference Headers/Private/grpc/gRPC-Core.modulemap, which
+    # CocoaPods never generates. Older Xcode ignored the missing -fmodule-map-file;
+    # Xcode 16+ ScanDependencies validates it and fails the archive. We can't place the
+    # file under Pods/Headers (CocoaPods repopulates that dir AFTER this hook, wiping
+    # it), so instead we drop the modulemap into the gRPC-Core source header tree
+    # (which survives, with grpc.h adjacent) and redirect every reference there.
+    sandbox     = installer.sandbox.root.to_s
+    grpc_src    = File.join(sandbox, 'gRPC-Core', 'include', 'grpc')
+    grpc_modmap = File.join(sandbox, 'Target Support Files', 'gRPC-Core', 'gRPC-Core.modulemap')
+    bad_path    = 'Headers/Private/grpc/gRPC-Core.modulemap'
+    good_path   = 'gRPC-Core/include/grpc/gRPC-Core.modulemap'
+    if File.exist?(grpc_modmap) && Dir.exist?(grpc_src)
+      # 1. Materialise the modulemap next to its umbrella header (grpc.h).
+      FileUtils.cp(grpc_modmap, File.join(grpc_src, 'gRPC-Core.modulemap'))
+      # 2. Redirect -fmodule-map-file=... references in every generated xcconfig.
+      Dir.glob(File.join(sandbox, 'Target Support Files', '**', '*.xcconfig')).each do |xc|
+        body = File.read(xc)
+        fixed = body.gsub(bad_path, good_path)
+        File.write(xc, fixed) if fixed != body
+      end
+      # 3. Redirect the gRPC-Core target's own MODULEMAP_FILE (lives in the pbxproj,
+      #    saved by CocoaPods after this hook runs).
+      installer.pods_project.targets.each do |t|
+        next unless t.name == 'gRPC-Core'
+        t.build_configurations.each do |c|
+          if c.build_settings['MODULEMAP_FILE'].to_s.include?(bad_path)
+            c.build_settings['MODULEMAP_FILE'] = good_path
+          end
+        end
+      end
+    end
+
+    # FirebaseFirestore.podspec declares `weak_frameworks: FirebaseFirestoreInternal`,
+    # which is only valid for Firebase's prebuilt binary distribution. We build
+    # Firestore from source (libFirebaseFirestoreInternal.a, linked via -l), so the
+    # `-weak_framework FirebaseFirestoreInternal` flag points at a framework that does
+    # not exist and breaks the archive link. The static lib already provides every
+    # symbol, so drop the dead flag from the app's linker flags.
+    Dir.glob(File.join(sandbox, 'Target Support Files', 'Pods-*', 'Pods-*.xcconfig')).each do |xcconfig|
+      contents = File.read(xcconfig)
+      stripped = contents.gsub(' -weak_framework "FirebaseFirestoreInternal"', '')
+      File.write(xcconfig, stripped) if stripped != contents
+    end
   end
 end

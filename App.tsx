@@ -17,13 +17,16 @@ import { TranslationProvider } from './src/i18n/TranslationContext';
 import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 import { initSentry, Sentry } from './src/utils/sentry/init';
 import { initFirebase } from './src/utils/firebase/init';
+import { initAppCheck } from './src/utils/firebase/appCheck';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { isPremiumCatalogId } from './src/data/store/catalog';
 
-// Sentry -> Firebase: initialized before the tree renders.
+// Sentry -> Firebase: initialized before the tree renders. App Check is attested
+// before any Firestore round-trip (fire-and-forget; it never blocks startup).
 initSentry();
+void initAppCheck();
 initFirebase();
 
 function PremiumThemeGate() {

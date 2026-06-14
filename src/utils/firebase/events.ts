@@ -147,6 +147,12 @@ export type AnalyticsEvent =
       }
     // --- Progression events ---
     | { name: 'level_up'; params: { from_level: number; to_level: number; lifetime_xp: number } }
+    // --- Async Challenge events (ADR-0003). `game` is the kebab-case game id (e.g. `the-ladder`). ---
+    | { name: 'challenge_created'; params: { game: string } }
+    | { name: 'challenge_opened'; params: { game: string } }
+    | { name: 'challenge_completed'; params: { game: string; progress: number; score: number } }
+    | { name: 'challenge_update_required'; params: { game: string } }
+    | { name: 'challenge_limit_hit'; params: { game: string } }
     // --- Settings events ---
     | { name: 'language_changed'; params: { from_locale: string; to_locale: string } }
     | { name: 'theme_changed'; params: { theme_id: string; is_premium: boolean } }

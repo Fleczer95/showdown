@@ -20,8 +20,8 @@
         "waiting": "Czekamy na przeciwnika…",
         "waitingDesc": "Jesteś pierwszą osobą, która zagrała. Zwycięzcę poznasz, gdy przeciwnik podejmie wyzwanie.",
         "you": "Ty",
-        "youWin": "Wygrywasz! 🏆",
-        "won": "%{name} wygrywa! 🏆"
+        "youWin": "Wygrywasz!",
+        "won": "%{name} wygrywa!"
     },
     "screen": {
         "home": {

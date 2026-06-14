@@ -1,16 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, type ViewStyle } from 'react-native';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { Swords, Trophy, Hourglass, Crown, type LucideIcon } from 'lucide-react-native';
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
+import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import Button from '../components/molecules/Button';
 import Input from '../components/molecules/Input';
 import { useTheme } from '../theme';
+import { resolveAccent, readableOn, hexToRgba, darken } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
 import { APP_VERSION } from '../utils/version';
 import { games } from '../data/games';
@@ -62,7 +66,6 @@ export function ChallengeScreen() {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { purchasedItemIds } = useStore();
-    const reduceMotion = useReducedMotion();
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
@@ -235,40 +238,14 @@ export function ChallengeScreen() {
                         onAction={exit}
                     />
                 ) : phase === 'intro' && record ? (
-                    <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
-                        <Card variant='elevated' padding='lg' gap='md'>
-                            <Stack gap='xs' align='center'>
-                                <Text variant='overline' color='textSecondary' weight='bold'>
-                                    {t(`game.${record.game}.name`)}
-                                </Text>
-                                <Text variant='heading' weight='bold' align='center'>
-                                    {t('challenge.vsTitle', { name: record.createdBy.nickname })}
-                                </Text>
-                                <Text variant='body' color='textSecondary' align='center'>
-                                    {t('challenge.vsSubtitle')}
-                                </Text>
-                            </Stack>
-                            {getLastNickname().trim().length === 0 ? (
-                                <Input
-                                    value={nickname}
-                                    onChangeText={setNickname}
-                                    placeholder={t('leaderboard.nicknamePlaceholder')}
-                                    maxLength={MAX_NICKNAME_LENGTH}
-                                    autoCapitalize='words'
-                                    textAlign='center'
-                                    wrapperStyle={styles.input}
-                                />
-                            ) : null}
-                            <Button
-                                variant='primary'
-                                fullWidth
-                                disabled={nickname.trim().length === 0}
-                                onPress={startPlay}
-                            >
-                                {t('challenge.start')}
-                            </Button>
-                        </Card>
-                    </Animated.View>
+                    <IntroCard
+                        record={record}
+                        nickname={nickname}
+                        onChangeNickname={setNickname}
+                        showNicknameInput={getLastNickname().trim().length === 0}
+                        onStart={startPlay}
+                        t={t}
+                    />
                 ) : phase === 'results' && record ? (
                     <ResultsCard
                         record={record}
@@ -281,6 +258,143 @@ export function ChallengeScreen() {
                 ) : null}
             </View>
         </SafeContainer>
+    );
+}
+
+/** Per-game accent for a challenge, falling back to the first accent token. */
+function challengeAccent(theme: ReturnType<typeof useTheme>, gameId: string): string {
+    const game = games.find((g) => g.id === gameId);
+    return resolveAccent(theme, game?.accent ?? 'accent1');
+}
+
+/** Accent-tinted border + glow applied to a challenge card, mirroring the game setup screen. */
+function accentCardStyle(accent: string): ViewStyle {
+    return {
+        borderColor: hexToRgba(accent, 0.5),
+        shadowColor: accent,
+        shadowOpacity: 0.3,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 8,
+    };
+}
+
+/**
+ * The gradient medallion used across the app's hero cards (see GameSetupScreen):
+ * a rounded-square with an accent→darker gradient fill, accent glow, and a
+ * centered icon. Used here to give the challenge intro/results a hero focal point.
+ */
+function Medallion({
+    icon,
+    accent,
+    gradientId,
+    size = 88,
+}: {
+    icon: LucideIcon;
+    accent: string;
+    gradientId: string;
+    size?: number;
+}) {
+    const theme = useTheme();
+    const onAccent = readableOn(accent);
+    return (
+        <View
+            style={[
+                styles.medallion,
+                {
+                    width: size,
+                    height: size,
+                    borderRadius: theme.radii.xl,
+                    borderWidth: 1,
+                    borderColor: hexToRgba(accent, 0.5),
+                    shadowColor: accent,
+                    shadowOpacity: 0.45,
+                    shadowRadius: 16,
+                    shadowOffset: { width: 0, height: 6 },
+                    elevation: 8,
+                },
+            ]}
+        >
+            <View
+                style={[StyleSheet.absoluteFill, { borderRadius: theme.radii.xl, overflow: 'hidden' }]}
+                pointerEvents='none'
+            >
+                <Svg width='100%' height='100%'>
+                    <Defs>
+                        <SvgGradient id={gradientId} x1='0' y1='0' x2='1' y2='1'>
+                            <Stop offset='0' stopColor={accent} />
+                            <Stop offset='1' stopColor={darken(accent, 0.4)} />
+                        </SvgGradient>
+                    </Defs>
+                    <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${gradientId})`} />
+                </Svg>
+            </View>
+            <Icon name={icon} size={Math.round(size * 0.46)} color={onAccent} />
+        </View>
+    );
+}
+
+function IntroCard({
+    record,
+    nickname,
+    onChangeNickname,
+    showNicknameInput,
+    onStart,
+    t,
+}: {
+    record: ChallengeRecord;
+    nickname: string;
+    onChangeNickname: (value: string) => void;
+    showNicknameInput: boolean;
+    onStart: () => void;
+    t: (key: string, options?: Record<string, unknown>) => string;
+}) {
+    const theme = useTheme();
+    const reduceMotion = useReducedMotion();
+    const accent = challengeAccent(theme, record.game);
+    const onAccent = readableOn(accent);
+
+    return (
+        <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
+            <Card variant='elevated' padding='lg' gap='lg' style={accentCardStyle(accent)}>
+                <Stack gap='md' align='center'>
+                    <Medallion icon={Swords} accent={accent} gradientId='challenge-intro' />
+                    <Stack gap='xs' align='center'>
+                        <Text variant='overline' color='textSecondary' weight='bold'>
+                            {t(`game.${record.game}.name`)}
+                        </Text>
+                        <Text variant='heading' weight='bold' align='center'>
+                            {t('challenge.vsTitle', { name: record.createdBy.nickname })}
+                        </Text>
+                        <Text variant='body' color='textSecondary' align='center'>
+                            {t('challenge.vsSubtitle')}
+                        </Text>
+                    </Stack>
+                </Stack>
+                {showNicknameInput ? (
+                    <Input
+                        value={nickname}
+                        onChangeText={onChangeNickname}
+                        placeholder={t('leaderboard.nicknamePlaceholder')}
+                        maxLength={MAX_NICKNAME_LENGTH}
+                        autoCapitalize='words'
+                        textAlign='center'
+                        wrapperStyle={styles.input}
+                    />
+                ) : null}
+                <Button
+                    variant='primary'
+                    fullWidth
+                    disabled={nickname.trim().length === 0}
+                    onPress={onStart}
+                    style={{ backgroundColor: accent, borderColor: accent }}
+                    textColor={onAccent}
+                    icon={<Swords size={20} color={onAccent} />}
+                >
+                    {t('challenge.start')}
+                </Button>
+            </Card>
+        </Animated.View>
     );
 }
 
@@ -341,6 +455,8 @@ function ResultsCard({
     const theme = useTheme();
     const reduceMotion = useReducedMotion();
     const game = games.find((g) => g.id === record.game);
+    const accent = challengeAccent(theme, record.game);
+    const onAccent = readableOn(accent);
     // Only one attempt so far means this device is the only one that has played —
     // there's no opponent to beat yet, so show a "waiting" state rather than
     // crowning the sole player the winner.
@@ -356,58 +472,87 @@ function ResultsCard({
             : t('challenge.won', { name: winner.nickname });
 
     return (
-        <Card variant='elevated' padding='lg' gap='md' style={styles.card}>
-            <Stack gap='xs' align='center'>
-                <Text variant='overline' color='textSecondary' weight='bold'>
-                    {t(`game.${record.game}.name`)}
-                </Text>
-                <Text variant='heading' weight='bold' align='center'>
-                    {headline}
-                </Text>
-                {waiting ? (
-                    <Text variant='body' color='textSecondary' align='center'>
-                        {t('challenge.waitingDesc')}
-                    </Text>
-                ) : null}
-            </Stack>
-            <Stack gap='xs' align='stretch'>
-                {attempts.map((entry, i) => {
-                    const mine = myTimestamp !== null && entry.timestamp === myTimestamp;
-                    return (
-                        <Animated.View
-                            key={`${entry.timestamp}-${i}`}
-                            entering={reduceMotion ? undefined : springEnter(i * 80)}
-                            style={[
-                                styles.row,
-                                { borderBottomColor: theme.colors.border },
-                                mine && { backgroundColor: theme.colors.primary + '22', borderRadius: theme.radii.sm },
-                            ]}
-                        >
-                            <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
-                                {i + 1}
+        <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
+            <Card variant='elevated' padding='lg' gap='lg' style={accentCardStyle(accent)}>
+                <Stack gap='md' align='center'>
+                    <Medallion
+                        icon={waiting ? Hourglass : Trophy}
+                        accent={accent}
+                        gradientId='challenge-results'
+                    />
+                    <Stack gap='xs' align='center'>
+                        <Text variant='overline' color='textSecondary' weight='bold'>
+                            {t(`game.${record.game}.name`)}
+                        </Text>
+                        <Text variant='heading' weight='bold' align='center'>
+                            {headline}
+                        </Text>
+                        {waiting ? (
+                            <Text variant='body' color='textSecondary' align='center'>
+                                {t('challenge.waitingDesc')}
                             </Text>
-                            <View style={styles.nameCol}>
-                                <Text variant='body' weight={mine ? 'bold' : 'semibold'} numberOfLines={1}>
-                                    {entry.nickname}
-                                    {mine ? ` (${t('challenge.you')})` : ''}
+                        ) : null}
+                    </Stack>
+                </Stack>
+                <Stack gap='xs' align='stretch'>
+                    {attempts.map((entry, i) => {
+                        const mine = myTimestamp !== null && entry.timestamp === myTimestamp;
+                        const isWinner = !waiting && i === 0;
+                        return (
+                            <Animated.View
+                                key={`${entry.timestamp}-${i}`}
+                                entering={reduceMotion ? undefined : springEnter(i * 80)}
+                                style={[
+                                    styles.row,
+                                    { borderBottomColor: theme.colors.border },
+                                    mine && { backgroundColor: hexToRgba(accent, 0.13), borderRadius: theme.radii.sm },
+                                ]}
+                            >
+                                <Text
+                                    variant='body'
+                                    weight='bold'
+                                    color={isWinner ? undefined : 'textSecondary'}
+                                    style={[styles.rank, isWinner && { color: accent }]}
+                                >
+                                    {i + 1}
                                 </Text>
-                                {game ? (
-                                    <Text variant='caption' color='textMuted' numberOfLines={1}>
-                                        {t(game.progressLabelKey, { n: entry.progress })}
-                                    </Text>
-                                ) : null}
-                            </View>
-                            <Text variant='body' weight='bold' style={styles.score}>
-                                {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
-                            </Text>
-                        </Animated.View>
-                    );
-                })}
-            </Stack>
-            <Button variant='primary' fullWidth onPress={onExit}>
-                {t('common.home')}
-            </Button>
-        </Card>
+                                <View style={styles.nameCol}>
+                                    <Stack direction='horizontal' gap='xs' align='center'>
+                                        <Text
+                                            variant='body'
+                                            weight={mine ? 'bold' : 'semibold'}
+                                            numberOfLines={1}
+                                            style={styles.name}
+                                        >
+                                            {entry.nickname}
+                                            {mine ? ` (${t('challenge.you')})` : ''}
+                                        </Text>
+                                        {isWinner ? <Crown size={14} color={accent} /> : null}
+                                    </Stack>
+                                    {game ? (
+                                        <Text variant='caption' color='textMuted' numberOfLines={1}>
+                                            {t(game.progressLabelKey, { n: entry.progress })}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                                <Text variant='body' weight='bold' style={styles.score}>
+                                    {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
+                                </Text>
+                            </Animated.View>
+                        );
+                    })}
+                </Stack>
+                <Button
+                    variant='primary'
+                    fullWidth
+                    onPress={onExit}
+                    style={{ backgroundColor: accent, borderColor: accent }}
+                    textColor={onAccent}
+                >
+                    {t('common.home')}
+                </Button>
+            </Card>
+        </Animated.View>
     );
 }
 
@@ -420,6 +565,10 @@ const styles = StyleSheet.create({
     },
     card: {
         width: '100%',
+    },
+    medallion: {
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     input: {
         paddingHorizontal: 0,
@@ -438,6 +587,9 @@ const styles = StyleSheet.create({
     },
     nameCol: {
         flex: 1,
+    },
+    name: {
+        flexShrink: 1,
     },
     score: {
         minWidth: 64,

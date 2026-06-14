@@ -474,7 +474,10 @@ export default function DropPlayScreen({
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-drop'
-                onConfirm={onExit}
+                onConfirm={() => {
+                    setShowLeaveConfirm(false);
+                    onExit();
+                }}
                 onCancel={() => setShowLeaveConfirm(false)}
             />
         </View>

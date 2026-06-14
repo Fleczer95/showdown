@@ -166,7 +166,7 @@ export class DeviceManager {
             this.log('Please ensure:', 'info');
             this.log('1. Xcode is installed', 'info');
             this.log('2. iOS simulator is running (Xcode > Open Developer Tool > Simulator)', 'info');
-            this.log('3. Or use: xcrun simctl boot "iPhone 15"', 'info');
+            this.log('3. Or use: xcrun simctl boot "iPhone 16e"', 'info');
             this.log('', 'info');
 
             // Show available simulators

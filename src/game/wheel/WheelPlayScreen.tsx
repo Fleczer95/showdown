@@ -640,7 +640,10 @@ export default function WheelPlayScreen({
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-wheel'
-                onConfirm={onExit}
+                onConfirm={() => {
+                    setShowLeaveConfirm(false);
+                    onExit();
+                }}
                 onCancel={() => setShowLeaveConfirm(false)}
             />
         </ScrollView>

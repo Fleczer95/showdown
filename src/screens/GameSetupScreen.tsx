@@ -76,13 +76,11 @@ export function GameSetupScreen() {
         }
     };
 
+    // Always confirm the name before inviting a friend — prefilled with the saved
+    // default but editable per challenge (the edit also becomes the new default).
     const onCreateChallenge = () => {
-        const saved = getLastNickname().trim();
-        if (saved.length === 0) {
-            setNicknameSheet(true);
-            return;
-        }
-        void createAndShare(saved);
+        setNickname(getLastNickname());
+        setNicknameSheet(true);
     };
 
     const confirmNickname = () => {

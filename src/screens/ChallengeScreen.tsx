@@ -28,6 +28,7 @@ import {
 } from '../game/leaderboard';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
+import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
 import {
     gateChallenge,
     ladderRunFromRecord,
@@ -107,6 +108,17 @@ export function ChallengeScreen() {
             }
             setRecord(rec);
             SafeAnalytics.logEvent({ name: 'challenge_opened', params: { game: rec.game } });
+            // Index it locally so the player can leave and resume it from the
+            // Challenge History screen. `played` is settled below / on submit.
+            const role = rec.createdBy.uuid === deviceId ? 'created' : 'received';
+            recordChallenge({
+                id: challengeId,
+                game: rec.game,
+                role,
+                opponent: role === 'received' ? rec.createdBy.nickname : '',
+                played: false,
+                expiresAt: rec.expiresAt,
+            });
             const gate = gateChallenge(rec, APP_VERSION, Date.now());
             if (gate === 'expired') {
                 setPhase('expired');
@@ -120,6 +132,7 @@ export function ChallengeScreen() {
             // Already played on this device? Go straight to the result reveal.
             const mine = await getAttempt(challengeId, deviceId);
             if (mine) {
+                markChallengePlayed(challengeId);
                 await showResults(mine.timestamp);
                 return;
             }
@@ -146,6 +159,7 @@ export function ChallengeScreen() {
             try {
                 await submitAttempt(challengeId, deviceId, attempt);
                 pendingResult.current = null;
+                markChallengePlayed(challengeId);
                 if (record) {
                     SafeAnalytics.logEvent({
                         name: 'challenge_completed',
@@ -244,6 +258,7 @@ export function ChallengeScreen() {
                         onChangeNickname={setNickname}
                         showNicknameInput={getLastNickname().trim().length === 0}
                         onStart={startPlay}
+                        onHome={exit}
                         t={t}
                     />
                 ) : phase === 'results' && record ? (
@@ -340,6 +355,7 @@ function IntroCard({
     onChangeNickname,
     showNicknameInput,
     onStart,
+    onHome,
     t,
 }: {
     record: ChallengeRecord;
@@ -347,6 +363,7 @@ function IntroCard({
     onChangeNickname: (value: string) => void;
     showNicknameInput: boolean;
     onStart: () => void;
+    onHome: () => void;
     t: (key: string, options?: Record<string, unknown>) => string;
 }) {
     const theme = useTheme();
@@ -392,6 +409,9 @@ function IntroCard({
                     icon={<Swords size={20} color={onAccent} />}
                 >
                     {t('challenge.start')}
+                </Button>
+                <Button variant='ghost' fullWidth onPress={onHome}>
+                    {t('challenge.playLater')}
                 </Button>
             </Card>
         </Animated.View>

@@ -213,7 +213,10 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-grid'
-                onConfirm={onExit}
+                onConfirm={() => {
+                    setShowLeaveConfirm(false);
+                    onExit();
+                }}
                 onCancel={() => setShowLeaveConfirm(false)}
             />
         </View>

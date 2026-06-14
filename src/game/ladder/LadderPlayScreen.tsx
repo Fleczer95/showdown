@@ -322,7 +322,10 @@ export default function LadderPlayScreen({
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-ladder'
-                onConfirm={onExit}
+                onConfirm={() => {
+                    setShowLeaveConfirm(false);
+                    onExit();
+                }}
                 onCancel={() => setShowLeaveConfirm(false)}
             />
         </ScrollView>

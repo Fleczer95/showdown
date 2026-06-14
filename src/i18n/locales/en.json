@@ -21,12 +21,24 @@
         "waitingDesc": "You're the first to play. We'll have a winner once your opponent takes the challenge.",
         "you": "You",
         "youWin": "You win!",
-        "won": "%{name} wins!"
+        "won": "%{name} wins!",
+        "playLater": "Play later",
+        "history": {
+            "title": "Your Challenges",
+            "empty": "No challenges yet",
+            "emptyDesc": "Challenge a friend from any game to see it here.",
+            "yourTurn": "Your turn",
+            "viewResults": "Played · view results",
+            "expiredStatus": "Expired",
+            "vs": "vs %{name}",
+            "yours": "Challenge you created"
+        }
     },
     "screen": {
         "home": {
             "settings": "Settings",
             "store": "Store",
+            "challenges": "Challenges",
             "recentlyPlayed": "Recently Played",
             "allGames": "All Games"
         },

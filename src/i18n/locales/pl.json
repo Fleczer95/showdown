@@ -21,12 +21,24 @@
         "waitingDesc": "Jesteś pierwszą osobą, która zagrała. Zwycięzcę poznasz, gdy przeciwnik podejmie wyzwanie.",
         "you": "Ty",
         "youWin": "Wygrywasz!",
-        "won": "%{name} wygrywa!"
+        "won": "%{name} wygrywa!",
+        "playLater": "Zagraj później",
+        "history": {
+            "title": "Twoje wyzwania",
+            "empty": "Brak wyzwań",
+            "emptyDesc": "Wyzwij znajomego w dowolnej grze, aby zobaczyć je tutaj.",
+            "yourTurn": "Twoja kolej",
+            "viewResults": "Zagrane · zobacz wyniki",
+            "expiredStatus": "Wygasło",
+            "vs": "kontra %{name}",
+            "yours": "Wyzwanie utworzone przez Ciebie"
+        }
     },
     "screen": {
         "home": {
             "settings": "Ustawienia",
             "store": "Sklep",
+            "challenges": "Wyzwania",
             "recentlyPlayed": "Ostatnio grane",
             "allGames": "Wszystkie gry"
         },

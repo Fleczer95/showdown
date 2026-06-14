@@ -9,6 +9,11 @@ import { createMMKV } from 'react-native-mmkv';
 const storage = createMMKV({ id: 'showdown-challenges' });
 const KEY = 'log';
 
+/** Cap on locally indexed challenges, to bound storage growth. Pruned by
+ * `updatedAt`, so the freshest stubs (including today's, which drive the daily
+ * creation limit) are always kept. */
+const MAX_LOG_ENTRIES = 100;
+
 /** Whether this device created the challenge or received it from a shared link. */
 export type ChallengeRole = 'created' | 'received';
 
@@ -50,7 +55,17 @@ function readAll(): Record<string, ChallengeStub> {
 }
 
 function writeAll(map: Record<string, ChallengeStub>): void {
-    storage.set(KEY, JSON.stringify(map));
+    const entries = Object.values(map);
+    const capped =
+        entries.length <= MAX_LOG_ENTRIES
+            ? map
+            : Object.fromEntries(
+                  entries
+                      .sort((a, b) => b.updatedAt - a.updatedAt)
+                      .slice(0, MAX_LOG_ENTRIES)
+                      .map((s) => [s.id, s]),
+              );
+    storage.set(KEY, JSON.stringify(capped));
 }
 
 /**

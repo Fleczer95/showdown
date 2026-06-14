@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
@@ -22,7 +22,7 @@ import { gameSessionMachine } from '../game/machines/gameSessionMachine';
 import { playScreens } from '../game/playScreens';
 import { useStore } from '../hooks/store/useStore';
 import { buildChallenge } from '../game/challenge/build';
-import { createChallenge } from '../game/challenge/store';
+import { createChallenge, getChallenge, newChallengeId } from '../game/challenge/store';
 import { countCreatedToday } from '../game/challenge/log';
 import { dailyCap, canUpsell } from '../game/challenge/limit';
 import { shareChallenge } from '../game/challenge/share';
@@ -67,21 +67,38 @@ export function GameSetupScreen() {
     const cap = dailyCap(ownedIds);
     const limitReached = createdToday >= cap;
 
+    // The id of an in-flight challenge, held across retries. A create whose
+    // network confirmation timed out (device offline) is still committed by
+    // Firestore on reconnect, so on retry we look the id up first: if that write
+    // landed we reuse it rather than creating a duplicate.
+    const pendingChallengeId = useRef<string | null>(null);
+
     // Freeze the current round into a shareable challenge, then open the share
     // sheet and drop the creator straight into it as the first attempt. Both the
     // create and play steps are online; a failed create surfaces an offline alert.
     const createAndShare = async (nick: string) => {
         try {
             setCreating(true);
-            const record = buildChallenge({
-                gameId: game.id,
-                history: getHistory(game.id),
-                ownedIds: new Set(purchasedItemIds),
-                createdBy: { uuid: getDeviceId(), nickname: nick },
-                appVersion: APP_VERSION,
-                lang: locale === 'pl' ? 'pl' : 'en',
-            });
-            const id = await createChallenge(record);
+            let id = pendingChallengeId.current;
+            if (id) {
+                // A prior attempt may have committed after its timeout — recover it.
+                const existing = await getChallenge(id);
+                if (!existing) id = null;
+            }
+            if (!id) {
+                const record = buildChallenge({
+                    gameId: game.id,
+                    history: getHistory(game.id),
+                    ownedIds: new Set(purchasedItemIds),
+                    createdBy: { uuid: getDeviceId(), nickname: nick },
+                    appVersion: APP_VERSION,
+                    lang: locale === 'pl' ? 'pl' : 'en',
+                });
+                id = newChallengeId();
+                pendingChallengeId.current = id;
+                await createChallenge(record, id);
+            }
+            pendingChallengeId.current = null;
             SafeAnalytics.logEvent({ name: 'challenge_created', params: { game: game.id } });
             await shareChallenge(id);
             navigation.navigate('Challenge', { challengeId: id });
@@ -316,7 +333,7 @@ export function GameSetupScreen() {
                             fullWidth
                             onPress={() => {
                                 setLimitSheet(false);
-                                navigation.navigate('Store' as any);
+                                navigation.navigate('Store');
                             }}
                         >
                             {t('challenge.limit.cta')}

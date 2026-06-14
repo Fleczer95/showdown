@@ -1,20 +1,21 @@
-// Firestore is mocked as a chainable stub; each leaf call (add/get/set) is a
+// Firestore is mocked as a chainable stub; each leaf call (get/set) is a
 // jest.fn configured per test. Verifies the wrappers map results correctly and
 // funnel every failure mode — rejection and timeout — into OfflineError.
-const mockAdd = jest.fn();
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 
 jest.mock('@react-native-firebase/firestore', () => {
-    // Self-referential chain: collection()/doc() return the same api, so any
-    // navigation depth lands on the same leaf fns. Each test exercises one call.
+    // Self-referential chain: collection()/doc()/orderBy()/limit() return the
+    // same api, so any navigation depth lands on the same leaf fns. `doc()`
+    // carries a stable `id` so `createChallenge` can read back the ref id.
     // Leaves are forwarded lazily: babel hoists this factory above the `const
     // mock*` declarations, so they're undefined at factory-eval time but defined
     // by the time a wrapper actually fires.
-    const api: Record<string, unknown> = {};
+    const api: Record<string, unknown> = { id: 'doc123' };
     api.collection = () => api;
     api.doc = () => api;
-    api.add = (...args: unknown[]) => mockAdd(...args);
+    api.orderBy = () => api;
+    api.limit = () => api;
     api.get = (...args: unknown[]) => mockGet(...args);
     api.set = (...args: unknown[]) => mockSet(...args);
     // `firestore` is a callable with a static `Timestamp`. Our stub Timestamp is
@@ -41,10 +42,10 @@ const attempt: Attempt = { nickname: 'A', progress: 3, score: 100, timestamp: 5 
 beforeEach(() => jest.clearAllMocks());
 
 describe('createChallenge', () => {
-    it('returns the new document id and writes expiresAt as a Timestamp', async () => {
-        mockAdd.mockResolvedValue({ id: 'doc123' });
+    it('returns the document id and writes expiresAt as a Timestamp', async () => {
+        mockSet.mockResolvedValue(undefined);
         await expect(createChallenge(record)).resolves.toBe('doc123');
-        const written = mockAdd.mock.calls[0][0] as ChallengeRecord & { expiresAt: { toMillis: () => number } };
+        const written = mockSet.mock.calls[0][0] as ChallengeRecord & { expiresAt: { toMillis: () => number } };
         expect(written).toMatchObject({ ...record, expiresAt: expect.anything() });
         expect(written.expiresAt.toMillis()).toBe(record.expiresAt);
     });
@@ -87,7 +88,7 @@ describe('offline handling', () => {
 
     it('times out a hung call as OfflineError', async () => {
         jest.useFakeTimers();
-        mockAdd.mockReturnValue(new Promise(() => {}));
+        mockSet.mockReturnValue(new Promise(() => {}));
         const pending = createChallenge(record);
         const assertion = expect(pending).rejects.toBeInstanceOf(OfflineError);
         jest.advanceTimersByTime(10_000);

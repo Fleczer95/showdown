@@ -105,6 +105,20 @@ describe('countCreatedToday', () => {
     });
 });
 
+describe('storage cap', () => {
+    it('keeps only the 100 most recently touched challenges, pruning the oldest', () => {
+        // updatedAt values far above any earlier entry, so these dominate the cap
+        // regardless of the file-persistent store.
+        let now = 1e15;
+        jest.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
+        for (let i = 0; i < 110; i++) recordChallenge(stub({ id: `cap-${i}` }));
+        const ids = listChallenges().map((s) => s.id);
+        expect(ids).toHaveLength(100);
+        expect(ids).toContain('cap-109'); // newest kept
+        expect(ids).not.toContain('cap-0'); // oldest pruned
+    });
+});
+
 describe('challengeStatus', () => {
     const base: ChallengeStub = { ...stub(), createdAt: 0, updatedAt: 0, expiresAt: 100 };
 

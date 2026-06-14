@@ -24,6 +24,14 @@ export class OfflineError extends Error {
 
 const REQUEST_TIMEOUT_MS = 10_000;
 
+/**
+ * Cap on attempts pulled for the result reveal. Ordered by `progress` (the
+ * primary ranking key — see `rankEntries`), so the fetched slice is exactly the
+ * entries that can occupy the board; the rest can't outrank them. Bounds read
+ * cost on a runaway challenge without ever dropping a winner.
+ */
+const ATTEMPTS_QUERY_LIMIT = 100;
+
 /** Reject with `OfflineError` if `promise` doesn't settle within the timeout. */
 function withTimeout<T>(promise: Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
@@ -42,13 +50,25 @@ function withTimeout<T>(promise: Promise<T>): Promise<T> {
 }
 
 /**
- * Write a frozen challenge; returns the generated document id for the share URL.
+ * A fresh challenge document id, generated client-side without a write. The
+ * create flow reuses this across retries so a write whose confirmation timed out
+ * (but which Firestore still commits on reconnect) can be recovered via
+ * `getChallenge` instead of being created a second time.
+ */
+export function newChallengeId(): string {
+    return firestore().collection(CHALLENGES).doc().id;
+}
+
+/**
+ * Write a frozen challenge; returns the document id for the share URL. Pass a
+ * pre-generated `id` (see `newChallengeId`) to make a retry target the same doc.
  * `expiresAt` is stored as a Firestore `Timestamp` (not the in-app epoch-ms
  * number) because the Firestore TTL policy only prunes docs by a Timestamp field.
  */
-export async function createChallenge(record: ChallengeRecord): Promise<string> {
+export async function createChallenge(record: ChallengeRecord, id?: string): Promise<string> {
     const payload = { ...record, expiresAt: firestore.Timestamp.fromMillis(record.expiresAt) };
-    const ref = await withTimeout(firestore().collection(CHALLENGES).add(payload));
+    const ref = id ? firestore().collection(CHALLENGES).doc(id) : firestore().collection(CHALLENGES).doc();
+    await withTimeout(ref.set(payload));
     return ref.id;
 }
 
@@ -72,9 +92,21 @@ export async function submitAttempt(id: string, uuid: string, attempt: Attempt):
     await withTimeout(firestore().collection(CHALLENGES).doc(id).collection(ATTEMPTS).doc(uuid).set(attempt));
 }
 
-/** Read every participant's attempt, for ranking the result reveal. */
+/**
+ * Read participants' attempts for ranking the result reveal, capped at
+ * `ATTEMPTS_QUERY_LIMIT` highest-progress. A single-field `orderBy` needs no
+ * composite index; `rankEntries` does the full progress→score→timestamp sort.
+ */
 export async function getAttempts(id: string): Promise<Attempt[]> {
-    const snapshot = await withTimeout(firestore().collection(CHALLENGES).doc(id).collection(ATTEMPTS).get());
+    const snapshot = await withTimeout(
+        firestore()
+            .collection(CHALLENGES)
+            .doc(id)
+            .collection(ATTEMPTS)
+            .orderBy('progress', 'desc')
+            .limit(ATTEMPTS_QUERY_LIMIT)
+            .get(),
+    );
     return snapshot.docs.map((doc) => doc.data() as Attempt);
 }
 

@@ -108,6 +108,15 @@ export function ChallengeScreen() {
             }
             setRecord(rec);
             SafeAnalytics.logEvent({ name: 'challenge_opened', params: { game: rec.game } });
+            const gate = gateChallenge(rec, APP_VERSION, Date.now());
+            if (gate === 'updateRequired') {
+                // Don't index a challenge this app can't open — it would surface as
+                // a playable "your turn" row in history. Reopening the link after an
+                // update records it with a correct, actionable status.
+                SafeAnalytics.logEvent({ name: 'challenge_update_required', params: { game: rec.game } });
+                setPhase('updateRequired');
+                return;
+            }
             // Index it locally so the player can leave and resume it from the
             // Challenge History screen. `played` is settled below / on submit.
             const role = rec.createdBy.uuid === deviceId ? 'created' : 'received';
@@ -119,14 +128,8 @@ export function ChallengeScreen() {
                 played: false,
                 expiresAt: rec.expiresAt,
             });
-            const gate = gateChallenge(rec, APP_VERSION, Date.now());
             if (gate === 'expired') {
                 setPhase('expired');
-                return;
-            }
-            if (gate === 'updateRequired') {
-                SafeAnalytics.logEvent({ name: 'challenge_update_required', params: { game: rec.game } });
-                setPhase('updateRequired');
                 return;
             }
             // Already played on this device? Go straight to the result reveal.

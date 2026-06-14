@@ -254,6 +254,7 @@ export function ChallengeScreen() {
                 ) : phase === 'intro' && record ? (
                     <IntroCard
                         record={record}
+                        isCreator={record.createdBy.uuid === deviceId}
                         nickname={nickname}
                         onChangeNickname={setNickname}
                         showNicknameInput={getLastNickname().trim().length === 0}
@@ -351,6 +352,7 @@ function Medallion({
 
 function IntroCard({
     record,
+    isCreator,
     nickname,
     onChangeNickname,
     showNicknameInput,
@@ -359,6 +361,7 @@ function IntroCard({
     t,
 }: {
     record: ChallengeRecord;
+    isCreator: boolean;
     nickname: string;
     onChangeNickname: (value: string) => void;
     showNicknameInput: boolean;
@@ -381,10 +384,12 @@ function IntroCard({
                             {t(`game.${record.game}.name`)}
                         </Text>
                         <Text variant='heading' weight='bold' align='center'>
-                            {t('challenge.vsTitle', { name: record.createdBy.nickname })}
+                            {isCreator
+                                ? t('challenge.vsTitleCreator')
+                                : t('challenge.vsTitle', { name: record.createdBy.nickname })}
                         </Text>
                         <Text variant='body' color='textSecondary' align='center'>
-                            {t('challenge.vsSubtitle')}
+                            {t(isCreator ? 'challenge.vsSubtitleCreator' : 'challenge.vsSubtitle')}
                         </Text>
                     </Stack>
                 </Stack>
@@ -495,11 +500,7 @@ function ResultsCard({
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
             <Card variant='elevated' padding='lg' gap='lg' style={accentCardStyle(accent)}>
                 <Stack gap='md' align='center'>
-                    <Medallion
-                        icon={waiting ? Hourglass : Trophy}
-                        accent={accent}
-                        gradientId='challenge-results'
-                    />
+                    <Medallion icon={waiting ? Hourglass : Trophy} accent={accent} gradientId='challenge-results' />
                     <Stack gap='xs' align='center'>
                         <Text variant='overline' color='textSecondary' weight='bold'>
                             {t(`game.${record.game}.name`)}

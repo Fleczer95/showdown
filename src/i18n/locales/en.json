@@ -6,6 +6,8 @@
         "loading": "Loading challenge…",
         "vsTitle": "You vs %{name}",
         "vsSubtitle": "Beat their run on the same questions.",
+        "vsTitleCreator": "You vs the opponent",
+        "vsSubtitleCreator": "Set the score for your friend to beat.",
         "start": "Start challenge",
         "submitting": "Submitting your result…",
         "submitFailed": "Couldn't submit your result — you appear to be offline.",

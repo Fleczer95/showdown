@@ -51,7 +51,7 @@ import {
     type DropState,
     type DropQuestion,
 } from './logic';
-import { dropScore, SPEED_WINDOW_SECONDS } from '../scoring';
+import { dropScore, speedBonus, DROP_ROUND_SURVIVAL_POINTS } from '../scoring';
 import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
 
 const EMPTY_ALLOCATION = [0, 0, 0, 0];
@@ -120,12 +120,11 @@ export default function DropPlayScreen({
     const [canAdvance, setCanAdvance] = useState(false);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
-    // Hidden per-round stopwatch (allocating phase → Lock In). We accumulate the
-    // run's total decision time and the number of rounds timed; at game over the
-    // average scales the final bank into the unified points speed bonus.
+    // Hidden per-round stopwatch (allocating phase → Lock In). Each *survived*
+    // round banks a timing bonus (faster = more); these accumulate into the
+    // unified points speed total. A busted round earns no timing.
     const decisionStartedAt = useRef(Date.now());
-    const secondsTotal = useRef(0);
-    const roundsTimed = useRef(0);
+    const survivalSpeed = useRef(0);
 
     // Restart the round timer whenever a fresh allocating phase begins.
     useEffect(() => {
@@ -144,8 +143,7 @@ export default function DropPlayScreen({
 
     const reset = useCallback(() => {
         clearTicks();
-        secondsTotal.current = 0;
-        roundsTimed.current = 0;
+        survivalSpeed.current = 0;
         // Re-read history so the next run reflects questions just shown.
         setState(buildGame(pool, getHistory(GAME_ID)));
         setAllocation(EMPTY_ALLOCATION);
@@ -192,11 +190,12 @@ export default function DropPlayScreen({
             return;
         }
         // Record this round's decision time at Lock In, before the suspense/
-        // reveal plays out (that animation must not count). The run's average
-        // decision speed scales the final bank into a speed bonus at game over.
+        // reveal plays out (that animation must not count). Only a survived round
+        // (a stake on the correct option) banks its timing bonus toward the score.
         const seconds = (Date.now() - decisionStartedAt.current) / 1000;
-        secondsTotal.current += seconds;
-        roundsTimed.current += 1;
+        if (allocation[question.correctIndex] > 0) {
+            survivalSpeed.current += speedBonus(DROP_ROUND_SURVIVAL_POINTS, seconds);
+        }
         clearTicks();
         setReveals(['none', 'none', 'none', 'none']);
         setCanAdvance(false);
@@ -266,11 +265,10 @@ export default function DropPlayScreen({
     // --- Game over ---------------------------------------------------------
     if (state.status === 'over') {
         const won = state.bank > 0;
-        const avgSeconds = roundsTimed.current > 0 ? secondsTotal.current / roundsTimed.current : SPEED_WINDOW_SECONDS;
-        const breakdown = dropScore({ bank: state.bank, avgSeconds });
         // Rounds survived ranks the board; a win cleared them all, a bust survived
         // every round before the one that wiped the bank.
         const roundsSurvived = Math.max(0, won ? state.round : state.round - 1);
+        const breakdown = dropScore({ bank: state.bank, roundsSurvived, speed: survivalSpeed.current });
         // Challenge mode reports the result to the orchestrator instead of the board.
         if (challenge) {
             return (

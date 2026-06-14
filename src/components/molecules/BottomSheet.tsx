@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { View, StyleSheet, Modal, ScrollView } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, withSpring } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -115,6 +115,10 @@ function BottomSheet({
                         onStartShouldSetResponder={() => true}
                         onTouchEnd={requestClose}
                     />
+                    <KeyboardAvoidingView
+                        style={styles.keyboardAvoider}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    >
                     <GestureDetector gesture={panGesture}>
                         <Animated.View
                             style={[
@@ -195,6 +199,7 @@ function BottomSheet({
                             )}
                         </Animated.View>
                     </GestureDetector>
+                    </KeyboardAvoidingView>
                 </Animated.View>
             </GestureHandlerRootView>
         </Modal>
@@ -207,6 +212,10 @@ const styles = StyleSheet.create({
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
+        justifyContent: 'flex-end',
+    },
+    keyboardAvoider: {
+        flex: 1,
         justifyContent: 'flex-end',
     },
     sheet: {

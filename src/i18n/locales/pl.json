@@ -6,6 +6,8 @@
         "loading": "Ładowanie wyzwania…",
         "vsTitle": "Ty kontra %{name}",
         "vsSubtitle": "Pokonaj jego wynik na tych samych pytaniach.",
+        "vsTitleCreator": "Ty kontra przeciwnik",
+        "vsSubtitleCreator": "Ustaw wynik, który znajomy spróbuje pobić.",
         "start": "Rozpocznij wyzwanie",
         "submitting": "Zapisywanie wyniku…",
         "submitFailed": "Nie udało się zapisać wyniku — wygląda na to, że jesteś offline.",

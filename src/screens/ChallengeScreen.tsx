@@ -29,6 +29,7 @@ import {
 import { getDeviceId } from '../game/challenge/deviceId';
 import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
 import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
+import { pushRanking } from '../game/ranking/push';
 import {
     gateChallenge,
     ladderRunFromRecord,
@@ -168,6 +169,10 @@ export function ChallengeScreen() {
                         name: 'challenge_completed',
                         params: { game: record.game, progress: result.progress, score: result.score },
                     });
+                    // Feed the global ranking (ADR-0004). Best-effort and fire-and-forget
+                    // so the result reveal is never blocked; a failed push stays pending
+                    // locally and is retried on next app open / rankings view.
+                    void pushRanking(record.game, result.score, attempt.nickname);
                 }
                 await showResults(attempt.timestamp);
             } catch {

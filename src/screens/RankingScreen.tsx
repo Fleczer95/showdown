@@ -154,9 +154,14 @@ export function RankingScreen() {
                     size='md'
                     accessibilityLabel={t('common.home')}
                 />
-                <Text variant='heading' weight='bold' style={styles.title}>
-                    {t('ranking.title')}
-                </Text>
+                <View style={styles.titleCol}>
+                    <Text variant='heading' weight='bold' align='center'>
+                        {t('ranking.title')}
+                    </Text>
+                    <Text variant='caption' color='textSecondary' align='center'>
+                        {t('ranking.subtitle')}
+                    </Text>
+                </View>
                 <View style={{ width: 44 }} />
             </View>
 
@@ -269,9 +274,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    title: {
+    titleCol: {
         flex: 1,
-        textAlign: 'center',
+        alignItems: 'center',
     },
     gameTabSlot: {
         flex: 1,

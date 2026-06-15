@@ -342,7 +342,8 @@
         }
     },
     "ranking": {
-        "title": "Rankings",
+        "title": "Global Rankings",
+        "subtitle": "Top challenge scores · all players",
         "month": "This Month",
         "allTime": "All Time",
         "empty": "No scores yet. Be the first!",

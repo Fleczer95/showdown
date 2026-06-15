@@ -345,7 +345,8 @@
         }
     },
     "ranking": {
-        "title": "Rankingi",
+        "title": "Globalne rankingi",
+        "subtitle": "Najlepsze wyniki z trybu wyzwań · wszyscy gracze",
         "month": "Ten miesiąc",
         "allTime": "Wszech czasów",
         "empty": "Brak wyników. Bądź pierwszy!",

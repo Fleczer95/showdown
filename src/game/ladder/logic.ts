@@ -154,6 +154,79 @@ export function fiftyFiftyHidden(run: LadderRun, rng: () => number = Math.random
     return shuffle(wrong, rng).slice(0, 2);
 }
 
+/** Linear interpolation between a and b. */
+function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+}
+
+/**
+ * Turn fractional shares (summing to ~1) into integer percentages that sum to
+ * exactly 100, using the largest-remainder method. Zero shares stay 0 — they
+ * never receive leftover, so hidden options remain at 0%.
+ */
+function toPercentages(shares: number[]): number[] {
+    const scaled = shares.map((s) => s * 100);
+    const out = scaled.map(Math.floor);
+    let remainder = 100 - out.reduce((a, b) => a + b, 0);
+    const byFraction = scaled
+        .map((s, i) => ({ i, frac: s - Math.floor(s) }))
+        .filter(({ i }) => shares[i] > 0)
+        .sort((a, b) => b.frac - a.frac);
+    for (let k = 0; remainder > 0 && k < byFraction.length; k++) {
+        out[byFraction[k].i] += 1;
+        remainder--;
+    }
+    return out;
+}
+
+/**
+ * "Ask the Studio" — simulate an audience poll for the current question.
+ * Returns a percentage per option in option order; live options sum to 100 and
+ * `hidden` options (e.g. removed earlier by 50:50) stay at 0, so the poll is
+ * split only across what the player can still see.
+ *
+ * Crowd reliability scales with the rung: on early rungs the correct answer
+ * wins by a landslide, but near the top the vote splits and a single "trap"
+ * wrong answer can occasionally edge out the correct one. Deterministic with a
+ * seeded rng.
+ */
+export function audienceVote(
+    run: LadderRun,
+    hidden: number[] = [],
+    rng: () => number = Math.random,
+): number[] {
+    const question = currentQuestion(run);
+    const optionCount = question.options.length;
+    const live = question.options.map((_, i) => i).filter((i) => !hidden.includes(i));
+    const liveWrong = live.filter((i) => i !== question.correctIndex);
+
+    // Difficulty: 0 on the first rung → 1 at the top.
+    const d = RUN_LENGTH > 1 ? run.currentIndex / (RUN_LENGTH - 1) : 0;
+
+    // One surviving wrong option becomes the "trap" that draws protest votes,
+    // gaining pull as the climb gets harder until it can rival the correct one.
+    const trap = liveWrong.length > 0 ? liveWrong[Math.floor(rng() * liveWrong.length)] : -1;
+
+    const weights = live.map((i) => {
+        let base: number;
+        if (i === question.correctIndex) {
+            base = lerp(8, 2.2, d); // commanding lead when easy, slim when hard
+        } else if (i === trap) {
+            base = 1 + lerp(0, 1.8, d);
+        } else {
+            base = 1;
+        }
+        return base * (0.8 + 0.4 * rng()); // ±20% crowd noise
+    });
+
+    const total = weights.reduce((a, b) => a + b, 0);
+    const shares = new Array(optionCount).fill(0);
+    live.forEach((i, k) => {
+        shares[i] = weights[k] / total;
+    });
+    return toPercentages(shares);
+}
+
 /**
  * "Skip" — swap the current rung's question for an unused same-rung alternate.
  * Does NOT advance the climb: the player must still answer the new question.

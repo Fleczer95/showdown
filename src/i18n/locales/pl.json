@@ -376,8 +376,11 @@
             "lifelines": {
                 "title": "Koła ratunkowe",
                 "fiftyFifty": "50:50",
-                "askStudio": "Pytanie do studia",
+                "askStudio": "Pytanie do publiczności",
                 "skip": "Pomiń pytanie"
+            },
+            "audience": {
+                "title": "Publiczność zagłosowała"
             },
             "active": {
                 "question": "Pytanie %{number} z 15",
@@ -394,7 +397,7 @@
                 "playAgain": "Zagraj ponownie",
                 "endGame": "Ekran główny"
             },
-            "rules": "1. Odpowiedz na 15 pytań o rosnącym poziomie trudności.\n2. Każda poprawna odpowiedź to jeden szczebel wyżej.\n3. Błędna odpowiedź kończy grę.\n4. Utknąłeś? Użyj jednego z trzech kół ratunkowych: 50:50, Pytanie do studia lub Pomiń.\n5. Dotrzyj na szczyt, aby zdobyć główną nagrodę!"
+            "rules": "1. Odpowiedz na 15 pytań o rosnącym poziomie trudności.\n2. Każda poprawna odpowiedź to jeden szczebel wyżej.\n3. Błędna odpowiedź kończy grę.\n4. Utknąłeś? Użyj jednego z trzech kół ratunkowych: 50:50, Pytanie do publiczności lub Pomiń.\n5. Dotrzyj na szczyt, aby zdobyć główną nagrodę!"
         },
         "the-grid": {
             "name": "Plansza",

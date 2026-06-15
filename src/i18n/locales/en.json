@@ -373,8 +373,11 @@
             "lifelines": {
                 "title": "Lifelines",
                 "fiftyFifty": "50:50",
-                "askStudio": "Ask the Studio",
+                "askStudio": "Ask the Audience",
                 "skip": "Skip Question"
+            },
+            "audience": {
+                "title": "The audience voted"
             },
             "active": {
                 "question": "Question %{number} of 15",
@@ -391,7 +394,7 @@
                 "playAgain": "Play Again",
                 "endGame": "Home"
             },
-            "rules": "1. Answer 15 trivia questions of increasing difficulty.\n2. Each correct answer climbs you one rung up the ladder.\n3. A wrong answer ends your run.\n4. Stuck? Spend one of your three lifelines: 50:50, Ask the Studio, or Skip.\n5. Reach the top to win the grand prize!"
+            "rules": "1. Answer 15 trivia questions of increasing difficulty.\n2. Each correct answer climbs you one rung up the ladder.\n3. A wrong answer ends your run.\n4. Stuck? Spend one of your three lifelines: 50:50, Ask the Audience, or Skip.\n5. Reach the top to win the grand prize!"
         },
         "the-grid": {
             "name": "The Grid",

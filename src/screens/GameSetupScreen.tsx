@@ -29,7 +29,9 @@ import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
 import { getHistory } from '../game/history';
-import { getLastNickname, setLastNickname, MAX_NICKNAME_LENGTH } from '../game/leaderboard';
+import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
+import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
+import { containsProfanity } from '../utils/nickname';
 import { APP_VERSION } from '../utils/version';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -51,8 +53,9 @@ export function GameSetupScreen() {
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [creating, setCreating] = useState(false);
     const [nicknameSheet, setNicknameSheet] = useState(false);
+    const [nicknameError, setNicknameError] = useState<string | null>(null);
     const [limitSheet, setLimitSheet] = useState(false);
-    const [nickname, setNickname] = useState(() => getLastNickname());
+    const [nickname, setNickname] = useState(() => getChallengeNickname());
 
     // Daily challenge-creation limit (honour-based, client-side). The count is
     // global across all games; the cap grows with owned premium themes. Refresh
@@ -118,14 +121,20 @@ export function GameSetupScreen() {
             setLimitSheet(true);
             return;
         }
-        setNickname(getLastNickname());
+        setNickname(getChallengeNickname());
+        setNicknameError(null);
         setNicknameSheet(true);
     };
 
     const confirmNickname = () => {
         const trimmed = nickname.trim();
         if (trimmed.length === 0) return;
-        setLastNickname(trimmed);
+        // The creator's nickname is public (createdBy + global ranking), so gate it.
+        if (containsProfanity(trimmed)) {
+            setNicknameError(t('challenge.nicknameRejected'));
+            return;
+        }
+        setChallengeNickname(trimmed);
         setNicknameSheet(false);
         void createAndShare(trimmed);
     };
@@ -357,7 +366,10 @@ export function GameSetupScreen() {
                 <Stack gap='sm' align='stretch'>
                     <Input
                         value={nickname}
-                        onChangeText={setNickname}
+                        onChangeText={(v) => {
+                            setNickname(v);
+                            setNicknameError(null);
+                        }}
                         placeholder={t('leaderboard.nicknamePlaceholder')}
                         maxLength={MAX_NICKNAME_LENGTH}
                         autoCapitalize='words'
@@ -366,6 +378,11 @@ export function GameSetupScreen() {
                         textAlign='center'
                         wrapperStyle={styles.nicknameInput}
                     />
+                    {nicknameError ? (
+                        <Text variant='caption' color='error' align='center'>
+                            {nicknameError}
+                        </Text>
+                    ) : null}
                     <Button
                         variant='primary'
                         fullWidth

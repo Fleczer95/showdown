@@ -231,18 +231,17 @@ export default function WheelPlayScreen({
             // are 360deg multiples, so this never changes the landing segment —
             // purely feel. Reduced motion skips the decorative turns entirely.
             const turns = reduceMotion ? 0 : SPIN_TURNS + Math.round(level * POWER_TURNS);
-            const duration = reduceMotion ? 700 : 2800 + Math.round(level * 1700);
+            const duration = reduceMotion ? 700 : 3400 + Math.round(level * 2000);
             const target = rotation.value + turns * 360 + forward;
 
-            rotation.value = withTiming(
-                target,
-                // Cubic ease-out: sustains speed through most of the spin (so the
-                // power difference is visible), then a soft settle onto the segment.
-                { duration, easing: Easing.out(Easing.cubic) },
-                (finished) => {
-                    if (finished) runOnJS(settleSpin)(result);
-                },
-            );
+            // Quadratic ease-out models a coasting wheel under constant friction
+            // (constant angular deceleration): it carries speed through the spin then
+            // slows smoothly to a stop on the segment, without the floaty creep of a
+            // flatter curve. Whole turns are 360deg multiples, so they never change
+            // the landed segment — the wheel always rests on exactly `target`.
+            rotation.value = withTiming(target, { duration, easing: Easing.out(Easing.quad) }, (finished) => {
+                if (finished) runOnJS(settleSpin)(result);
+            });
         },
         [spinning, reduceMotion, settleSpin, rotation],
     );

@@ -16,9 +16,9 @@ export const TOTAL_PUZZLES = 3;
 // BANKRUPT stays a live threat. These are the knobs to balance that feel.
 
 /** Base decorative full turns the wheel spins before settling. Cosmetic only. */
-export const SPIN_TURNS = 3;
+export const SPIN_TURNS = 2;
 /** Extra full turns added at max charge, so a stronger spin launches faster. */
-export const POWER_TURNS = 7;
+export const POWER_TURNS = 3;
 /** Duration of one 0->1 power oscillation sweep, ms. Lower = harder to time. */
 export const CHARGE_MS = 800;
 /** Probability of each jitter magnitude |0|/|1|/|2|; sign is then 50/50. */

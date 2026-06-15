@@ -17,7 +17,8 @@ import Stack from '../../components/atoms/Stack';
 import Pressable from '../../components/atoms/HapticPressable';
 import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
-import Input from '../../components/molecules/Input';
+import Icon from '../../components/atoms/Icon';
+import { Delete } from 'lucide-react-native';
 import Leaderboard from '../../components/molecules/Leaderboard';
 import WheelGraphic from './WheelGraphic';
 import GameOverCard from '../../components/molecules/GameOverCard';
@@ -47,6 +48,7 @@ import {
     currentPuzzle,
     maskedPhrase,
     isVowel,
+    isLetter,
     isFullyRevealed,
     alreadyGuessed,
     spin,
@@ -110,7 +112,8 @@ export default function WheelPlayScreen({
     const [phase, setPhase] = useState<Phase>('awaitSpin');
     const [spinValue, setSpinValue] = useState(0);
     const [spinning, setSpinning] = useState(false);
-    const [solveText, setSolveText] = useState('');
+    // Letters the player has tapped into the blank slots, in reading order.
+    const [filled, setFilled] = useState<string[]>([]);
     const [solveMode, setSolveMode] = useState(false);
     const [status, setStatus] = useState('');
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -151,7 +154,7 @@ export default function WheelPlayScreen({
     const resetTurnInputs = useCallback(() => {
         setPhase('awaitSpin');
         setSpinValue(0);
-        setSolveText('');
+        setFilled([]);
         setSolveMode(false);
     }, []);
 
@@ -249,20 +252,81 @@ export default function WheelPlayScreen({
         [game, finishSolvedPuzzle],
     );
 
+    // Solve view: group the current phrase into words, tagging each character as a
+    // fixed (already-revealed) letter, a blank the player must fill (numbered in
+    // reading order), or punctuation shown verbatim. Drives the slot preview.
+    const solveWords = useMemo(() => {
+        const phrase = currentPuzzle(game).phrase;
+        const words: { ch: string; kind: 'fixed' | 'blank' | 'punct'; slot?: number }[][] = [[]];
+        let slot = 0;
+        for (const ch of phrase) {
+            if (ch === ' ') {
+                words.push([]);
+                continue;
+            }
+            const word = words[words.length - 1];
+            if (!isLetter(ch)) {
+                word.push({ ch, kind: 'punct' });
+            } else if (game.revealed.has(ch.toUpperCase())) {
+                word.push({ ch: ch.toUpperCase(), kind: 'fixed' });
+            } else {
+                word.push({ ch: '', kind: 'blank', slot: slot++ });
+            }
+        }
+        return { words, blankCount: slot };
+    }, [game]);
+
+    const solveComplete = filled.length === solveWords.blankCount;
+
+    // Tap a letter into the next empty blank; ignore taps once every blank is full.
+    const handleSolveKey = useCallback(
+        (ch: string) => {
+            setFilled((f) => (f.length >= solveWords.blankCount ? f : [...f, ch.toUpperCase()]));
+        },
+        [solveWords.blankCount],
+    );
+
+    // Clear the most recently entered letter (the "clear char" button).
+    const handleSolveClear = useCallback(() => {
+        setFilled((f) => f.slice(0, -1));
+    }, []);
+
+    const enterSolveMode = useCallback(() => {
+        setFilled([]);
+        setSolveMode(true);
+    }, []);
+
+    const cancelSolveMode = useCallback(() => {
+        setFilled([]);
+        setSolveMode(false);
+    }, []);
+
     const handleSolve = useCallback(() => {
-        if (attemptSolve(currentPuzzle(game).phrase, solveText)) {
+        // Rebuild the full guess: revealed letters + punctuation verbatim, blanks
+        // taken from the player's filled slots in reading order.
+        let slot = 0;
+        let guess = '';
+        for (const ch of currentPuzzle(game).phrase) {
+            if (isLetter(ch) && !game.revealed.has(ch.toUpperCase())) {
+                guess += filled[slot] ?? '';
+                slot++;
+            } else {
+                guess += ch;
+            }
+        }
+        if (attemptSolve(currentPuzzle(game).phrase, guess)) {
             finishSolvedPuzzle(game);
             return;
         }
         // Reveal the full answer and hold it on screen; the player taps Continue to
         // see the result before the run ends. A wrong solve ends the run.
-        const next = solve(game, solveText);
-        setWrongGuess(solveText.trim());
+        const next = solve(game, guess);
+        setWrongGuess(guess.trim());
         setStatus('✗');
         setSolveMode(false);
         setPhase('resolving');
         setPendingNext(next);
-    }, [game, solveText, finishSolvedPuzzle]);
+    }, [game, filled, finishSolvedPuzzle]);
 
     // Apply the resolved state once the player has read the result.
     const handleContinue = useCallback(() => {
@@ -435,9 +499,62 @@ export default function WheelPlayScreen({
                         <Text variant='overline' color={accent} weight='bold' align='center'>
                             {puzzle.category}
                         </Text>
-                        <Text variant='heading' weight='bold' align='center' style={styles.phrase}>
-                            {masked}
-                        </Text>
+                        {solveMode ? (
+                            <View style={styles.slotWords}>
+                                {solveWords.words.map((word, wi) => (
+                                    <View key={wi} style={styles.slotWord}>
+                                        {word.map((tok, ci) => {
+                                            if (tok.kind === 'punct') {
+                                                return (
+                                                    <Text
+                                                        key={ci}
+                                                        variant='heading'
+                                                        weight='bold'
+                                                        style={styles.slotPunct}
+                                                    >
+                                                        {tok.ch}
+                                                    </Text>
+                                                );
+                                            }
+                                            if (tok.kind === 'fixed') {
+                                                return (
+                                                    <View key={ci} style={styles.slotBox}>
+                                                        <Text variant='heading' weight='bold' color={accent}>
+                                                            {tok.ch}
+                                                        </Text>
+                                                    </View>
+                                                );
+                                            }
+                                            const isNext = tok.slot === filled.length;
+                                            const letter = tok.slot! < filled.length ? filled[tok.slot!] : '';
+                                            return (
+                                                <View
+                                                    key={ci}
+                                                    style={[
+                                                        styles.slotBox,
+                                                        styles.slotBlank,
+                                                        {
+                                                            borderBottomColor: isNext ? accent : t.colors.border,
+                                                            backgroundColor: isNext
+                                                                ? hexToRgba(accent, 0.12)
+                                                                : 'transparent',
+                                                        },
+                                                    ]}
+                                                >
+                                                    <Text variant='heading' weight='bold'>
+                                                        {letter}
+                                                    </Text>
+                                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                ))}
+                            </View>
+                        ) : (
+                            <Text variant='heading' weight='bold' align='center' style={styles.phrase}>
+                                {masked}
+                            </Text>
+                        )}
                     </Card>
                 </Animated.View>
 
@@ -584,28 +701,87 @@ export default function WheelPlayScreen({
                 ) : null}
 
                 {solveMode ? (
-                    <Stack gap='sm'>
-                        <Input
-                            value={solveText}
-                            onChangeText={setSolveText}
-                            placeholder={tr('game.the-wheel.active.solve')}
-                            autoCapitalize='characters'
-                            autoFocus
-                            wrapperStyle={{ paddingHorizontal: 0 }}
-                        />
-                        <Stack direction='horizontal' gap='sm'>
-                            <View style={styles.flex}>
-                                <Button variant='primary' fullWidth onPress={handleSolve} disabled={!solveText.trim()}>
-                                    {tr('common.ok')}
-                                </Button>
+                    <Animated.View
+                        entering={reduceMotion ? undefined : FadeInDown.duration(250)}
+                        exiting={FadeOutUp.duration(200)}
+                    >
+                        <Stack gap='sm'>
+                            <Text variant='caption' weight='medium' color='textSecondary' align='center'>
+                                {tr('game.the-wheel.active.fillBlanks')}
+                            </Text>
+                            <View style={styles.keyboard}>
+                                {ALPHABET.map((ch) => (
+                                    <Pressable
+                                        key={ch}
+                                        haptic='light'
+                                        disabled={solveComplete}
+                                        onPress={() => handleSolveKey(ch)}
+                                        accessibilityLabel={ch}
+                                        style={[
+                                            styles.key,
+                                            {
+                                                borderColor: solveComplete ? t.colors.border : accent,
+                                                backgroundColor: solveComplete
+                                                    ? t.colors.surfaceVariant
+                                                    : hexToRgba(accent, 0.14),
+                                            },
+                                        ]}
+                                    >
+                                        <Text
+                                            variant='subheading'
+                                            weight='bold'
+                                            color={solveComplete ? t.colors.textMuted : accent}
+                                        >
+                                            {ch}
+                                        </Text>
+                                    </Pressable>
+                                ))}
+                                <Pressable
+                                    haptic='light'
+                                    disabled={filled.length === 0}
+                                    onPress={handleSolveClear}
+                                    accessibilityLabel={tr('game.the-wheel.active.clear')}
+                                    style={[
+                                        styles.key,
+                                        {
+                                            borderColor: filled.length === 0 ? t.colors.border : t.colors.secondary,
+                                            backgroundColor:
+                                                filled.length === 0
+                                                    ? t.colors.surfaceVariant
+                                                    : hexToRgba(t.colors.secondary, 0.14),
+                                        },
+                                    ]}
+                                >
+                                    <Icon
+                                        name={Delete}
+                                        size={22}
+                                        color={filled.length === 0 ? t.colors.textMuted : t.colors.secondary}
+                                    />
+                                </Pressable>
                             </View>
-                            <View style={styles.flex}>
-                                <Button variant='ghost' fullWidth onPress={() => setSolveMode(false)}>
-                                    {tr('common.cancel')}
-                                </Button>
-                            </View>
+                            <Stack direction='horizontal' gap='sm'>
+                                <View style={styles.flex}>
+                                    <Button
+                                        variant='primary'
+                                        fullWidth
+                                        onPress={handleSolve}
+                                        disabled={!solveComplete}
+                                        style={
+                                            solveComplete ? { backgroundColor: accent, borderColor: accent } : undefined
+                                        }
+                                        textColor={solveComplete ? onAccent : undefined}
+                                    >
+                                        {tr('game.the-wheel.active.accept')}
+                                    </Button>
+                                </View>
+                                <View style={styles.flex}>
+                                    <Button variant='ghost' fullWidth onPress={cancelSolveMode}>
+                                        {tr('common.cancel')}
+                                    </Button>
+                                </View>
+                            </Stack>
                         </Stack>
-                    </Stack>
+                    </Animated.View>
                 ) : phase === 'resolving' ? (
                     <Button
                         variant='primary'
@@ -623,7 +799,7 @@ export default function WheelPlayScreen({
                             <Button
                                 variant='secondary'
                                 fullWidth
-                                onPress={() => setSolveMode(true)}
+                                onPress={enterSolveMode}
                                 disabled={!canSolve || spinning}
                             >
                                 {tr('game.the-wheel.active.solve')}
@@ -679,6 +855,31 @@ const styles = StyleSheet.create({
     },
     phrase: {
         letterSpacing: 4,
+    },
+    slotWords: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        rowGap: 12,
+    },
+    slotWord: {
+        flexDirection: 'row',
+        marginHorizontal: 8,
+    },
+    slotBox: {
+        minWidth: 24,
+        height: 40,
+        marginHorizontal: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    slotBlank: {
+        borderBottomWidth: 2,
+        borderRadius: 4,
+    },
+    slotPunct: {
+        alignSelf: 'center',
+        marginHorizontal: 1,
     },
     keyboard: {
         flexDirection: 'row',

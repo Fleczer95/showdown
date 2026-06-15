@@ -247,6 +247,9 @@ export default function WheelPlayScreen({
         if (spinning) return;
         setCharging(true);
         setStatus('');
+        // Reset to 0 first: withRepeat below starts the sweep from power's current
+        // value, which otherwise carries over from the previous spin's release.
+        power.value = 0;
         power.value = withRepeat(withTiming(1, { duration: CHARGE_MS, easing: Easing.linear }), -1, true);
     }, [spinning, power]);
 
@@ -851,7 +854,7 @@ export default function WheelPlayScreen({
                                     />
                                 </Pressable>
                             </View>
-                            <Stack direction='horizontal' gap='sm'>
+                            <Stack direction='horizontal' gap='sm' style={{ marginTop: t.spacing.md }}>
                                 <View style={styles.flex}>
                                     <Button
                                         variant='primary'

@@ -32,6 +32,7 @@
         "nicknameRejected": "Wybierz inną ksywkę.",
         "youWin": "Wygrywasz!",
         "won": "%{name} wygrywa!",
+        "draw": "Remis!",
         "playLater": "Zagraj później",
         "history": {
             "title": "Twoje wyzwania",

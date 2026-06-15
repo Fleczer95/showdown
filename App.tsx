@@ -29,7 +29,8 @@ import { isPremiumCatalogId } from './src/data/store/catalog';
 initSentry();
 // Retry any ranking pushes that failed offline (ADR-0004), once App Check has a
 // chance to attest — it's cheap (no-op when nothing is pending) and never blocks.
-void initAppCheck().then(() => retryPending());
+// `.catch` keeps it fire-and-forget if attestation rejects (no unhandled rejection).
+void initAppCheck().then(() => retryPending(), () => {});
 initFirebase();
 
 function PremiumThemeGate() {

@@ -270,7 +270,6 @@ export function ChallengeScreen() {
                             setNicknameError(null);
                         }}
                         nicknameError={nicknameError}
-                        showNicknameInput={getChallengeNickname().trim().length === 0}
                         onStart={startPlay}
                         onHome={exit}
                         t={t}
@@ -369,7 +368,6 @@ function IntroCard({
     nickname,
     onChangeNickname,
     nicknameError,
-    showNicknameInput,
     onStart,
     onHome,
     t,
@@ -379,7 +377,6 @@ function IntroCard({
     nickname: string;
     onChangeNickname: (value: string) => void;
     nicknameError: string | null;
-    showNicknameInput: boolean;
     onStart: () => void;
     onHome: () => void;
     t: (key: string, options?: Record<string, unknown>) => string;
@@ -408,24 +405,22 @@ function IntroCard({
                         </Text>
                     </Stack>
                 </Stack>
-                {showNicknameInput ? (
-                    <Stack gap='xs' align='stretch'>
-                        <Input
-                            value={nickname}
-                            onChangeText={onChangeNickname}
-                            placeholder={t('leaderboard.nicknamePlaceholder')}
-                            maxLength={MAX_NICKNAME_LENGTH}
-                            autoCapitalize='words'
-                            textAlign='center'
-                            wrapperStyle={styles.input}
-                        />
-                        {nicknameError ? (
-                            <Text variant='caption' color='error' align='center'>
-                                {nicknameError}
-                            </Text>
-                        ) : null}
-                    </Stack>
-                ) : null}
+                <Stack gap='xs' align='stretch'>
+                    <Input
+                        value={nickname}
+                        onChangeText={onChangeNickname}
+                        placeholder={t('leaderboard.nicknamePlaceholder')}
+                        maxLength={MAX_NICKNAME_LENGTH}
+                        autoCapitalize='words'
+                        textAlign='center'
+                        wrapperStyle={styles.input}
+                    />
+                    {nicknameError ? (
+                        <Text variant='caption' color='error' align='center'>
+                            {nicknameError}
+                        </Text>
+                    ) : null}
+                </Stack>
                 <Button
                     variant='primary'
                     fullWidth
@@ -509,14 +504,22 @@ function ResultsCard({
     // crowning the sole player the winner.
     const waiting = attempts.length <= 1;
     const winner = attempts[0];
-    const youWon = !waiting && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
+    // A genuine tie on the ranking key (same progress AND same score) is a draw,
+    // not a win — the timestamp tiebreak in rankEntries only fixes row order, it
+    // shouldn't crown anyone (e.g. both players score 0). Applies to every game.
+    const isTopTie = (e: LeaderboardEntry) =>
+        !!winner && e.progress === winner.progress && e.score === winner.score;
+    const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
+    const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
     const headline = waiting
         ? t('challenge.waiting')
         : !winner
           ? t('challenge.results')
-          : youWon
-            ? t('challenge.youWin')
-            : t('challenge.won', { name: winner.nickname });
+          : draw
+            ? t('challenge.draw')
+            : youWon
+              ? t('challenge.youWin')
+              : t('challenge.won', { name: winner.nickname });
 
     return (
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
@@ -540,7 +543,9 @@ function ResultsCard({
                 <Stack gap='xs' align='stretch'>
                     {attempts.map((entry, i) => {
                         const mine = myTimestamp !== null && entry.timestamp === myTimestamp;
-                        const isWinner = !waiting && i === 0;
+                        // Crown every entry tied at the top (one winner normally; all
+                        // tied players on a draw) rather than just the first row.
+                        const isWinner = !waiting && isTopTie(entry);
                         return (
                             <Animated.View
                                 key={`${entry.timestamp}-${i}`}

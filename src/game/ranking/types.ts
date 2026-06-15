@@ -1,8 +1,8 @@
 // Wire + on-device types for the global ranking (ADR-0004).
 
 /**
- * A board entry at `rankings/{game}/months/{YYYY-MM}/entries/{uuid}` or
- * `rankings/{game}/alltime/entries/{uuid}`. Deliberately minimal — no progress,
+ * A board entry at `rankings/{game}/periods/{period}/entries/{uuid}`, where
+ * `period` is a UTC `YYYY-MM` month or the literal `alltime`. Deliberately minimal — no progress,
  * timestamp, or expiresAt (see ADR-0004). The doc id is the device UUID.
  */
 export interface RankingEntry {

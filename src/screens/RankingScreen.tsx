@@ -19,6 +19,7 @@ import type { RootStackParamList } from '../navigation/types';
 import {
     ALLTIME_PERIOD,
     RANKED_GAMES,
+    ROLLOVER_THRESHOLD,
     monthBucketId,
     previousMonthBucketId,
     type RankedGame,
@@ -151,7 +152,11 @@ export function RankingScreen() {
                 // reaches the threshold (count() decides, no full read).
                 const currentCount = await countEntries(game, currentMonth);
                 const previousMonth = previousMonthBucketId(currentMonth);
-                const previousCount = currentCount > 0 ? 0 : await countEntries(game, previousMonth);
+                // Only skip the previous-month read once the current month has rolled
+                // over (>= threshold); below it we still need previousCount to decide
+                // whether to keep showing last month's fuller board (ADR-0004).
+                const previousCount =
+                    currentCount >= ROLLOVER_THRESHOLD ? 0 : await countEntries(game, previousMonth);
                 const which = resolveDisplayedMonth({ currentCount, previousCount });
                 const period = which === 'current' ? currentMonth : previousMonth;
                 setBoard(await getBoard(game, period));

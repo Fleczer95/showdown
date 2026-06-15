@@ -32,6 +32,7 @@
         "nicknameRejected": "Please choose a different nickname.",
         "youWin": "You win!",
         "won": "%{name} wins!",
+        "draw": "It's a draw!",
         "playLater": "Play later",
         "history": {
             "title": "Your Challenges",

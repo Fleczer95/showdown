@@ -43,6 +43,10 @@ describe('resolveDisplayedMonth', () => {
         expect(resolveDisplayedMonth({ currentCount: ROLLOVER_THRESHOLD - 1, previousCount: 30 })).toBe('previous');
     });
 
+    it('keeps showing previous even once the current month has a few (< threshold) entries', () => {
+        expect(resolveDisplayedMonth({ currentCount: 1, previousCount: 30 })).toBe('previous');
+    });
+
     it('shows current (sparse) when neither month qualifies — at most one month back', () => {
         expect(resolveDisplayedMonth({ currentCount: 2, previousCount: 0 })).toBe('current');
     });

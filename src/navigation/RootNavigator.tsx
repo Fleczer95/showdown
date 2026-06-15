@@ -12,6 +12,7 @@ import StoreScreen from '../screens/store/StoreScreen';
 import { ProgressScreen } from '../screens/ProgressScreen';
 import { ChallengeScreen } from '../screens/ChallengeScreen';
 import { ChallengeHistoryScreen } from '../screens/ChallengeHistoryScreen';
+import { RankingScreen } from '../screens/RankingScreen';
 import { CHALLENGE_LINK_ORIGIN } from '../game/challenge/share';
 import type { RootStackParamList } from './types';
 
@@ -71,6 +72,7 @@ export function RootNavigator() {
                 <Stack.Screen name='Progress' component={ProgressScreen} />
                 <Stack.Screen name='Challenge' component={ChallengeScreen} />
                 <Stack.Screen name='ChallengeHistory' component={ChallengeHistoryScreen} />
+                <Stack.Screen name='Ranking' component={RankingScreen} />
                 <Stack.Screen name='privacyPolicy' component={DocumentScreen} />
                 <Stack.Screen name='termsOfUse' component={DocumentScreen} />
                 {games.map((game) => (

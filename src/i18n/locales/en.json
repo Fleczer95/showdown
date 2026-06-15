@@ -341,6 +341,21 @@
             "drop": "%{n} rounds"
         }
     },
+    "ranking": {
+        "title": "Rankings",
+        "month": "This Month",
+        "allTime": "All Time",
+        "empty": "No scores yet. Be the first!",
+        "yourBest": "Your best",
+        "synced": "Synced",
+        "pending": "Waiting to sync",
+        "retry": "Retry",
+        "rolloverNote": "The monthly board switches over in the first days of each month — don't worry if your latest score isn't showing yet.",
+        "connectivityNote": "Stay online while playing a challenge so your ranking is saved.",
+        "offline": "You're offline",
+        "offlineDesc": "Connect to the internet to see the rankings.",
+        "loadRetry": "Retry"
+    },
     "game": {
         "the-ladder": {
             "name": "The Ladder",

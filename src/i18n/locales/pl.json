@@ -344,6 +344,21 @@
             "drop": "%{n} rund"
         }
     },
+    "ranking": {
+        "title": "Rankingi",
+        "month": "Ten miesiąc",
+        "allTime": "Wszech czasów",
+        "empty": "Brak wyników. Bądź pierwszy!",
+        "yourBest": "Twój najlepszy",
+        "synced": "Zsynchronizowano",
+        "pending": "Czeka na wysyłkę",
+        "retry": "Ponów",
+        "rolloverNote": "Ranking miesiąca przełącza się w pierwszych dniach miesiąca — nie martw się, jeśli Twojego wyniku jeszcze nie widać.",
+        "connectivityNote": "Bądź online podczas grania wyzwania, aby Twój wynik zapisał się w rankingu.",
+        "offline": "Jesteś offline",
+        "offlineDesc": "Połącz się z internetem, aby zobaczyć rankingi.",
+        "loadRetry": "Ponów"
+    },
     "game": {
         "the-ladder": {
             "name": "Drabina",

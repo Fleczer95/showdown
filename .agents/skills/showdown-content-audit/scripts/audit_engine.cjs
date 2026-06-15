@@ -77,6 +77,12 @@ function auditJsonPack(filePath, data) {
             const id = q.id || `Q${i+1}`;
             if (!q.prompt?.en || !q.prompt?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Prompt`);
             if (!q.options || q.options.length !== 4) audit.errors.push(`[INVALID STRUCT] ${relPath} ${id}: Expected 4 options`);
+            
+            if (q.options) {
+                checkDuplicates(`${relPath} ${id} (EN options)`, q.options.map(o => o.en));
+                checkDuplicates(`${relPath} ${id} (PL options)`, q.options.map(o => o.pl));
+            }
+
             q.options?.forEach((opt, oi) => {
                 if (!opt.en || !opt.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Option ${oi}`);
                 checkIP(`${relPath} ${id}`, opt.en);
@@ -95,6 +101,12 @@ function auditJsonPack(filePath, data) {
             const id = q.id || `Q${i+1}`;
             if (!q.prompt?.en || !q.prompt?.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Prompt`);
             if (!q.options || q.options.length !== 4) audit.errors.push(`[INVALID STRUCT] ${relPath} ${id}: Expected 4 options`);
+            
+            if (q.options) {
+                checkDuplicates(`${relPath} ${id} (EN options)`, q.options.map(o => o.en));
+                checkDuplicates(`${relPath} ${id} (PL options)`, q.options.map(o => o.pl));
+            }
+
             q.options?.forEach((opt, oi) => {
                 if (!opt.en || !opt.pl) audit.errors.push(`[MISSING TRANS] ${relPath} ${id}: Option ${oi}`);
                 checkIP(`${relPath} ${id}`, opt.en);
@@ -170,6 +182,21 @@ function auditTsFile(filePath) {
         // If not ladder, check general strings but exclude short ones
         checkDuplicates(relPath, enStrings.filter(s => s.length > 15));
     }
+
+    // Check for duplicate options in each question
+    const lines = content.split('\n');
+    lines.forEach((line, i) => {
+        const idMatch = line.match(/id:\s*'([^']+)'/);
+        const optionsMatch = line.match(/options:\s*\[(.*?)\]/);
+        if (idMatch && optionsMatch) {
+            const id = idMatch[1];
+            const optsStr = optionsMatch[1];
+            const enOpts = [...optsStr.matchAll(/en:\s*'([^']+)'/g)].map(m => m[1]);
+            const plOpts = [...optsStr.matchAll(/pl:\s*'([^']+)'/g)].map(m => m[1]);
+            if (enOpts.length > 0) checkDuplicates(`${relPath} ${id} (EN options)`, enOpts);
+            if (plOpts.length > 0) checkDuplicates(`${relPath} ${id} (PL options)`, plOpts);
+        }
+    });
 }
 
 const targetFiles = process.argv.slice(2);

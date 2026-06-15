@@ -1,23 +1,23 @@
 import { LEVEL_MAP, level, xpForLevel, unlockedRewards, levelProgress } from './map';
 
 describe('LEVEL_MAP', () => {
-    it('has 15 levels following the approved cumulative curve', () => {
-        expect(LEVEL_MAP).toHaveLength(15);
+    it('has 30 levels following the approved cumulative curve', () => {
+        expect(LEVEL_MAP).toHaveLength(30);
         expect(LEVEL_MAP.map((n) => n.xp)).toEqual([
             0, 150, 400, 750, 1200, 1800, 2600, 3600, 4900, 6500, 8500, 11000, 14000, 17500, 22000,
+            27500, 34000, 41500, 50500, 61000, 73000, 87000, 103000, 121500, 143000, 168000, 197000,
+            230500, 269000, 313000,
         ]);
     });
 
-    it('pins the two v1 earned themes to L8 and L15', () => {
-        expect(LEVEL_MAP.find((n) => n.level === 8)?.rewardId).toBe('theme-champion');
-        expect(LEVEL_MAP.find((n) => n.level === 15)?.rewardId).toBe('theme-legend');
+    it('pins the two earned themes to L15 and L30', () => {
+        expect(LEVEL_MAP.find((n) => n.level === 15)?.rewardId).toBe('theme-champion');
+        expect(LEVEL_MAP.find((n) => n.level === 30)?.rewardId).toBe('theme-legend');
     });
 
-    it('marks L5 / L11 / L14 reserved with no reward yet', () => {
-        for (const lv of [5, 11, 14]) {
-            const node = LEVEL_MAP.find((n) => n.level === lv);
-            expect(node?.reserved).toBe(true);
-            expect(node?.rewardId).toBeUndefined();
+    it('has no reserved levels', () => {
+        for (const node of LEVEL_MAP) {
+            expect(node.reserved).toBeUndefined();
         }
     });
 });
@@ -36,8 +36,8 @@ describe('level', () => {
     });
 
     it('caps at the final level', () => {
-        expect(level(22000)).toBe(15);
-        expect(level(999_999)).toBe(15);
+        expect(level(313000)).toBe(30);
+        expect(level(999_999)).toBe(30);
     });
 });
 
@@ -46,21 +46,22 @@ describe('xpForLevel', () => {
         expect(xpForLevel(1)).toBe(0);
         expect(xpForLevel(8)).toBe(3600);
         expect(xpForLevel(15)).toBe(22000);
+        expect(xpForLevel(30)).toBe(313000);
     });
 });
 
 describe('unlockedRewards', () => {
     it('is empty below the first reward threshold', () => {
-        expect(unlockedRewards(3599)).toEqual(new Set());
+        expect(unlockedRewards(21999)).toEqual(new Set());
     });
 
-    it('grants the L8 theme at its threshold', () => {
-        expect(unlockedRewards(3600)).toEqual(new Set(['theme-champion']));
+    it('grants the L15 theme at its threshold', () => {
+        expect(unlockedRewards(22000)).toEqual(new Set(['theme-champion']));
     });
 
     it('grants both earned themes once past the capstone — retroactively', () => {
-        expect(unlockedRewards(22000)).toEqual(new Set(['theme-champion', 'theme-legend']));
-        expect(unlockedRewards(50_000)).toEqual(new Set(['theme-champion', 'theme-legend']));
+        expect(unlockedRewards(313000)).toEqual(new Set(['theme-champion', 'theme-legend']));
+        expect(unlockedRewards(999_999)).toEqual(new Set(['theme-champion', 'theme-legend']));
     });
 });
 
@@ -70,8 +71,8 @@ describe('levelProgress', () => {
     });
 
     it('reports a full, capped band at max level', () => {
-        const p = levelProgress(22000);
-        expect(p.level).toBe(15);
+        const p = levelProgress(313000);
+        expect(p.level).toBe(30);
         expect(p.nextLevelXp).toBeNull();
         expect(p.span).toBe(0);
     });

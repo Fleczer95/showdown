@@ -70,9 +70,9 @@ describe('applyRun — level-ups and rewards', () => {
     });
 
     it('reports newly-unlocked earned-theme rewards on the crossing run', () => {
-        // 3550 + (floor 50) = 3600 → crosses the L8 champion theme node.
+        // 21950 + (floor 50) = 22000 → crosses the L15 champion theme node.
         const { diff } = applyRun(
-            stats({ lifetimeXp: 3550, today: TODAY, todayGameIds: ['the-drop'] }),
+            stats({ lifetimeXp: 21950, today: TODAY, todayGameIds: ['the-drop'] }),
             result({ gameId: 'the-drop', finalBank: 1000 }),
             TODAY,
         );

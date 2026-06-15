@@ -124,7 +124,12 @@ export function ChallengeHistoryScreen() {
                 <Text variant='heading' weight='bold' style={styles.title}>
                     {t('challenge.history.title')}
                 </Text>
-                <View style={{ width: 44 }} />
+                <IconButton
+                    icon={<Trophy size={24} color={theme.colors.text} />}
+                    onPress={() => navigation.navigate('Ranking')}
+                    size='md'
+                    accessibilityLabel={t('ranking.title')}
+                />
             </View>
 
             <FlatList

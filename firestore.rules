@@ -36,6 +36,39 @@ service cloud.firestore {
         && d.timestamp is int;
     }
 
+    // --- Global ranking (ADR-0004) ---
+    // A per-game, score-only bounded leaderboard. Public read; a device writes
+    // only its own {uuid} entry; updates may only raise the score (best-only);
+    // clients never delete (rotation/retention is the Admin-SDK cleanup script).
+    function isValidRankingEntry(d) {
+      return d.keys().hasOnly(['nickname', 'score'])
+        && d.nickname is string && d.nickname.size() > 0 && d.nickname.size() <= 24
+        && d.score is number && d.score >= 0 && d.score <= 1000000000;
+    }
+    function isRankedGame(game) {
+      return game in ['the-ladder', 'the-drop', 'the-wheel'];
+    }
+    // The server clock decides the month: a month bucket's UTC YYYY-MM must equal
+    // request.time, so a tampered device clock can't write into another month.
+    // 'alltime' is always writable (it never resets).
+    function isWritablePeriod(period) {
+      return period == 'alltime'
+        || (period.size() == 7
+            && int(period[0:4]) == request.time.year()
+            && int(period[5:7]) == request.time.month());
+    }
+
+    match /rankings/{game}/periods/{period}/entries/{uuid} {
+      allow read: if true;
+      allow create: if isRankedGame(game) && isWritablePeriod(period)
+        && isValidRankingEntry(request.resource.data);
+      // Best-only: an update may only raise the stored score.
+      allow update: if isRankedGame(game) && isWritablePeriod(period)
+        && isValidRankingEntry(request.resource.data)
+        && request.resource.data.score > resource.data.score;
+      allow delete: if false;
+    }
+
     match /c/{challengeId} {
       // Anyone with the link may read and create; the round is immutable after.
       allow read: if true;

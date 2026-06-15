@@ -19,16 +19,12 @@ import { useTranslation } from '../i18n/TranslationContext';
 import { APP_VERSION } from '../utils/version';
 import { games } from '../data/games';
 import { useStore } from '../hooks/store/useStore';
-import {
-    getLastNickname,
-    setLastNickname,
-    rankEntries,
-    MAX_NICKNAME_LENGTH,
-    type LeaderboardEntry,
-} from '../game/leaderboard';
+import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
+import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
 import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
+import { pushRanking } from '../game/ranking/push';
 import {
     gateChallenge,
     ladderRunFromRecord,
@@ -73,7 +69,8 @@ export function ChallengeScreen() {
 
     const [phase, setPhase] = useState<Phase>('loading');
     const [record, setRecord] = useState<ChallengeRecord | null>(null);
-    const [nickname, setNickname] = useState<string>(() => getLastNickname());
+    const [nickname, setNickname] = useState<string>(() => getChallengeNickname());
+    const [nicknameError, setNicknameError] = useState<string | null>(null);
     const [attempts, setAttempts] = useState<LeaderboardEntry[]>([]);
     const [myTimestamp, setMyTimestamp] = useState<number | null>(null);
 
@@ -168,6 +165,10 @@ export function ChallengeScreen() {
                         name: 'challenge_completed',
                         params: { game: record.game, progress: result.progress, score: result.score },
                     });
+                    // Feed the global ranking (ADR-0004). Best-effort and fire-and-forget
+                    // so the result reveal is never blocked; a failed push stays pending
+                    // locally and is retried on next app open / rankings view.
+                    void pushRanking(record.game, result.score, attempt.nickname);
                 }
                 await showResults(attempt.timestamp);
             } catch {
@@ -182,10 +183,15 @@ export function ChallengeScreen() {
     const startPlay = useCallback(() => {
         const trimmed = nickname.trim();
         if (!trimmed) return;
+        // The challenge nickname is public (opponent view + global ranking); the
+        // setter gates profanity, so a rejected name surfaces an error here.
+        if (!setChallengeNickname(trimmed)) {
+            setNicknameError(t('challenge.nicknameRejected'));
+            return;
+        }
         nicknameRef.current = trimmed;
-        setLastNickname(trimmed);
         setPhase('playing');
-    }, [nickname]);
+    }, [nickname, t]);
 
     // The play screen wired to the frozen deck. Memoised on the record so it is
     // built once and isn't reset by unrelated re-renders during the run.
@@ -259,8 +265,11 @@ export function ChallengeScreen() {
                         record={record}
                         isCreator={record.createdBy.uuid === deviceId}
                         nickname={nickname}
-                        onChangeNickname={setNickname}
-                        showNicknameInput={getLastNickname().trim().length === 0}
+                        onChangeNickname={(value) => {
+                            setNickname(value);
+                            setNicknameError(null);
+                        }}
+                        nicknameError={nicknameError}
                         onStart={startPlay}
                         onHome={exit}
                         t={t}
@@ -358,7 +367,7 @@ function IntroCard({
     isCreator,
     nickname,
     onChangeNickname,
-    showNicknameInput,
+    nicknameError,
     onStart,
     onHome,
     t,
@@ -367,7 +376,7 @@ function IntroCard({
     isCreator: boolean;
     nickname: string;
     onChangeNickname: (value: string) => void;
-    showNicknameInput: boolean;
+    nicknameError: string | null;
     onStart: () => void;
     onHome: () => void;
     t: (key: string, options?: Record<string, unknown>) => string;
@@ -396,7 +405,7 @@ function IntroCard({
                         </Text>
                     </Stack>
                 </Stack>
-                {showNicknameInput ? (
+                <Stack gap='xs' align='stretch'>
                     <Input
                         value={nickname}
                         onChangeText={onChangeNickname}
@@ -406,7 +415,12 @@ function IntroCard({
                         textAlign='center'
                         wrapperStyle={styles.input}
                     />
-                ) : null}
+                    {nicknameError ? (
+                        <Text variant='caption' color='error' align='center'>
+                            {nicknameError}
+                        </Text>
+                    ) : null}
+                </Stack>
                 <Button
                     variant='primary'
                     fullWidth
@@ -490,14 +504,22 @@ function ResultsCard({
     // crowning the sole player the winner.
     const waiting = attempts.length <= 1;
     const winner = attempts[0];
-    const youWon = !waiting && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
+    // A genuine tie on the ranking key (same progress AND same score) is a draw,
+    // not a win — the timestamp tiebreak in rankEntries only fixes row order, it
+    // shouldn't crown anyone (e.g. both players score 0). Applies to every game.
+    const isTopTie = (e: LeaderboardEntry) =>
+        !!winner && e.progress === winner.progress && e.score === winner.score;
+    const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
+    const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
     const headline = waiting
         ? t('challenge.waiting')
         : !winner
           ? t('challenge.results')
-          : youWon
-            ? t('challenge.youWin')
-            : t('challenge.won', { name: winner.nickname });
+          : draw
+            ? t('challenge.draw')
+            : youWon
+              ? t('challenge.youWin')
+              : t('challenge.won', { name: winner.nickname });
 
     return (
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
@@ -521,7 +543,9 @@ function ResultsCard({
                 <Stack gap='xs' align='stretch'>
                     {attempts.map((entry, i) => {
                         const mine = myTimestamp !== null && entry.timestamp === myTimestamp;
-                        const isWinner = !waiting && i === 0;
+                        // Crown every entry tied at the top (one winner normally; all
+                        // tied players on a draw) rather than just the first row.
+                        const isWinner = !waiting && isTopTie(entry);
                         return (
                             <Animated.View
                                 key={`${entry.timestamp}-${i}`}

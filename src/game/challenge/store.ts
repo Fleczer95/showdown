@@ -33,7 +33,7 @@ const REQUEST_TIMEOUT_MS = 10_000;
 const ATTEMPTS_QUERY_LIMIT = 100;
 
 /** Reject with `OfflineError` if `promise` doesn't settle within the timeout. */
-function withTimeout<T>(promise: Promise<T>): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => reject(new OfflineError()), REQUEST_TIMEOUT_MS);
         promise.then(

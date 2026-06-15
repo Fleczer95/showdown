@@ -17,6 +17,8 @@ export type RootStackParamList = {
     Challenge: { challengeId: string };
     /** List of challenges this device created or opened — resume unplayed, revisit results. */
     ChallengeHistory: undefined;
+    /** Global ranking boards (ADR-0004). Optional `gameId` preselects a board. */
+    Ranking: { gameId?: string } | undefined;
 } & Record<SetupRoute, { gameId: string }>;
 
 // Make `useNavigation()` / `Link` etc. globally aware of the param list.

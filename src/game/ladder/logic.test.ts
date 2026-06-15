@@ -8,7 +8,9 @@ import {
     skipQuestion,
     currentQuestion,
     reachedRung,
+    audienceVote,
     type LadderQuestion,
+    type LadderRun,
 } from './logic';
 
 // A deterministic pool: each rung has `alts` questions whose correct answer is
@@ -175,5 +177,73 @@ describe('skip lifeline', () => {
         expect(canUseLifeline(run, 'skip')).toBe(false);
         // attempting the swap is a no-op
         expect(skipQuestion(run, stableRng)).toBe(run);
+    });
+});
+
+describe('ask-the-studio audience vote', () => {
+    // Climb to a given rung (correctIndex is 0 under stableRng) so difficulty
+    // can be exercised across the ladder.
+    function atRung(index: number): LadderRun {
+        let run = buildRun(makeRungPool(), {}, stableRng);
+        for (let i = 0; i < index; i++) {
+            run = applyAnswer(run, currentQuestion(run).correctIndex);
+        }
+        return run;
+    }
+
+    const argmax = (xs: number[]) => xs.indexOf(Math.max(...xs));
+
+    it('returns integer percentages that always sum to 100', () => {
+        for (const rung of [0, 7, RUN_LENGTH - 1]) {
+            const run = atRung(rung);
+            for (let trial = 0; trial < 50; trial++) {
+                const votes = audienceVote(run, [], Math.random);
+                expect(votes).toHaveLength(4);
+                expect(votes.every((v) => Number.isInteger(v) && v >= 0)).toBe(true);
+                expect(votes.reduce((a, b) => a + b, 0)).toBe(100);
+            }
+        }
+    });
+
+    it('makes the correct answer a clear winner on the easy rungs', () => {
+        const run = atRung(0);
+        for (let trial = 0; trial < 100; trial++) {
+            const votes = audienceVote(run, [], Math.random);
+            expect(argmax(votes)).toBe(currentQuestion(run).correctIndex);
+        }
+    });
+
+    it('lets the crowd occasionally back a wrong answer at the top', () => {
+        const run = atRung(RUN_LENGTH - 1);
+        let correctLeads = 0;
+        let wrongLeads = 0;
+        for (let trial = 0; trial < 400; trial++) {
+            const lead = argmax(audienceVote(run, [], Math.random));
+            if (lead === currentQuestion(run).correctIndex) correctLeads++;
+            else wrongLeads++;
+        }
+        // On the hardest rung the vote genuinely splits: both outcomes occur.
+        expect(correctLeads).toBeGreaterThan(0);
+        expect(wrongLeads).toBeGreaterThan(0);
+    });
+
+    it('gives hidden (50:50-removed) options 0% and splits 100 among the rest', () => {
+        const run = atRung(3);
+        const hidden = [1, 2]; // two wrong options removed; correct is index 0
+        for (let trial = 0; trial < 50; trial++) {
+            const votes = audienceVote(run, hidden, Math.random);
+            expect(votes[1]).toBe(0);
+            expect(votes[2]).toBe(0);
+            expect(votes[0] + votes[3]).toBe(100);
+        }
+    });
+
+    it('reports 100% for the lone survivor when only the correct answer is live', () => {
+        const run = atRung(2);
+        const correct = currentQuestion(run).correctIndex;
+        // Hide every wrong option, leaving only the correct answer live.
+        const hidden = [0, 1, 2, 3].filter((i) => i !== correct);
+        const votes = audienceVote(run, hidden, stableRng);
+        expect(votes[correct]).toBe(100);
     });
 });

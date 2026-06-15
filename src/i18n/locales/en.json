@@ -29,8 +29,10 @@
         "waiting": "Waiting for opponent…",
         "waitingDesc": "You're the first to play. We'll have a winner once your opponent takes the challenge.",
         "you": "You",
+        "nicknameRejected": "Please choose a different nickname.",
         "youWin": "You win!",
         "won": "%{name} wins!",
+        "draw": "It's a draw!",
         "playLater": "Play later",
         "history": {
             "title": "Your Challenges",
@@ -341,6 +343,22 @@
             "drop": "%{n} rounds"
         }
     },
+    "ranking": {
+        "title": "Global Rankings",
+        "subtitle": "Top challenge scores · all players",
+        "month": "This Month",
+        "allTime": "All Time",
+        "empty": "No scores yet. Be the first!",
+        "yourBest": "Your best",
+        "synced": "Synced",
+        "pending": "Waiting to sync",
+        "retry": "Retry",
+        "rolloverNote": "The monthly board switches over in the first days of each month — don't worry if your latest score isn't showing yet.",
+        "connectivityNote": "Stay online while playing a challenge so your ranking is saved.",
+        "offline": "You're offline",
+        "offlineDesc": "Connect to the internet to see the rankings.",
+        "loadRetry": "Retry"
+    },
     "game": {
         "the-ladder": {
             "name": "The Ladder",
@@ -355,8 +373,11 @@
             "lifelines": {
                 "title": "Lifelines",
                 "fiftyFifty": "50:50",
-                "askStudio": "Ask the Studio",
+                "askStudio": "Ask the Audience",
                 "skip": "Skip Question"
+            },
+            "audience": {
+                "title": "The audience voted"
             },
             "active": {
                 "question": "Question %{number} of 15",
@@ -373,7 +394,7 @@
                 "playAgain": "Play Again",
                 "endGame": "Home"
             },
-            "rules": "1. Answer 15 trivia questions of increasing difficulty.\n2. Each correct answer climbs you one rung up the ladder.\n3. A wrong answer ends your run.\n4. Stuck? Spend one of your three lifelines: 50:50, Ask the Studio, or Skip.\n5. Reach the top to win the grand prize!"
+            "rules": "1. Answer 15 trivia questions of increasing difficulty.\n2. Each correct answer climbs you one rung up the ladder.\n3. A wrong answer ends your run.\n4. Stuck? Spend one of your three lifelines: 50:50, Ask the Audience, or Skip.\n5. Reach the top to win the grand prize!"
         },
         "the-grid": {
             "name": "The Grid",
@@ -422,6 +443,9 @@
                 "buyVowel": "Buy Vowel (%{cost})",
                 "vowelHint": "Vowels cost %{cost}",
                 "solve": "Solve the Puzzle",
+                "fillBlanks": "Tap letters to fill the blanks",
+                "accept": "Accept",
+                "clear": "Clear letter",
                 "failed": "Wrong answer!",
                 "yourGuess": "Your guess",
                 "correctAnswer": "Correct answer",

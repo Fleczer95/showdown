@@ -29,8 +29,10 @@
         "waiting": "Czekamy na przeciwnika…",
         "waitingDesc": "Jesteś pierwszą osobą, która zagrała. Zwycięzcę poznasz, gdy przeciwnik podejmie wyzwanie.",
         "you": "Ty",
+        "nicknameRejected": "Wybierz inną ksywkę.",
         "youWin": "Wygrywasz!",
         "won": "%{name} wygrywa!",
+        "draw": "Remis!",
         "playLater": "Zagraj później",
         "history": {
             "title": "Twoje wyzwania",
@@ -344,6 +346,22 @@
             "drop": "%{n} rund"
         }
     },
+    "ranking": {
+        "title": "Globalne rankingi",
+        "subtitle": "Najlepsze wyniki z trybu wyzwań · wszyscy gracze",
+        "month": "Ten miesiąc",
+        "allTime": "Wszech czasów",
+        "empty": "Brak wyników. Bądź pierwszy!",
+        "yourBest": "Twój najlepszy",
+        "synced": "Zsynchronizowano",
+        "pending": "Czeka na wysyłkę",
+        "retry": "Ponów",
+        "rolloverNote": "Ranking miesiąca przełącza się w pierwszych dniach miesiąca — nie martw się, jeśli Twojego wyniku jeszcze nie widać.",
+        "connectivityNote": "Bądź online podczas grania wyzwania, aby Twój wynik zapisał się w rankingu.",
+        "offline": "Jesteś offline",
+        "offlineDesc": "Połącz się z internetem, aby zobaczyć rankingi.",
+        "loadRetry": "Ponów"
+    },
     "game": {
         "the-ladder": {
             "name": "Drabina",
@@ -358,8 +376,11 @@
             "lifelines": {
                 "title": "Koła ratunkowe",
                 "fiftyFifty": "50:50",
-                "askStudio": "Pytanie do studia",
+                "askStudio": "Pytanie do publiczności",
                 "skip": "Pomiń pytanie"
+            },
+            "audience": {
+                "title": "Publiczność zagłosowała"
             },
             "active": {
                 "question": "Pytanie %{number} z 15",
@@ -376,7 +397,7 @@
                 "playAgain": "Zagraj ponownie",
                 "endGame": "Ekran główny"
             },
-            "rules": "1. Odpowiedz na 15 pytań o rosnącym poziomie trudności.\n2. Każda poprawna odpowiedź to jeden szczebel wyżej.\n3. Błędna odpowiedź kończy grę.\n4. Utknąłeś? Użyj jednego z trzech kół ratunkowych: 50:50, Pytanie do studia lub Pomiń.\n5. Dotrzyj na szczyt, aby zdobyć główną nagrodę!"
+            "rules": "1. Odpowiedz na 15 pytań o rosnącym poziomie trudności.\n2. Każda poprawna odpowiedź to jeden szczebel wyżej.\n3. Błędna odpowiedź kończy grę.\n4. Utknąłeś? Użyj jednego z trzech kół ratunkowych: 50:50, Pytanie do publiczności lub Pomiń.\n5. Dotrzyj na szczyt, aby zdobyć główną nagrodę!"
         },
         "the-grid": {
             "name": "Plansza",
@@ -425,6 +446,9 @@
                 "buyVowel": "Kup samogłoskę (%{cost})",
                 "vowelHint": "Samogłoski kosztują %{cost}",
                 "solve": "Rozwiąż hasło",
+                "fillBlanks": "Dotykaj liter, aby uzupełnić puste pola",
+                "accept": "Zatwierdź",
+                "clear": "Usuń literę",
                 "failed": "Zła odpowiedź!",
                 "yourGuess": "Twoja odpowiedź",
                 "correctAnswer": "Poprawna odpowiedź",

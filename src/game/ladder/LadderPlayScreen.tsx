@@ -5,9 +5,11 @@ import Animated, {
     useAnimatedStyle,
     withSequence,
     withSpring,
+    withTiming,
+    withDelay,
     useReducedMotion,
 } from 'react-native-reanimated';
-import { Scissors, HelpCircle, SkipForward, Check, X } from 'lucide-react-native';
+import { Scissors, HelpCircle, SkipForward, Check, X, Users } from 'lucide-react-native';
 import Text from '../../components/atoms/Text';
 import Stack from '../../components/atoms/Stack';
 import Pressable from '../../components/atoms/HapticPressable';
@@ -25,7 +27,7 @@ import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBa
 import AccentTab from '../../components/atoms/AccentTab';
 import { springEnter } from '../transitions';
 import { useTheme, useColor, useAnimationPresets } from '../../theme';
-import { hexToRgba } from '../../theme/colorUtils';
+import { hexToRgba, readableOn } from '../../theme/colorUtils';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { buildLocalizedRungs, type Language, type LadderPackCard } from './buildRuns';
@@ -38,6 +40,7 @@ import {
     canUseLifeline,
     consumeLifeline,
     fiftyFiftyHidden,
+    audienceVote,
     skipQuestion,
     currentQuestion,
     reachedRung,
@@ -106,7 +109,7 @@ export default function LadderPlayScreen({
     }, [currentQuestion(run).id, challenge]);
     // Per-question transient UI state.
     const [hidden, setHidden] = useState<number[]>([]);
-    const [studioHint, setStudioHint] = useState<string | null>(null);
+    const [audience, setAudience] = useState<number[] | null>(null);
     const [selected, setSelected] = useState<number | null>(null);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
@@ -114,7 +117,7 @@ export default function LadderPlayScreen({
 
     function resetTransient() {
         setHidden([]);
-        setStudioHint(null);
+        setAudience(null);
         setSelected(null);
     }
 
@@ -159,7 +162,9 @@ export default function LadderPlayScreen({
             setHidden(fiftyFiftyHidden(run));
             setRun(consumeLifeline(run, 'fiftyFifty'));
         } else if (key === 'askStudio') {
-            setStudioHint(question.hint ?? '');
+            // Poll the audience over whatever options are still live (50:50 may
+            // have removed two), then lock the result in for this question.
+            setAudience(audienceVote(run, hidden));
             setRun(consumeLifeline(run, 'askStudio'));
         } else if (key === 'skip') {
             // Swap to a different same-rung question; player must still answer it.
@@ -285,17 +290,12 @@ export default function LadderPlayScreen({
                     })}
                 </Stack>
 
-                {studioHint ? (
-                    <Animated.View entering={reduceMotion ? undefined : springEnter()}>
-                        <Card variant='flat' padding='md'>
-                            <Stack direction='horizontal' gap='sm' align='center'>
-                                <Icon name={HelpCircle} size={18} color={accent} />
-                                <Text variant='caption' color='textSecondary' style={styles.answerText}>
-                                    {studioHint}
-                                </Text>
-                            </Stack>
-                        </Card>
-                    </Animated.View>
+                {audience ? (
+                    <AudienceResult
+                        percentages={audience}
+                        accent={accent}
+                        reduceMotion={reduceMotion}
+                    />
                 ) : null}
 
                 <Stack gap='sm'>
@@ -463,6 +463,104 @@ function LifelineChip({
     );
 }
 
+/**
+ * "Ask the Studio" result: an audience poll with one animated bar per surviving
+ * option. The crowd's leading pick is highlighted — it is usually, but not
+ * always, the correct answer (see `audienceVote`).
+ */
+function AudienceResult({
+    percentages,
+    accent,
+    reduceMotion,
+}: {
+    percentages: number[];
+    accent: string;
+    reduceMotion: boolean;
+}) {
+    const theme = useTheme();
+    const { t } = useTranslation();
+    const leading = percentages.indexOf(Math.max(...percentages));
+    // Hidden options carry 0%; show only the options the crowd actually voted on.
+    const rows = percentages.map((value, index) => ({ value, index })).filter((r) => r.value > 0);
+
+    return (
+        <Animated.View entering={reduceMotion ? undefined : springEnter()}>
+            <Card variant='flat' padding='md' gap='md'>
+                <Stack direction='horizontal' gap='sm' align='center'>
+                    <View style={styles.audienceHeaderIcon}>
+                        <Icon name={Users} size={18} color={accent} />
+                    </View>
+                    <Text variant='overline' weight='bold' color={accent}>
+                        {t('game.the-ladder.audience.title')}
+                    </Text>
+                </Stack>
+                <Stack gap='sm'>
+                    {rows.map((row, order) => (
+                        <Stack key={row.index} direction='horizontal' gap='sm' align='center'>
+                            <View style={[styles.audienceBadge, { backgroundColor: accent, borderRadius: theme.radii.md }]}>
+                                <Text variant='body' weight='bold' color={readableOn(accent)} style={styles.audienceBadgeText}>
+                                    {String.fromCharCode(65 + row.index)}
+                                </Text>
+                            </View>
+                            <View style={styles.audienceBarSlot}>
+                                <AudienceBar
+                                    value={row.value}
+                                    color={accent}
+                                    track={theme.colors.surfaceVariant}
+                                    leading={row.index === leading}
+                                    delay={120 + order * 110}
+                                    reduceMotion={reduceMotion}
+                                />
+                            </View>
+                            <Text
+                                variant='caption'
+                                weight={row.index === leading ? 'bold' : 'semibold'}
+                                color={row.index === leading ? accent : 'textSecondary'}
+                                style={styles.audiencePct}
+                            >
+                                {`${row.value}%`}
+                            </Text>
+                        </Stack>
+                    ))}
+                </Stack>
+            </Card>
+        </Animated.View>
+    );
+}
+
+/** One audience bar that fills from 0 to its vote share on mount. */
+function AudienceBar({
+    value,
+    color,
+    track,
+    leading,
+    delay,
+    reduceMotion,
+}: {
+    value: number;
+    color: string;
+    track: string;
+    leading: boolean;
+    delay: number;
+    reduceMotion: boolean;
+}) {
+    const width = useSharedValue(reduceMotion ? value : 0);
+
+    useEffect(() => {
+        width.value = reduceMotion ? value : withDelay(delay, withTiming(value, { duration: 650 }));
+    }, [value, delay, reduceMotion, width]);
+
+    const fillStyle = useAnimatedStyle(() => ({ width: `${width.value}%` }));
+
+    return (
+        <View style={[styles.audienceTrack, { backgroundColor: track }]}>
+            <Animated.View
+                style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5 }]}
+            />
+        </View>
+    );
+}
+
 function GameOverView({
     won,
     rung,
@@ -545,6 +643,36 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 999,
         alignSelf: 'flex-start',
+    },
+    audienceHeaderIcon: {
+        width: 28,
+        alignItems: 'center',
+    },
+    audienceBadge: {
+        width: 28,
+        height: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    audienceBadgeText: {
+        textAlign: 'center',
+    },
+    audienceBarSlot: {
+        flex: 1,
+    },
+    audienceTrack: {
+        width: '100%',
+        height: 12,
+        borderRadius: 6,
+        overflow: 'hidden',
+    },
+    audienceFill: {
+        height: '100%',
+        borderRadius: 6,
+    },
+    audiencePct: {
+        width: 42,
+        textAlign: 'right',
     },
     chipCol: {
         flex: 1,

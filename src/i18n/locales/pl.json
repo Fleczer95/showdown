@@ -29,6 +29,7 @@
         "waiting": "Czekamy na przeciwnika…",
         "waitingDesc": "Jesteś pierwszą osobą, która zagrała. Zwycięzcę poznasz, gdy przeciwnik podejmie wyzwanie.",
         "you": "Ty",
+        "nicknameRejected": "Wybierz inną ksywkę.",
         "youWin": "Wygrywasz!",
         "won": "%{name} wygrywa!",
         "playLater": "Zagraj później",

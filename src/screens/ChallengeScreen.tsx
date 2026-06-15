@@ -19,13 +19,9 @@ import { useTranslation } from '../i18n/TranslationContext';
 import { APP_VERSION } from '../utils/version';
 import { games } from '../data/games';
 import { useStore } from '../hooks/store/useStore';
-import {
-    getLastNickname,
-    setLastNickname,
-    rankEntries,
-    MAX_NICKNAME_LENGTH,
-    type LeaderboardEntry,
-} from '../game/leaderboard';
+import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
+import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
+import { containsProfanity } from '../utils/nickname';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
 import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
@@ -74,7 +70,8 @@ export function ChallengeScreen() {
 
     const [phase, setPhase] = useState<Phase>('loading');
     const [record, setRecord] = useState<ChallengeRecord | null>(null);
-    const [nickname, setNickname] = useState<string>(() => getLastNickname());
+    const [nickname, setNickname] = useState<string>(() => getChallengeNickname());
+    const [nicknameError, setNicknameError] = useState<string | null>(null);
     const [attempts, setAttempts] = useState<LeaderboardEntry[]>([]);
     const [myTimestamp, setMyTimestamp] = useState<number | null>(null);
 
@@ -187,10 +184,16 @@ export function ChallengeScreen() {
     const startPlay = useCallback(() => {
         const trimmed = nickname.trim();
         if (!trimmed) return;
+        // The challenge nickname is public (opponent view + global ranking), so it
+        // passes the profanity gate here — the only place this nickname is set.
+        if (containsProfanity(trimmed)) {
+            setNicknameError(t('challenge.nicknameRejected'));
+            return;
+        }
         nicknameRef.current = trimmed;
-        setLastNickname(trimmed);
+        setChallengeNickname(trimmed);
         setPhase('playing');
-    }, [nickname]);
+    }, [nickname, t]);
 
     // The play screen wired to the frozen deck. Memoised on the record so it is
     // built once and isn't reset by unrelated re-renders during the run.
@@ -264,8 +267,12 @@ export function ChallengeScreen() {
                         record={record}
                         isCreator={record.createdBy.uuid === deviceId}
                         nickname={nickname}
-                        onChangeNickname={setNickname}
-                        showNicknameInput={getLastNickname().trim().length === 0}
+                        onChangeNickname={(value) => {
+                            setNickname(value);
+                            setNicknameError(null);
+                        }}
+                        nicknameError={nicknameError}
+                        showNicknameInput={getChallengeNickname().trim().length === 0}
                         onStart={startPlay}
                         onHome={exit}
                         t={t}
@@ -363,6 +370,7 @@ function IntroCard({
     isCreator,
     nickname,
     onChangeNickname,
+    nicknameError,
     showNicknameInput,
     onStart,
     onHome,
@@ -372,6 +380,7 @@ function IntroCard({
     isCreator: boolean;
     nickname: string;
     onChangeNickname: (value: string) => void;
+    nicknameError: string | null;
     showNicknameInput: boolean;
     onStart: () => void;
     onHome: () => void;
@@ -402,15 +411,22 @@ function IntroCard({
                     </Stack>
                 </Stack>
                 {showNicknameInput ? (
-                    <Input
-                        value={nickname}
-                        onChangeText={onChangeNickname}
-                        placeholder={t('leaderboard.nicknamePlaceholder')}
-                        maxLength={MAX_NICKNAME_LENGTH}
-                        autoCapitalize='words'
-                        textAlign='center'
-                        wrapperStyle={styles.input}
-                    />
+                    <Stack gap='xs' align='stretch'>
+                        <Input
+                            value={nickname}
+                            onChangeText={onChangeNickname}
+                            placeholder={t('leaderboard.nicknamePlaceholder')}
+                            maxLength={MAX_NICKNAME_LENGTH}
+                            autoCapitalize='words'
+                            textAlign='center'
+                            wrapperStyle={styles.input}
+                        />
+                        {nicknameError ? (
+                            <Text variant='caption' color='error' align='center'>
+                                {nicknameError}
+                            </Text>
+                        ) : null}
+                    </Stack>
                 ) : null}
                 <Button
                     variant='primary'

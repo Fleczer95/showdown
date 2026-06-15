@@ -1,0 +1,18 @@
+import { containsProfanity } from './nickname';
+
+describe('containsProfanity', () => {
+    it('flags obvious EN and PL slurs/swears', () => {
+        ['fuck', 'Shit', 'BITCH', 'kurwa', 'chuj'].forEach((n) => expect(containsProfanity(n)).toBe(true));
+    });
+
+    it('catches diacritics, spacing, and basic leetspeak', () => {
+        expect(containsProfanity('kurwą')).toBe(true); // diacritic
+        expect(containsProfanity('k u r w a')).toBe(true); // spacing
+        expect(containsProfanity('sh1t')).toBe(true); // leet 1->i
+        expect(containsProfanity('f4ggot')).toBe(true); // leet 4->a
+    });
+
+    it('allows clean nicknames', () => {
+        ['Ada', 'Player1', 'Classic', 'Bob', 'Łukasz'].forEach((n) => expect(containsProfanity(n)).toBe(false));
+    });
+});

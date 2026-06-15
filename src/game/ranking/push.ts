@@ -1,5 +1,5 @@
 import { getDeviceId } from '../challenge/deviceId';
-import { getLastNickname } from '../leaderboard';
+import { getChallengeNickname } from '../challenge/nickname';
 import { ALLTIME_PERIOD, monthBucketId, RANKED_GAMES, type RankedGame, type RankingScope } from './config';
 import { qualifies } from './rank';
 import { recordBestIfHigher, markSynced, listPending } from './local';
@@ -45,7 +45,7 @@ export async function pushRanking(game: string, score: number, nickname: string)
 
 /** Retry every locally-pending best (app open / rankings view open). */
 export async function retryPending(): Promise<void> {
-    const nickname = getLastNickname();
+    const nickname = getChallengeNickname();
     if (!nickname) return; // nothing to attribute a write to yet
     const currentMonth = monthBucketId();
     for (const p of listPending()) {

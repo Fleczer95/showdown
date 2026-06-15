@@ -23,6 +23,9 @@ export const POWER_TURNS = 3;
 export const CHARGE_MS = 800;
 /** Probability of each jitter magnitude |0|/|1|/|2|; sign is then 50/50. */
 export const JITTER_WEIGHTS: Record<number, number> = { 0: 0.3, 1: 0.5, 2: 0.2 };
+/** Discrete force levels offered as taps in the reduced-motion fallback (the
+ *  oscillating meter is replaced by these so no continuous animation is needed). */
+export const POWER_LEVELS = [0.1, 0.3, 0.5, 0.7, 0.9];
 
 /** Wheel segments. A Bankrupt segment zeroes the player's round cash. */
 export interface WheelSegment {
@@ -120,7 +123,8 @@ export function sampleJitter(rng: () => number = Math.random): number {
  * result ±1-2 segments (the press-your-luck risk). Returns the segment + index.
  */
 export function spinWithPower(power: number, rng: () => number = Math.random): SpinResult {
-    const target = Math.floor(power * WHEEL.length) % WHEEL.length;
+    // Clamp so full power (1.0) lands on the last segment instead of wrapping to 0.
+    const target = Math.min(Math.floor(power * WHEEL.length), WHEEL.length - 1);
     const index = (target + sampleJitter(rng) + WHEEL.length) % WHEEL.length;
     return { index, segment: WHEEL[index] };
 }

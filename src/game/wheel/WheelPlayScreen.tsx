@@ -47,6 +47,7 @@ import {
     SPIN_TURNS,
     POWER_TURNS,
     CHARGE_MS,
+    POWER_LEVELS,
     type GameState,
     type PuzzleContent,
     createGame,
@@ -70,10 +71,6 @@ import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHand
 type Phase = 'awaitSpin' | 'awaitGuess' | 'resolving';
 
 const GAME_ID = 'the-wheel';
-
-// Discrete force levels offered as taps in the reduced-motion fallback (the
-// oscillating meter is replaced by these so no continuous animation is needed).
-const POWER_LEVELS = [0.1, 0.3, 0.5, 0.7, 0.9];
 
 const EN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const PL_ALPHABET = 'AĄBCĆDEĘFGHIJKLŁMNŃOÓPQRSŚTUVWXYZŹŻ'.split('');
@@ -227,9 +224,8 @@ export default function WheelPlayScreen({
             const forward = (((landingMod - currentMod) % 360) + 360) % 360;
             // Stronger charge = more turns AND a longer spin, but the turns scale
             // faster than the time, so a hard spin is still clearly faster (weak =
-            // lazy & short, strong = fast & long — like a real wheel). Whole turns
-            // are 360deg multiples, so this never changes the landing segment —
-            // purely feel. Reduced motion skips the decorative turns entirely.
+            // lazy & short, strong = fast & long — like a real wheel). Reduced
+            // motion skips the decorative turns entirely.
             const turns = reduceMotion ? 0 : SPIN_TURNS + Math.round(level * POWER_TURNS);
             const duration = reduceMotion ? 700 : 3400 + Math.round(level * 2000);
             const target = rotation.value + turns * 360 + forward;
@@ -251,7 +247,6 @@ export default function WheelPlayScreen({
         if (spinning) return;
         setCharging(true);
         setStatus('');
-        power.value = 0;
         power.value = withRepeat(withTiming(1, { duration: CHARGE_MS, easing: Easing.linear }), -1, true);
     }, [spinning, power]);
 
@@ -707,19 +702,17 @@ export default function WheelPlayScreen({
                                     },
                                 ]}
                             >
-                                <View pointerEvents='none'>
-                                    <Text
-                                        variant='subheading'
-                                        weight='semibold'
-                                        color={spinning ? t.colors.textMuted : onAccent}
-                                    >
-                                        {spinning
-                                            ? tr('game.the-wheel.active.spinning')
-                                            : charging
-                                              ? tr('game.the-wheel.active.release')
-                                              : tr('game.the-wheel.active.charge')}
-                                    </Text>
-                                </View>
+                                <Text
+                                    variant='subheading'
+                                    weight='semibold'
+                                    color={spinning ? t.colors.textMuted : onAccent}
+                                >
+                                    {spinning
+                                        ? tr('game.the-wheel.active.spinning')
+                                        : charging
+                                          ? tr('game.the-wheel.active.release')
+                                          : tr('game.the-wheel.active.charge')}
+                                </Text>
                             </Pressable>
                         </Stack>
                     )

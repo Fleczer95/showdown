@@ -21,7 +21,6 @@ import { games } from '../data/games';
 import { useStore } from '../hooks/store/useStore';
 import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
-import { containsProfanity } from '../utils/nickname';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
 import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
@@ -184,14 +183,13 @@ export function ChallengeScreen() {
     const startPlay = useCallback(() => {
         const trimmed = nickname.trim();
         if (!trimmed) return;
-        // The challenge nickname is public (opponent view + global ranking), so it
-        // passes the profanity gate here — the only place this nickname is set.
-        if (containsProfanity(trimmed)) {
+        // The challenge nickname is public (opponent view + global ranking); the
+        // setter gates profanity, so a rejected name surfaces an error here.
+        if (!setChallengeNickname(trimmed)) {
             setNicknameError(t('challenge.nicknameRejected'));
             return;
         }
         nicknameRef.current = trimmed;
-        setChallengeNickname(trimmed);
         setPhase('playing');
     }, [nickname, t]);
 

@@ -1,36 +1,17 @@
 import firestore from '@react-native-firebase/firestore';
-import { OfflineError } from '../challenge/store';
+import { withTimeout } from '../challenge/store';
 import { DISPLAY_SIZE } from './config';
 import type { RankingEntry } from './types';
 
 // The only Firestore touchpoint for the global ranking (ADR-0004). A board is
 // `rankings/{game}/periods/{period}/entries/{uuid}`, where `period` is a UTC
 // `YYYY-MM` month or the literal `alltime`. The app reads/writes directly — no
-// server. Reads gate the board UI, so each call is timeout-wrapped and surfaces
-// the same `OfflineError` the challenge flow uses for a connect+retry screen.
+// server. Reads gate the board UI, so each call is timeout-wrapped (reusing the
+// challenge flow's `withTimeout`/`OfflineError`) for a connect+retry screen.
 
 const RANKINGS = 'rankings';
 const PERIODS = 'periods';
 const ENTRIES = 'entries';
-
-const REQUEST_TIMEOUT_MS = 10_000;
-
-/** Reject with `OfflineError` if `promise` doesn't settle within the timeout. */
-function withTimeout<T>(promise: Promise<T>): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new OfflineError()), REQUEST_TIMEOUT_MS);
-        promise.then(
-            (value) => {
-                clearTimeout(timer);
-                resolve(value);
-            },
-            (err) => {
-                clearTimeout(timer);
-                reject(err instanceof OfflineError ? err : new OfflineError(err));
-            },
-        );
-    });
-}
 
 function entriesRef(game: string, period: string) {
     return firestore().collection(RANKINGS).doc(game).collection(PERIODS).doc(period).collection(ENTRIES);

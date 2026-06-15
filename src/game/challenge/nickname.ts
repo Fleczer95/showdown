@@ -1,4 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
+import { containsProfanity } from '../../utils/nickname';
 
 // The PUBLIC nickname attached to async-challenge attempts and the global
 // ranking (ADR-0003/0004). Kept separate from the local leaderboard nickname
@@ -13,6 +14,13 @@ export function getChallengeNickname(): string {
     return store.getString(KEY) ?? '';
 }
 
-export function setChallengeNickname(nickname: string): void {
+/**
+ * Persist this device's public nickname, gating profanity at the one place it's
+ * stored so no caller can write an unfiltered value. Returns false (and stores
+ * nothing) when the nickname is rejected, so callers can surface an error.
+ */
+export function setChallengeNickname(nickname: string): boolean {
+    if (containsProfanity(nickname)) return false;
     store.set(KEY, nickname);
+    return true;
 }

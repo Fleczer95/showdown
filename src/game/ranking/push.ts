@@ -37,10 +37,15 @@ export async function pushRanking(game: string, score: number, nickname: string)
         { scope: 'alltime', period: ALLTIME_PERIOD },
         { scope: 'month', period: monthId },
     ];
-    for (const { scope, period } of scopes) {
-        if (!recordBestIfHigher(game, scope, score, monthId)) continue;
-        if (await pushToBucket(game, period, score, nickname)) markSynced(game, scope);
-    }
+    // The two buckets are independent, so push them concurrently. The synchronous
+    // `recordBestIfHigher` runs to completion before each await, so the shared
+    // local state is still written without races.
+    await Promise.all(
+        scopes.map(async ({ scope, period }) => {
+            if (!recordBestIfHigher(game, scope, score, monthId)) return;
+            if (await pushToBucket(game, period, score, nickname)) markSynced(game, scope);
+        }),
+    );
 }
 
 /** Retry every locally-pending best (app open / rankings view open). */

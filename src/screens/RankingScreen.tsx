@@ -29,7 +29,7 @@ import { getBoard, countEntries } from '../game/ranking/store';
 import { getLocalState } from '../game/ranking/local';
 import { retryPending } from '../game/ranking/push';
 import { OfflineError } from '../game/challenge/store';
-import type { RankingEntry } from '../game/ranking/types';
+import type { LocalBest, RankingEntry } from '../game/ranking/types';
 
 /** A locale-aware "May 2026" label for a `YYYY-MM` bucket. */
 function formatMonth(monthId: string, locale: string): string {
@@ -81,6 +81,38 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
             <Text variant='body' weight='bold' style={styles.score}>
                 {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
             </Text>
+        </View>
+    );
+}
+
+/** The player's own best for the active scope: score plus synced/pending status. */
+function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
+    const theme = useTheme();
+    const { t, locale } = useTranslation();
+    return (
+        <View
+            style={[styles.chip, { borderRadius: theme.radii.lg, backgroundColor: hexToRgba(theme.colors.primary, 0.1) }]}
+        >
+            <Stack gap='xs' flex={1}>
+                <Text variant='caption' color='textSecondary'>
+                    {t('ranking.yourBest')}
+                </Text>
+                <Text variant='body' weight='bold'>
+                    {`${best.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
+                </Text>
+            </Stack>
+            {best.synced ? (
+                <Text variant='caption' color='success'>
+                    {t('ranking.synced')}
+                </Text>
+            ) : (
+                <Pressable onPress={onRetry} haptic='light' style={styles.retry}>
+                    <Icon name={RefreshCw} size={14} color={theme.colors.primary} />
+                    <Text variant='caption' weight='bold' color='primary'>
+                        {t('ranking.pending')} · {t('ranking.retry')}
+                    </Text>
+                </Pressable>
+            )}
         </View>
     );
 }
@@ -138,7 +170,12 @@ export function RankingScreen() {
 
     // The player's own best for the chip (month scope only counts this month).
     const localState = getLocalState(game);
-    const best = scope === 'alltime' ? localState.allTime : localState.month?.monthId === currentMonth ? localState.month : undefined;
+    const best =
+        scope === 'alltime'
+            ? localState.allTime
+            : localState.month?.monthId === currentMonth
+              ? localState.month
+              : undefined;
 
     const handleRetrySync = useCallback(async () => {
         await retryPending();
@@ -219,35 +256,7 @@ export function RankingScreen() {
                         }
                         ListFooterComponent={
                             <Stack gap='md' style={{ marginTop: theme.spacing.lg }}>
-                                {best ? (
-                                    <View
-                                        style={[
-                                            styles.chip,
-                                            { borderRadius: theme.radii.lg, backgroundColor: hexToRgba(theme.colors.primary, 0.1) },
-                                        ]}
-                                    >
-                                        <Stack gap='xs' flex={1}>
-                                            <Text variant='caption' color='textSecondary'>
-                                                {t('ranking.yourBest')}
-                                            </Text>
-                                            <Text variant='body' weight='bold'>
-                                                {`${best.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
-                                            </Text>
-                                        </Stack>
-                                        {best.synced ? (
-                                            <Text variant='caption' color='success'>
-                                                {t('ranking.synced')}
-                                            </Text>
-                                        ) : (
-                                            <Pressable onPress={handleRetrySync} haptic='light' style={styles.retry}>
-                                                <Icon name={RefreshCw} size={14} color={theme.colors.primary} />
-                                                <Text variant='caption' weight='bold' color='primary'>
-                                                    {t('ranking.pending')} · {t('ranking.retry')}
-                                                </Text>
-                                            </Pressable>
-                                        )}
-                                    </View>
-                                ) : null}
+                                {best ? <BestChip best={best} onRetry={handleRetrySync} /> : null}
 
                                 <Text variant='caption' color='textMuted'>
                                     {t('ranking.rolloverNote')}

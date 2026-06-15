@@ -31,7 +31,6 @@ import { SafeAnalytics } from '../utils/firebase/init';
 import { getHistory } from '../game/history';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
-import { containsProfanity } from '../utils/nickname';
 import { APP_VERSION } from '../utils/version';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -129,12 +128,12 @@ export function GameSetupScreen() {
     const confirmNickname = () => {
         const trimmed = nickname.trim();
         if (trimmed.length === 0) return;
-        // The creator's nickname is public (createdBy + global ranking), so gate it.
-        if (containsProfanity(trimmed)) {
+        // The creator's nickname is public (createdBy + global ranking); the setter
+        // gates profanity, so a rejected name surfaces an error here.
+        if (!setChallengeNickname(trimmed)) {
             setNicknameError(t('challenge.nicknameRejected'));
             return;
         }
-        setChallengeNickname(trimmed);
         setNicknameSheet(false);
         void createAndShare(trimmed);
     };

@@ -62,7 +62,6 @@ export function monthBucketId(epochMs: number = Date.now()): string {
 /** The `YYYY-MM` bucket one month before the given one. */
 export function previousMonthBucketId(bucketId: string): string {
     const [year, month] = bucketId.split('-').map(Number);
-    const d = new Date(Date.UTC(year, month - 1, 1));
-    d.setUTCMonth(d.getUTCMonth() - 1);
-    return monthBucketId(d.getTime());
+    // `Date.UTC` normalizes a negative month back across the year boundary.
+    return monthBucketId(Date.UTC(year, month - 2, 1));
 }

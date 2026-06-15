@@ -5,6 +5,8 @@ import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withTiming,
+    withRepeat,
+    cancelAnimation,
     Easing,
     runOnJS,
     FadeIn,
@@ -42,6 +44,9 @@ import {
     WHEEL,
     VOWEL_COST,
     TOTAL_PUZZLES,
+    SPIN_TURNS,
+    POWER_TURNS,
+    CHARGE_MS,
     type GameState,
     type PuzzleContent,
     createGame,
@@ -51,7 +56,7 @@ import {
     isLetter,
     isFullyRevealed,
     alreadyGuessed,
-    spin,
+    spinWithPower,
     type SpinResult,
     guessConsonant,
     buyVowel,
@@ -65,6 +70,10 @@ import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHand
 type Phase = 'awaitSpin' | 'awaitGuess' | 'resolving';
 
 const GAME_ID = 'the-wheel';
+
+// Discrete force levels offered as taps in the reduced-motion fallback (the
+// oscillating meter is replaced by these so no continuous animation is needed).
+const POWER_LEVELS = [0.1, 0.3, 0.5, 0.7, 0.9];
 
 const EN_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const PL_ALPHABET = 'AĄBCĆDEĘFGHIJKLŁMNŃOÓPQRSŚTUVWXYZŹŻ'.split('');
@@ -112,6 +121,8 @@ export default function WheelPlayScreen({
     const [phase, setPhase] = useState<Phase>('awaitSpin');
     const [spinValue, setSpinValue] = useState(0);
     const [spinning, setSpinning] = useState(false);
+    // True while the player holds the spin button and the power meter oscillates.
+    const [charging, setCharging] = useState(false);
     // Letters the player has tapped into the blank slots, in reading order.
     const [filled, setFilled] = useState<string[]>([]);
     const [solveMode, setSolveMode] = useState(false);
@@ -150,6 +161,9 @@ export default function WheelPlayScreen({
 
     const rotation = useSharedValue(0);
     const wheelStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
+    // Charged power level [0,1]; drives both the meter fill and the landing segment.
+    const power = useSharedValue(0);
+    const powerBarStyle = useAnimatedStyle(() => ({ width: `${power.value * 100}%` }));
 
     const resetTurnInputs = useCallback(() => {
         setPhase('awaitSpin');
@@ -195,31 +209,59 @@ export default function WheelPlayScreen({
         [tr],
     );
 
-    const handleSpin = useCallback(() => {
+    // Land the wheel from a charged power level. Power picks the segment; a small
+    // jitter (in logic) drifts it ±1-2. The wheel continues from its current
+    // position — extra full turns are cosmetic and never change the result.
+    const runSpin = useCallback(
+        (level: number) => {
+            if (spinning) return;
+            setCharging(false);
+            setSpinning(true);
+            setStatus('');
+
+            const result = spinWithPower(level);
+            const segmentAngle = 360 / WHEEL.length;
+            // Final angle (mod 360) that places `index` at the top pointer.
+            const landingMod = (((-segmentAngle * result.index) % 360) + 360) % 360;
+            const currentMod = ((rotation.value % 360) + 360) % 360;
+            const forward = (((landingMod - currentMod) % 360) + 360) % 360;
+            // Stronger charge = more turns AND a longer spin, but the turns scale
+            // faster than the time, so a hard spin is still clearly faster (weak =
+            // lazy & short, strong = fast & long — like a real wheel). Whole turns
+            // are 360deg multiples, so this never changes the landing segment —
+            // purely feel. Reduced motion skips the decorative turns entirely.
+            const turns = reduceMotion ? 0 : SPIN_TURNS + Math.round(level * POWER_TURNS);
+            const duration = reduceMotion ? 700 : 2800 + Math.round(level * 1700);
+            const target = rotation.value + turns * 360 + forward;
+
+            rotation.value = withTiming(
+                target,
+                // Cubic ease-out: sustains speed through most of the spin (so the
+                // power difference is visible), then a soft settle onto the segment.
+                { duration, easing: Easing.out(Easing.cubic) },
+                (finished) => {
+                    if (finished) runOnJS(settleSpin)(result);
+                },
+            );
+        },
+        [spinning, reduceMotion, settleSpin, rotation],
+    );
+
+    // Hold to start the power meter oscillating 0->1->0 in a loop.
+    const handleChargeStart = useCallback(() => {
         if (spinning) return;
-        setSpinning(true);
+        setCharging(true);
         setStatus('');
+        power.value = 0;
+        power.value = withRepeat(withTiming(1, { duration: CHARGE_MS, easing: Easing.linear }), -1, true);
+    }, [spinning, power]);
 
-        // Choose the landing segment first, then rotate so it stops under the
-        // top pointer — the visual result and the awarded value always match.
-        const result = spin();
-        const segmentAngle = 360 / WHEEL.length;
-        // Final angle (mod 360) that places `index` at the top pointer.
-        const landingMod = (((-segmentAngle * result.index) % 360) + 360) % 360;
-        const currentMod = ((rotation.value % 360) + 360) % 360;
-        const forward = (((landingMod - currentMod) % 360) + 360) % 360;
-        const target = rotation.value + 6 * 360 + forward;
-
-        rotation.value = withTiming(
-            target,
-            // Quintic ease-out + longer duration: fast launch, then a long,
-            // gradual slowdown as it settles on the segment.
-            { duration: 4200, easing: Easing.out(Easing.poly(5)) },
-            (finished) => {
-                if (finished) runOnJS(settleSpin)(result);
-            },
-        );
-    }, [spinning, settleSpin, rotation]);
+    // Release to lock the current power level and spin.
+    const handleRelease = useCallback(() => {
+        if (!charging) return;
+        cancelAnimation(power);
+        runSpin(power.value);
+    }, [charging, power, runSpin]);
 
     const handleGuessConsonant = useCallback(
         (ch: string) => {
@@ -352,7 +394,9 @@ export default function WheelPlayScreen({
         resetTurnInputs();
         setStatus('');
         rotation.value = 0;
-    }, [locale, ownedPuzzles, resetTurnInputs, rotation]);
+        power.value = 0;
+        setCharging(false);
+    }, [locale, ownedPuzzles, resetTurnInputs, rotation, power]);
 
     if (game.status === 'over' || game.status === 'lost') {
         const breakdown = wheelScore({
@@ -611,19 +655,75 @@ export default function WheelPlayScreen({
                     </Animated.View>
                 )}
 
-                {/* Actions */}
+                {/* Actions — hold to charge a power meter, release to spin. The
+                    charged level steers where it lands (logic adds a ±1-2 jitter).
+                    Reduced motion swaps the oscillating meter for discrete taps. */}
                 {phase === 'awaitSpin' && !solveMode ? (
-                    <Button
-                        variant='primary'
-                        size='lg'
-                        fullWidth
-                        onPress={handleSpin}
-                        disabled={spinning}
-                        style={spinning ? undefined : { backgroundColor: accent, borderColor: accent }}
-                        textColor={spinning ? undefined : onAccent}
-                    >
-                        {spinning ? tr('game.the-wheel.active.spinning') : tr('game.the-wheel.active.spin')}
-                    </Button>
+                    reduceMotion ? (
+                        <Stack gap='sm' align='center'>
+                            <Text variant='caption' weight='medium' color='textSecondary' align='center'>
+                                {tr('game.the-wheel.active.choosePower')}
+                            </Text>
+                            <View style={styles.powerChips}>
+                                {POWER_LEVELS.map((lvl, i) => (
+                                    <Pressable
+                                        key={i}
+                                        haptic='medium'
+                                        disabled={spinning}
+                                        onPress={() => runSpin(lvl)}
+                                        accessibilityLabel={`${tr('game.the-wheel.active.power')} ${i + 1}`}
+                                        style={[
+                                            styles.powerChip,
+                                            {
+                                                height: 20 + i * 12,
+                                                borderColor: accent,
+                                                backgroundColor: hexToRgba(accent, 0.16),
+                                            },
+                                        ]}
+                                    >
+                                        <View />
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </Stack>
+                    ) : (
+                        <Stack gap='sm'>
+                            <View style={[styles.powerTrack, { backgroundColor: t.colors.surfaceVariant }]}>
+                                <Animated.View
+                                    style={[styles.powerFill, powerBarStyle, { backgroundColor: accent }]}
+                                />
+                            </View>
+                            <Pressable
+                                haptic='medium'
+                                disabled={spinning}
+                                onPressIn={handleChargeStart}
+                                onPressOut={handleRelease}
+                                accessibilityLabel={tr('game.the-wheel.active.spin')}
+                                accessibilityHint={tr('game.the-wheel.active.charge')}
+                                style={[
+                                    styles.spinButton,
+                                    {
+                                        backgroundColor: spinning ? t.colors.surfaceVariant : accent,
+                                        borderColor: spinning ? t.colors.border : accent,
+                                    },
+                                ]}
+                            >
+                                <View pointerEvents='none'>
+                                    <Text
+                                        variant='subheading'
+                                        weight='semibold'
+                                        color={spinning ? t.colors.textMuted : onAccent}
+                                    >
+                                        {spinning
+                                            ? tr('game.the-wheel.active.spinning')
+                                            : charging
+                                              ? tr('game.the-wheel.active.release')
+                                              : tr('game.the-wheel.active.charge')}
+                                    </Text>
+                                </View>
+                            </Pressable>
+                        </Stack>
+                    )
                 ) : null}
 
                 {phase === 'awaitGuess' && !solveMode ? (
@@ -914,5 +1014,34 @@ const styles = StyleSheet.create({
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
         zIndex: 2,
+    },
+    powerTrack: {
+        height: 14,
+        borderRadius: 7,
+        width: '100%',
+        overflow: 'hidden',
+    },
+    powerFill: {
+        height: '100%',
+        borderRadius: 7,
+    },
+    spinButton: {
+        height: 56,
+        borderRadius: 8,
+        borderWidth: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+    },
+    powerChips: {
+        flexDirection: 'row',
+        gap: 10,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+    },
+    powerChip: {
+        width: 44,
+        borderRadius: 8,
+        borderWidth: 1.5,
     },
 });

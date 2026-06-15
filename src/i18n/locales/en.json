@@ -439,6 +439,10 @@
             "active": {
                 "spin": "Spin the Wheel",
                 "spinning": "Spinning...",
+                "charge": "Hold to charge",
+                "release": "Release!",
+                "choosePower": "Choose your power",
+                "power": "Power",
                 "guessLetter": "Guess a letter",
                 "buyVowel": "Buy Vowel (%{cost})",
                 "vowelHint": "Vowels cost %{cost}",

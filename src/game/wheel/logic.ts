@@ -10,6 +10,23 @@ export const VOWEL_COST = 250;
 export const VOWELS = 'AEIOUĄĘÓ';
 export const TOTAL_PUZZLES = 3;
 
+// --- Skill-spin tuning (see docs/plans/2026-06-15-wheel-power-spin-design.md) ---
+// The player charges a power meter and releases by feel; power deterministically
+// picks the target segment, then a small jitter drifts it ±1-2 segments so
+// BANKRUPT stays a live threat. These are the knobs to balance that feel.
+
+/** Base decorative full turns the wheel spins before settling. Cosmetic only. */
+export const SPIN_TURNS = 2;
+/** Extra full turns added at max charge, so a stronger spin launches faster. */
+export const POWER_TURNS = 3;
+/** Duration of one 0->1 power oscillation sweep, ms. Lower = harder to time. */
+export const CHARGE_MS = 800;
+/** Probability of each jitter magnitude |0|/|1|/|2|; sign is then 50/50. */
+export const JITTER_WEIGHTS: Record<number, number> = { 0: 0.3, 1: 0.5, 2: 0.2 };
+/** Discrete force levels offered as taps in the reduced-motion fallback (the
+ *  oscillating meter is replaced by these so no continuous animation is needed). */
+export const POWER_LEVELS = [0.1, 0.3, 0.5, 0.7, 0.9];
+
 /** Wheel segments. A Bankrupt segment zeroes the player's round cash. */
 export interface WheelSegment {
     /** Cash value for a correct consonant; ignored when bankrupt. */
@@ -81,9 +98,34 @@ export interface SpinResult {
     segment: WheelSegment;
 }
 
-/** Land the wheel on a random segment. Returns the segment and its index. */
-export function spin(rng: () => number = Math.random): SpinResult {
-    const index = Math.floor(rng() * WHEEL.length) % WHEEL.length;
+/**
+ * Sample a signed jitter offset in {-2,-1,0,1,2} from JITTER_WEIGHTS: first the
+ * magnitude by its weight, then (when non-zero) a 50/50 left/right sign.
+ */
+export function sampleJitter(rng: () => number = Math.random): number {
+    const r = rng();
+    let cumulative = 0;
+    let magnitude = 0;
+    for (const mag of [0, 1, 2]) {
+        cumulative += JITTER_WEIGHTS[mag];
+        if (r < cumulative) {
+            magnitude = mag;
+            break;
+        }
+    }
+    if (magnitude === 0) return 0;
+    return rng() < 0.5 ? -magnitude : magnitude;
+}
+
+/**
+ * Land the wheel from a charged power level in [0,1]. Power maps linearly across
+ * the 12 segments (the player's influence); `sampleJitter` then drifts the
+ * result ±1-2 segments (the press-your-luck risk). Returns the segment + index.
+ */
+export function spinWithPower(power: number, rng: () => number = Math.random): SpinResult {
+    // Clamp so full power (1.0) lands on the last segment instead of wrapping to 0.
+    const target = Math.min(Math.floor(power * WHEEL.length), WHEEL.length - 1);
+    const index = (target + sampleJitter(rng) + WHEEL.length) % WHEEL.length;
     return { index, segment: WHEEL[index] };
 }
 

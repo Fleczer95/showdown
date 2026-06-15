@@ -1,5 +1,4 @@
 import {
-    WHEEL,
     VOWEL_COST,
     TOTAL_PUZZLES,
     createGame,
@@ -8,7 +7,9 @@ import {
     countLetter,
     isFullyRevealed,
     alreadyGuessed,
-    spin,
+    spinWithPower,
+    sampleJitter,
+    JITTER_WEIGHTS,
     guessConsonant,
     buyVowel,
     applyBankrupt,
@@ -72,15 +73,65 @@ describe('guessConsonant', () => {
     });
 });
 
-describe('spin / Bankrupt', () => {
-    it('lands deterministically with injected rng', () => {
-        expect(spin(seq([0])).segment.value).toBe(150);
+describe('sampleJitter', () => {
+    // Thresholds derived from JITTER_WEIGHTS {0:0.3, 1:0.5, 2:0.2}:
+    // r<0.3 -> 0 | 0.3<=r<0.8 -> ±1 | 0.8<=r -> ±2. Sign: rng<0.5 -> negative.
+    it('returns 0 across the whole magnitude-0 band (no sign draw)', () => {
+        expect(sampleJitter(seq([0]))).toBe(0);
+        expect(sampleJitter(seq([0.29]))).toBe(0);
     });
 
-    it('can land on a Bankrupt segment', () => {
-        const bankruptIndex = WHEEL.findIndex((s) => s.bankrupt);
-        const result = spin(seq([bankruptIndex / WHEEL.length]));
+    it('returns ±1 in the magnitude-1 band, sign from the second draw', () => {
+        expect(sampleJitter(seq([0.3, 0.9]))).toBe(1);
+        expect(sampleJitter(seq([0.3, 0.0]))).toBe(-1);
+        expect(sampleJitter(seq([0.79, 0.9]))).toBe(1);
+    });
+
+    it('returns ±2 in the magnitude-2 band', () => {
+        expect(sampleJitter(seq([0.8, 0.9]))).toBe(2);
+        expect(sampleJitter(seq([0.999, 0.0]))).toBe(-2);
+    });
+
+    it('honours JITTER_WEIGHTS proportions over many seeded samples', () => {
+        // mulberry32 — deterministic PRNG so the statistical check never flakes.
+        let s = 0x9e3779b9;
+        const rng = () => {
+            s |= 0;
+            s = (s + 0x6d2b79f5) | 0;
+            let t = Math.imul(s ^ (s >>> 15), 1 | s);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const N = 20000;
+        const counts = { 0: 0, 1: 0, 2: 0 };
+        for (let i = 0; i < N; i++) counts[Math.abs(sampleJitter(rng)) as 0 | 1 | 2]++;
+        expect(counts[0] / N).toBeCloseTo(JITTER_WEIGHTS[0], 1);
+        expect(counts[1] / N).toBeCloseTo(JITTER_WEIGHTS[1], 1);
+        expect(counts[2] / N).toBeCloseTo(JITTER_WEIGHTS[2], 1);
+    });
+});
+
+describe('spinWithPower / Bankrupt', () => {
+    it('maps power monotonically across the 12 segments (no jitter)', () => {
+        // seq([0]) -> magnitude-0 band -> zero jitter, so index == target.
+        expect(spinWithPower(0, seq([0])).index).toBe(0);
+        expect(spinWithPower(0, seq([0])).segment.value).toBe(150);
+        expect(spinWithPower(0.5, seq([0])).index).toBe(6);
+        expect(spinWithPower(0.99, seq([0])).index).toBe(11);
+    });
+
+    it('applies jitter on top of the targeted segment', () => {
+        // target 0, +1 jitter -> index 1, which is a Bankrupt segment.
+        const result = spinWithPower(0, seq([0.3, 0.9]));
+        expect(result.index).toBe(1);
         expect(result.segment.bankrupt).toBe(true);
+    });
+
+    it('wraps the index within 0..11 when jitter crosses the seam', () => {
+        // target 0, -1 jitter -> wraps to index 11 (value 1000).
+        const result = spinWithPower(0, seq([0.3, 0.0]));
+        expect(result.index).toBe(11);
+        expect(result.segment.value).toBe(1000);
     });
 
     it('Bankrupt zeroes round cash but not the banked score', () => {

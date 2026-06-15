@@ -442,6 +442,10 @@
             "active": {
                 "spin": "Zakręć kołem",
                 "spinning": "Kręcę...",
+                "charge": "Przytrzymaj, aby naładować",
+                "release": "Puść!",
+                "choosePower": "Wybierz siłę",
+                "power": "Moc",
                 "guessLetter": "Zgadnij literę",
                 "buyVowel": "Kup samogłoskę (%{cost})",
                 "vowelHint": "Samogłoski kosztują %{cost}",

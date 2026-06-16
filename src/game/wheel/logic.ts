@@ -7,7 +7,7 @@
 // banks round cash and advances; a wrong solve ends the puzzle with 0 banked.
 
 export const VOWEL_COST = 250;
-export const VOWELS = 'AEIOUĄĘÓ';
+export const VOWELS = 'AEIOUYĄĘÓ';
 export const TOTAL_PUZZLES = 3;
 
 // --- Skill-spin tuning (see docs/plans/2026-06-15-wheel-power-spin-design.md) ---
@@ -44,7 +44,7 @@ export const WHEEL: WheelSegment[] = [
     { value: 200, bankrupt: false, label: '200' },
     { value: 800, bankrupt: false, label: '800' },
     { value: 250, bankrupt: false, label: '250' },
-    { value: 0, bankrupt: true, label: 'BANKRUPT' },
+    { value: 700, bankrupt: false, label: '700' },
     { value: 400, bankrupt: false, label: '400' },
     { value: 600, bankrupt: false, label: '600' },
     { value: 350, bankrupt: false, label: '350' },

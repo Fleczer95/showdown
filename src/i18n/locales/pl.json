@@ -447,6 +447,7 @@
                 "choosePower": "Wybierz siłę",
                 "power": "Moc",
                 "guessLetter": "Zgadnij literę",
+                "letterWorth": "Każda trafiona litera: +%{value}",
                 "buyVowel": "Kup samogłoskę (%{cost})",
                 "vowelHint": "Samogłoski kosztują %{cost}",
                 "solve": "Rozwiąż hasło",

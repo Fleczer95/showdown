@@ -728,6 +728,9 @@ export default function WheelPlayScreen({
                         style={styles.centerRegion}
                     >
                         <Stack gap='sm'>
+                            <Text variant='subheading' weight='bold' color={accent} align='center'>
+                                {tr('game.the-wheel.active.letterWorth', { value: spinValue })}
+                            </Text>
                             <Text variant='caption' weight='medium' color='textSecondary' align='center'>
                                 {tr('game.the-wheel.active.guessLetter')}
                                 {' ('}

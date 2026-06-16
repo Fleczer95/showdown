@@ -444,6 +444,7 @@
                 "choosePower": "Choose your power",
                 "power": "Power",
                 "guessLetter": "Guess a letter",
+                "letterWorth": "Each correct letter: +%{value}",
                 "buyVowel": "Buy Vowel (%{cost})",
                 "vowelHint": "Vowels cost %{cost}",
                 "solve": "Solve the Puzzle",

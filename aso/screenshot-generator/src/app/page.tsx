@@ -164,10 +164,10 @@ const confettiPositions = [
 
 const COPY = {
   en: {
-    hero: { label: "SHOWDOWN", head: ["4 Game Shows. One Phone.", "Zero Wi-Fi."] },
+    hero: { label: "SHOWDOWN", head: ["3 Game Shows. One Phone.", "Beat Your Friends."] },
   },
   pl: {
-    hero: { label: "SHOWDOWN", head: ["4 Teleturnieje. Jeden Telefon.", "Bez Wi-Fi."] },
+    hero: { label: "SHOWDOWN", head: ["3 Teleturnieje. Jeden Telefon.", "Pokonaj Znajomych."] },
   },
 } as const;
 

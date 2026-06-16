@@ -1,0 +1,3 @@
+privacyPolicyUrl=https://lebene.pl/en/privacy
+supportUrl=TODO-confirm (required by Apple) e.g. https://lebene.pl/en/support
+marketingUrl=https://lebene.pl

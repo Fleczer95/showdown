@@ -16,23 +16,21 @@ export const gamePacks: PackDefinition[] = [
         id: 'pack-ladder-ancient-history',
         kind: 'pack',
         gameId: 'the-ladder',
-        status: 'hidden',
+        status: 'live',
         tier: 'premium',
         // Store SKUs allow only alphanumerics, underscores, and periods (no
         // hyphens), so the slug is snake_cased here even though the catalog id
         // and i18n keys keep the kebab-case slug.
         //
-        // IAP PROVISIONING STATUS (2026-06-11):
-        //   App Store Connect — DRAFT created (id 6779132129, FUTURE/unsubmitted).
-        //   Google Play       — PENDING: config verified correct (auth + read +
-        //     non-financial writes all succeed via API); only financial-WRITE
-        //     (product creation) returns "request billing permission". Admin +
-        //     payments set, so this is Google-side: financial-permission changes
-        //     for service accounts can take up to ~24h to propagate, and/or the
-        //     payments/merchant profile must be fully APPROVED (not just submitted).
-        //     Just re-run periodically until it succeeds:
-        //     PYTHONPATH=<deps> /usr/bin/python3 .agents/google-play-iap/create_iap.py
-        //   Keep this entry status: 'hidden' until BOTH stores approve, then 'live'.
+        // IAP PROVISIONING STATUS (2026-06-16):
+        //   App Store Connect — IAP id 6779132129, state READY_TO_SUBMIT (name +
+        //     localization + price + review screenshot + worldwide availability all
+        //     set). Still needs App Review submission + Apple approval before it can
+        //     actually be purchased on iOS.
+        //   Google Play       — product created, purchase option ACTIVE (billing
+        //     permission cleared 2026-06-16).
+        //   Entry is status: 'live' per explicit owner decision (iOS purchases will
+        //     fail until Apple approves the IAP).
         sku: 'com.showdown.pack_ladder_ancient_history',
         presentation: {
             titleKey: 'screen.store.item.ladder_ancient-history.title',
@@ -54,19 +52,16 @@ export const gamePacks: PackDefinition[] = [
         id: 'pack-drop-world-geography',
         kind: 'pack',
         gameId: 'the-drop',
-        status: 'hidden',
+        status: 'live',
         // SKU snake_cased (stores reject hyphens); catalog id and i18n keys keep
-        // the kebab slug. Stays status: 'hidden' until the IAP is approved in
-        // BOTH stores, then flip to 'live'.
+        // the kebab slug.
         //
-        // IAP PROVISIONING STATUS (2026-06-11):
-        //   App Store Connect — DRAFT created (id 6779168573, FUTURE/unsubmitted, $1.99).
-        //   Google Play       — PENDING: same account-level "request billing
-        //     permission" block that holds the Ancient History pack. Not a
-        //     code/sku issue — the google-play-key.json service account needs the
-        //     financial/billing grant in Play Console (and the payments profile
-        //     fully approved). Re-run once granted:
-        //     PYTHONPATH=<deps> /usr/bin/python3 .agents/google-play-iap/create_iap.py
+        // IAP PROVISIONING STATUS (2026-06-16):
+        //   App Store Connect — IAP id 6779168573 ($1.99), state READY_TO_SUBMIT
+        //     (metadata + screenshot + worldwide availability set). Still needs App
+        //     Review submission + Apple approval before iOS purchases work.
+        //   Google Play       — product created, purchase option ACTIVE.
+        //   Entry is status: 'live' per explicit owner decision.
         tier: 'premium',
         sku: 'com.showdown.pack_drop_world_geography',
         presentation: {
@@ -86,17 +81,16 @@ export const gamePacks: PackDefinition[] = [
         id: 'pack-wheel-world-cuisine',
         kind: 'pack',
         gameId: 'the-wheel',
-        status: 'hidden',
+        status: 'live',
         // SKU snake_cased (stores reject hyphens); catalog id and i18n keys keep
-        // the kebab slug. Stays status: 'hidden' until the IAP is approved in
-        // BOTH stores, then flip to 'live'.
+        // the kebab slug.
         //
-        // IAP PROVISIONING STATUS (2026-06-11):
-        //   App Store Connect — DRAFT created (id 6779187237, FUTURE/unsubmitted, $1.99).
-        //   Google Play       — NOT YET PROVISIONED: skipped at user request. Will
-        //     likely hit the same account-level "request billing permission" block
-        //     as the Ancient History / World Geography packs. Provision once ready:
-        //     PYTHONPATH=<deps> /usr/bin/python3 .agents/google-play-iap/create_iap.py
+        // IAP PROVISIONING STATUS (2026-06-16):
+        //   App Store Connect — IAP id 6779187237 ($1.99), state READY_TO_SUBMIT
+        //     (metadata + screenshot + worldwide availability set). Still needs App
+        //     Review submission + Apple approval before iOS purchases work.
+        //   Google Play       — product created, purchase option ACTIVE.
+        //   Entry is status: 'live' per explicit owner decision.
         tier: 'premium',
         sku: 'com.showdown.pack_wheel_world_cuisine',
         presentation: {

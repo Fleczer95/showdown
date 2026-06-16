@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { View, StyleSheet, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, withSpring } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -117,7 +117,7 @@ function BottomSheet({
                     />
                     <KeyboardAvoidingView
                         style={styles.keyboardAvoider}
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior='padding'
                     >
                     <GestureDetector gesture={panGesture}>
                         <Animated.View

@@ -29,7 +29,7 @@ import { resolveDisplayedMonth } from '../game/ranking/rank';
 import { getBoard, countEntries } from '../game/ranking/store';
 import { getLocalState } from '../game/ranking/local';
 import { retryPending } from '../game/ranking/push';
-import { OfflineError } from '../game/challenge/store';
+import { OfflineError, BlockedError } from '../game/challenge/store';
 import type { LocalBest, RankingEntry } from '../game/ranking/types';
 
 /** A locale-aware "May 2026" label for a `YYYY-MM` bucket. */
@@ -137,7 +137,7 @@ export function RankingScreen() {
 
     const [board, setBoard] = useState<RankingEntry[] | null>(null);
     const [displayedMonth, setDisplayedMonth] = useState<string | null>(null);
-    const [status, setStatus] = useState<'loading' | 'ready' | 'offline'>('loading');
+    const [status, setStatus] = useState<'loading' | 'ready' | 'offline' | 'error'>('loading');
 
     const currentMonth = monthBucketId();
 
@@ -164,7 +164,8 @@ export function RankingScreen() {
             }
             setStatus('ready');
         } catch (err) {
-            if (err instanceof OfflineError) setStatus('offline');
+            if (err instanceof BlockedError) setStatus('error');
+            else if (err instanceof OfflineError) setStatus('offline');
             else setStatus('ready');
         }
     }, [game, scope, currentMonth]);
@@ -236,14 +237,14 @@ export function RankingScreen() {
                     <View style={styles.centered}>
                         <ActivityIndicator />
                     </View>
-                ) : status === 'offline' ? (
+                ) : status === 'offline' || status === 'error' ? (
                     <View style={styles.centered}>
                         <Icon name={WifiOff} size={36} color={theme.colors.textMuted} />
                         <Text variant='body' weight='bold' align='center'>
-                            {t('ranking.offline')}
+                            {t(status === 'error' ? 'ranking.error' : 'ranking.offline')}
                         </Text>
                         <Text variant='caption' color='textSecondary' align='center'>
-                            {t('ranking.offlineDesc')}
+                            {t(status === 'error' ? 'ranking.errorDesc' : 'ranking.offlineDesc')}
                         </Text>
                         <Button variant='secondary' onPress={load} icon={<RefreshCw size={18} color={theme.colors.text} />}>
                             {t('ranking.loadRetry')}

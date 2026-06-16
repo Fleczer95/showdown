@@ -20,6 +20,9 @@
         "submitFailed": "Couldn't submit your result — you appear to be offline.",
         "offline": "You're offline",
         "offlineDesc": "Connect to the internet to load this challenge.",
+        "errorTitle": "Something went wrong",
+        "errorDesc": "We couldn't reach the challenge service. Please try again later.",
+        "submitError": "We couldn't save your result right now. Please try again.",
         "retry": "Retry",
         "expired": "Challenge expired",
         "expiredDesc": "This challenge link has expired. Start a fresh one!",
@@ -357,6 +360,8 @@
         "connectivityNote": "Stay online while playing a challenge so your ranking is saved.",
         "offline": "You're offline",
         "offlineDesc": "Connect to the internet to see the rankings.",
+        "error": "Couldn't load rankings",
+        "errorDesc": "Something went wrong reaching the rankings. Please try again later.",
         "loadRetry": "Retry"
     },
     "game": {

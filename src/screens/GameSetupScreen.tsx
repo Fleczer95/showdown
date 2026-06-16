@@ -22,7 +22,7 @@ import { gameSessionMachine } from '../game/machines/gameSessionMachine';
 import { playScreens } from '../game/playScreens';
 import { useStore } from '../hooks/store/useStore';
 import { buildChallenge } from '../game/challenge/build';
-import { createChallenge, getChallenge, newChallengeId } from '../game/challenge/store';
+import { createChallenge, getChallenge, newChallengeId, BlockedError } from '../game/challenge/store';
 import { countCreatedToday } from '../game/challenge/log';
 import { dailyCap, canUpsell } from '../game/challenge/limit';
 import { shareChallenge } from '../game/challenge/share';
@@ -104,8 +104,12 @@ export function GameSetupScreen() {
             SafeAnalytics.logEvent({ name: 'challenge_created', params: { game: game.id } });
             await shareChallenge(id);
             navigation.navigate('Challenge', { challengeId: id });
-        } catch {
-            Alert.alert(t('challenge.offline'), t('challenge.offlineDesc'));
+        } catch (err) {
+            const blocked = err instanceof BlockedError;
+            Alert.alert(
+                t(blocked ? 'challenge.errorTitle' : 'challenge.offline'),
+                t(blocked ? 'challenge.errorDesc' : 'challenge.offlineDesc'),
+            );
         } finally {
             setCreating(false);
         }

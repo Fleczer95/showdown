@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, StyleSheet, View, type ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -22,7 +22,7 @@ import { useStore } from '../hooks/store/useStore';
 import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import { getDeviceId } from '../game/challenge/deviceId';
-import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
+import { getChallenge, getAttempt, getAttempts, submitAttempt, BlockedError } from '../game/challenge/store';
 import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
 import { pushRanking } from '../game/ranking/push';
 import {
@@ -41,13 +41,15 @@ import type { RootStackParamList } from '../navigation/types';
 
 type Phase =
     | 'loading'
-    | 'offline' // couldn't load the record
+    | 'offline' // couldn't load the record — device appears offline
+    | 'error' // couldn't load the record — server rejected the request (e.g. App Check)
     | 'expired'
     | 'updateRequired'
     | 'intro' // VS card before play
     | 'playing'
     | 'submitting'
-    | 'submitOffline' // run finished but the write failed; result held for retry
+    | 'submitOffline' // run finished but the write failed (offline); result held for retry
+    | 'submitError' // run finished but the write was rejected; result held for retry
     | 'results';
 
 /**
@@ -88,8 +90,8 @@ export function ChallengeScreen() {
                 setAttempts(rankEntries(all));
                 setMyTimestamp(mine);
                 setPhase('results');
-            } catch {
-                setPhase('offline');
+            } catch (err) {
+                setPhase(err instanceof BlockedError ? 'error' : 'offline');
             }
         },
         [challengeId],
@@ -137,8 +139,8 @@ export function ChallengeScreen() {
                 return;
             }
             setPhase('intro');
-        } catch {
-            setPhase('offline');
+        } catch (err) {
+            setPhase(err instanceof BlockedError ? 'error' : 'offline');
         }
     }, [challengeId, deviceId, showResults]);
 
@@ -171,8 +173,8 @@ export function ChallengeScreen() {
                     void pushRanking(record.game, result.score, attempt.nickname);
                 }
                 await showResults(attempt.timestamp);
-            } catch {
-                setPhase('submitOffline');
+            } catch (err) {
+                setPhase(err instanceof BlockedError ? 'submitError' : 'submitOffline');
             }
         },
         [challengeId, deviceId, record, showResults],
@@ -246,6 +248,17 @@ export function ChallengeScreen() {
                         onSecondary={exit}
                         secondaryLabel={t('common.home')}
                     />
+                ) : phase === 'error' || phase === 'submitError' ? (
+                    <MessageCard
+                        title={t('challenge.errorTitle')}
+                        body={t(phase === 'error' ? 'challenge.errorDesc' : 'challenge.submitError')}
+                        actionLabel={t('challenge.retry')}
+                        onAction={() =>
+                            phase === 'submitError' && pendingResult.current ? submit(pendingResult.current) : load()
+                        }
+                        onSecondary={exit}
+                        secondaryLabel={t('common.home')}
+                    />
                 ) : phase === 'expired' ? (
                     <MessageCard
                         title={t('challenge.expired')}
@@ -261,19 +274,21 @@ export function ChallengeScreen() {
                         onAction={exit}
                     />
                 ) : phase === 'intro' && record ? (
-                    <IntroCard
-                        record={record}
-                        isCreator={record.createdBy.uuid === deviceId}
-                        nickname={nickname}
-                        onChangeNickname={(value) => {
-                            setNickname(value);
-                            setNicknameError(null);
-                        }}
-                        nicknameError={nicknameError}
-                        onStart={startPlay}
-                        onHome={exit}
-                        t={t}
-                    />
+                    <KeyboardAvoidingView behavior='padding' style={styles.keyboardAvoider}>
+                        <IntroCard
+                            record={record}
+                            isCreator={record.createdBy.uuid === deviceId}
+                            nickname={nickname}
+                            onChangeNickname={(value) => {
+                                setNickname(value);
+                                setNicknameError(null);
+                            }}
+                            nicknameError={nicknameError}
+                            onStart={startPlay}
+                            onHome={exit}
+                            t={t}
+                        />
+                    </KeyboardAvoidingView>
                 ) : phase === 'results' && record ? (
                     <ResultsCard
                         record={record}
@@ -610,6 +625,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 24,
+    },
+    keyboardAvoider: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'center',
     },
     card: {
         width: '100%',

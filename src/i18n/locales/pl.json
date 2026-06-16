@@ -20,6 +20,9 @@
         "submitFailed": "Nie udało się zapisać wyniku — wygląda na to, że jesteś offline.",
         "offline": "Jesteś offline",
         "offlineDesc": "Połącz się z internetem, aby wczytać to wyzwanie.",
+        "errorTitle": "Coś poszło nie tak",
+        "errorDesc": "Nie udało się połączyć z usługą wyzwań. Spróbuj ponownie później.",
+        "submitError": "Nie udało się teraz zapisać Twojego wyniku. Spróbuj ponownie.",
         "retry": "Spróbuj ponownie",
         "expired": "Wyzwanie wygasło",
         "expiredDesc": "Ten link do wyzwania wygasł. Utwórz nowe!",
@@ -360,6 +363,8 @@
         "connectivityNote": "Bądź online podczas grania wyzwania, aby Twój wynik zapisał się w rankingu.",
         "offline": "Jesteś offline",
         "offlineDesc": "Połącz się z internetem, aby zobaczyć rankingi.",
+        "error": "Nie udało się wczytać rankingów",
+        "errorDesc": "Coś poszło nie tak podczas łączenia z rankingami. Spróbuj ponownie później.",
         "loadRetry": "Ponów"
     },
     "game": {

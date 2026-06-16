@@ -1,36 +1,27 @@
 // Wire + on-device types for the Async Challenge (ADR-0003). A challenge is one
 // Firestore document holding a frozen round; each participant's result is a
-// `c/{id}/attempts/{uuid}` doc. The record embeds every question's payload in
-// all locales so any opponent can play regardless of which premium packs they
-// own, and in their own device language.
+// `c/{id}/attempts/{uuid}` doc. The record pins only the question *ids* — every
+// pack's content ships bundled on every device (owned or not), so each opponent
+// resolves those ids against its own on-device content, in its own language, and
+// shuffles the options locally. An id this app doesn't have yet (a pack added in
+// a newer app version) is the signal to prompt an update — see `resolve.ts`.
 
 import type { LeaderboardEntry } from '../leaderboard';
-
-/** Bump when the record shape changes incompatibly. Stored on every record. */
-export const SCHEMA_VERSION = 1;
-
-/**
- * Oldest app version that can safely open a `SCHEMA_VERSION` record. An app
- * older than this shows "Update to take this challenge" instead of crashing.
- * Bump together with `SCHEMA_VERSION` when a change needs a newer app.
- */
-export const MIN_APP_VERSION = '0.9.0';
 
 /** A challenge link is valid for this long after creation; Firestore TTL prunes it. */
 export const CHALLENGE_TTL_DAYS = 30;
 
-/** Supported authoring/play locales. The record embeds a payload per locale. */
+/** Supported authoring/play locales. */
 export type ChallengeLocale = 'en' | 'pl';
 
 /**
- * One frozen question: a stable `id` plus its fully-resolved payload in every
- * locale. `byLocale` carries whatever runtime shape the owning game plays
- * (Ladder question, Drop question, Wheel puzzle), so the player's device can
- * render it without owning the source pack.
+ * One frozen question, referenced by stable `id` and resolved against on-device
+ * content at play time. `alternates` pins The Ladder's Skip-lifeline targets for
+ * the rung; other games omit it.
  */
-export interface ChallengeQuestion<TPayload = unknown> {
+export interface ChallengeQuestion {
     id: string;
-    byLocale: Record<ChallengeLocale, TPayload>;
+    alternates?: string[];
 }
 
 /** Who created the challenge — attribution only, never used for auth. */
@@ -44,15 +35,11 @@ export interface ChallengeCreator {
  * security rules).
  */
 export interface ChallengeRecord {
-    schemaVersion: number;
-    minAppVersion: string;
-    /** App version that authored the record (diagnostics only). */
-    appVersion: string;
-    /** Authoring language — the fallback when a player's locale isn't embedded. */
+    /** Authoring language — the fallback when a player's locale isn't 'en'/'pl'. */
     lang: ChallengeLocale;
     /** Game id, e.g. `the-ladder` / `the-drop` / `the-wheel`. */
     game: string;
-    /** Ordered, frozen run. */
+    /** Ordered, frozen run — question ids resolved on-device at play time. */
     questions: ChallengeQuestion[];
     createdBy: ChallengeCreator;
     /** Epoch ms; Firestore TTL deletes the doc at this time. */

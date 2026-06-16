@@ -45,6 +45,15 @@ export function getPackContent<TCard>(packId: string, locale: string): TCard[] {
 }
 
 /**
+ * Every pack id for a game, owned or not. Used to resolve an Async Challenge's
+ * frozen question ids: all packs ship bundled on-device, so a challenge can pin
+ * a premium pack's question even for a player who hasn't bought it.
+ */
+export function getGamePackIds(gameId: string): string[] {
+    return STORE_CATALOG.filter((entry) => entry.kind === 'pack' && entry.gameId === gameId).map((entry) => entry.id);
+}
+
+/**
  * The pack ids a player can actually use for a game: free packs plus owned
  * premium packs. This is what the `all` category selector expands to.
  */

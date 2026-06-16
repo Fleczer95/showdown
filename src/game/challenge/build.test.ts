@@ -1,11 +1,11 @@
-// The challenge builder freezes a self-contained, bilingual round (ADR-0003).
-// These tests pin the invariants an opponent's device depends on: every question
-// carries both locales, the run is the game's normal length, and — the subtle
-// one — the en/pl option arrays stay *paired* through the option shuffle, so a
-// player in either language faces the same board with the same correct answer.
+// The challenge builder freezes an id-only round (ADR-0003): every device has
+// all pack content bundled, so the record pins just the question ids and each
+// opponent resolves them locally. These tests pin the invariants the resolver
+// depends on: the run is the game's normal length, ids are distinct where the
+// game requires it, and The Ladder carries its Skip alternates as ids.
 
-import { buildChallenge, type DropQuestionPayload, type LadderRungPayload, type WheelPuzzlePayload } from './build';
-import { CHALLENGE_TTL_DAYS, MIN_APP_VERSION, SCHEMA_VERSION, type ChallengeQuestion } from './types';
+import { buildChallenge } from './build';
+import { CHALLENGE_TTL_DAYS, type ChallengeQuestion } from './types';
 import { dropQuestions } from '../drop/content';
 import { RUN_LENGTH } from '../ladder/logic';
 import { TOTAL_ROUNDS } from '../drop/logic';
@@ -19,7 +19,6 @@ function build(gameId: string) {
         history: {},
         ownedIds: new Set<string>(),
         createdBy: { uuid: 'u1', nickname: 'Ada' },
-        appVersion: '0.9.0',
         lang: 'en',
         // Fixed rng + clock keep the build deterministic and the clock assertable.
         rng: () => 0.42,
@@ -27,19 +26,17 @@ function build(gameId: string) {
     });
 }
 
-/** Every frozen question must embed both locales — the self-containment guarantee. */
-function expectBothLocales(questions: ChallengeQuestion[]) {
+/** Every frozen question must carry a non-empty id — the resolver's only handle. */
+function expectIds(questions: ChallengeQuestion[]) {
     for (const q of questions) {
-        expect(Object.keys(q.byLocale).sort()).toEqual(['en', 'pl']);
+        expect(typeof q.id).toBe('string');
+        expect(q.id.length).toBeGreaterThan(0);
     }
 }
 
 describe('buildChallenge metadata', () => {
-    it('stamps versions, attribution and a 30-day expiry', () => {
+    it('stamps the authoring language, attribution and a 30-day expiry', () => {
         const record = build('the-drop');
-        expect(record.schemaVersion).toBe(SCHEMA_VERSION);
-        expect(record.minAppVersion).toBe(MIN_APP_VERSION);
-        expect(record.appVersion).toBe('0.9.0');
         expect(record.lang).toBe('en');
         expect(record.game).toBe('the-drop');
         expect(record.createdBy).toEqual({ uuid: 'u1', nickname: 'Ada' });
@@ -52,11 +49,11 @@ describe('buildChallenge metadata', () => {
 });
 
 describe('the-ladder freeze', () => {
-    const questions = build('the-ladder').questions as ChallengeQuestion<LadderRungPayload>[];
+    const questions = build('the-ladder').questions;
 
-    it('freezes one rung per run step, each with both locales', () => {
+    it('freezes one rung per run step, each with a question id', () => {
         expect(questions).toHaveLength(RUN_LENGTH);
-        expectBothLocales(questions);
+        expectIds(questions);
     });
 
     it('uses a distinct current question per rung', () => {
@@ -64,68 +61,33 @@ describe('the-ladder freeze', () => {
         expect(new Set(ids).size).toBe(RUN_LENGTH);
     });
 
-    it('keeps each rung play-ready and capped to 2 Skip alternates per locale', () => {
+    it('pins up to 2 Skip alternates per rung as ids', () => {
         for (const q of questions) {
-            for (const locale of ['en', 'pl'] as const) {
-                const rung = q.byLocale[locale];
-                expect(rung.current.id).toBe(q.id);
-                expect(rung.current.options).toHaveLength(4);
-                expect(rung.current.correctIndex).toBeGreaterThanOrEqual(0);
-                expect(rung.current.correctIndex).toBeLessThan(4);
-                expect(rung.alternates.length).toBeLessThanOrEqual(2);
-                expect(rung.current.prompt.length).toBeGreaterThan(0);
-            }
-            // en/pl describe the same structural rung: same ids, same answer slot.
-            expect(q.byLocale.en.current.correctIndex).toBe(q.byLocale.pl.current.correctIndex);
-            expect(q.byLocale.en.alternates.map((a) => a.id)).toEqual(q.byLocale.pl.alternates.map((a) => a.id));
+            expect(Array.isArray(q.alternates)).toBe(true);
+            expect(q.alternates!.length).toBeLessThanOrEqual(2);
+            for (const id of q.alternates!) expect(typeof id).toBe('string');
         }
     });
 });
 
 describe('the-drop freeze', () => {
-    const questions = build('the-drop').questions as ChallengeQuestion<DropQuestionPayload>[];
+    const questions = build('the-drop').questions;
 
-    it('freezes TOTAL_ROUNDS questions with both locales', () => {
+    it('freezes TOTAL_ROUNDS real question ids', () => {
         expect(questions).toHaveLength(TOTAL_ROUNDS);
-        expectBothLocales(questions);
-    });
-
-    it('keeps en/pl options paired through the shuffle and points correctIndex at the true value', () => {
+        expectIds(questions);
         for (const q of questions) {
-            const source = dropQuestions.find((d) => d.id === q.id);
-            expect(source).toBeDefined();
-            const { en, pl } = q.byLocale;
-            expect(en.options).toHaveLength(4);
-            expect(pl.options).toHaveLength(4);
-            // Each shuffled (en, pl) slot must be a genuine source pair — proof the
-            // two locales were permuted together, not independently.
-            for (let k = 0; k < 4; k++) {
-                const pair = source!.options.find((o) => o.en === en.options[k] && o.pl === pl.options[k]);
-                expect(pair).toBeDefined();
-            }
-            // The frozen correctIndex names the true statistic in both locales.
-            expect(en.options[en.correctIndex]).toBe(source!.options[source!.correctIndex].en);
-            expect(pl.options[pl.correctIndex]).toBe(source!.options[source!.correctIndex].pl);
+            expect(dropQuestions.find((d) => d.id === q.id)).toBeDefined();
         }
     });
 });
 
 describe('the-wheel freeze', () => {
-    const questions = build('the-wheel').questions as ChallengeQuestion<WheelPuzzlePayload>[];
+    const questions = build('the-wheel').questions;
 
-    it('freezes TOTAL_PUZZLES distinct puzzles with both locales', () => {
+    it('freezes TOTAL_PUZZLES distinct puzzle ids', () => {
         expect(questions).toHaveLength(TOTAL_PUZZLES);
-        expectBothLocales(questions);
+        expectIds(questions);
         expect(new Set(questions.map((q) => q.id)).size).toBe(TOTAL_PUZZLES);
-    });
-
-    it('carries a non-empty phrase + category in each locale', () => {
-        for (const q of questions) {
-            for (const locale of ['en', 'pl'] as const) {
-                expect(q.byLocale[locale].id).toBe(q.id);
-                expect(q.byLocale[locale].phrase.length).toBeGreaterThan(0);
-                expect(q.byLocale[locale].category.length).toBeGreaterThan(0);
-            }
-        }
     });
 });

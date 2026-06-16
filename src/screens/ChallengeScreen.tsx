@@ -16,7 +16,6 @@ import Input from '../components/molecules/Input';
 import { useTheme } from '../theme';
 import { resolveAccent, readableOn, hexToRgba, darken } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
-import { APP_VERSION } from '../utils/version';
 import { games } from '../data/games';
 import { useStore } from '../hooks/store/useStore';
 import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
@@ -27,6 +26,7 @@ import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
 import { pushRanking } from '../game/ranking/push';
 import {
     gateChallenge,
+    missingContentIds,
     ladderRunFromRecord,
     dropStateFromRecord,
     wheelGameFromRecord,
@@ -107,11 +107,11 @@ export function ChallengeScreen() {
             }
             setRecord(rec);
             SafeAnalytics.logEvent({ name: 'challenge_opened', params: { game: rec.game } });
-            const gate = gateChallenge(rec, APP_VERSION, Date.now());
-            if (gate === 'updateRequired') {
-                // Don't index a challenge this app can't open — it would surface as
-                // a playable "your turn" row in history. Reopening the link after an
-                // update records it with a correct, actionable status.
+            if (missingContentIds(rec).length > 0) {
+                // A question id this app doesn't have yet — a pack added in a newer
+                // app version. Don't index a challenge this app can't open (it would
+                // surface as a playable "your turn" row in history); reopening the
+                // link after an update records it with a correct, actionable status.
                 SafeAnalytics.logEvent({ name: 'challenge_update_required', params: { game: rec.game } });
                 setPhase('updateRequired');
                 return;
@@ -127,7 +127,7 @@ export function ChallengeScreen() {
                 played: false,
                 expiresAt: rec.expiresAt,
             });
-            if (gate === 'expired') {
+            if (gateChallenge(rec, Date.now()) === 'expired') {
                 setPhase('expired');
                 return;
             }

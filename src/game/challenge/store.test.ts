@@ -25,12 +25,9 @@ jest.mock('@react-native-firebase/firestore', () => {
 });
 
 import { createChallenge, getChallenge, submitAttempt, getAttempts, OfflineError } from './store';
-import { SCHEMA_VERSION, MIN_APP_VERSION, type ChallengeRecord, type Attempt } from './types';
+import { type ChallengeRecord, type Attempt } from './types';
 
 const record: ChallengeRecord = {
-    schemaVersion: SCHEMA_VERSION,
-    minAppVersion: MIN_APP_VERSION,
-    appVersion: '0.9.0',
     lang: 'en',
     game: 'the-ladder',
     questions: [],

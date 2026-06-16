@@ -1,86 +1,171 @@
-// Read side of the Async Challenge (ADR-0003): turn a frozen `ChallengeRecord`
-// back into each game's native runtime state so its existing play screen can run
-// the round unchanged, plus the pure gates the Challenge screen branches on.
+// Read side of the Async Challenge (ADR-0003): resolve a record's frozen question
+// ids against this device's on-device content (free bank + every pack, owned or
+// not — all packs ship in the app) and rebuild each game's native runtime state
+// so its existing play screen runs the round unchanged. Options are shuffled
+// locally per device, so two opponents face the same *questions* but not
+// necessarily the same option order. An id this app doesn't have — a pack added
+// in a newer app version — is the signal to prompt an update (`missingContentIds`).
 
 import type { DropQuestion, DropState } from '../drop/logic';
 import { STARTING_BANK } from '../drop/logic';
-import type { LadderRun } from '../ladder/logic';
+import type { LadderQuestion, LadderRun } from '../ladder/logic';
 import type { GameState, PuzzleContent } from '../wheel/logic';
 import { createGame } from '../wheel/logic';
+import type { LadderPackCard } from '../ladder/buildRuns';
 import { RUNGS } from '../ladder/content';
-import { dropQuestions } from '../drop/content';
+import { dropQuestions, zipDropCard, type DropPackCard } from '../drop/content';
 import { getPack } from '../wheel/content';
-import { getPackContent, getPlayablePackIds } from '../../data/store/catalog';
-import type { DropQuestionPayload, LadderRungPayload, WheelPuzzlePayload } from './build';
-import { SCHEMA_VERSION, type ChallengeLocale, type ChallengeRecord } from './types';
+import { getPackContent, getGamePackIds, getPlayablePackIds } from '../../data/store/catalog';
+import { type ChallengeLocale, type ChallengeRecord } from './types';
 
-/** Resolve a question's payload for the device locale, falling back to the authoring language. */
-function forLocale<T>(byLocale: Record<ChallengeLocale, T>, locale: ChallengeLocale, lang: ChallengeLocale): T {
-    return byLocale[locale] ?? byLocale[lang];
+/** Device locale narrowed to an embedded one, falling back to the record's authoring lang. */
+function playLocale(record: ChallengeRecord, locale: ChallengeLocale): ChallengeLocale {
+    return locale === 'en' || locale === 'pl' ? locale : record.lang;
 }
 
-/** Rebuild The Ladder's run: the frozen rungs in order, ready to climb from the bottom. */
+/** Fisher–Yates shuffle returning a new array. */
+function shuffle<T>(items: T[]): T[] {
+    const out = items.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+}
+
+/** Shuffle one question's options and re-point its correctIndex (identity-based, so option pairs survive). */
+function shuffleOptions<TOption, TQuestion extends { options: TOption[]; correctIndex: number }>(
+    q: TQuestion,
+): TQuestion {
+    const correct = q.options[q.correctIndex];
+    const options = shuffle(q.options);
+    return { ...q, options, correctIndex: options.indexOf(correct) };
+}
+
+// --- On-device content indexes (ownership-independent) ----------------------
+
+/** id → localized Ladder question, across the free bank and every ladder pack. */
+function ladderIndex(locale: ChallengeLocale): Map<string, LadderQuestion> {
+    const idx = new Map<string, LadderQuestion>();
+    for (const rung of RUNGS) {
+        for (const q of rung) {
+            idx.set(q.id, {
+                id: q.id,
+                prompt: q.question[locale],
+                options: q.options.map((o) => o[locale]),
+                correctIndex: q.correctIndex,
+                hint: q.hint[locale],
+            });
+        }
+    }
+    for (const packId of getGamePackIds('the-ladder')) {
+        for (const card of getPackContent<LadderPackCard>(packId, locale)) {
+            idx.set(card.id, {
+                id: card.id,
+                prompt: card.prompt,
+                options: card.options,
+                correctIndex: card.correctIndex,
+                hint: card.hint,
+            });
+        }
+    }
+    return idx;
+}
+
+/** id → bilingual Drop question (The Drop localizes at render time, so keep both locales). */
+function dropIndex(): Map<string, DropQuestion> {
+    const idx = new Map<string, DropQuestion>();
+    for (const q of dropQuestions) idx.set(q.id, q);
+    for (const packId of getGamePackIds('the-drop')) {
+        const en = getPackContent<DropPackCard>(packId, 'en');
+        const pl = getPackContent<DropPackCard>(packId, 'pl');
+        if (en.length !== pl.length) continue;
+        en.forEach((card, i) => idx.set(card.id, zipDropCard(card, pl[i])));
+    }
+    return idx;
+}
+
+/** id → localized Wheel puzzle, across the free bank and every wheel pack. */
+function wheelIndex(locale: ChallengeLocale): Map<string, PuzzleContent> {
+    const idx = new Map<string, PuzzleContent>();
+    for (const p of getPack('all').puzzles) {
+        idx.set(p.id, { id: p.id, phrase: p.phrase[locale], category: p.category[locale] });
+    }
+    for (const packId of getGamePackIds('the-wheel')) {
+        for (const p of getPackContent<PuzzleContent>(packId, locale)) idx.set(p.id, p);
+    }
+    return idx;
+}
+
+/** Look up an id, throwing when the device lacks the content (guarded upstream by `missingContentIds`). */
+function lookup<T>(idx: Map<string, T>, id: string): T {
+    const found = idx.get(id);
+    if (!found) throw new Error(`Challenge references unknown question id "${id}".`);
+    return found;
+}
+
+// --- Resolvers --------------------------------------------------------------
+
+/** Rebuild The Ladder's run: each pinned rung plus its Skip alternates, options shuffled locally. */
 export function ladderRunFromRecord(record: ChallengeRecord, locale: ChallengeLocale): LadderRun {
-    const rungs = record.questions.map((q) => {
-        const payload = forLocale(q.byLocale as Record<ChallengeLocale, LadderRungPayload>, locale, record.lang);
-        return { current: payload.current, alternates: payload.alternates };
-    });
+    const idx = ladderIndex(playLocale(record, locale));
+    const rungs = record.questions.map((q) => ({
+        current: shuffleOptions(lookup(idx, q.id)),
+        alternates: (q.alternates ?? []).map((id) => shuffleOptions(lookup(idx, id))),
+    }));
     return { rungs, currentIndex: 0, usedLifelines: [], status: 'active' };
 }
 
-/**
- * Rebuild The Drop's state. The Drop plays bilingual questions (it localizes at
- * render time), so reconstruct the bilingual shape by zipping the frozen en/pl
- * payloads — locale is irrelevant here.
- */
+/** Rebuild The Drop's state from the pinned bilingual questions, options shuffled locally. */
 export function dropStateFromRecord(record: ChallengeRecord): DropState {
-    const questions: DropQuestion[] = record.questions.map((q) => {
-        const byLocale = q.byLocale as Record<ChallengeLocale, DropQuestionPayload>;
-        const { en, pl } = byLocale;
-        return {
-            id: en.id,
-            prompt: { en: en.prompt, pl: pl.prompt },
-            options: en.options.map((o, i) => ({ en: o, pl: pl.options[i] })),
-            correctIndex: en.correctIndex,
-        };
-    });
+    const idx = dropIndex();
+    const questions = record.questions.map((q) => shuffleOptions(lookup(idx, q.id)));
     return { bank: STARTING_BANK, round: 0, status: 'active', questions };
 }
 
-/** Rebuild The Wheel's game from the frozen puzzles in the device locale. */
+/** Rebuild The Wheel's game from the pinned puzzles in the device locale. */
 export function wheelGameFromRecord(record: ChallengeRecord, locale: ChallengeLocale): GameState {
-    const puzzles: PuzzleContent[] = record.questions.map((q) =>
-        forLocale(q.byLocale as Record<ChallengeLocale, WheelPuzzlePayload>, locale, record.lang),
-    );
+    const idx = wheelIndex(playLocale(record, locale));
+    const puzzles = record.questions.map((q) => lookup(idx, q.id));
     return createGame(puzzles);
 }
 
 // --- Gates ------------------------------------------------------------------
 
-/** Compare dotted numeric versions: <0 if a<b, 0 if equal, >0 if a>b. Non-numeric parts count as 0. */
-export function compareVersions(a: string, b: string): number {
-    const pa = a.split('.');
-    const pb = b.split('.');
-    const len = Math.max(pa.length, pb.length);
-    for (let i = 0; i < len; i++) {
-        const diff = (parseInt(pa[i], 10) || 0) - (parseInt(pb[i], 10) || 0);
-        if (diff !== 0) return diff < 0 ? -1 : 1;
-    }
-    return 0;
+export type ChallengeGate = 'ok' | 'expired';
+
+/** A stale link whose `expiresAt` slipped past the server TTL is expired; otherwise playable. */
+export function gateChallenge(record: ChallengeRecord, nowMs: number): ChallengeGate {
+    return record.expiresAt <= nowMs ? 'expired' : 'ok';
 }
 
-export type ChallengeGate = 'ok' | 'expired' | 'updateRequired';
+/** The on-device content index for a game's membership checks; empty for an unknown game. */
+function contentIds(game: string, locale: ChallengeLocale): Set<string> {
+    switch (game) {
+        case 'the-ladder':
+            return new Set(ladderIndex(locale).keys());
+        case 'the-drop':
+            return new Set(dropIndex().keys());
+        case 'the-wheel':
+            return new Set(wheelIndex(locale).keys());
+        default:
+            return new Set();
+    }
+}
 
 /**
- * Decide whether this app can open a record: an elapsed `expiresAt` is expired
- * (a stale link that slipped past the server TTL), a newer `schemaVersion` or an
- * app older than `minAppVersion` needs an update, otherwise it's playable.
+ * Question ids this record references that this device can't resolve — pinned
+ * questions (and Ladder Skip alternates) from a pack the app doesn't have yet.
+ * A non-empty result means the player must update before they can play.
  */
-export function gateChallenge(record: ChallengeRecord, appVersion: string, nowMs: number): ChallengeGate {
-    if (record.expiresAt <= nowMs) return 'expired';
-    if (record.schemaVersion > SCHEMA_VERSION) return 'updateRequired';
-    if (compareVersions(appVersion, record.minAppVersion) < 0) return 'updateRequired';
-    return 'ok';
+export function missingContentIds(record: ChallengeRecord): string[] {
+    const known = contentIds(record.game, record.lang);
+    const missing: string[] = [];
+    for (const q of record.questions) {
+        if (!known.has(q.id)) missing.push(q.id);
+        for (const id of q.alternates ?? []) if (!known.has(id)) missing.push(id);
+    }
+    return missing;
 }
 
 /**

@@ -31,7 +31,6 @@ import { SafeAnalytics } from '../utils/firebase/init';
 import { getHistory } from '../game/history';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
-import { APP_VERSION } from '../utils/version';
 import type { RootStackParamList } from '../navigation/types';
 
 /**
@@ -93,7 +92,6 @@ export function GameSetupScreen() {
                     history: getHistory(game.id),
                     ownedIds: new Set(purchasedItemIds),
                     createdBy: { uuid: getDeviceId(), nickname: nick },
-                    appVersion: APP_VERSION,
                     lang: locale === 'pl' ? 'pl' : 'en',
                 });
                 id = newChallengeId();

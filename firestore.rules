@@ -11,11 +11,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isValidChallenge(d) {
-      return d.keys().hasOnly(['schemaVersion', 'minAppVersion', 'appVersion', 'lang',
-                               'game', 'questions', 'createdBy', 'expiresAt'])
-        && d.schemaVersion is int
-        && d.minAppVersion is string && d.minAppVersion.size() <= 16
-        && d.appVersion is string && d.appVersion.size() <= 16
+      return d.keys().hasOnly(['lang', 'game', 'questions', 'createdBy', 'expiresAt'])
         && d.lang in ['en', 'pl']
         && d.game is string && d.game.size() <= 40
         && d.questions is list && d.questions.size() > 0 && d.questions.size() <= 50

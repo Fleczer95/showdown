@@ -171,79 +171,55 @@ type LocaleSlides = Record<string, SlideConfig>;
 
 const SLIDES: Record<string, LocaleSlides> = {
   en: {
-    "01_home_screen": {
-      label: "7 GAMES IN ONE",
-      head: ["7 Games", "One Phone", "No Wi-Fi"],
+    home: {
+      label: "CHALLENGE YOUR FRIENDS",
+      head: ["3 Game Shows", "One Phone", "Beat Your Friends"],
       variant: "hero",
       accent: THEME.accent,
     },
-    "02_forbidden_words": {
-      label: "FORBIDDEN WORDS",
-      head: ["Two Teams", "One Word", "No Hints"],
+    ladder: {
+      label: "THE LADDER",
+      head: ["Climb The", "15-Question", "Trivia Ladder"],
       variant: "centered",
       accent: THEME.accent,
     },
-    "03_forbidden_words_game": {
-      label: "FORBIDDEN WORDS",
-      head: ["Describe It", "Without The", "Banned Words"],
-      variant: "centered",
-      accent: THEME.accent,
-    },
-    "04_who_am_i_game": {
-      label: "WHO AM I?",
-      head: ["Ask Yes Or No", "Until You", "Guess Who"],
-      variant: "centered",
-      accent: THEME.accentCool,
-    },
-    "05_5_seconds_game": {
-      label: "5 SECONDS",
-      head: ["Name 3 Things", "In Just", "5 Seconds"],
+    drop: {
+      label: "THE DROP",
+      head: ["Risk Your", "Million On", "Every Answer"],
       variant: "centered",
       accent: THEME.accentWarm,
     },
-    "06_settings": {
-      label: "MADE FOR EVERYONE",
-      head: ["Family Friendly", "Works Offline", "No Accounts"],
+    wheel: {
+      label: "THE WHEEL",
+      head: ["Spin, Guess", "And Solve", "The Puzzle"],
       variant: "centered",
-      accent: THEME.accentGreen,
+      accent: THEME.accentCool,
     },
   },
   pl: {
-    "01_home_screen": {
-      label: "7 GIER W JEDNYM",
-      head: ["7 Gier", "Jeden Telefon", "Bez Wi-Fi"],
+    home: {
+      label: "RZUĆ WYZWANIE ZNAJOMYM",
+      head: ["3 Teleturnieje", "Jeden Telefon", "Pokonaj Znajomych"],
       variant: "hero",
       accent: THEME.accent,
     },
-    "02_forbidden_words": {
-      label: "ZAKAZANE SŁOWA",
-      head: ["Dwie Drużyny", "Jedno Słowo", "Bez Podpowiedzi"],
+    ladder: {
+      label: "DRABINA",
+      head: ["Wespnij Się", "Po Drabinie", "15 Pytań"],
       variant: "centered",
       accent: THEME.accent,
     },
-    "03_forbidden_words_game": {
-      label: "ZAKAZANE SŁOWA",
-      head: ["Opisz Hasło", "Bez Słów", "Zakazanych"],
-      variant: "centered",
-      accent: THEME.accent,
-    },
-    "04_who_am_i_game": {
-      label: "KIM JESTEM",
-      head: ["Pytaj Tak Lub Nie", "Aż", "Zgadniesz"],
-      variant: "centered",
-      accent: THEME.accentCool,
-    },
-    "05_5_seconds_game": {
-      label: "5 SEKUND",
-      head: ["Wymień 3 Rzeczy", "W Zaledwie", "5 Sekund"],
+    drop: {
+      label: "ZRZUT",
+      head: ["Zaryzykuj", "Milion Przy", "Każdej Odpowiedzi"],
       variant: "centered",
       accent: THEME.accentWarm,
     },
-    "06_settings": {
-      label: "DLA KAŻDEGO",
-      head: ["Bezpieczna", "Działa Offline", "Bez Kont"],
+    wheel: {
+      label: "KOŁO",
+      head: ["Kręć i Zgaduj", "Rozwiąż", "Hasło"],
       variant: "centered",
-      accent: THEME.accentGreen,
+      accent: THEME.accentCool,
     },
   },
 };

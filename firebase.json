@@ -1,4 +1,7 @@
 {
+  "react-native": {
+    "google_analytics_adid_collection_enabled": false
+  },
   "firestore": {
     "database": "(default)",
     "location": "eur3",

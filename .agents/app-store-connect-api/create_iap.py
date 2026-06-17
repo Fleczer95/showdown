@@ -33,6 +33,10 @@ PRODUCTS = [
     {"sku": "com.showdown.pack_ladder_ancient_history", "name": "Ancient History", "desc": "300 ancient history questions for The Ladder", "price": "2.49", "enabled": False},
     {"sku": "com.showdown.pack_drop_world_geography", "name": "World Geography", "desc": "180 world geography questions for The Drop", "price": "1.99", "enabled": False},
     {"sku": "com.showdown.pack_wheel_world_cuisine", "name": "World Cuisine", "desc": "60 world cuisine puzzles for The Wheel", "price": "1.99", "enabled": False},
+    # Cosmetic themes. Apple has no $2.50 tier, so the $2.50 themes use $2.49 on iOS.
+    {"sku": "com.showdown.theme_cyberpunk", "name": "Cyberpunk", "desc": "Neon cyan theme for late-night game night", "price": "2.49", "enabled": True},
+    {"sku": "com.showdown.theme_ocean", "name": "Ocean Breeze", "desc": "Cool deep-sea theme with aqua highlights", "price": "2.49", "enabled": True},
+    {"sku": "com.showdown.theme_forest", "name": "Enchanted Forest", "desc": "Woodland greens for a calm game night", "price": "3.00", "enabled": True},
 ]
 
 # Obsolete SKUs to delete on next run. Add product IDs here when a pack is removed

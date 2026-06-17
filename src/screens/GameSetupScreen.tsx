@@ -42,6 +42,122 @@ import type { RootStackParamList } from '../navigation/types';
 // premature noise (see `poolCoverage` / `deck.ts`).
 const POOL_NUDGE_THRESHOLD = 0.8;
 
+/** The dashed "How to play" rules card. */
+function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
+    const theme = useTheme();
+    const { t } = useTranslation();
+    return (
+        <Card
+            variant='outlined'
+            padding='lg'
+            gap='md'
+            style={[
+                styles.rulesCard,
+                {
+                    marginTop: theme.spacing.sm,
+                    borderColor: hexToRgba(accent, 0.5),
+                    shadowColor: accent,
+                    shadowOpacity: 0.25,
+                    shadowRadius: 16,
+                    shadowOffset: { width: 0, height: 6 },
+                    elevation: 6,
+                },
+            ]}
+        >
+            <Stack direction='horizontal' gap='sm' align='center'>
+                <View style={[styles.dot, { backgroundColor: accent }]} />
+                <Text variant='overline' color={accent} weight='bold'>
+                    {t('common.how_to_play')}
+                </Text>
+            </Stack>
+            <Text variant='body' color='textSecondary' style={styles.rulesText}>
+                {t(`game.${gameId}.rules`)}
+            </Text>
+        </Card>
+    );
+}
+
+interface QuestionPoolCardProps {
+    accent: string;
+    /** Distinct questions the player has seen out of the rotatable pool. */
+    seen: number;
+    total: number;
+    /** Pool is near exhaustion: switch to the accented "repeats ahead" nudge. */
+    escalated: boolean;
+    /** Whether this game still has a pack to buy — gates the CTA. */
+    buyable: boolean;
+    onGetMore: () => void;
+}
+
+/**
+ * The question-pool meter. Quiet tally while the deck still has unseen questions;
+ * past the escalation threshold it accents and surfaces a "get more packs" CTA so
+ * the player can refill the pool before repeats set in. Renders nothing for an
+ * empty pool.
+ */
+function QuestionPoolCard({ accent, seen, total, escalated, buyable, onGetMore }: QuestionPoolCardProps) {
+    const theme = useTheme();
+    const { t } = useTranslation();
+    if (total <= 0) return null;
+
+    const ratio = seen / total;
+    const exhausted = seen >= total;
+    const showCta = escalated && buyable;
+
+    return (
+        <Card
+            variant='outlined'
+            padding='lg'
+            gap='md'
+            style={
+                escalated
+                    ? {
+                          borderColor: hexToRgba(accent, 0.6),
+                          shadowColor: accent,
+                          shadowOpacity: 0.22,
+                          shadowRadius: 16,
+                          shadowOffset: { width: 0, height: 6 },
+                          elevation: 6,
+                      }
+                    : undefined
+            }
+        >
+            <Stack direction='horizontal' gap='sm' align='center' justify='between'>
+                <Stack direction='horizontal' gap='sm' align='center'>
+                    <View style={[styles.dot, { backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
+                    <Text variant='overline' color={escalated ? accent : 'textMuted'} weight='bold'>
+                        {t('screen.gameSetup.pool.title')}
+                    </Text>
+                </Stack>
+                <Text variant='caption' weight='bold' color={escalated ? accent : 'textSecondary'}>
+                    {t('screen.gameSetup.pool.count', { seen, total })}
+                </Text>
+            </Stack>
+            <ProgressBar progress={ratio} color={escalated ? accent : theme.colors.textSecondary} />
+            <Text variant='caption' color={escalated ? accent : 'textMuted'}>
+                {escalated
+                    ? t(exhausted ? 'screen.gameSetup.pool.exhausted' : 'screen.gameSetup.pool.low')
+                    : t('screen.gameSetup.pool.seenLabel')}
+            </Text>
+            {showCta && (
+                <Button
+                    fullWidth
+                    onPress={onGetMore}
+                    style={{
+                        backgroundColor: blend(accent, theme.colors.background, 0.22),
+                        borderColor: accent,
+                        borderWidth: 1.5,
+                    }}
+                    textColor={accent}
+                    icon={<Sparkles size={18} color={accent} />}
+                >
+                    {t('screen.gameSetup.pool.getMore')}
+                </Button>
+            )}
+        </Card>
+    );
+}
+
 /**
  * Shared setup screen for every game mode. Reads its `gameId` from route params,
  * drives the shared `gameSessionMachine`, and lets the player start a session.
@@ -159,13 +275,11 @@ export function GameSetupScreen() {
     const onAccent = readableOn(accent);
     const medallionGradientId = `setup-medallion-${game.id}`;
 
-    // Question-pool meter. Quiet while the deck still has unseen questions;
-    // escalates to a "repeats ahead → get more packs" nudge past the threshold,
-    // and only offers the CTA when this game actually has a pack left to buy.
-    const poolRatio = coverage.total > 0 ? coverage.seen / coverage.total : 0;
-    const poolExhausted = coverage.total > 0 && coverage.seen >= coverage.total;
-    const poolEscalated = coverage.total > 0 && poolRatio >= POOL_NUDGE_THRESHOLD;
-    const showPoolCta = poolEscalated && hasBuyablePacks(gameId, ownedIds);
+    // Question-pool meter. The card owns its own presentation; the parent needs
+    // only `escalated` (to float the nudge above the rules card when the pool is
+    // nearly spent) and whether a pack is still buyable (to gate the CTA).
+    const poolEscalated = coverage.total > 0 && coverage.seen / coverage.total >= POOL_NUDGE_THRESHOLD;
+    const poolBuyable = hasBuyablePacks(gameId, ownedIds);
 
     const [state, send] = useMachine(gameSessionMachine, {
         input: { gameId: game.id },
@@ -199,6 +313,18 @@ export function GameSetupScreen() {
             </SafeContainer>
         );
     }
+
+    const rulesCard = <RulesCard accent={accent} gameId={game.id} />;
+    const poolCard = (
+        <QuestionPoolCard
+            accent={accent}
+            seen={coverage.seen}
+            total={coverage.total}
+            escalated={poolEscalated}
+            buyable={poolBuyable}
+            onGetMore={() => navigation.navigate('Store', { gameId: game.id })}
+        />
+    );
 
     return (
         <SafeContainer edges={['top', 'bottom']}>
@@ -276,96 +402,18 @@ export function GameSetupScreen() {
                     </Stack>
                 </Stack>
 
-                <Card
-                    variant='outlined'
-                    padding='lg'
-                    gap='md'
-                    style={[
-                        styles.rulesCard,
-                        {
-                            marginTop: theme.spacing.sm,
-                            borderColor: hexToRgba(accent, 0.5),
-                            shadowColor: accent,
-                            shadowOpacity: 0.25,
-                            shadowRadius: 16,
-                            shadowOffset: { width: 0, height: 6 },
-                            elevation: 6,
-                        },
-                    ]}
-                >
-                    <Stack direction='horizontal' gap='sm' align='center'>
-                        <View style={[styles.dot, { backgroundColor: accent }]} />
-                        <Text variant='overline' color={accent} weight='bold'>
-                            {t('common.how_to_play')}
-                        </Text>
-                    </Stack>
-                    <Text variant='body' color='textSecondary' style={styles.rulesText}>
-                        {t(`game.${game.id}.rules`)}
-                    </Text>
-                </Card>
-
-                {coverage.total > 0 && (
-                    <Card
-                        variant='outlined'
-                        padding='lg'
-                        gap='md'
-                        style={
-                            poolEscalated
-                                ? {
-                                      borderColor: hexToRgba(accent, 0.6),
-                                      shadowColor: accent,
-                                      shadowOpacity: 0.22,
-                                      shadowRadius: 16,
-                                      shadowOffset: { width: 0, height: 6 },
-                                      elevation: 6,
-                                  }
-                                : undefined
-                        }
-                    >
-                        <Stack direction='horizontal' gap='sm' align='center' justify='between'>
-                            <Stack direction='horizontal' gap='sm' align='center'>
-                                <View
-                                    style={[
-                                        styles.dot,
-                                        { backgroundColor: poolEscalated ? accent : theme.colors.textMuted },
-                                    ]}
-                                />
-                                <Text variant='overline' color={poolEscalated ? accent : 'textMuted'} weight='bold'>
-                                    {t('screen.gameSetup.pool.title')}
-                                </Text>
-                            </Stack>
-                            <Text variant='caption' weight='bold' color={poolEscalated ? accent : 'textSecondary'}>
-                                {t('screen.gameSetup.pool.count', {
-                                    seen: coverage.seen,
-                                    total: coverage.total,
-                                })}
-                            </Text>
-                        </Stack>
-                        <ProgressBar
-                            progress={poolRatio}
-                            color={poolEscalated ? accent : theme.colors.textSecondary}
-                        />
-                        <Text variant='caption' color={poolEscalated ? accent : 'textMuted'}>
-                            {poolEscalated
-                                ? t(poolExhausted ? 'screen.gameSetup.pool.exhausted' : 'screen.gameSetup.pool.low')
-                                : t('screen.gameSetup.pool.seenLabel')}
-                        </Text>
-                        {showPoolCta && (
-                            <Button
-                                fullWidth
-                                onPress={() => navigation.navigate('Store', { gameId: game.id })}
-                                style={{
-                                    backgroundColor: blend(accent, theme.colors.background, 0.22),
-                                    borderColor: accent,
-                                    borderWidth: 1.5,
-                                }}
-                                textColor={accent}
-                                icon={<Sparkles size={18} color={accent} />}
-                            >
-                                {t('screen.gameSetup.pool.getMore')}
-                            </Button>
-                        )}
-                    </Card>
+                {/* When the pool is nearly exhausted the buy nudge outranks rules
+                    the player has likely already read, so it floats above them. */}
+                {poolEscalated ? (
+                    <>
+                        {poolCard}
+                        {rulesCard}
+                    </>
+                ) : (
+                    <>
+                        {rulesCard}
+                        {poolCard}
+                    </>
                 )}
             </ScrollView>
 

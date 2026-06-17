@@ -250,7 +250,15 @@
             "points": "Cel: %{count} pkt",
             "comingSoon": "Wkrótce",
             "comingSoonDesc": "Pracujemy nad tym, aby udostępnić Ci grę %{name}. Bądź na bieżąco!",
-            "playersCount": "%{count} graczy"
+            "playersCount": "%{count} graczy",
+            "pool": {
+                "title": "Pula pytań",
+                "count": "%{seen} / %{total}",
+                "seenLabel": "zobaczonych pytań",
+                "low": "Prawie wszystkie zobaczone — powtórki tuż-tuż",
+                "exhausted": "Wszystkie już zobaczone — teraz będą się powtarzać",
+                "getMore": "Zdobądź więcej paczek"
+            }
         },
         "store": {
             "title": "Sklep",

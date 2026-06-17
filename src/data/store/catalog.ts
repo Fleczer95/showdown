@@ -70,6 +70,17 @@ export function isPremiumCatalogId(id: string): boolean {
 }
 
 /**
+ * Whether a game still has a premium pack the player can buy (live + unowned).
+ * Gates the setup-screen "get more packs" nudge so it never appears once there
+ * is nothing left to sell for that game.
+ */
+export function hasBuyablePacks(gameId: string, ownedIds: ReadonlySet<string>): boolean {
+    return STORE_CATALOG.some(
+        (entry) => entry.kind === 'pack' && entry.gameId === gameId && resolveEntryState(entry, ownedIds) === 'locked',
+    );
+}
+
+/**
  * A pack's game id and the ids of its questions, for seeding question history on
  * unlock. Returns `undefined` for non-pack ids (e.g. themes). Question ids are
  * locale-independent, so the `en` projection is authoritative.

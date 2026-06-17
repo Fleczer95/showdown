@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
-import { ChevronLeft, Play, Trophy, Swords } from 'lucide-react-native';
+import { ChevronLeft, Play, Trophy, Swords, Sparkles } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -11,6 +11,7 @@ import Icon from '../components/atoms/Icon';
 import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
+import ProgressBar from '../components/molecules/ProgressBar';
 import BottomSheet from '../components/molecules/BottomSheet';
 import Input from '../components/molecules/Input';
 import Leaderboard from '../components/molecules/Leaderboard';
@@ -29,9 +30,17 @@ import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
 import { getHistory } from '../game/history';
+import { poolCoverage } from '../game/poolCoverage';
+import { hasBuyablePacks } from '../data/store/catalog';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import type { RootStackParamList } from '../navigation/types';
+
+// Fraction of a game's question pool the player must have seen before the pool
+// meter escalates from a quiet tally into a repeats-ahead purchase nudge. Below
+// this the deck still has unseen questions, so a "buy more" prompt would be
+// premature noise (see `poolCoverage` / `deck.ts`).
+const POOL_NUDGE_THRESHOLD = 0.8;
 
 /**
  * Shared setup screen for every game mode. Reads its `gameId` from route params,
@@ -60,10 +69,15 @@ export function GameSetupScreen() {
     // on focus so returning after a create reflects the new tally.
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
     const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
+    // How much of this game's question pool the player has worked through. Refresh
+    // on focus so returning after a session (which marks questions shown) reflects
+    // the new tally and can surface the "running low → buy more" nudge.
+    const [coverage, setCoverage] = useState(() => poolCoverage(gameId, ownedIds));
     useFocusEffect(
         useCallback(() => {
             setCreatedToday(countCreatedToday());
-        }, []),
+            setCoverage(poolCoverage(gameId, ownedIds));
+        }, [gameId, ownedIds]),
     );
     const cap = dailyCap(ownedIds);
     const limitReached = createdToday >= cap;
@@ -145,6 +159,14 @@ export function GameSetupScreen() {
     const onAccent = readableOn(accent);
     const medallionGradientId = `setup-medallion-${game.id}`;
 
+    // Question-pool meter. Quiet while the deck still has unseen questions;
+    // escalates to a "repeats ahead → get more packs" nudge past the threshold,
+    // and only offers the CTA when this game actually has a pack left to buy.
+    const poolRatio = coverage.total > 0 ? coverage.seen / coverage.total : 0;
+    const poolExhausted = coverage.total > 0 && coverage.seen >= coverage.total;
+    const poolEscalated = coverage.total > 0 && poolRatio >= POOL_NUDGE_THRESHOLD;
+    const showPoolCta = poolEscalated && hasBuyablePacks(gameId, ownedIds);
+
     const [state, send] = useMachine(gameSessionMachine, {
         input: { gameId: game.id },
     });
@@ -159,7 +181,10 @@ export function GameSetupScreen() {
         {
             paddingHorizontal: theme.spacing.xl,
             paddingTop: theme.spacing.lg,
-            paddingBottom: theme.spacing.xxl * 3, // approx 100 (32*3) for footer clearance
+            // Clearance for the floating footer (two stacked buttons + its bottom
+            // offset), so the last card — the question-pool widget — scrolls fully
+            // clear of it instead of being overlapped.
+            paddingBottom: theme.spacing.xxl * 5, // ~160
             gap: theme.spacing.xxl,
         },
     ];
@@ -278,6 +303,70 @@ export function GameSetupScreen() {
                         {t(`game.${game.id}.rules`)}
                     </Text>
                 </Card>
+
+                {coverage.total > 0 && (
+                    <Card
+                        variant='outlined'
+                        padding='lg'
+                        gap='md'
+                        style={
+                            poolEscalated
+                                ? {
+                                      borderColor: hexToRgba(accent, 0.6),
+                                      shadowColor: accent,
+                                      shadowOpacity: 0.22,
+                                      shadowRadius: 16,
+                                      shadowOffset: { width: 0, height: 6 },
+                                      elevation: 6,
+                                  }
+                                : undefined
+                        }
+                    >
+                        <Stack direction='horizontal' gap='sm' align='center' justify='between'>
+                            <Stack direction='horizontal' gap='sm' align='center'>
+                                <View
+                                    style={[
+                                        styles.dot,
+                                        { backgroundColor: poolEscalated ? accent : theme.colors.textMuted },
+                                    ]}
+                                />
+                                <Text variant='overline' color={poolEscalated ? accent : 'textMuted'} weight='bold'>
+                                    {t('screen.gameSetup.pool.title')}
+                                </Text>
+                            </Stack>
+                            <Text variant='caption' weight='bold' color={poolEscalated ? accent : 'textSecondary'}>
+                                {t('screen.gameSetup.pool.count', {
+                                    seen: coverage.seen,
+                                    total: coverage.total,
+                                })}
+                            </Text>
+                        </Stack>
+                        <ProgressBar
+                            progress={poolRatio}
+                            color={poolEscalated ? accent : theme.colors.textSecondary}
+                        />
+                        <Text variant='caption' color={poolEscalated ? accent : 'textMuted'}>
+                            {poolEscalated
+                                ? t(poolExhausted ? 'screen.gameSetup.pool.exhausted' : 'screen.gameSetup.pool.low')
+                                : t('screen.gameSetup.pool.seenLabel')}
+                        </Text>
+                        {showPoolCta && (
+                            <Button
+                                fullWidth
+                                onPress={() => navigation.navigate('Store', { gameId: game.id })}
+                                style={{
+                                    backgroundColor: blend(accent, theme.colors.background, 0.22),
+                                    borderColor: accent,
+                                    borderWidth: 1.5,
+                                }}
+                                textColor={accent}
+                                icon={<Sparkles size={18} color={accent} />}
+                            >
+                                {t('screen.gameSetup.pool.getMore')}
+                            </Button>
+                        )}
+                    </Card>
+                )}
             </ScrollView>
 
             <View style={[styles.footer, { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl }]}>

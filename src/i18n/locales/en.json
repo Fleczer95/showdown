@@ -247,7 +247,15 @@
             "points": "%{count} points",
             "comingSoon": "Coming Soon",
             "comingSoonDesc": "We're working hard to bring you %{name}. Stay tuned for updates!",
-            "playersCount": "%{count} players"
+            "playersCount": "%{count} players",
+            "pool": {
+                "title": "Question Pool",
+                "count": "%{seen} / %{total}",
+                "seenLabel": "questions seen so far",
+                "low": "Almost all seen — repeats ahead",
+                "exhausted": "You've seen them all — repeats now guaranteed",
+                "getMore": "Get more packs"
+            }
         },
         "store": {
             "title": "Store",

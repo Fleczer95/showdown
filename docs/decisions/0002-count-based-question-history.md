@@ -50,6 +50,14 @@ Use **count-based** selection.
   served again immediately, unlike a boolean reset's uniform-random pick).
 - Counts grow unbounded (small ints; negligible in MMKV).
 - Requires stable per-question ids (a one-time content pass).
-- **Parked (Phase 3):** when an IAP pack unlocks, its count-0 questions would
-  dominate until they catch up. Mitigation: seed a new pack's counts to the
-  current pool minimum so new content blends rather than starving the base pool.
+- **Unlock behaviour (revised):** when an IAP pack unlocks, its questions enter
+  at **count 0 (unseen)** and are therefore surfaced first. An earlier version
+  seeded a new pack's counts to the current pool minimum so it would blend rather
+  than starve the base pool, but that made freshly-bought questions read as
+  already-seen — the setup-screen question-pool meter stayed at "all seen" after
+  a purchase, hiding the new content. The seeding (`seedDeck` / `seedHistory` /
+  `seedUnlockedPack`) was removed so a purchase visibly refills the pool and the
+  new questions play first. Trade-off: for a player who has cycled the base pool
+  many times (high floor), the new pack leads the deck for ~floor rounds before
+  old content mixes back in — accepted as the cost of making purchases feel
+  rewarding.

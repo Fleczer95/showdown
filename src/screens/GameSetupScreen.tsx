@@ -30,7 +30,7 @@ import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
 import { getHistory } from '../game/history';
-import { poolCoverage } from '../game/poolCoverage';
+import { poolCoverage, type PoolCoverage } from '../game/poolCoverage';
 import { hasBuyablePacks } from '../data/store/catalog';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
@@ -79,10 +79,8 @@ function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
 
 interface QuestionPoolCardProps {
     accent: string;
-    /** Distinct questions the player has seen out of the rotatable pool. */
-    seen: number;
-    total: number;
-    /** Pool is near exhaustion: switch to the accented "repeats ahead" nudge. */
+    coverage: PoolCoverage;
+    /** Pool is near exhaustion / fully cycled: accent it and offer the CTA. */
     escalated: boolean;
     /** Whether this game still has a pack to buy — gates the CTA. */
     buyable: boolean;
@@ -90,18 +88,22 @@ interface QuestionPoolCardProps {
 }
 
 /**
- * The question-pool meter. Quiet tally while the deck still has unseen questions;
- * past the escalation threshold it accents and surfaces a "get more packs" CTA so
- * the player can refill the pool before repeats set in. Renders nothing for an
- * empty pool.
+ * The question-pool meter. A quiet tally while the deck still has unseen
+ * questions; past the escalation threshold it accents and offers a "get more
+ * packs" CTA. Once every question has been seen (`floor >= 1`) the bar tracks
+ * re-coverage of the *current* lap and the label counts laps, so it keeps moving
+ * instead of freezing at 100%. Renders nothing for an empty pool.
  */
-function QuestionPoolCard({ accent, seen, total, escalated, buyable, onGetMore }: QuestionPoolCardProps) {
+function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: QuestionPoolCardProps) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { seen, total, floor, reseen } = coverage;
     if (total <= 0) return null;
 
-    const ratio = seen / total;
-    const exhausted = seen >= total;
+    const fullyCycled = floor >= 1; // every question seen at least once
+    const lap = floor + 1; // the pass the player is currently on
+    const ratio = fullyCycled ? reseen / total : seen / total;
+    const shown = fullyCycled ? reseen : seen;
     const showCta = escalated && buyable;
 
     return (
@@ -130,14 +132,16 @@ function QuestionPoolCard({ accent, seen, total, escalated, buyable, onGetMore }
                     </Text>
                 </Stack>
                 <Text variant='caption' weight='bold' color={escalated ? accent : 'textSecondary'}>
-                    {t('screen.gameSetup.pool.count', { seen, total })}
+                    {t('screen.gameSetup.pool.count', { seen: shown, total })}
                 </Text>
             </Stack>
             <ProgressBar progress={ratio} color={escalated ? accent : theme.colors.textSecondary} />
             <Text variant='caption' color={escalated ? accent : 'textMuted'}>
-                {escalated
-                    ? t(exhausted ? 'screen.gameSetup.pool.exhausted' : 'screen.gameSetup.pool.low')
-                    : t('screen.gameSetup.pool.seenLabel')}
+                {fullyCycled
+                    ? t('screen.gameSetup.pool.allSeen', { lap })
+                    : escalated
+                      ? t('screen.gameSetup.pool.low')
+                      : t('screen.gameSetup.pool.seenLabel')}
             </Text>
             {showCta && (
                 <Button
@@ -277,8 +281,10 @@ export function GameSetupScreen() {
 
     // Question-pool meter. The card owns its own presentation; the parent needs
     // only `escalated` (to float the nudge above the rules card when the pool is
-    // nearly spent) and whether a pack is still buyable (to gate the CTA).
-    const poolEscalated = coverage.total > 0 && coverage.seen / coverage.total >= POOL_NUDGE_THRESHOLD;
+    // nearly spent or fully cycled) and whether a pack is still buyable (CTA gate).
+    const poolEscalated =
+        coverage.floor >= 1 ||
+        (coverage.total > 0 && coverage.seen / coverage.total >= POOL_NUDGE_THRESHOLD);
     const poolBuyable = hasBuyablePacks(gameId, ownedIds);
 
     const [state, send] = useMachine(gameSessionMachine, {
@@ -318,8 +324,7 @@ export function GameSetupScreen() {
     const poolCard = (
         <QuestionPoolCard
             accent={accent}
-            seen={coverage.seen}
-            total={coverage.total}
+            coverage={coverage}
             escalated={poolEscalated}
             buyable={poolBuyable}
             onGetMore={() => navigation.navigate('Store', { gameId: game.id })}

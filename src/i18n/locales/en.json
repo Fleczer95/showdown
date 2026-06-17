@@ -253,7 +253,7 @@
                 "count": "%{seen} / %{total}",
                 "seenLabel": "questions seen so far",
                 "low": "Almost all seen — repeats ahead",
-                "exhausted": "You've seen them all — repeats now guaranteed",
+                "allSeen": "All seen · lap %{lap} — buy a pack for fresh ones",
                 "getMore": "Get more packs"
             }
         },
@@ -288,6 +288,10 @@
                 "wheel_world-cuisine": {
                     "title": "World Cuisine",
                     "desc": "Spin through dishes, desserts, and flavors from around the globe — 60 mouth-watering puzzles."
+                },
+                "ladder_lost-civilizations": {
+                    "title": "Lost Civilizations",
+                    "desc": "Uncover the secrets of the Maya, Sumerians, and more — 300 challenging new questions."
                 }
             },
             "feature": {
@@ -302,7 +306,9 @@
                 "drop_world-geography_1": "180 fresh questions on rivers, mountains, countries, and seas",
                 "drop_world-geography_2": "Real figures with tight distractors to test your gut",
                 "wheel_world-cuisine_1": "60 fresh food puzzles from world kitchens",
-                "wheel_world-cuisine_2": "Dishes, spices, cheeses, and sweets in every round"
+                "wheel_world-cuisine_2": "Dishes, spices, cheeses, and sweets in every round",
+                "ladder_lost-civilizations_1": "300 deep-cut questions on archaeology and ancient mysteries",
+                "ladder_lost-civilizations_2": "Spans the Americas, Mesopotamia, Asia, and Africa"
             },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",

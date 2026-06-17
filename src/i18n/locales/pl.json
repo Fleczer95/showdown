@@ -256,7 +256,7 @@
                 "count": "%{seen} / %{total}",
                 "seenLabel": "zobaczonych pytań",
                 "low": "Prawie wszystkie zobaczone — powtórki tuż-tuż",
-                "exhausted": "Wszystkie już zobaczone — teraz będą się powtarzać",
+                "allSeen": "Wszystko zobaczone · runda %{lap} — kup paczkę po nowe",
                 "getMore": "Zdobądź więcej paczek"
             }
         },
@@ -291,6 +291,10 @@
                 "wheel_world-cuisine": {
                     "title": "Kuchnie świata",
                     "desc": "Zakręć po dania, desery i smaki z całego globu — 60 apetycznych łamigłówek."
+                },
+                "ladder_lost-civilizations": {
+                    "title": "Zaginione cywilizacje",
+                    "desc": "Odkryj tajemnice Majów, Sumerów i nie tylko — 300 nowych, wymagających pytań."
                 }
             },
             "feature": {
@@ -305,7 +309,9 @@
                 "drop_world-geography_1": "180 nowych pytań o rzekach, górach, krajach i morzach",
                 "drop_world-geography_2": "Prawdziwe liczby z bliskimi dystraktorami, które sprawdzą twój instynkt",
                 "wheel_world-cuisine_1": "60 świeżych łamigłówek kulinarnych z kuchni świata",
-                "wheel_world-cuisine_2": "Dania, przyprawy, sery i słodkości w każdej rundzie"
+                "wheel_world-cuisine_2": "Dania, przyprawy, sery i słodkości w każdej rundzie",
+                "ladder_lost-civilizations_1": "300 szczegółowych pytań o archeologii i starożytnych tajemnicach",
+                "ladder_lost-civilizations_2": "Obejmuje Ameryki, Mezopotamię, Azję i Afrykę"
             },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",

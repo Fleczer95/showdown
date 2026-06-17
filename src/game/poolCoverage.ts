@@ -3,27 +3,42 @@ import { ownedQuestionIds } from './challenge/resolve';
 import type { History } from './deck';
 
 export interface PoolCoverage {
-    /** Distinct questions shown at least once. */
+    /** Distinct questions shown at least once. Equals `total` once fully cycled. */
     seen: number;
     /** Size of the rotatable pool (free base + owned premium packs). */
     total: number;
+    /** Completed full passes over the pool = the minimum show-count across it. */
+    floor: number;
+    /** Questions shown more than `floor` times — progress through the current lap. */
+    reseen: number;
 }
 
-/** Count ids in `ids` that have been shown at least once. Pure. */
-export function countSeen(ids: Iterable<string>, history: History): number {
+/** Pure coverage stats for a set of question ids against a show-count history. */
+export function computeCoverage(ids: Iterable<string>, history: History): PoolCoverage {
+    const counts: number[] = [];
+    for (const id of ids) counts.push(history[id] ?? 0);
+    const total = counts.length;
+    if (total === 0) return { seen: 0, total: 0, floor: 0, reseen: 0 };
+
+    const floor = Math.min(...counts);
     let seen = 0;
-    for (const id of ids) if ((history[id] ?? 0) > 0) seen += 1;
-    return seen;
+    let reseen = 0;
+    for (const c of counts) {
+        if (c > 0) seen += 1;
+        if (c > floor) reseen += 1;
+    }
+    return { seen, total, floor, reseen };
 }
 
 /**
- * How much of a game's question pool the player has already worked through.
- * Because the deck cycles the whole pool before repeating anything (see
- * `deck.ts`), `seen / total` nearing 1 means repeats are imminent — the signal
- * the setup screen uses to nudge a pack purchase. `total` grows when a premium
- * pack is owned, so buying genuinely refills the meter.
+ * How much of a game's question pool the player has worked through. The deck
+ * draws least-shown-first and cycles the whole pool before any repeat (see
+ * `deck.ts`), so once every question has been seen once (`seen === total`),
+ * `floor` counts the completed laps and `reseen` is the progress into the
+ * current one. That lets the setup-screen meter keep moving past 100% — showing
+ * "lap 2", "lap 3"… — instead of freezing, while still nudging a pack purchase
+ * as the only source of genuinely new questions.
  */
 export function poolCoverage(gameId: string, ownedIds: ReadonlySet<string>): PoolCoverage {
-    const ids = ownedQuestionIds(gameId, ownedIds);
-    return { seen: countSeen(ids, getHistory(gameId)), total: ids.size };
+    return computeCoverage(ownedQuestionIds(gameId, ownedIds), getHistory(gameId));
 }

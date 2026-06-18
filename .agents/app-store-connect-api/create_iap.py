@@ -35,6 +35,7 @@ PRODUCTS = [
     {"sku": "com.showdown.pack_drop_world_geography", "name": "World Geography", "desc": "180 world geography questions for The Drop", "price": "1.99", "enabled": False},
     {"sku": "com.showdown.pack_drop_our_changing_planet", "name": "Our Changing Planet", "desc": "180 extreme nature and human impact statistics for The Drop", "price": "2.99", "enabled": False},
     {"sku": "com.showdown.pack_wheel_world_cuisine", "name": "World Cuisine", "desc": "60 world cuisine puzzles for The Wheel", "price": "1.99", "enabled": False},
+    {"sku": "com.showdown.pack_wheel_world_landmarks", "name": "World Landmarks", "desc": "60 world landmark puzzles for The Wheel", "price": "2.99", "enabled": True},
     # Cosmetic themes. Apple has no $2.50 tier, so the $2.50 themes use $2.49 on iOS.
     {"sku": "com.showdown.theme_cyberpunk", "name": "Cyberpunk", "desc": "Neon cyan theme for late-night game night", "price": "2.49", "enabled": True},
     {"sku": "com.showdown.theme_ocean", "name": "Ocean Breeze", "desc": "Cool deep-sea theme with aqua highlights", "price": "2.49", "enabled": True},

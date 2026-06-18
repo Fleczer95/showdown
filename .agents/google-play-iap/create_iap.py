@@ -36,6 +36,7 @@ PRODUCTS = [
     {"sku": "com.showdown.pack_drop_world_geography", "name": "World Geography", "desc": "180 world geography questions for The Drop", "price": "1.99", "enabled": False},
     {"sku": "com.showdown.pack_drop_our_changing_planet", "name": "Our Changing Planet", "desc": "180 extreme nature and human impact statistics for The Drop", "price": "2.99", "enabled": False},
     {"sku": "com.showdown.pack_wheel_world_cuisine", "name": "World Cuisine", "desc": "60 world cuisine puzzles for The Wheel", "price": "1.99", "enabled": False},
+    {"sku": "com.showdown.pack_wheel_world_landmarks", "name": "World Landmarks", "desc": "60 world landmark puzzles for The Wheel", "price": "2.99", "enabled": True},
     # Cosmetic themes. Google Play supports exact $2.50 for the $2.50 themes.
     {"sku": "com.showdown.theme_cyberpunk", "name": "Cyberpunk", "desc": "A high-contrast neon theme with electric blue accents and late-night arcade energy.", "price": "2.50", "enabled": True},
     {"sku": "com.showdown.theme_ocean", "name": "Ocean Breeze", "desc": "A cool, deep-sea palette with bright aqua highlights and a calm, refreshing feel.", "price": "2.50", "enabled": True},

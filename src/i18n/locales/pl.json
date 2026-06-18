@@ -670,6 +670,7 @@
         "rewardSignature": "Sygnatura",
         "earnedThemeHint": "Zdobytych motywów nie można kupić — odblokuj je, wspinając się po mapie poziomów.",
         "levelUp": "Poziom %{n}!",
+        "bonusRuns": "+%{n} dodatkowych gier",
         "xpGained": "+%{n} XP",
         "newReward": "Nowy motyw odblokowany!",
         "newSignature": "Nowa sygnatura odblokowana!",

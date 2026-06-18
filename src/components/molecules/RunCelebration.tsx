@@ -98,6 +98,15 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     </Stack>
                 ) : null}
 
+                {diff.bonusRunsGranted > 0 ? (
+                    <Stack direction='horizontal' gap='xs' align='center'>
+                        <Icon name={Sparkles} size={16} color={accent} />
+                        <Text variant='caption' weight='bold' color={accent}>
+                            {t('progression.bonusRuns', { n: diff.bonusRunsGranted })}
+                        </Text>
+                    </Stack>
+                ) : null}
+
                 {diff.newRewards.some((id) => id.startsWith('theme-')) ? (
                     <Stack direction='horizontal' gap='xs' align='center'>
                         <Icon name={Sparkles} size={16} color={accent} />

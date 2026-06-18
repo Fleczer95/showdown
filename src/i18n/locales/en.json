@@ -664,6 +664,7 @@
         "rewardSignature": "Signature",
         "earnedThemeHint": "Earned themes can't be bought — climb the Level Map to unlock them.",
         "levelUp": "Level %{n}!",
+        "bonusRuns": "+%{n} bonus runs",
         "xpGained": "+%{n} XP",
         "newReward": "New theme unlocked!",
         "newSignature": "New signature unlocked!",

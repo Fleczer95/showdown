@@ -49,11 +49,12 @@
         }
     },
     "offline": {
-        "startWithCount": "Start Game · %{count} left",
+        "start": "Start Game",
+        "startLastRun": "Start Game · last run",
         "limit": {
             "title": "Out of runs for today",
-            "body": "Daily solo runs are limited. They reset at midnight — and every level you reach banks extra runs.",
-            "cta": "Unlock a pack or theme — each adds +1 a day",
+            "body": "· %{count} solo runs a day\n· Resets at midnight\n· +%{bonus} runs banked for every level you reach\n· Each premium pack or theme adds +1 a day",
+            "cta": "Open Store",
             "dismiss": "Got it"
         }
     },

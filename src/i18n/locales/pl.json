@@ -49,11 +49,12 @@
         }
     },
     "offline": {
-        "startWithCount": "Zagraj · %{count} pozostało",
+        "start": "Zagraj",
+        "startLastRun": "Zagraj · ostatnia gra",
         "limit": {
             "title": "Limit gier na dziś wyczerpany",
-            "body": "Liczba dziennych gier solo jest ograniczona. Odnawia się o północy — a każdy zdobyty poziom dorzuca dodatkowe gry.",
-            "cta": "Odblokuj pakiet lub motyw — każdy dodaje +1 dziennie",
+            "body": "· %{count} gier solo dziennie\n· Odnawia się o północy\n· +%{bonus} gier za każdy zdobyty poziom\n· Każdy pakiet lub motyw premium dodaje +1 dziennie",
+            "cta": "Otwórz sklep",
             "dismiss": "Rozumiem"
         }
     },

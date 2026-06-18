@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
-import { ChevronLeft, Play, Trophy, Swords, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, Play, Trophy, Swords, Sparkles, Lock } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -27,7 +27,13 @@ import { buildChallenge } from '../game/challenge/build';
 import { createChallenge, getChallenge, newChallengeId, BlockedError } from '../game/challenge/store';
 import { countCreatedToday } from '../game/challenge/log';
 import { dailyCap, canUpsell } from '../game/challenge/limit';
-import { canStartOfflineRun, remainingOfflineRuns, consumeOfflineRun } from '../game/offline/limit';
+import {
+    canStartOfflineRun,
+    remainingOfflineRuns,
+    consumeOfflineRun,
+    dailyAllowance,
+    BONUS_RUNS_PER_LEVEL,
+} from '../game/offline/limit';
 import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
@@ -445,19 +451,24 @@ export function GameSetupScreen() {
 
             <View style={[styles.footer, { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl }]}>
                 <Stack gap='sm'>
+                    {/* At zero runs the Start button keeps its accent look but
+                        swaps the play glyph for a lock; it stays tappable to
+                        open the limit/upsell sheet. */}
                     <Button
                         fullWidth
                         size='lg'
                         onPress={onStart}
-                        style={{
-                            backgroundColor: accent,
-                            borderColor: accent,
-                            opacity: runsLeft <= 0 ? 0.55 : 1,
-                        }}
+                        style={{ backgroundColor: accent, borderColor: accent }}
                         textColor={onAccent}
-                        icon={<Play size={20} color={onAccent} fill={onAccent} />}
+                        icon={
+                            runsLeft <= 0 ? (
+                                <Lock size={20} color={onAccent} />
+                            ) : (
+                                <Play size={20} color={onAccent} fill={onAccent} />
+                            )
+                        }
                     >
-                        {runsLeft <= 0 ? t('common.start') : t('offline.startWithCount', { count: runsLeft })}
+                        {runsLeft === 1 ? t('offline.startLastRun') : t('offline.start')}
                     </Button>
                     <Button
                         fullWidth
@@ -532,8 +543,11 @@ export function GameSetupScreen() {
                 title={t('offline.limit.title')}
             >
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
-                        {t('offline.limit.body')}
+                    <Text variant='body' color='textSecondary' align='left' style={styles.limitBody}>
+                        {t('offline.limit.body', {
+                            count: dailyAllowance(ownedIds),
+                            bonus: BONUS_RUNS_PER_LEVEL,
+                        })}
                     </Text>
                     {canUpsell(ownedIds) && (
                         <Button

@@ -27,6 +27,7 @@ import { buildChallenge } from '../game/challenge/build';
 import { createChallenge, getChallenge, newChallengeId, BlockedError } from '../game/challenge/store';
 import { countCreatedToday } from '../game/challenge/log';
 import { dailyCap, canUpsell } from '../game/challenge/limit';
+import { canStartOfflineRun, remainingOfflineRuns, consumeOfflineRun } from '../game/offline/limit';
 import { shareChallenge } from '../game/challenge/share';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
@@ -190,6 +191,8 @@ export function GameSetupScreen() {
     // on focus so returning after a create reflects the new tally.
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
     const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
+    const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
+    const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds));
     // How much of this game's question pool the player has worked through. Refresh
     // on focus so returning after a session (which marks questions shown) reflects
     // the new tally and can surface the "running low → buy more" nudge.
@@ -198,6 +201,7 @@ export function GameSetupScreen() {
         useCallback(() => {
             setCreatedToday(countCreatedToday());
             setCoverage(poolCoverage(gameId, ownedIds));
+            setRunsLeft(remainingOfflineRuns(ownedIds));
         }, [gameId, ownedIds]),
     );
     const cap = dailyCap(ownedIds);
@@ -246,6 +250,19 @@ export function GameSetupScreen() {
         } finally {
             setCreating(false);
         }
+    };
+
+    // Solo play is daily-capped (offline limit). At zero, open the limit/upsell
+    // sheet instead of starting; otherwise spend one run and begin the session.
+    const onStart = () => {
+        if (!canStartOfflineRun(ownedIds)) {
+            SafeAnalytics.logEvent({ name: 'offline_limit_hit', params: { game: game.id } });
+            setOfflineLimitSheet(true);
+            return;
+        }
+        consumeOfflineRun(ownedIds);
+        setRunsLeft(remainingOfflineRuns(ownedIds));
+        send({ type: 'START' });
     };
 
     // Always confirm the name before inviting a friend — prefilled with the saved
@@ -431,12 +448,16 @@ export function GameSetupScreen() {
                     <Button
                         fullWidth
                         size='lg'
-                        onPress={() => send({ type: 'START' })}
-                        style={{ backgroundColor: accent, borderColor: accent }}
+                        onPress={onStart}
+                        style={{
+                            backgroundColor: accent,
+                            borderColor: accent,
+                            opacity: runsLeft <= 0 ? 0.55 : 1,
+                        }}
                         textColor={onAccent}
                         icon={<Play size={20} color={onAccent} fill={onAccent} />}
                     >
-                        {t('common.start')}
+                        {runsLeft <= 0 ? t('common.start') : t('offline.startWithCount', { count: runsLeft })}
                     </Button>
                     <Button
                         fullWidth
@@ -501,6 +522,37 @@ export function GameSetupScreen() {
                         onPress={() => setLimitSheet(false)}
                     >
                         {t('challenge.limit.dismiss')}
+                    </Button>
+                </Stack>
+            </BottomSheet>
+
+            <BottomSheet
+                visible={offlineLimitSheet}
+                onClose={() => setOfflineLimitSheet(false)}
+                title={t('offline.limit.title')}
+            >
+                <Stack gap='md' align='stretch'>
+                    <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
+                        {t('offline.limit.body')}
+                    </Text>
+                    {canUpsell(ownedIds) && (
+                        <Button
+                            variant='primary'
+                            fullWidth
+                            onPress={() => {
+                                setOfflineLimitSheet(false);
+                                navigation.navigate('Store');
+                            }}
+                        >
+                            {t('offline.limit.cta')}
+                        </Button>
+                    )}
+                    <Button
+                        variant={canUpsell(ownedIds) ? 'ghost' : 'primary'}
+                        fullWidth
+                        onPress={() => setOfflineLimitSheet(false)}
+                    >
+                        {t('offline.limit.dismiss')}
                     </Button>
                 </Stack>
             </BottomSheet>

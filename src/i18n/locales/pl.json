@@ -48,6 +48,15 @@
             "yours": "Wyzwanie utworzone przez Ciebie"
         }
     },
+    "offline": {
+        "startWithCount": "Zagraj · %{count} pozostało",
+        "limit": {
+            "title": "Limit gier na dziś wyczerpany",
+            "body": "Liczba dziennych gier solo jest ograniczona. Odnawia się o północy — a każdy zdobyty poziom dorzuca dodatkowe gry.",
+            "cta": "Odblokuj pakiet lub motyw — każdy dodaje +1 dziennie",
+            "dismiss": "Rozumiem"
+        }
+    },
     "screen": {
         "home": {
             "settings": "Ustawienia",

@@ -48,6 +48,15 @@
             "yours": "Challenge you created"
         }
     },
+    "offline": {
+        "startWithCount": "Start Game · %{count} left",
+        "limit": {
+            "title": "Out of runs for today",
+            "body": "Daily solo runs are limited. They reset at midnight — and every level you reach banks extra runs.",
+            "cta": "Unlock a pack or theme — each adds +1 a day",
+            "dismiss": "Got it"
+        }
+    },
     "screen": {
         "home": {
             "settings": "Settings",

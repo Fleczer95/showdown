@@ -162,6 +162,7 @@ export type AnalyticsEvent =
     | { name: 'challenge_completed'; params: { game: string; progress: number; score: number } }
     | { name: 'challenge_update_required'; params: { game: string } }
     | { name: 'challenge_limit_hit'; params: { game: string } }
+    | { name: 'offline_limit_hit'; params: { game: string } }
     // --- Settings events ---
     | { name: 'language_changed'; params: { from_locale: string; to_locale: string } }
     | { name: 'theme_changed'; params: { theme_id: string; is_premium: boolean } }

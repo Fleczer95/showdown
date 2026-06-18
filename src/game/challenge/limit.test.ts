@@ -2,9 +2,9 @@
 // a premium theme + a premium pack (both count) + a free theme (never counts).
 jest.mock('../../data/store/catalog', () => ({
     STORE_CATALOG: [
-        { id: 'theme-a', kind: 'theme', tier: 'premium' },
-        { id: 'pack-a', kind: 'pack', tier: 'premium' },
-        { id: 'theme-free', kind: 'theme', tier: 'free' },
+        { id: 'theme-a', kind: 'theme', tier: 'premium', status: 'live' },
+        { id: 'pack-a', kind: 'pack', tier: 'premium', status: 'live' },
+        { id: 'theme-free', kind: 'theme', tier: 'free', status: 'live' },
     ],
 }));
 

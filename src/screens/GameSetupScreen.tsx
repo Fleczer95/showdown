@@ -8,6 +8,7 @@ import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
+import Glyph from '../components/atoms/Glyph';
 import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
@@ -393,9 +394,12 @@ export function GameSetupScreen() {
                         {GameIcon ? <Icon name={GameIcon} size={48} color={onAccent} /> : null}
                     </View>
                     <Stack gap='xs' align='center'>
-                        <Text variant='heading' weight='bold' align='center'>
-                            {game.emoji} {t(`game.${game.id}.name`)}
-                        </Text>
+                        <Stack direction='horizontal' gap='xs' align='center'>
+                            <Glyph emoji={game.emoji} size={26} />
+                            <Text variant='heading' weight='bold' align='center'>
+                                {t(`game.${game.id}.name`)}
+                            </Text>
+                        </Stack>
                         <Text
                             variant='body'
                             color='textSecondary'

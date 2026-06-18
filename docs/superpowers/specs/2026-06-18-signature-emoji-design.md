@@ -32,6 +32,11 @@ desert" on the Level Map (today only levels 15 and 30 grant a reward; levels 1�
 - No app-wide emoji → SVG migration and no SVG library adoption. This feature only builds
   the `Glyph` seam those will plug into, and routes signature rendering through it (see
   Render abstraction).
+  - **Update (2026-06-18):** the migration has since landed through this exact seam.
+    `Glyph` now renders bundled **Microsoft Fluent Emoji (3D)** art (PNG, MIT) for the app's
+    9 emojis via `src/components/atoms/glyphAssets.ts`, falling back to the OS text glyph for
+    anything unmapped. The game-title emoji (`games.ts`) were routed through `Glyph` too. No
+    call site or wire format changed — the chosen art is raster images, not an SVG library.
 
 ## Background — two boards
 

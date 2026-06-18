@@ -85,7 +85,6 @@ export function grantBonus(
     }
     return {
         ...state,
-        day: state.day || today,
         bonus: state.bonus + (newLevel - baseline) * BONUS_RUNS_PER_LEVEL,
         lastBonusLevel: newLevel,
     };

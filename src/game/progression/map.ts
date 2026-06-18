@@ -4,6 +4,8 @@
 // (no migration). Earned-theme TOKENS live in src/theme/themes/; nodes only
 // reference their reward id.
 
+import { NEAR_MAX_LEVEL_BAND } from './constants';
+
 /** One step on the map. `xp` is the cumulative lifetime XP required to reach it. */
 export interface LevelNode {
     level: number;
@@ -19,12 +21,12 @@ export const LEVEL_MAP: readonly LevelNode[] = [
     { level: 2, xp: 150 },
     { level: 3, xp: 400 },
     { level: 4, xp: 750 },
-    { level: 5, xp: 1200 },
+    { level: 5, xp: 1200, rewardId: 'signature-sprout' },
     { level: 6, xp: 1800 },
     { level: 7, xp: 2600 },
     { level: 8, xp: 3600 },
     { level: 9, xp: 4900 },
-    { level: 10, xp: 6500 },
+    { level: 10, xp: 6500, rewardId: 'signature-spark' },
     { level: 11, xp: 8500 },
     { level: 12, xp: 11000 },
     { level: 13, xp: 14000 },
@@ -34,12 +36,12 @@ export const LEVEL_MAP: readonly LevelNode[] = [
     { level: 17, xp: 34000 },
     { level: 18, xp: 41500 },
     { level: 19, xp: 50500 },
-    { level: 20, xp: 61000 },
+    { level: 20, xp: 61000, rewardId: 'signature-fire' },
     { level: 21, xp: 73000 },
     { level: 22, xp: 87000 },
     { level: 23, xp: 103000 },
     { level: 24, xp: 121500 },
-    { level: 25, xp: 143000 },
+    { level: 25, xp: 143000, rewardId: 'signature-gem' },
     { level: 26, xp: 168000 },
     { level: 27, xp: 197000 },
     { level: 28, xp: 230500 },
@@ -54,7 +56,7 @@ export const LEVEL_MAP: readonly LevelNode[] = [
     { level: 37, xp: 814000 },
     { level: 38, xp: 922000 },
     { level: 39, xp: 1042000 },
-    { level: 40, xp: 1176000 },
+    { level: 40, xp: 1176000, rewardId: 'signature-star' },
     { level: 41, xp: 1326000 },
     { level: 42, xp: 1494000 },
     { level: 43, xp: 1682000 },
@@ -64,8 +66,23 @@ export const LEVEL_MAP: readonly LevelNode[] = [
     { level: 47, xp: 2685000 },
     { level: 48, xp: 3016000 },
     { level: 49, xp: 3387000 },
-    { level: 50, xp: 3803000 },
+    { level: 50, xp: 3803000, rewardId: 'signature-crown' },
 ];
+
+/**
+ * The highest level the map currently defines. Derived from LEVEL_MAP, so adding
+ * nodes raises the cap (and the approach threshold below) with zero other edits.
+ */
+export const MAX_LEVEL = LEVEL_MAP[LEVEL_MAP.length - 1].level;
+
+/**
+ * Whether a level sits inside the near-max band: within NEAR_MAX_LEVEL_BAND of the
+ * cap but not yet at it. Because MAX_LEVEL tracks LEVEL_MAP, extending the map
+ * shifts this window up automatically.
+ */
+export function isApproachingMaxLevel(lvl: number): boolean {
+    return lvl >= MAX_LEVEL - NEAR_MAX_LEVEL_BAND && lvl < MAX_LEVEL;
+}
 
 /** Current level: the highest node whose threshold lifetimeXp has reached. */
 export function level(lifetimeXp: number): number {

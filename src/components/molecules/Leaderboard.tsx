@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Stack from '../atoms/Stack';
 import Text from '../atoms/Text';
+import Glyph from '../atoms/Glyph';
 import Divider from '../atoms/Divider';
 import Input from './Input';
 import Button from './Button';
@@ -17,6 +18,7 @@ import {
     MAX_NICKNAME_LENGTH,
     type LeaderboardEntry,
 } from '../../game/leaderboard';
+import { signatureEmoji } from '../../game/progression';
 
 interface LeaderboardProps {
     gameId: string;
@@ -84,9 +86,19 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                             {i + 1}
                         </Text>
                         <View style={styles.nameCol}>
-                            <Text variant='body' weight={highlighted ? 'bold' : 'semibold'} numberOfLines={1}>
-                                {entry.nickname}
-                            </Text>
+                            <View style={styles.nameLine}>
+                                {signatureEmoji(entry.signature) ? (
+                                    <Glyph emoji={signatureEmoji(entry.signature)!} size={15} />
+                                ) : null}
+                                <Text
+                                    variant='body'
+                                    weight={highlighted ? 'bold' : 'semibold'}
+                                    numberOfLines={1}
+                                    style={styles.nameText}
+                                >
+                                    {entry.nickname}
+                                </Text>
+                            </View>
                             <Text variant='caption' color='textMuted' numberOfLines={1}>
                                 {formatProgress(entry.progress)}
                             </Text>
@@ -170,6 +182,14 @@ const styles = StyleSheet.create({
     },
     nameCol: {
         flex: 1,
+    },
+    nameLine: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+    },
+    nameText: {
+        flexShrink: 1,
     },
     date: {
         width: 56,

@@ -10,3 +10,4 @@ export * from './streak';
 export * from './achievements';
 export * from './recordRun';
 export * from './themes';
+export * from './signatures';

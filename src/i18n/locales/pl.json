@@ -289,6 +289,10 @@
                     "title": "Geografia świata",
                     "desc": "Rzeki, szczyty, miasta i oceany z całego globu — 180 zupełnie nowych pytań, na które warto postawić."
                 },
+                "drop_our-changing-planet": {
+                    "title": "Zmieniająca się planeta",
+                    "desc": "Ekstrema natury, oceany i nasz wpływ na Ziemię — 180 nowych statystyk do obstawiania."
+                },
                 "wheel_world-cuisine": {
                     "title": "Kuchnie świata",
                     "desc": "Zakręć po dania, desery i smaki z całego globu — 60 apetycznych łamigłówek."
@@ -309,6 +313,8 @@
                 "ladder_ancient-history_2": "Rosnąca trudność: od szkolnej klasyki po wiedzę dla znawców",
                 "drop_world-geography_1": "180 nowych pytań o rzekach, górach, krajach i morzach",
                 "drop_world-geography_2": "Prawdziwe liczby z bliskimi dystraktorami, które sprawdzą twój instynkt",
+                "drop_our-changing-planet_1": "180 nowych pytań o ekstremach natury i ludzkim wpływie",
+                "drop_our-changing-planet_2": "Prawdziwe liczby z bliskimi dystraktorami, które sprawdzą twój instynkt",
                 "wheel_world-cuisine_1": "60 świeżych łamigłówek kulinarnych z kuchni świata",
                 "wheel_world-cuisine_2": "Dania, przyprawy, sery i słodkości w każdej rundzie",
                 "ladder_lost-civilizations_1": "300 szczegółowych pytań o archeologii i starożytnych tajemnicach",
@@ -646,13 +652,16 @@
         "achievementsCount": "%{n} z %{m}",
         "reserved": "Wkrótce więcej",
         "rewardTheme": "Motyw",
+        "rewardSignature": "Sygnatura",
         "earnedThemeHint": "Zdobytych motywów nie można kupić — odblokuj je, wspinając się po mapie poziomów.",
         "levelUp": "Poziom %{n}!",
         "xpGained": "+%{n} XP",
         "newReward": "Nowy motyw odblokowany!",
+        "newSignature": "Nowa sygnatura odblokowana!",
         "newAchievement": "Osiągnięcie odblokowane!",
         "challenges": "Wyzwania",
         "feats": "Wyczyny",
+        "signaturesTitle": "Sygnatury",
         "tierCount": "%{n} / %{m}",
         "locked": "Zablokowane",
         "unlocked": "Odblokowane",
@@ -706,6 +715,14 @@
         "themes": {
             "champion": "Mistrz",
             "legend": "Legenda"
+        },
+        "signatures": {
+            "sprout": "Kiełek",
+            "spark": "Iskra",
+            "fire": "Ogień",
+            "gem": "Klejnot",
+            "star": "Gwiazda",
+            "crown": "Korona"
         }
     }
 }

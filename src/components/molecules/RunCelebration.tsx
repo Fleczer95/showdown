@@ -8,7 +8,14 @@ import ProgressBar from './ProgressBar';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n';
-import { recordRun, levelProgress, type GameRunResult, type RecordRunDiff } from '../../game/progression';
+import {
+    recordRun,
+    levelProgress,
+    isApproachingMaxLevel,
+    MAX_LEVEL,
+    type GameRunResult,
+    type RecordRunDiff,
+} from '../../game/progression';
 import { SafeAnalytics } from '../../utils/firebase/init';
 
 /**
@@ -34,10 +41,22 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
 
     // Report a level-up exactly once, when this run crossed a threshold.
     useEffect(() => {
-        if (diff?.leveledUp) {
+        if (!diff?.leveledUp) return;
+        SafeAnalytics.logEvent({
+            name: 'level_up',
+            params: { from_level: diff.previousLevel, to_level: diff.level, lifetime_xp: diff.lifetimeXp },
+        });
+        // Fire once, on the run that first crosses INTO the near-max band. The band
+        // is derived from the live level map, so it moves up if more levels ship.
+        if (!isApproachingMaxLevel(diff.previousLevel) && isApproachingMaxLevel(diff.level)) {
             SafeAnalytics.logEvent({
-                name: 'level_up',
-                params: { from_level: diff.previousLevel, to_level: diff.level, lifetime_xp: diff.lifetimeXp },
+                name: 'approaching_max_level',
+                params: {
+                    level: diff.level,
+                    max_level: MAX_LEVEL,
+                    levels_remaining: MAX_LEVEL - diff.level,
+                    lifetime_xp: diff.lifetimeXp,
+                },
             });
         }
     }, [diff]);
@@ -79,11 +98,20 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     </Stack>
                 ) : null}
 
-                {diff.newRewards.length > 0 ? (
+                {diff.newRewards.some((id) => id.startsWith('theme-')) ? (
                     <Stack direction='horizontal' gap='xs' align='center'>
                         <Icon name={Sparkles} size={16} color={accent} />
                         <Text variant='caption' weight='semibold'>
                             {t('progression.newReward')}
+                        </Text>
+                    </Stack>
+                ) : null}
+
+                {diff.newRewards.some((id) => id.startsWith('signature-')) ? (
+                    <Stack direction='horizontal' gap='xs' align='center'>
+                        <Icon name={Sparkles} size={16} color={accent} />
+                        <Text variant='caption' weight='semibold'>
+                            {t('progression.newSignature')}
                         </Text>
                     </Stack>
                 ) : null}

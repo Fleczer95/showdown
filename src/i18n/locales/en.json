@@ -286,6 +286,10 @@
                     "title": "World Geography",
                     "desc": "Rivers, peaks, cities, and oceans from across the globe — 180 brand-new questions to bank on."
                 },
+                "drop_our-changing-planet": {
+                    "title": "Our Changing Planet",
+                    "desc": "Nature's extremes, oceans, and our impact on Earth — 180 fresh statistics to bank on."
+                },
                 "wheel_world-cuisine": {
                     "title": "World Cuisine",
                     "desc": "Spin through dishes, desserts, and flavors from around the globe — 60 mouth-watering puzzles."
@@ -306,6 +310,8 @@
                 "ladder_ancient-history_2": "A difficulty climb from classroom classics to specialist deep cuts",
                 "drop_world-geography_1": "180 fresh questions on rivers, mountains, countries, and seas",
                 "drop_world-geography_2": "Real figures with tight distractors to test your gut",
+                "drop_our-changing-planet_1": "180 fresh questions on extreme nature and human impact",
+                "drop_our-changing-planet_2": "Real figures with tight distractors to test your gut",
                 "wheel_world-cuisine_1": "60 fresh food puzzles from world kitchens",
                 "wheel_world-cuisine_2": "Dishes, spices, cheeses, and sweets in every round",
                 "ladder_lost-civilizations_1": "300 deep-cut questions on archaeology and ancient mysteries",
@@ -640,13 +646,16 @@
         "achievementsCount": "%{n} of %{m}",
         "reserved": "More soon",
         "rewardTheme": "Theme",
+        "rewardSignature": "Signature",
         "earnedThemeHint": "Earned themes can't be bought — climb the Level Map to unlock them.",
         "levelUp": "Level %{n}!",
         "xpGained": "+%{n} XP",
         "newReward": "New theme unlocked!",
+        "newSignature": "New signature unlocked!",
         "newAchievement": "Achievement unlocked!",
         "challenges": "Challenges",
         "feats": "Feats",
+        "signaturesTitle": "Signatures",
         "tierCount": "%{n} / %{m}",
         "locked": "Locked",
         "unlocked": "Unlocked",
@@ -700,6 +709,14 @@
         "themes": {
             "champion": "Champion",
             "legend": "Legend"
+        },
+        "signatures": {
+            "sprout": "Sprout",
+            "spark": "Spark",
+            "fire": "Fire",
+            "gem": "Gem",
+            "star": "Star",
+            "crown": "Crown"
         }
     }
 }

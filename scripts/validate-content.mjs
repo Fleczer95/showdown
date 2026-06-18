@@ -1,7 +1,7 @@
 import { RUNGS } from '../src/game/ladder/content';
 import { dropQuestions } from '../src/game/drop/content';
 import { PACKS as wheelPacks } from '../src/game/wheel/content';
-import { CATEGORIES } from '../src/game/grid/content';
+import { gridContentPacks } from '../src/game/grid/content';
 
 function validateLadder() {
     console.log('Validating Ladder...');
@@ -51,13 +51,12 @@ function validateWheel() {
 function validateGrid() {
     console.log('Validating Grid...');
     let errors = 0;
-    CATEGORIES.forEach((cat, cIndex) => {
-        if (!cat.id) { console.error(`Category ${cIndex}: Missing ID`); errors++; }
-        if (!cat.name.en || !cat.name.pl) { console.error(`${cat.id}: Missing translation in name`); errors++; }
-        if (cat.clues.length !== 5) { console.error(`${cat.id}: Expected 5 clues, found ${cat.clues.length}`); errors++; }
+    gridContentPacks.all.categories.forEach((cat, cIndex) => {
+        if (!cat.title.en || !cat.title.pl) { console.error(`Category ${cIndex}: Missing translation in title`); errors++; }
+        if (cat.clues.length !== 5) { console.error(`Category ${cIndex}: Expected 5 clues, found ${cat.clues.length}`); errors++; }
         cat.clues.forEach((clue, clIndex) => {
-            if (!clue.clue.en || !clue.clue.pl) { console.error(`${cat.id}, Clue ${clIndex}: Missing translation in clue`); errors++; }
-            if (!clue.answer.en || !clue.answer.pl) { console.error(`${cat.id}, Clue ${clIndex}: Missing translation in answer`); errors++; }
+            if (!clue.clue.en || !clue.clue.pl) { console.error(`Category ${cIndex}, Clue ${clIndex}: Missing translation in clue`); errors++; }
+            if (!clue.answer.en || !clue.answer.pl) { console.error(`Category ${cIndex}, Clue ${clIndex}: Missing translation in answer`); errors++; }
         });
     });
     console.log(`Grid validation complete. Errors: ${errors}`);

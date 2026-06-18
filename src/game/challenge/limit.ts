@@ -18,7 +18,7 @@ export const BONUS_PER_PREMIUM_ITEM = 1;
 
 /** Catalog ids of every premium (paid) item — derived, so new items count automatically. */
 function premiumItemIds(): string[] {
-    return STORE_CATALOG.filter((e) => e.tier === 'premium').map((e) => e.id);
+    return STORE_CATALOG.filter((e) => e.tier === 'premium' && e.status === 'live').map((e) => e.id);
 }
 
 /** How many premium items (themes or packs) the player owns. */

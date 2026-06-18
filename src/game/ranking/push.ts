@@ -1,9 +1,11 @@
 import { getDeviceId } from '../challenge/deviceId';
 import { getChallengeNickname } from '../challenge/nickname';
+import { loadStats, signatureSlug } from '../progression';
 import { ALLTIME_PERIOD, monthBucketId, RANKED_GAMES, type RankedGame, type RankingScope } from './config';
 import { qualifies } from './rank';
 import { recordBestIfHigher, markSynced, listPending } from './local';
 import { countEntries, lowestScore, submitEntry } from './store';
+import type { RankingEntry } from './types';
 
 // Orchestrates pushing a device's best challenge score to the global board
 // (ADR-0004). Best-effort and non-blocking: a failed push leaves the best
@@ -21,7 +23,12 @@ async function pushToBucket(game: string, period: string, score: number, nicknam
     try {
         const [count, lowest] = await Promise.all([countEntries(game, period), lowestScore(game, period)]);
         if (!qualifies(count, lowest ?? 0, score)) return true; // doesn't qualify — terminal, nothing to write
-        await submitEntry(game, period, getDeviceId(), { nickname, score });
+        const entry: RankingEntry = { nickname, score };
+        // System-derived from the player's level at write time. Only set when present
+        // so we never write an `undefined` field to Firestore.
+        const signature = signatureSlug(loadStats().lifetimeXp);
+        if (signature) entry.signature = signature;
+        await submitEntry(game, period, getDeviceId(), entry);
         return true;
     } catch {
         return false; // offline / error — keep pending

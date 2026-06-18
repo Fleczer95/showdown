@@ -1,4 +1,6 @@
 import { createMMKV } from 'react-native-mmkv';
+import { loadStats, signatureSlug } from './progression';
+import { stripNonText } from '../utils/nickname';
 
 // Local, per-game top-10 leaderboards. Mirrors `history.ts`: pure ranking
 // logic is exported for testing, MMKV I/O is a thin wrapper. Every game now
@@ -12,6 +14,12 @@ export interface LeaderboardEntry {
     score: number;
     /** Epoch ms when saved; used for tie-breaking and the row date. */
     timestamp: number;
+    /**
+     * Earned signature slug at save time, system-derived from the player's level.
+     * Rows are appended, so each one freezes the signature held at that run. Absent
+     * below the first tier or for rows saved before the feature shipped.
+     */
+    signature?: string;
 }
 
 export const BOARD_SIZE = 10;
@@ -75,7 +83,9 @@ export function getBoard(gameId: string): LeaderboardEntry[] {
  * entry (its `timestamp` identifies its row for highlighting).
  */
 export function saveScore(gameId: string, nickname: string, score: number, progress: number): LeaderboardEntry {
-    const next: LeaderboardEntry = { nickname, progress, score, timestamp: Date.now() };
+    const next: LeaderboardEntry = { nickname: stripNonText(nickname), progress, score, timestamp: Date.now() };
+    const signature = signatureSlug(loadStats().lifetimeXp);
+    if (signature) next.signature = signature;
     const { board } = insertEntry(getBoard(gameId), next);
     boardStore.set(gameId, JSON.stringify(board));
     return next;

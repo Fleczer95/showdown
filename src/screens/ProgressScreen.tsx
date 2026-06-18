@@ -33,6 +33,7 @@ import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
+import Glyph from '../components/atoms/Glyph';
 import Card from '../components/molecules/Card';
 import ProgressBar from '../components/molecules/ProgressBar';
 import IconButton from '../components/molecules/IconButton';
@@ -43,7 +44,14 @@ import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { useProgression } from '../hooks/useProgression';
-import { LEVEL_MAP, ACHIEVEMENTS, ACHIEVEMENT_FAMILIES, ONE_OFF_IDS, familyProgress } from '../game/progression';
+import {
+    LEVEL_MAP,
+    ACHIEVEMENTS,
+    ACHIEVEMENT_FAMILIES,
+    ONE_OFF_IDS,
+    SIGNATURES,
+    familyProgress,
+} from '../game/progression';
 
 type ProgressTab = 'map' | 'achievements';
 
@@ -156,7 +164,9 @@ export function ProgressScreen() {
             </View>
 
             {/* Level summary + tabs (fixed above the scrollable section) */}
-            <View style={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }}>
+            <View
+                style={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }}
+            >
                 <Card variant='elevated' padding='lg'>
                     <Stack gap='sm'>
                         <Stack direction='horizontal' justify='between' align='center'>
@@ -203,8 +213,13 @@ export function ProgressScreen() {
                     LEVEL_MAP.map((node) => {
                         const reached = level >= node.level;
                         const isReward = !!node.rewardId;
+                        const sig = node.rewardId?.startsWith('signature-')
+                            ? SIGNATURES.find((s) => s.id === node.rewardId)
+                            : undefined;
                         const rewardName = node.rewardId
-                            ? t(`progression.themes.${node.rewardId.replace('theme-', '')}`)
+                            ? sig
+                                ? t(sig.titleKey)
+                                : t(`progression.themes.${node.rewardId.replace('theme-', '')}`)
                             : null;
                         const isFocus = node.level === focusLevel;
                         const card = (
@@ -239,9 +254,14 @@ export function ProgressScreen() {
                                             {t('progression.xp', { n: node.xp.toLocaleString(locale) })}
                                         </Text>
                                         {isReward ? (
-                                            <Text variant='caption' color='textMuted'>
-                                                {`${t('progression.rewardTheme')}: ${rewardName} ✦`}
-                                            </Text>
+                                            <Stack direction='horizontal' gap='xs' align='center'>
+                                                {sig ? <Glyph emoji={sig.emoji} size={14} /> : null}
+                                                <Text variant='caption' color='textMuted'>
+                                                    {sig
+                                                        ? `${t('progression.rewardSignature')}: ${rewardName}`
+                                                        : `${t('progression.rewardTheme')}: ${rewardName} ✦`}
+                                                </Text>
+                                            </Stack>
                                         ) : node.reserved ? (
                                             <Text variant='caption' color='textMuted'>
                                                 {t('progression.reserved')}
@@ -289,7 +309,10 @@ export function ProgressScreen() {
                         {ACHIEVEMENT_FAMILIES.map((fam) => {
                             const prog = familyProgress(fam, stats);
                             return (
-                                <Pressable key={fam.family} onPress={() => setSelected({ kind: 'family', family: fam.family })}>
+                                <Pressable
+                                    key={fam.family}
+                                    onPress={() => setSelected({ kind: 'family', family: fam.family })}
+                                >
                                     <Card variant='outlined' padding='md'>
                                         <Stack gap='sm'>
                                             <Stack direction='horizontal' justify='between' align='center'>
@@ -344,7 +367,10 @@ export function ProgressScreen() {
                                         <Card
                                             variant='outlined'
                                             padding='md'
-                                            style={[styles.badgeCard, done ? { borderColor: accent } : { opacity: 0.55 }]}
+                                            style={[
+                                                styles.badgeCard,
+                                                done ? { borderColor: accent } : { opacity: 0.55 },
+                                            ]}
                                         >
                                             <Stack gap='xs' align='center'>
                                                 <Icon
@@ -352,12 +378,57 @@ export function ProgressScreen() {
                                                     size={22}
                                                     color={done ? accent : theme.colors.textMuted}
                                                 />
-                                                <Text variant='caption' weight='semibold' align='center' numberOfLines={2}>
+                                                <Text
+                                                    variant='caption'
+                                                    weight='semibold'
+                                                    align='center'
+                                                    numberOfLines={2}
+                                                >
                                                     {t(`progression.oneoff.${id}`)}
                                                 </Text>
                                             </Stack>
                                         </Card>
                                     </Pressable>
+                                );
+                            })}
+                        </View>
+
+                        <Text variant='caption' weight='bold' color='textMuted'>
+                            {t('progression.signaturesTitle')}
+                        </Text>
+                        <View style={styles.grid}>
+                            {SIGNATURES.map((s) => {
+                                const earned = unlockedRewards.has(s.id);
+                                return (
+                                    <View key={s.id} style={styles.badge}>
+                                        <Card
+                                            variant='outlined'
+                                            padding='md'
+                                            style={[
+                                                styles.badgeCard,
+                                                earned ? { borderColor: accent } : { opacity: 0.55 },
+                                            ]}
+                                        >
+                                            <Stack gap='xs' align='center'>
+                                                {earned ? (
+                                                    <Glyph emoji={s.emoji} size={26} />
+                                                ) : (
+                                                    <Icon name={Lock} size={22} color={theme.colors.textMuted} />
+                                                )}
+                                                <Text
+                                                    variant='caption'
+                                                    weight='semibold'
+                                                    align='center'
+                                                    numberOfLines={1}
+                                                >
+                                                    {t(s.titleKey)}
+                                                </Text>
+                                                <Text variant='overline' color='textMuted' align='center'>
+                                                    {t('progression.level', { n: s.level })}
+                                                </Text>
+                                            </Stack>
+                                        </Card>
+                                    </View>
                                 );
                             })}
                         </View>

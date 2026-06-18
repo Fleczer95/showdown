@@ -6,6 +6,7 @@ import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
+import Glyph from '../components/atoms/Glyph';
 import Pressable from '../components/atoms/HapticPressable';
 import ActivityIndicator from '../components/atoms/ActivityIndicator';
 import IconButton from '../components/molecules/IconButton';
@@ -29,6 +30,7 @@ import { resolveDisplayedMonth } from '../game/ranking/rank';
 import { getBoard, countEntries } from '../game/ranking/store';
 import { getLocalState } from '../game/ranking/local';
 import { retryPending } from '../game/ranking/push';
+import { signatureEmoji } from '../game/progression';
 import { OfflineError, BlockedError } from '../game/challenge/store';
 import type { LocalBest, RankingEntry } from '../game/ranking/types';
 
@@ -71,14 +73,18 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
 function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const sig = signatureEmoji(entry.signature);
     return (
         <View style={[styles.row, { borderBottomColor: theme.colors.border }]}>
             <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
                 {rank}
             </Text>
-            <Text variant='body' weight='semibold' numberOfLines={1} style={styles.name}>
-                {entry.nickname}
-            </Text>
+            <View style={styles.name}>
+                {sig ? <Glyph emoji={sig} size={16} /> : null}
+                <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
+                    {entry.nickname}
+                </Text>
+            </View>
             <Text variant='body' weight='bold' style={styles.score}>
                 {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
             </Text>
@@ -92,7 +98,10 @@ function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
     const { t, locale } = useTranslation();
     return (
         <View
-            style={[styles.chip, { borderRadius: theme.radii.lg, backgroundColor: hexToRgba(theme.colors.primary, 0.1) }]}
+            style={[
+                styles.chip,
+                { borderRadius: theme.radii.lg, backgroundColor: hexToRgba(theme.colors.primary, 0.1) },
+            ]}
         >
             <Stack gap='xs' flex={1}>
                 <Text variant='caption' color='textSecondary'>
@@ -155,8 +164,7 @@ export function RankingScreen() {
                 // Only skip the previous-month read once the current month has rolled
                 // over (>= threshold); below it we still need previousCount to decide
                 // whether to keep showing last month's fuller board (ADR-0004).
-                const previousCount =
-                    currentCount >= ROLLOVER_THRESHOLD ? 0 : await countEntries(game, previousMonth);
+                const previousCount = currentCount >= ROLLOVER_THRESHOLD ? 0 : await countEntries(game, previousMonth);
                 const which = resolveDisplayedMonth({ currentCount, previousCount });
                 const period = which === 'current' ? currentMonth : previousMonth;
                 setBoard(await getBoard(game, period));
@@ -246,7 +254,11 @@ export function RankingScreen() {
                         <Text variant='caption' color='textSecondary' align='center'>
                             {t(status === 'error' ? 'ranking.errorDesc' : 'ranking.offlineDesc')}
                         </Text>
-                        <Button variant='secondary' onPress={load} icon={<RefreshCw size={18} color={theme.colors.text} />}>
+                        <Button
+                            variant='secondary'
+                            onPress={load}
+                            icon={<RefreshCw size={18} color={theme.colors.text} />}
+                        >
                             {t('ranking.loadRetry')}
                         </Button>
                     </View>
@@ -256,7 +268,12 @@ export function RankingScreen() {
                         keyExtractor={(_, i) => `${i}`}
                         renderItem={({ item, index }) => <BoardRow rank={index + 1} entry={item} />}
                         ListEmptyComponent={
-                            <Text variant='body' color='textMuted' align='center' style={{ marginTop: theme.spacing.xl }}>
+                            <Text
+                                variant='body'
+                                color='textMuted'
+                                align='center'
+                                style={{ marginTop: theme.spacing.xl }}
+                            >
                                 {t('ranking.empty')}
                             </Text>
                         }
@@ -323,6 +340,12 @@ const styles = StyleSheet.create({
     },
     name: {
         flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    nameText: {
+        flexShrink: 1,
     },
     score: {
         textAlign: 'right',

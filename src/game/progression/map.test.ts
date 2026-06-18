@@ -1,19 +1,37 @@
-import { LEVEL_MAP, level, xpForLevel, unlockedRewards, levelProgress } from './map';
+import { LEVEL_MAP, level, xpForLevel, unlockedRewards, levelProgress, MAX_LEVEL, isApproachingMaxLevel } from './map';
+import { NEAR_MAX_LEVEL_BAND } from './constants';
+import { SIGNATURES } from './signatures';
 
 describe('LEVEL_MAP', () => {
     it('has 50 levels following the approved cumulative curve', () => {
         expect(LEVEL_MAP).toHaveLength(50);
         expect(LEVEL_MAP.map((n) => n.xp)).toEqual([
-            0, 150, 400, 750, 1200, 1800, 2600, 3600, 4900, 6500, 8500, 11000, 14000, 17500, 22000,
-            27500, 34000, 41500, 50500, 61000, 73000, 87000, 103000, 121500, 143000, 168000, 197000,
-            230500, 269000, 313000, 363000, 419000, 482000, 552000, 630000, 717000, 814000, 922000, 1042000,
-            1176000, 1326000, 1494000, 1682000, 1892000, 2127000, 2390000, 2685000, 3016000, 3387000, 3803000,
+            0, 150, 400, 750, 1200, 1800, 2600, 3600, 4900, 6500, 8500, 11000, 14000, 17500, 22000, 27500, 34000, 41500,
+            50500, 61000, 73000, 87000, 103000, 121500, 143000, 168000, 197000, 230500, 269000, 313000, 363000, 419000,
+            482000, 552000, 630000, 717000, 814000, 922000, 1042000, 1176000, 1326000, 1494000, 1682000, 1892000,
+            2127000, 2390000, 2685000, 3016000, 3387000, 3803000,
         ]);
     });
 
     it('pins the two earned themes to L15 and L30', () => {
         expect(LEVEL_MAP.find((n) => n.level === 15)?.rewardId).toBe('theme-champion');
         expect(LEVEL_MAP.find((n) => n.level === 30)?.rewardId).toBe('theme-legend');
+    });
+
+    it('pins the signatures to their nodes', () => {
+        expect(LEVEL_MAP.find((n) => n.level === 5)?.rewardId).toBe('signature-sprout');
+        expect(LEVEL_MAP.find((n) => n.level === 10)?.rewardId).toBe('signature-spark');
+        expect(LEVEL_MAP.find((n) => n.level === 20)?.rewardId).toBe('signature-fire');
+        expect(LEVEL_MAP.find((n) => n.level === 25)?.rewardId).toBe('signature-gem');
+        expect(LEVEL_MAP.find((n) => n.level === 40)?.rewardId).toBe('signature-star');
+        expect(LEVEL_MAP.find((n) => n.level === 50)?.rewardId).toBe('signature-crown');
+    });
+
+    it('binds every signature reward to a matching level node', () => {
+        for (const sig of SIGNATURES) {
+            const node = LEVEL_MAP.find((n) => n.level === sig.level);
+            expect(node?.rewardId).toBe(sig.id);
+        }
     });
 
     it('has no reserved levels', () => {
@@ -53,17 +71,28 @@ describe('xpForLevel', () => {
 });
 
 describe('unlockedRewards', () => {
-    it('is empty below the first reward threshold', () => {
-        expect(unlockedRewards(21999)).toEqual(new Set());
+    it('is empty below the first reward threshold (L5)', () => {
+        expect(unlockedRewards(1199)).toEqual(new Set());
     });
 
-    it('grants the L15 theme at its threshold', () => {
-        expect(unlockedRewards(22000)).toEqual(new Set(['theme-champion']));
+    it('grants the first signature at L5 and the L15 theme at its threshold', () => {
+        expect(unlockedRewards(1200)).toEqual(new Set(['signature-sprout']));
+        expect(unlockedRewards(22000)).toEqual(new Set(['signature-sprout', 'signature-spark', 'theme-champion']));
     });
 
-    it('grants both earned themes once past the capstone — retroactively', () => {
-        expect(unlockedRewards(3803000)).toEqual(new Set(['theme-champion', 'theme-legend']));
-        expect(unlockedRewards(9_999_999)).toEqual(new Set(['theme-champion', 'theme-legend']));
+    it('grants every reward once past the capstone — retroactively', () => {
+        const all = new Set([
+            'signature-sprout',
+            'signature-spark',
+            'theme-champion',
+            'signature-fire',
+            'signature-gem',
+            'theme-legend',
+            'signature-star',
+            'signature-crown',
+        ]);
+        expect(unlockedRewards(3803000)).toEqual(all);
+        expect(unlockedRewards(9_999_999)).toEqual(all);
     });
 });
 
@@ -77,5 +106,31 @@ describe('levelProgress', () => {
         expect(p.level).toBe(50);
         expect(p.nextLevelXp).toBeNull();
         expect(p.span).toBe(0);
+    });
+});
+
+describe('MAX_LEVEL', () => {
+    it('tracks the last node of the level map', () => {
+        expect(MAX_LEVEL).toBe(LEVEL_MAP[LEVEL_MAP.length - 1].level);
+        expect(MAX_LEVEL).toBe(50);
+    });
+});
+
+describe('isApproachingMaxLevel', () => {
+    it('is false below the near-max band', () => {
+        expect(isApproachingMaxLevel(MAX_LEVEL - NEAR_MAX_LEVEL_BAND - 1)).toBe(false);
+        expect(isApproachingMaxLevel(1)).toBe(false);
+    });
+
+    it('is true on the first level inside the band', () => {
+        expect(isApproachingMaxLevel(MAX_LEVEL - NEAR_MAX_LEVEL_BAND)).toBe(true);
+    });
+
+    it('is true throughout the band up to one below the cap', () => {
+        expect(isApproachingMaxLevel(MAX_LEVEL - 1)).toBe(true);
+    });
+
+    it('is false at the cap itself — reached, not approaching', () => {
+        expect(isApproachingMaxLevel(MAX_LEVEL)).toBe(false);
     });
 });

@@ -121,3 +121,23 @@ wrong sweep is reversible.
   a local history view with sync status.
 - App Check moving to **Enforce** is service-wide and affects the live Async
   Challenge writes too; it is gated on healthy verified-request metrics.
+
+## Amendment (2026-06-18): optional `signature` field
+
+The ranking entry gains an optional third field, `signature` — a short ASCII slug
+(e.g. `fire`) for an earned-cosmetic emoji shown next to the nickname. It relaxes
+the "deliberately minimal `{nickname, score}`" shape, with these constraints:
+
+- **System-derived, never user input.** The app computes the slug from the player's
+  level (`signatureSlug(lifetimeXp)`); it is never typed. To keep the only emoji on a
+  row legitimate, public nicknames are now **stripped to text-only** at their single
+  write point (`stripNonText` in `src/utils/nickname.ts`).
+- **Allowlisted in rules.** `isValidRankingEntry` accepts `signature` only when absent
+  or one of the known slugs (kept in sync with `SIGNATURE_SLUGS`). This blocks garbage
+  strings; it cannot prove the tier was *earned*.
+- **Residual risk unchanged in spirit.** A modified binary could write a valid-but-
+  unearned slug — pure vanity, no leaderboard-integrity impact (it is not a ranking
+  key), and unverifiable without a server. Same honour-based posture as the score
+  itself; `--remove` stays the backstop.
+- **Wire format is an id, not the glyph**, so the visual can later migrate to SVG with
+  zero data migration. See `docs/superpowers/specs/2026-06-18-signature-emoji-design.md`.

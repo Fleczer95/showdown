@@ -2,6 +2,7 @@ import { ancientHistoryEn, ancientHistoryPl } from '../../game/ladder/packs/anci
 import { lostCivilizationsEn, lostCivilizationsPl } from '../../game/ladder/packs/lost-civilizations';
 import { worldGeographyEn, worldGeographyPl } from '../../game/drop/packs/world-geography';
 import { worldCuisineEn, worldCuisinePl } from '../../game/wheel/packs/world-cuisine';
+import { en as ourChangingPlanetEn, pl as ourChangingPlanetPl } from '../../game/drop/packs/our-changing-planet';
 import type { LadderPackCard } from '../../game/ladder/buildRuns';
 import type { DropPackCard } from '../../game/drop/content';
 import type { PuzzleContent } from '../../game/wheel/logic';
@@ -135,6 +136,29 @@ export const gamePacks: PackDefinition[] = [
         content: { en: lostCivilizationsEn, pl: lostCivilizationsPl } satisfies {
             en: LadderPackCard[];
             pl: LadderPackCard[];
+        },
+    },
+    {
+        id: 'pack-drop-our-changing-planet',
+        kind: 'pack',
+        gameId: 'the-drop',
+        status: 'hidden',
+        tier: 'premium',
+        sku: 'com.showdown.pack_drop_our_changing_planet',
+        presentation: {
+            titleKey: 'screen.store.item.drop_our-changing-planet.title',
+            descriptionKey: 'screen.store.item.drop_our-changing-planet.desc',
+            iconName: 'globe',
+            accentColor: '#228B22',
+            featuresKey: [
+                'screen.store.feature.drop_our-changing-planet_1',
+                'screen.store.feature.drop_our-changing-planet_2',
+            ],
+            fallbackPrice: '$2.99',
+        },
+        content: { en: ourChangingPlanetEn, pl: ourChangingPlanetPl } satisfies {
+            en: DropPackCard[];
+            pl: DropPackCard[];
         },
     },
 ];

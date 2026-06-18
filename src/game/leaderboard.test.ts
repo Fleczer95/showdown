@@ -1,4 +1,11 @@
-import { rankEntries, qualifies, insertEntry, BOARD_SIZE, type LeaderboardEntry } from './leaderboard';
+import { rankEntries, qualifies, insertEntry, saveScore, BOARD_SIZE, type LeaderboardEntry } from './leaderboard';
+import { loadStats } from './progression';
+
+// Derive the signature from a controllable lifetimeXp; signatureSlug stays real.
+jest.mock('./progression', () => {
+    const actual = jest.requireActual('./progression');
+    return { ...actual, loadStats: jest.fn(() => ({ lifetimeXp: 0 })) };
+});
 
 const entry = (score: number, timestamp: number, nickname = 'P', progress = 0): LeaderboardEntry => ({
     nickname,
@@ -84,5 +91,19 @@ describe('insertEntry', () => {
         const { board, index } = insertEntry([older], e);
         expect(board.map((x) => x.nickname)).toEqual(['old', 'new']);
         expect(index).toBe(1);
+    });
+});
+
+describe('saveScore — signature snapshot', () => {
+    it('stamps the highest earned signature slug at save time', () => {
+        (loadStats as jest.Mock).mockReturnValue({ lifetimeXp: 61000 }); // L20 → 'fire'
+        const saved = saveScore('the-ladder', 'Ada', 1234, 5);
+        expect(saved.signature).toBe('fire');
+    });
+
+    it('leaves the signature absent below the first tier', () => {
+        (loadStats as jest.Mock).mockReturnValue({ lifetimeXp: 0 });
+        const saved = saveScore('the-ladder', 'Ada', 1234, 5);
+        expect(saved.signature).toBeUndefined();
     });
 });

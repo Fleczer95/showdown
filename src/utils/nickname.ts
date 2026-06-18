@@ -9,11 +9,37 @@
 // not exhaustive moderation; over-blocking is preferred to leaking a slur.
 const BLOCKLIST = [
     // English
-    'fuck', 'shit', 'bitch', 'cunt', 'asshole', 'bastard', 'dick', 'whore',
-    'slut', 'nigger', 'nigga', 'faggot', 'rape', 'nazi', 'retard',
+    'fuck',
+    'shit',
+    'bitch',
+    'cunt',
+    'asshole',
+    'bastard',
+    'dick',
+    'whore',
+    'slut',
+    'nigger',
+    'nigga',
+    'faggot',
+    'rape',
+    'nazi',
+    'retard',
     // Polish
-    'kurwa', 'chuj', 'huj', 'pizd', 'jeb', 'pierdol', 'skurwy', 'kutas',
-    'dziwk', 'cipa', 'spierdal', 'wypierdal', 'pedal', 'ciota', 'szmata',
+    'kurwa',
+    'chuj',
+    'huj',
+    'pizd',
+    'jeb',
+    'pierdol',
+    'skurwy',
+    'kutas',
+    'dziwk',
+    'cipa',
+    'spierdal',
+    'wypierdal',
+    'pedal',
+    'ciota',
+    'szmata',
 ];
 
 /** Lowercase, strip diacritics, fold common leetspeak, drop non-letters. */
@@ -35,4 +61,18 @@ function normalize(name: string): string {
 export function containsProfanity(name: string): boolean {
     const normalized = normalize(name);
     return BLOCKLIST.some((term) => normalized.includes(term));
+}
+
+/**
+ * Keep nicknames text-only so the ONLY emoji that can appear on a board row is the
+ * system-set signature. Drops emoji and other pictographic symbols while preserving
+ * letters (incl. diacritics), digits, spaces, and basic name punctuation; collapses
+ * whitespace runs and trims. (Hermes supports \p{…} with the `u` flag — see
+ * `wheel/logic.ts`.)
+ */
+export function stripNonText(name: string): string {
+    return name
+        .replace(/[^\p{L}\p{M}\p{N}\s'._-]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
 }

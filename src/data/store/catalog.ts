@@ -79,3 +79,30 @@ export function hasBuyablePacks(gameId: string, ownedIds: ReadonlySet<string>): 
         (entry) => entry.kind === 'pack' && entry.gameId === gameId && resolveEntryState(entry, ownedIds) === 'locked',
     );
 }
+
+/** The game a pack id belongs to, or undefined for theme / unknown ids. */
+export function gameIdForPack(id: string): string | undefined {
+    const entry = idToEntry.get(id);
+    return entry?.kind === 'pack' ? entry.gameId : undefined;
+}
+
+/**
+ * Count of live, premium packs for a game — the denominator of "owns all packs".
+ * Hidden (unreleased) packs are excluded so a held-back pack never inflates the
+ * total, and free packs don't count because owning them is automatic.
+ */
+export function premiumPackCount(gameId: string): number {
+    return STORE_CATALOG.filter(
+        (entry) =>
+            entry.kind === 'pack' && entry.gameId === gameId && entry.tier === 'premium' && entry.status === 'live',
+    ).length;
+}
+
+/**
+ * True iff the game has at least one live premium pack AND the player owns every
+ * one of them. Free-only games never qualify (nothing to complete), and a game
+ * with a still-locked premium pack returns false via `hasBuyablePacks`.
+ */
+export function ownsAllPremiumPacks(gameId: string, ownedIds: ReadonlySet<string>): boolean {
+    return premiumPackCount(gameId) > 0 && !hasBuyablePacks(gameId, ownedIds);
+}

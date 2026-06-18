@@ -8,6 +8,13 @@
 export interface RankingEntry {
     nickname: string;
     score: number;
+    /**
+     * Earned signature slug (e.g. 'fire'), system-derived from the player's level at
+     * write time — never user input. Absent below the first signature tier or for
+     * entries written before the feature shipped. Resolved to an emoji at render time
+     * via `signatureEmoji`. Constrained to the known slug allowlist by Firestore rules.
+     */
+    signature?: string;
 }
 
 /** This device's locally-tracked best for one scope, plus its sync status. */

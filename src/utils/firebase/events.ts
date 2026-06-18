@@ -125,6 +125,9 @@ export type AnalyticsEvent =
       }
     // --- Store events ---
     | { name: 'store_viewed'; params: { source: StoreSource; game_id?: GameId } }
+    // `game` is the kebab-case game id (e.g. `the-ladder`), matching the pack
+    // catalog's `gameId` and the challenge events — NOT the underscore GameId union.
+    | { name: 'game_packs_completed'; params: { game: string; pack_count: number } }
     | { name: 'pack_viewed'; params: { pack_id: string; game_id: GameId; is_purchased: boolean } }
     | { name: 'pack_purchase_started'; params: { pack_id: string; game_id: GameId; price_string: string } }
     | {
@@ -147,6 +150,12 @@ export type AnalyticsEvent =
       }
     // --- Progression events ---
     | { name: 'level_up'; params: { from_level: number; to_level: number; lifetime_xp: number } }
+    // Crossed into the near-max band (within NEAR_MAX_LEVEL_BAND of the cap), but
+    // not yet at it. `levels_remaining` is max_level - level (>= 1).
+    | {
+          name: 'approaching_max_level';
+          params: { level: number; max_level: number; levels_remaining: number; lifetime_xp: number };
+      }
     // --- Async Challenge events (ADR-0003). `game` is the kebab-case game id (e.g. `the-ladder`). ---
     | { name: 'challenge_created'; params: { game: string } }
     | { name: 'challenge_opened'; params: { game: string } }

@@ -26,5 +26,12 @@ export const QUICK_WIT_MIN_RUNG = 10;
 /** …answered within this many seconds earns the feat. */
 export const QUICK_WIT_MAX_SECONDS = 5;
 
+/**
+ * How many levels below the cap counts as "approaching max level". The threshold
+ * itself is derived from the live LEVEL_MAP (see map.ts), so extending the map
+ * moves the approach band up automatically — no value here changes.
+ */
+export const NEAR_MAX_LEVEL_BAND = 5;
+
 /** MMKV namespace for persisted progression stats. */
 export const PROGRESSION_STORE_ID = 'showdown-progression';

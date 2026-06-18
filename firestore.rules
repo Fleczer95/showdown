@@ -36,10 +36,18 @@ service cloud.firestore {
     // A per-game, score-only bounded leaderboard. Public read; a device writes
     // only its own {uuid} entry; updates may only raise the score (best-only);
     // clients never delete (rotation/retention is the Admin-SDK cleanup script).
+    // `signature` is an optional, system-derived earned-cosmetic slug. It is never
+    // user input (the app computes it from the player's level), so it must be one of
+    // the known slugs — keep this list in sync with SIGNATURE_SLUGS in
+    // src/game/progression/signatures.ts. A modified client could still write a
+    // valid-but-unearned slug (pure vanity, unverifiable without a server); the
+    // Admin-SDK cleanup `--remove` is the backstop. Nicknames stay text-only.
     function isValidRankingEntry(d) {
-      return d.keys().hasOnly(['nickname', 'score'])
+      return d.keys().hasOnly(['nickname', 'score', 'signature'])
         && d.nickname is string && d.nickname.size() > 0 && d.nickname.size() <= 24
-        && d.score is number && d.score >= 0 && d.score <= 1000000000;
+        && d.score is number && d.score >= 0 && d.score <= 1000000000
+        && (!('signature' in d)
+            || d.signature in ['sprout', 'spark', 'fire', 'gem', 'star', 'crown']);
     }
     function isRankedGame(game) {
       return game in ['the-ladder', 'the-drop', 'the-wheel'];

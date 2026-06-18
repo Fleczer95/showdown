@@ -66,10 +66,12 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isRankedGame(game) && isWritablePeriod(period)
         && isValidRankingEntry(request.resource.data);
-      // Best-only: an update may only raise the stored score.
+      // Best-only: an update may never lower the stored score. `>=` (not `>`) so a
+      // device re-asserting its own unchanged best is idempotent — a strict `>`
+      // turns that harmless re-push into a permanent permission-denied retry storm.
       allow update: if isRankedGame(game) && isWritablePeriod(period)
         && isValidRankingEntry(request.resource.data)
-        && request.resource.data.score > resource.data.score;
+        && request.resource.data.score >= resource.data.score;
       allow delete: if false;
     }
 

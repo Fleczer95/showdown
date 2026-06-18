@@ -1,4 +1,5 @@
 import { getDeviceId } from '../challenge/deviceId';
+import { BlockedError } from '../challenge/store';
 import { getChallengeNickname } from '../challenge/nickname';
 import { loadStats, signatureSlug } from '../progression';
 import { ALLTIME_PERIOD, monthBucketId, RANKED_GAMES, type RankedGame, type RankingScope } from './config';
@@ -30,8 +31,11 @@ async function pushToBucket(game: string, period: string, score: number, nicknam
         if (signature) entry.signature = signature;
         await submitEntry(game, period, getDeviceId(), entry);
         return true;
-    } catch {
-        return false; // offline / error — keep pending
+    } catch (err) {
+        // A `BlockedError` (permission-denied / App Check) is a terminal server
+        // rejection — a retry can never succeed, so resolve it locally instead of
+        // re-queuing it forever. Only a genuine offline blip stays pending.
+        return err instanceof BlockedError;
     }
 }
 

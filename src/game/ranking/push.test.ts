@@ -1,6 +1,12 @@
 import { pushRanking } from './push';
 import { submitEntry } from './store';
+import { markSynced } from './local';
+import { BlockedError, OfflineError } from '../challenge/store';
 import { loadStats } from '../progression';
+
+// The error classes live in challenge/store, which imports firestore; stub it so
+// the module loads under jest (we never reach a real firestore call here).
+jest.mock('@react-native-firebase/firestore', () => ({ __esModule: true, default: () => ({}) }));
 
 // Firestore + local-best I/O are stubbed; we only assert the payload shape.
 jest.mock('./store', () => ({
@@ -37,5 +43,24 @@ describe('pushRanking — signature on the wire', () => {
         const entry = lastEntry();
         expect(entry).toEqual({ nickname: 'Ada', score: 500 });
         expect('signature' in entry).toBe(false);
+    });
+});
+
+describe('pushRanking — terminal vs retryable write failures', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('resolves a scope (marks synced) when the write is rejected by the rules', async () => {
+        // A `BlockedError` (permission-denied / App Check) is terminal — a retry will
+        // never help, so re-queuing it forever is the storm we are fixing.
+        (submitEntry as jest.Mock).mockRejectedValue(new BlockedError());
+        await pushRanking('the-ladder', 500, 'Ada');
+        expect(markSynced).toHaveBeenCalledWith('the-ladder', 'alltime');
+        expect(markSynced).toHaveBeenCalledWith('the-ladder', 'month');
+    });
+
+    it('keeps a scope pending when the write fails offline', async () => {
+        (submitEntry as jest.Mock).mockRejectedValue(new OfflineError());
+        await pushRanking('the-ladder', 500, 'Ada');
+        expect(markSynced).not.toHaveBeenCalled();
     });
 });

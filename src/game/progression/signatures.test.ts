@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { SIGNATURES, SIGNATURE_SLUGS, signatureSlug, signatureEmoji } from './signatures';
 
 // Cumulative XP thresholds of the bound levels (see LEVEL_MAP):
@@ -40,5 +42,16 @@ describe('signatureEmoji', () => {
 describe('SIGNATURE_SLUGS', () => {
     it('lists the slug of every signature', () => {
         expect(SIGNATURE_SLUGS).toEqual(SIGNATURES.map((s) => s.slug));
+    });
+
+    // firestore.rules can't import TS, so it hardcodes the slug allowlist. This
+    // guards the two from drifting: extract the literal list from the rule and
+    // assert it matches SIGNATURE_SLUGS exactly.
+    it('matches the allowlist hardcoded in firestore.rules', () => {
+        const rules = readFileSync(join(__dirname, '../../../firestore.rules'), 'utf8');
+        const match = rules.match(/d\.signature in \[([^\]]*)\]/);
+        expect(match).not.toBeNull();
+        const ruleSlugs = match![1].split(',').map((s) => s.trim().replace(/'/g, ''));
+        expect(ruleSlugs).toEqual([...SIGNATURE_SLUGS]);
     });
 });

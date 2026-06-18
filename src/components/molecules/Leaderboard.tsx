@@ -70,6 +70,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
         () =>
             board.map((entry, i) => {
                 const highlighted = entry.timestamp === savedTimestamp;
+                const sig = signatureEmoji(entry.signature);
                 return (
                     <View
                         key={`${entry.timestamp}-${i}`}
@@ -87,9 +88,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                         </Text>
                         <View style={styles.nameCol}>
                             <View style={styles.nameLine}>
-                                {signatureEmoji(entry.signature) ? (
-                                    <Glyph emoji={signatureEmoji(entry.signature)!} size={15} />
-                                ) : null}
+                                {sig ? <Glyph emoji={sig} size={15} /> : null}
                                 <Text
                                     variant='body'
                                     weight={highlighted ? 'bold' : 'semibold'}

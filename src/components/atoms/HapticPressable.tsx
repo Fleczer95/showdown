@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable as RNPressable, View, PressableAndroidRippleConfig } from 'react-native';
+import { Pressable as RNPressable, StyleSheet, View, PressableAndroidRippleConfig } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { useAnimationPresets } from '../../theme';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -53,13 +53,20 @@ function Pressable({
     const pressed = useSharedValue(false);
     const haptics = useHaptics();
 
+    // A caller can pass a static opacity via `style` (e.g. to dim a locked
+    // button). Animated opacity below always writes opacity and would clobber it,
+    // so fold the caller's base in by multiplication.
+    const baseOpacity = (StyleSheet.flatten(style) as { opacity?: number } | undefined)?.opacity ?? 1;
+
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [
             {
                 scale: withSpring(pressed.value ? press.scale : 1, spring as never),
             },
         ],
-        opacity: withTiming(disabled ? 0.5 : pressed.value ? 0.8 : 1, { duration: press.duration }),
+        opacity: withTiming((disabled ? 0.5 : pressed.value ? 0.8 : 1) * baseOpacity, {
+            duration: press.duration,
+        }),
     }));
 
     const handlePressIn = () => {

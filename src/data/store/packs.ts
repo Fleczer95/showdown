@@ -166,7 +166,7 @@ export const gamePacks: PackDefinition[] = [
         id: 'pack-drop-our-changing-planet',
         kind: 'pack',
         gameId: 'the-drop',
-        status: 'hidden',
+        status: 'live',
         tier: 'premium',
         sku: 'com.showdown.pack_drop_our_changing_planet',
         presentation: {

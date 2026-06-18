@@ -458,7 +458,11 @@ export function GameSetupScreen() {
                         fullWidth
                         size='lg'
                         onPress={onStart}
-                        style={{ backgroundColor: accent, borderColor: accent }}
+                        style={{
+                            backgroundColor: accent,
+                            borderColor: accent,
+                            opacity: runsLeft <= 0 ? 0.7 : 1,
+                        }}
                         textColor={onAccent}
                         icon={
                             runsLeft <= 0 ? (
@@ -485,7 +489,7 @@ export function GameSetupScreen() {
                             elevation: 8,
                             // Looks disabled at the cap but stays tappable to open
                             // the limit/upsell sheet.
-                            opacity: limitReached ? 0.55 : 1,
+                            opacity: limitReached ? 0.7 : 1,
                         }}
                         textColor={accent}
                         icon={<Swords size={22} color={accent} />}

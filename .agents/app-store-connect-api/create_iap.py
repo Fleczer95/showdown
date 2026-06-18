@@ -33,7 +33,7 @@ PRODUCTS = [
     {"sku": "com.showdown.pack_ladder_ancient_history", "name": "Ancient History", "desc": "300 ancient history questions for The Ladder", "price": "2.49", "enabled": False},
     {"sku": "com.showdown.pack_ladder_lost_civilizations", "name": "Lost Civilizations", "desc": "300 lost civilization questions for The Ladder", "price": "2.99", "enabled": True},  # iOS IAP localization desc max 55 chars
     {"sku": "com.showdown.pack_drop_world_geography", "name": "World Geography", "desc": "180 world geography questions for The Drop", "price": "1.99", "enabled": False},
-    {"sku": "com.showdown.pack_drop_our_changing_planet", "name": "Our Changing Planet", "desc": "180 extreme nature and human impact statistics for The Drop", "price": "2.99", "enabled": False},
+    {"sku": "com.showdown.pack_drop_our_changing_planet", "name": "Our Changing Planet", "desc": "180 nature & human-impact stats for The Drop", "price": "2.99", "enabled": True},  # iOS IAP localization desc max 55 chars
     {"sku": "com.showdown.pack_wheel_world_cuisine", "name": "World Cuisine", "desc": "60 world cuisine puzzles for The Wheel", "price": "1.99", "enabled": False},
     {"sku": "com.showdown.pack_wheel_world_landmarks", "name": "World Landmarks", "desc": "60 world landmark puzzles for The Wheel", "price": "2.99", "enabled": True},
     # Cosmetic themes. Apple has no $2.50 tier, so the $2.50 themes use $2.49 on iOS.

@@ -45,12 +45,34 @@ The signature appears on both.
 
 ## Data model
 
+### Wire format: store the id, not the glyph
+
+Entries store the signature **id** (a stable ASCII slug, e.g. `"fire"`), **never** the emoji
+glyph itself. The app — the only renderer — resolves id → presentation at render time. This
+decouples the stored data from the visual:
+
+- The visual can be swapped later (emoji → bespoke SVG/Skia badge) with **zero data
+  migration**; stored entries keep their id and render the new asset.
+- Firestore rules validate against a small fixed set of ids (plain ASCII), avoiding
+  unicode-emoji matching in rules.
+- The wire value is stable across emoji unicode versions and platform quirks.
+
+**Visual for v1: emoji.** Chosen over custom SVG because emoji are already an established
+inline pattern in this app (`games.ts` renders 🪜/💰/🎡 next to game titles), they suit the
+kids/family audience (multicolor, instantly legible), and need no asset pipeline. Because the
+wire format is an id, this is a reversible decision — see above.
+
+### Module
+
 New module `src/game/progression/signatures.ts`, sibling to `themes.ts`:
 
 ```ts
 export interface Signature {
     /** Reward id — matches a LEVEL_MAP node `rewardId` and `unlockedRewards()`. */
     id: string;            // e.g. 'signature-spark'
+    /** Stable ASCII slug stored on board entries (the id without the 'signature-' prefix). */
+    slug: string;          // e.g. 'spark'
+    /** v1 presentation: the emoji the slug resolves to. Swap to an SVG component later. */
     emoji: string;         // e.g. '⚡'
     titleKey: string;      // e.g. 'progression.signatures.spark'
     level: number;         // the LEVEL_MAP node it is bound to
@@ -58,16 +80,20 @@ export interface Signature {
 
 export const SIGNATURES: readonly Signature[];
 
-/** The highest-tier signature emoji earned at `lifetimeXp`, or undefined. */
-export function signature(lifetimeXp: number): string | undefined;
+/** The highest-tier signature SLUG earned at `lifetimeXp`, or undefined. Stored on entries. */
+export function signatureSlug(lifetimeXp: number): string | undefined;
 
-/** Allowlist of every known signature emoji (for Firestore rule validation + tests). */
-export const SIGNATURE_EMOJIS: readonly string[];
+/** Resolve a stored slug to its current presentation (v1: emoji). Render-time only. */
+export function signatureEmoji(slug: string | undefined): string | undefined;
+
+/** Allowlist of every known signature slug (for Firestore rule validation + tests). */
+export const SIGNATURE_SLUGS: readonly string[];
 ```
 
-`signature(lifetimeXp)` walks `SIGNATURES` (or `LEVEL_MAP`) and returns the emoji of the
-highest-level signature whose node has been reached (`lifetimeXp >= node.xp`). Returns
-`undefined` below the first signature tier.
+`signatureSlug(lifetimeXp)` walks `SIGNATURES` (or `LEVEL_MAP`) and returns the slug of the
+highest-level signature whose node has been reached (`lifetimeXp >= node.xp`), or `undefined`
+below the first signature tier. `signatureEmoji(slug)` is the render-time resolver — the only
+place the glyph is referenced — so changing the visual touches just this function.
 
 ### Binding to the Level Map
 
@@ -81,18 +107,19 @@ Signatures occupy currently-empty nodes; the two existing theme rewards are unch
 Because the displayed signature is always the highest earned, the emoji visibly upgrades
 as the player climbs.
 
-| Level | Reward id | Emoji / note |
-|-------|-----------|--------------|
-| 5  | `signature-sprout`   | 🌱 |
-| 10 | `signature-spark`    | ⚡ |
-| 15 | `theme-champion`     | *(unchanged theme)* |
-| 20 | `signature-fire`     | 🔥 |
-| 25 | `signature-gem`      | 💎 |
-| 30 | `theme-legend`       | *(unchanged theme)* |
-| 40 | `signature-star`     | 🌟 |
-| 50 | `signature-crown`    | 👑 |
+| Level | Reward id | Slug (wire) | Emoji (v1 render) |
+|-------|-----------|-------------|-------------------|
+| 5  | `signature-sprout`   | `sprout` | 🌱 |
+| 10 | `signature-spark`    | `spark`  | ⚡ |
+| 15 | `theme-champion`     | —        | *(unchanged theme)* |
+| 20 | `signature-fire`     | `fire`   | 🔥 |
+| 25 | `signature-gem`      | `gem`    | 💎 |
+| 30 | `theme-legend`       | —        | *(unchanged theme)* |
+| 40 | `signature-star`     | `star`   | 🌟 |
+| 50 | `signature-crown`    | `crown`  | 👑 |
 
-(The specific emoji and levels are easy to adjust; this is the proposed initial set.)
+(Slugs and levels are stable; the emoji column is just the v1 presentation and can change
+without touching stored data.)
 
 ## Write path — signature captured at write time
 
@@ -100,15 +127,17 @@ The signature is read from current progression state and written onto the entry 
 score is saved/pushed. The non-hook accessor `loadStats()` (`recordRun.ts:101`) exposes
 `lifetimeXp`, so both paths can derive it without React context.
 
+The stored value is the **slug** (`signatureSlug(...)`), never the emoji glyph.
+
 - **Local leaderboard** (`src/game/leaderboard.ts` `saveScore`): add `signature?: string`
-  to `LeaderboardEntry`. On save, compute `signature(loadStats().lifetimeXp)` and store it
-  on the row. Because rows are appended and timestamped, each historical row **freezes**
-  the signature the player had at that run.
-- **Global board** (`src/game/ranking/push.ts`): add `signature?: string` to
+  (the slug) to `LeaderboardEntry`. On save, compute `signatureSlug(loadStats().lifetimeXp)`
+  and store it on the row. Because rows are appended and timestamped, each historical row
+  **freezes** the signature the player had at that run.
+- **Global board** (`src/game/ranking/push.ts`): add `signature?: string` (the slug) to
   `RankingEntry` (an **ADR-0004 amendment** — the type is deliberately minimal today).
-  In `pushToBucket` / `pushRanking`, derive the signature from `loadStats().lifetimeXp`
-  and include it in the `submitEntry` payload. Because the entry is overwritten on each
-  new best, it reflects the signature at the player's **last best-push** — consistent with
+  In `pushToBucket` / `pushRanking`, derive `signatureSlug(loadStats().lifetimeXp)` and
+  include it in the `submitEntry` payload. Because the entry is overwritten on each new
+  best, it reflects the signature at the player's **last best-push** — consistent with
   "highest earned at write time."
 
 `undefined`/absent signature is valid everywhere (players below level 5, or entries
@@ -129,30 +158,34 @@ The signature must mean something, so it is never sourced from user input:
    on a row is the app-set signature.
 2. **Firestore security rules.** Update the rankings entry rule to:
    - accept `signature` only when absent, empty, or a member of the known
-     `SIGNATURE_EMOJIS` allowlist; and
+     `SIGNATURE_SLUGS` allowlist (plain ASCII slugs — easy to validate in rules); and
    - keep `nickname` a plain string (length-bounded as today).
 
    A hacked client still cannot claim a signature **through the app** (it is derived), and
    the allowlist blocks arbitrary strings. A modified client could still write a valid-but-
-   unearned emoji; this is accepted residual risk — pure vanity, identical in spirit to the
+   unearned slug; this is accepted residual risk — pure vanity, identical in spirit to the
    already-trusted free-text nickname, and unverifiable on the Spark plan. Documented in the
    ADR-0004 amendment. The cleanup script's `--remove` remains the moderation backstop.
 
 ## Rendering surfaces
 
-1. **Global board** — `RankingScreen.tsx` `BoardRow`: render `entry.signature` (when
-   present) immediately before the nickname.
-2. **Local leaderboard** — `Leaderboard.tsx` row: render `entry.signature` (when present)
-   immediately before the nickname.
+All surfaces resolve the glyph through `signatureEmoji(slug)` — the single render-time
+resolver — so a future visual change touches only that function.
+
+1. **Global board** — `RankingScreen.tsx` `BoardRow`: render `signatureEmoji(entry.signature)`
+   (when present) immediately before the nickname.
+2. **Local leaderboard** — `Leaderboard.tsx` row: render `signatureEmoji(entry.signature)`
+   (when present) immediately before the nickname.
 3. **Map tab reward node** — `ProgressScreen.tsx` map list currently hardcodes the
    `theme-` prefix (lines ~206-253). Generalize the reward-node renderer to resolve the
    reward by id prefix: `theme-*` → theme name + ✦ (current behavior); `signature-*` →
-   the emoji + its title. Locked/earned icon logic (`Sparkles`/`Lock` vs
+   `signatureEmoji(slug)` + its title. Locked/earned icon logic (`Sparkles`/`Lock` vs
    `unlockedRewards.has(...)`) is unchanged.
 4. **Achievements tab — Signatures collection (new).** Add a third section below
    "Challenges" and "Feats" in the Achievements tab. Reuse the **exact** Feats grid
    pattern (`styles.grid` + the badge `Card`):
-   - **Earned:** the emoji shown in full color, label = signature title, sublabel/level.
+   - **Earned:** the emoji (via `signatureEmoji`) shown in full color, label = signature
+     title, sublabel = unlock level.
    - **Locked:** identical to a locked Feat — greyed `Lock` icon with the card at
      `opacity: 0.55`, showing the unlock level (e.g. "Level 25").
    Section header uses a new i18n key `progression.signaturesTitle`.
@@ -171,28 +204,30 @@ Per AGENTS.md, verify EN/PL parity after adding keys.
 
 ## Testing
 
-- `signature(lifetimeXp)` — returns `undefined` below level 5; returns each tier's emoji
+- `signatureSlug(lifetimeXp)` — returns `undefined` below level 5; returns each tier's slug
   at its threshold; upgrades at each subsequent threshold; is retroactive. Unit.
+- `signatureEmoji(slug)` — resolves each known slug to its emoji; returns `undefined` for
+  unknown/absent slugs. Unit.
 - Nickname stripper — removes emoji/pictographic symbols, preserves letters (incl.
   diacritics), digits, spaces, basic punctuation. Unit.
-- `saveScore` writes the derived signature onto the new local entry. Unit.
-- `pushRanking`/`pushToBucket` includes the derived signature in the submitted payload.
+- `saveScore` writes the derived slug onto the new local entry. Unit.
+- `pushRanking`/`pushToBucket` includes the derived slug in the submitted payload.
   Unit (mock `submitEntry`).
-- `SIGNATURE_EMOJIS` matches the emoji of every `signature-*` entry in `SIGNATURES`, and
+- `SIGNATURE_SLUGS` matches the slug of every `signature-*` entry in `SIGNATURES`, and
   every `signature-*` `rewardId` on a `LEVEL_MAP` node resolves to a `SIGNATURES` entry
   (extend `map.test.ts`).
-- Firestore rules: an entry with an allowlisted signature is accepted; one with an
-  off-allowlist string is rejected (rules emulator test if present; otherwise documented
-  manual check).
+- Firestore rules: an entry with an allowlisted slug is accepted; one with an off-allowlist
+  string is rejected (rules emulator test if present; otherwise documented manual check).
 
 ## Files touched
 
-- `src/game/progression/signatures.ts` — **new** module (data + `signature()` + allowlist).
+- `src/game/progression/signatures.ts` — **new** module (`SIGNATURES`, `signatureSlug()`,
+  `signatureEmoji()` resolver, `SIGNATURE_SLUGS` allowlist).
 - `src/game/progression/map.ts` — add `signature-*` `rewardId`s to nodes 5/10/20/25/40/50.
 - `src/game/progression/index.ts` — export the new module.
-- `src/game/ranking/types.ts` — `RankingEntry.signature?: string`.
-- `src/game/ranking/push.ts` — derive + include signature on push.
-- `src/game/leaderboard.ts` — `LeaderboardEntry.signature?: string`; derive on save.
+- `src/game/ranking/types.ts` — `RankingEntry.signature?: string` (slug).
+- `src/game/ranking/push.ts` — derive + include slug on push.
+- `src/game/leaderboard.ts` — `LeaderboardEntry.signature?: string` (slug); derive on save.
 - `src/utils/nickname.ts` (or new sibling) — emoji/symbol stripper for text-only nicknames.
 - `src/game/challenge/nickname.ts` — apply stripper at the public write point.
 - `src/components/molecules/Leaderboard.tsx` — strip on save; render signature in rows.

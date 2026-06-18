@@ -5,7 +5,7 @@ import type { History } from './deck';
 // (e.g. 'the-ladder', 'the-drop', 'the-wheel'); each value is a JSON
 // `Record<questionId, showCount>`. Pure selection lives in `deck.ts`.
 
-const storage = createMMKV({ id: 'showdown-history' });
+const storage = createMMKV({ id: 'showdown-history-v2' });
 
 /** Read a game's show-count history (empty when nothing has been played). */
 export function getHistory(gameId: string): History {

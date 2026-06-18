@@ -254,6 +254,7 @@
                 "seenLabel": "questions seen so far",
                 "low": "Almost all seen — repeats ahead",
                 "allSeen": "All seen · lap %{lap} — buy a pack for fresh ones",
+                "allSeenOwned": "All seen · lap %{lap} — playing every card in your collection",
                 "getMore": "Get more packs"
             }
         },

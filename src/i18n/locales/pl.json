@@ -257,6 +257,7 @@
                 "seenLabel": "zobaczonych pytań",
                 "low": "Prawie wszystkie zobaczone — powtórki tuż-tuż",
                 "allSeen": "Wszystko zobaczone · runda %{lap} — kup paczkę po nowe",
+                "allSeenOwned": "Wszystko zobaczone · runda %{lap} — grasz całą swoją kolekcją",
                 "getMore": "Zdobądź więcej paczek"
             }
         },

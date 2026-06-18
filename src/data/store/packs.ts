@@ -1,4 +1,5 @@
 import { ancientHistoryEn, ancientHistoryPl } from '../../game/ladder/packs/ancient-history';
+import { lostCivilizationsEn, lostCivilizationsPl } from '../../game/ladder/packs/lost-civilizations';
 import { worldGeographyEn, worldGeographyPl } from '../../game/drop/packs/world-geography';
 import { worldCuisineEn, worldCuisinePl } from '../../game/wheel/packs/world-cuisine';
 import type { LadderPackCard } from '../../game/ladder/buildRuns';
@@ -104,6 +105,36 @@ export const gamePacks: PackDefinition[] = [
         content: { en: worldCuisineEn, pl: worldCuisinePl } satisfies {
             en: PuzzleContent[];
             pl: PuzzleContent[];
+        },
+    },
+    {
+        id: 'pack-ladder-lost-civilizations',
+        kind: 'pack',
+        gameId: 'the-ladder',
+        status: 'live',
+        // SKU snake_cased (stores reject hyphens); catalog id and i18n keys keep
+        // the kebab slug.
+        //
+        // IAP PROVISIONING STATUS (2026-06-17):
+        //   App Store Connect — IAP created (id 6781420948), price $2.99.
+        //   Google Play       — product created, purchase option ACTIVE.
+        //   Entry is status: 'live' per user request to activate immediately.
+        tier: 'premium',
+        sku: 'com.showdown.pack_ladder_lost_civilizations',
+        presentation: {
+            titleKey: 'screen.store.item.ladder_lost-civilizations.title',
+            descriptionKey: 'screen.store.item.ladder_lost-civilizations.desc',
+            iconName: 'history',
+            accentColor: '#8B4513',
+            featuresKey: [
+                'screen.store.feature.ladder_lost-civilizations_1',
+                'screen.store.feature.ladder_lost-civilizations_2',
+            ],
+            fallbackPrice: '$2.99',
+        },
+        content: { en: lostCivilizationsEn, pl: lostCivilizationsPl } satisfies {
+            en: LadderPackCard[];
+            pl: LadderPackCard[];
         },
     },
 ];

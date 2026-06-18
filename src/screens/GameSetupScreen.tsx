@@ -138,9 +138,9 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
             <ProgressBar progress={ratio} color={escalated ? accent : theme.colors.textSecondary} />
             <Text variant='caption' color={escalated ? accent : 'textMuted'}>
                 {fullyCycled
-                    ? t('screen.gameSetup.pool.allSeen', { lap })
+                    ? t(buyable ? 'screen.gameSetup.pool.allSeen' : 'screen.gameSetup.pool.allSeenOwned', { lap })
                     : escalated
-                      ? t('screen.gameSetup.pool.low')
+                      ? t(buyable ? 'screen.gameSetup.pool.low' : 'screen.gameSetup.pool.seenLabel')
                       : t('screen.gameSetup.pool.seenLabel')}
             </Text>
             {showCta && (

@@ -297,6 +297,10 @@
                     "title": "Kuchnie świata",
                     "desc": "Zakręć po dania, desery i smaki z całego globu — 60 apetycznych łamigłówek."
                 },
+                "wheel_world-landmarks": {
+                    "title": "Zabytki Świata",
+                    "desc": "Podróżuj po globie od Wieży Eiffla po Wielki Mur — 60 nowych łamigłówek z ikonami architektury."
+                },
                 "ladder_lost-civilizations": {
                     "title": "Zaginione cywilizacje",
                     "desc": "Odkryj tajemnice Majów, Sumerów i nie tylko — 300 nowych, wymagających pytań."
@@ -317,6 +321,8 @@
                 "drop_our-changing-planet_2": "Prawdziwe liczby z bliskimi dystraktorami, które sprawdzą twój instynkt",
                 "wheel_world-cuisine_1": "60 świeżych łamigłówek kulinarnych z kuchni świata",
                 "wheel_world-cuisine_2": "Dania, przyprawy, sery i słodkości w każdej rundzie",
+                "wheel_world-landmarks_1": "60 świeżych łamigłówek z najsłynniejszymi miejscami na świecie",
+                "wheel_world-landmarks_2": "Obejmuje starożytne cuda, współczesne perły i piękno natury",
                 "ladder_lost-civilizations_1": "300 szczegółowych pytań o archeologii i starożytnych tajemnicach",
                 "ladder_lost-civilizations_2": "Obejmuje Ameryki, Mezopotamię, Azję i Afrykę"
             },

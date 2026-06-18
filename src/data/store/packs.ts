@@ -2,6 +2,7 @@ import { ancientHistoryEn, ancientHistoryPl } from '../../game/ladder/packs/anci
 import { lostCivilizationsEn, lostCivilizationsPl } from '../../game/ladder/packs/lost-civilizations';
 import { worldGeographyEn, worldGeographyPl } from '../../game/drop/packs/world-geography';
 import { worldCuisineEn, worldCuisinePl } from '../../game/wheel/packs/world-cuisine';
+import { en as worldLandmarksEn, pl as worldLandmarksPl } from '../../game/wheel/packs/world-landmarks';
 import { en as ourChangingPlanetEn, pl as ourChangingPlanetPl } from '../../game/drop/packs/our-changing-planet';
 import type { LadderPackCard } from '../../game/ladder/buildRuns';
 import type { DropPackCard } from '../../game/drop/content';
@@ -104,6 +105,29 @@ export const gamePacks: PackDefinition[] = [
             fallbackPrice: '$1.99',
         },
         content: { en: worldCuisineEn, pl: worldCuisinePl } satisfies {
+            en: PuzzleContent[];
+            pl: PuzzleContent[];
+        },
+    },
+    {
+        id: 'pack-wheel-world-landmarks',
+        kind: 'pack',
+        gameId: 'the-wheel',
+        status: 'live',
+        tier: 'premium',
+        sku: 'com.showdown.pack_wheel_world_landmarks',
+        presentation: {
+            titleKey: 'screen.store.item.wheel_world-landmarks.title',
+            descriptionKey: 'screen.store.item.wheel_world-landmarks.desc',
+            iconName: 'globe',
+            accentColor: '#4A90E2',
+            featuresKey: [
+                'screen.store.feature.wheel_world-landmarks_1',
+                'screen.store.feature.wheel_world-landmarks_2',
+            ],
+            fallbackPrice: '$2.99',
+        },
+        content: { en: worldLandmarksEn, pl: worldLandmarksPl } satisfies {
             en: PuzzleContent[];
             pl: PuzzleContent[];
         },

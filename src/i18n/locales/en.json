@@ -294,6 +294,10 @@
                     "title": "World Cuisine",
                     "desc": "Spin through dishes, desserts, and flavors from around the globe — 60 mouth-watering puzzles."
                 },
+                "wheel_world-landmarks": {
+                    "title": "World Landmarks",
+                    "desc": "Travel the globe from the Eiffel Tower to the Great Wall — 60 iconic new puzzles."
+                },
                 "ladder_lost-civilizations": {
                     "title": "Lost Civilizations",
                     "desc": "Uncover the secrets of the Maya, Sumerians, and more — 300 challenging new questions."
@@ -314,6 +318,8 @@
                 "drop_our-changing-planet_2": "Real figures with tight distractors to test your gut",
                 "wheel_world-cuisine_1": "60 fresh food puzzles from world kitchens",
                 "wheel_world-cuisine_2": "Dishes, spices, cheeses, and sweets in every round",
+                "wheel_world-landmarks_1": "60 fresh puzzles featuring the world's most famous sites",
+                "wheel_world-landmarks_2": "Spans ancient wonders, modern marvels, and natural beauties",
                 "ladder_lost-civilizations_1": "300 deep-cut questions on archaeology and ancient mysteries",
                 "ladder_lost-civilizations_2": "Spans the Americas, Mesopotamia, Asia, and Africa"
             },

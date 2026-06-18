@@ -110,3 +110,10 @@ describe('applyRun — achievements pay XP into the spine', () => {
         expect(diff.newAchievements).not.toContain('to-the-top');
     });
 });
+
+describe('applyRun — bonus runs field', () => {
+    it('reports zero bonusRunsGranted from the pure reducer (the grant is a side effect)', () => {
+        const { diff } = applyRun(stats(), result({ gameId: 'the-ladder', rungReached: 6 }), TODAY);
+        expect(diff.bonusRunsGranted).toBe(0);
+    });
+});

@@ -7,6 +7,7 @@ import { runXp } from './xp';
 import { level, unlockedRewards } from './map';
 import { ACHIEVEMENTS, achievementsUnlocked, detectFeats } from './achievements';
 import type { GameRunResult, ProgressionStats, RecordRunDiff } from './types';
+import { grantLevelBonus } from '../offline/limit';
 
 /** Fresh state for a player who has never played. */
 export function defaultStats(): ProgressionStats {
@@ -87,6 +88,7 @@ export function applyRun(
         level: finalLevel,
         newRewards,
         newAchievements,
+        bonusRunsGranted: 0,
     };
 
     return { stats, diff };
@@ -120,5 +122,9 @@ export function localDate(date: Date = new Date()): string {
 export function recordRun(result: GameRunResult): RecordRunDiff {
     const { stats, diff } = applyRun(loadStats(), result, localDate());
     store.set(STATS_KEY, JSON.stringify(stats));
-    return diff;
+    // Bank offline-run bonus for any levels this run crossed. The grant is the
+    // single source of truth for the count (idempotent on lastBonusLevel), so any
+    // run — solo or challenge — that levels up earns banked solo runs.
+    const bonusRunsGranted = diff.leveledUp ? grantLevelBonus(diff.previousLevel, diff.level) : 0;
+    return { ...diff, bonusRunsGranted };
 }

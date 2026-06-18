@@ -76,4 +76,6 @@ export interface RecordRunDiff {
     newRewards: string[];
     /** Achievement ids newly completed by this run. */
     newAchievements: string[];
+    /** Offline solo-run bonus banked by this run's level-up(s) (0 if none). */
+    bonusRunsGranted: number;
 }

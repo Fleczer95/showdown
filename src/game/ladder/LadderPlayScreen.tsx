@@ -7,6 +7,8 @@ import Animated, {
     withSpring,
     withTiming,
     withDelay,
+    withRepeat,
+    cancelAnimation,
     useReducedMotion,
 } from 'react-native-reanimated';
 import { Scissors, HelpCircle, SkipForward, Check, X, Users } from 'lucide-react-native';
@@ -32,6 +34,8 @@ import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { buildLocalizedRungs, type Language, type LadderPackCard } from './buildRuns';
 import { getHistory, markShown } from '../history';
+import { useSound } from '../../hooks/useSound';
+import { useHaptics } from '../../hooks/useHaptics';
 import { useStore } from '../../hooks/store/useStore';
 import { getOwnedPackContent } from '../../data/store/packContent';
 import {
@@ -52,6 +56,21 @@ import { speedBonus, ladderScore, LADDER_RUNG_POINTS, type ScoreBreakdown } from
 import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
 
 const GAME_ID = 'the-ladder';
+
+// Reveal drama scales with the stake. After locking an answer the screen holds a
+// suspended "pending" state (amber, no verdict yet) before the correct/wrong
+// reveal lands: brief on the low rungs, stretched out near the top of the climb.
+// The floor sits above one full heartbeat cycle (see PULSE_HALF_MS) so even the
+// low rungs land a clean "lock → breathe → reveal" beat rather than a flicker.
+const SUSPENSE_MIN_MS = 800;
+const SUSPENSE_MAX_MS = 1900;
+// How long the green/red verdict stays on screen before the run advances.
+const REVEAL_HOLD_MS = 850;
+// Reduced-motion players get a short, fixed pause with no pulsing/heartbeats.
+const SUSPENSE_REDUCED_MS = 500;
+// One half of the locked-answer heartbeat (scale up, then back). A full cycle is
+// 2× this; SUSPENSE_MIN_MS must exceed it so the floor shows a complete breath.
+const PULSE_HALF_MS = 360;
 
 const LIFELINE_META: { key: Lifeline; icon: typeof Scissors; labelKey: string }[] = [
     { key: 'fiftyFifty', icon: Scissors, labelKey: 'game.the-ladder.lifelines.fiftyFifty' },
@@ -81,8 +100,12 @@ export default function LadderPlayScreen({
 
     const success = useColor('success');
     const error = useColor('error');
+    const warning = useColor('warning');
     const textMuted = useColor('textMuted');
     const surface = useColor('surface');
+
+    const { play } = useSound();
+    const haptics = useHaptics();
 
     const [run, setRun] = useState<LadderRun>(
         () => challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
@@ -111,7 +134,19 @@ export default function LadderPlayScreen({
     const [hidden, setHidden] = useState<number[]>([]);
     const [audience, setAudience] = useState<number[] | null>(null);
     const [selected, setSelected] = useState<number | null>(null);
+    // The verdict is withheld during the suspense beat: `selected` marks the
+    // locked-in choice, `revealed` flips on only when the correct/wrong reveal
+    // lands. Until then the chosen option sits in a neutral "pending" state.
+    const [revealed, setRevealed] = useState(false);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+    // Pending reveal timers, cleared on unmount so a verdict never fires into a
+    // torn-down screen (e.g. the player leaves mid-suspense).
+    const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    useEffect(() => () => timers.current.forEach(clearTimeout), []);
+    const schedule = (fn: () => void, ms: number) => {
+        timers.current.push(setTimeout(fn, ms));
+    };
 
     const question = currentQuestion(run);
 
@@ -119,6 +154,7 @@ export default function LadderPlayScreen({
         setHidden([]);
         setAudience(null);
         setSelected(null);
+        setRevealed(false);
     }
 
     function startFreshRun() {
@@ -134,9 +170,11 @@ export default function LadderPlayScreen({
             return;
         }
         setSelected(index);
-        // Score a correct answer at press time (the reveal delay must not count
-        // against the speed timer): base = rung × points, plus its speed bonus.
-        if (index === question.correctIndex) {
+        haptics.medium(); // the "thunk" of locking your answer in
+        const correct = index === question.correctIndex;
+        // Score a correct answer at lock time (the suspense + reveal delay must
+        // not count against the speed timer): base = rung × points + speed bonus.
+        if (correct) {
             const rung = run.currentIndex + 1;
             const base = rung * LADDER_RUNG_POINTS;
             const seconds = (Date.now() - decisionStartedAt.current) / 1000;
@@ -144,14 +182,35 @@ export default function LadderPlayScreen({
             speedTotal.current += speedBonus(base, seconds);
             if (isQuickWit(rung, seconds)) quickWit.current = true;
         }
-        // Brief reveal of correct/incorrect before transitioning.
         const next = applyAnswer(run, index);
-        setTimeout(() => {
-            setRun(next);
-            if (next.status === 'active') {
-                resetTransient();
+        // Tension scales with the stake: higher rungs hold the verdict longer and,
+        // near the top, throb a heartbeat or two before it lands.
+        const stake = RUN_LENGTH > 1 ? run.currentIndex / (RUN_LENGTH - 1) : 0;
+        const suspenseMs = reduceMotion
+            ? SUSPENSE_REDUCED_MS
+            : Math.round(SUSPENSE_MIN_MS + (SUSPENSE_MAX_MS - SUSPENSE_MIN_MS) * stake);
+        if (!reduceMotion) {
+            // 0 heartbeats low on the ladder, ramping to 3 near the top, spaced
+            // evenly across the suspense window.
+            const beats = Math.floor(stake * 4);
+            for (let b = 1; b <= beats; b++) {
+                schedule(() => haptics.light(), (suspenseMs * b) / (beats + 1));
             }
-        }, 700);
+        }
+        // Phase 2 → 3: hold the suspense, then drop the verdict (colour + sound +
+        // payoff haptic), let it breathe, and advance the run.
+        schedule(() => {
+            setRevealed(true);
+            play(correct ? 'correct' : 'wrong');
+            if (correct) haptics.notification();
+            else haptics.heavy();
+            schedule(() => {
+                setRun(next);
+                if (next.status === 'active') {
+                    resetTransient();
+                }
+            }, REVEAL_HOLD_MS);
+        }, suspenseMs);
     }
 
     function handleLifeline(key: Lifeline) {
@@ -256,8 +315,10 @@ export default function LadderPlayScreen({
                     {question.options.map((option, index) => {
                         const isHidden = hidden.includes(index);
                         const isSelected = selected === index;
-                        const revealCorrect = selected !== null && index === question.correctIndex;
-                        const revealWrong = isSelected && index !== question.correctIndex;
+                        // Locked but not yet judged — the suspense beat.
+                        const isLocked = isSelected && !revealed;
+                        const revealCorrect = revealed && index === question.correctIndex;
+                        const revealWrong = revealed && isSelected && index !== question.correctIndex;
 
                         let borderColor = theme.colors.border;
                         let backgroundColor = surface;
@@ -267,6 +328,9 @@ export default function LadderPlayScreen({
                         } else if (revealWrong) {
                             borderColor = error;
                             backgroundColor = hexToRgba(error, 0.12);
+                        } else if (isLocked) {
+                            borderColor = warning;
+                            backgroundColor = hexToRgba(warning, 0.14);
                         }
 
                         return (
@@ -279,6 +343,7 @@ export default function LadderPlayScreen({
                                 borderColor={borderColor}
                                 backgroundColor={backgroundColor}
                                 isHidden={isHidden}
+                                isLocked={isLocked}
                                 revealCorrect={revealCorrect}
                                 revealWrong={revealWrong}
                                 success={success}
@@ -345,6 +410,7 @@ function AnswerOption({
     borderColor,
     backgroundColor,
     isHidden,
+    isLocked,
     revealCorrect,
     revealWrong,
     success,
@@ -359,6 +425,7 @@ function AnswerOption({
     borderColor: string;
     backgroundColor: string;
     isHidden: boolean;
+    isLocked: boolean;
     revealCorrect: boolean;
     revealWrong: boolean;
     success: string;
@@ -369,6 +436,9 @@ function AnswerOption({
     const reduceMotion = useReducedMotion();
     const { springBouncy, spring } = useAnimationPresets();
     const pop = useSharedValue(1);
+    // A slow heartbeat throb while the answer is locked but unjudged — the visual
+    // half of the suspense beat (haptic heartbeats run in parallel on the screen).
+    const pulse = useSharedValue(1);
     const resolved = revealCorrect || revealWrong;
     const badgeState: IndexBadgeState = revealCorrect
         ? 'correct'
@@ -384,7 +454,23 @@ function AnswerOption({
         }
     }, [resolved, reduceMotion, pop, springBouncy, spring]);
 
-    const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
+    useEffect(() => {
+        if (isLocked && !reduceMotion) {
+            pulse.value = withRepeat(
+                withSequence(
+                    withTiming(1.03, { duration: PULSE_HALF_MS }),
+                    withTiming(1, { duration: PULSE_HALF_MS }),
+                ),
+                -1,
+                false,
+            );
+        } else {
+            cancelAnimation(pulse);
+            pulse.value = withTiming(1, { duration: 150 });
+        }
+    }, [isLocked, reduceMotion, pulse]);
+
+    const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value * pulse.value }] }));
 
     return (
         <Animated.View entering={reduceMotion ? undefined : springEnter(index * 70)} style={popStyle}>

@@ -406,7 +406,7 @@
     },
     "game": {
         "the-ladder": {
-            "name": "Drabina",
+            "name": "Na Szczyt",
             "desc": "Wespnij się po drabinie 15 pytań. Jedna błędna odpowiedź kończy grę — chyba że użyjesz koła ratunkowego.",
             "setup": {
                 "category": "Wybierz kategorię",
@@ -472,8 +472,8 @@
             "rules": "1. Drużyny na zmianę wybierają kategorię i liczbę punktów z planszy.\n2. Przeczytajcie wskazówkę na głos i postawcie punkty na odpowiedź.\n3. Poprawna odpowiedź daje punkty, błędna je odbiera.\n4. Wyczyśćcie planszę — wygrywa drużyna z największą liczbą punktów!"
         },
         "the-wheel": {
-            "name": "Koło",
-            "desc": "Zakręć kołem mnożnika, zgaduj litery i rozwiąż ukryte hasło.",
+            "name": "Koło Liter",
+            "desc": "Zakręć kołem, by zdobyć mnożnik, zgaduj litery i rozwiąż ukryte hasło.",
             "setup": {
                 "category": "Wybierz pakiet haseł",
                 "categoryDesc": "Wybierz kategorię haseł"
@@ -692,18 +692,18 @@
             "on-a-roll": "Dobra passa",
             "regular": "Bywalec",
             "winner": "Zwycięzca",
-            "ladder-scorer": "Wynik w Drabinie",
+            "ladder-scorer": "Wynik w grze Na Szczyt",
             "drop-scorer": "Wynik w Zrzucie",
-            "wheel-scorer": "Wynik w Kole"
+            "wheel-scorer": "Wynik w Kole Liter"
         },
         "requirement": {
             "contestant": "Rozegraj %{n} rozgrywek",
             "on-a-roll": "Osiągnij passę %{n} dni",
             "regular": "Zagraj w %{n} różnych dniach",
             "winner": "Wygraj %{n} gier",
-            "ladder-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Drabiny",
+            "ladder-scorer": "Zdobądź %{n} punktów w jednej rozgrywce gry Na Szczyt",
             "drop-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Zrzutu",
-            "wheel-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Koła"
+            "wheel-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Koła Liter"
         },
         "oneoff": {
             "well-rounded": "Wszechstronny",
@@ -720,14 +720,14 @@
         "requirementOneoff": {
             "well-rounded": "Wygraj każdą z trzech gier przynajmniej raz",
             "triple-threat": "Zagraj we wszystkie trzy gry jednego dnia",
-            "to-the-top": "Dotrzyj do 15. szczebla w Drabinie",
-            "spotless": "Wygraj rozgrywkę Drabiny bez użycia kół ratunkowych",
+            "to-the-top": "Dotrzyj do 15. szczebla w grze Na Szczyt",
+            "spotless": "Wygraj rozgrywkę gry Na Szczyt bez użycia kół ratunkowych",
             "survivor": "Przetrwaj wszystkie 9 rund Zrzutu",
             "iron-bank": "Zakończ Zrzut, zachowując co najmniej połowę banku",
-            "vowel-free": "Rozwiąż zagadkę Koła bez kupowania samogłoski",
-            "clean-sweep": "Rozwiąż wszystkie 3 zagadki Koła w jednej rozgrywce",
-            "quick-wit": "Odpowiedz w mniej niż 5 s na wysokim szczeblu Drabiny",
-            "comeback": "Rozwiąż zagadkę Koła po odrobieniu Bankructwa"
+            "vowel-free": "Rozwiąż zagadkę Koła Liter bez kupowania samogłoski",
+            "clean-sweep": "Rozwiąż wszystkie 3 zagadki Koła Liter w jednej rozgrywce",
+            "quick-wit": "Odpowiedz w mniej niż 5 s na wysokim szczeblu gry Na Szczyt",
+            "comeback": "Rozwiąż zagadkę Koła Liter po odrobieniu Bankructwa"
         },
         "themes": {
             "champion": "Mistrz",

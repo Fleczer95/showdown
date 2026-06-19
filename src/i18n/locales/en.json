@@ -403,7 +403,7 @@
     },
     "game": {
         "the-ladder": {
-            "name": "The Ladder",
+            "name": "The Climb",
             "desc": "Climb the 15-question trivia ladder. One wrong answer ends your run — unless you spend a lifeline.",
             "setup": {
                 "category": "Select Category",
@@ -469,7 +469,7 @@
             "rules": "1. Teams take turns choosing a category and point value from the grid.\n2. Read the clue aloud and wager points on your answer.\n3. A correct answer wins the points; a wrong answer loses them.\n4. Clear the board — the team with the most points wins!"
         },
         "the-wheel": {
-            "name": "The Wheel",
+            "name": "Letter Wheel",
             "desc": "Spin for a multiplier, guess letters, and solve the hidden word puzzle.",
             "setup": {
                 "category": "Select Puzzle Pack",
@@ -686,18 +686,18 @@
             "on-a-roll": "On a Roll",
             "regular": "Regular",
             "winner": "Winner",
-            "ladder-scorer": "Ladder Scorer",
+            "ladder-scorer": "Climb Scorer",
             "drop-scorer": "Drop Scorer",
-            "wheel-scorer": "Wheel Scorer"
+            "wheel-scorer": "Letter Wheel Scorer"
         },
         "requirement": {
             "contestant": "Play %{n} runs",
             "on-a-roll": "Reach a %{n}-day streak",
             "regular": "Play on %{n} separate days",
             "winner": "Win %{n} games",
-            "ladder-scorer": "Score %{n} in a single Ladder run",
+            "ladder-scorer": "Score %{n} in a single Climb run",
             "drop-scorer": "Score %{n} in a single Drop run",
-            "wheel-scorer": "Score %{n} in a single Wheel run"
+            "wheel-scorer": "Score %{n} in a single Letter Wheel run"
         },
         "oneoff": {
             "well-rounded": "Well-Rounded",
@@ -714,14 +714,14 @@
         "requirementOneoff": {
             "well-rounded": "Win each of the three games at least once",
             "triple-threat": "Play all three games in one day",
-            "to-the-top": "Reach Rung 15 on The Ladder",
-            "spotless": "Win a Ladder run using no lifelines",
+            "to-the-top": "Reach Rung 15 on The Climb",
+            "spotless": "Win a Climb run using no lifelines",
             "survivor": "Survive all 9 rounds of The Drop",
             "iron-bank": "Finish The Drop keeping at least half the starting bank",
-            "vowel-free": "Solve a Wheel puzzle without buying a vowel",
-            "clean-sweep": "Solve all 3 Wheel puzzles in one run",
-            "quick-wit": "Answer under 5s at a high rung on The Ladder",
-            "comeback": "Solve a Wheel puzzle after recovering from a Bankrupt"
+            "vowel-free": "Solve a Letter Wheel puzzle without buying a vowel",
+            "clean-sweep": "Solve all 3 Letter Wheel puzzles in one run",
+            "quick-wit": "Answer under 5s at a high rung on The Climb",
+            "comeback": "Solve a Letter Wheel puzzle after recovering from a Bankrupt"
         },
         "themes": {
             "champion": "Champion",

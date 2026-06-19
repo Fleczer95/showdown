@@ -1,7 +1,7 @@
 {
   "name": "showdown",
   "main": "node_modules/expo/AppEntry.js",
-  "version": "0.9.13",
+  "version": "0.9.14",
   "type": "module",
   "scripts": {
     "android": "expo run:android",

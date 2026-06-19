@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShowDown",
     "slug": "showdown",
-    "version": "0.9.13",
+    "version": "0.9.14",
     "scheme": "showdown",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
@@ -37,7 +37,7 @@
         "monochromeImage": "./assets/icon.png",
         "backgroundColor": "#1A1A2E"
       },
-      "versionCode": 16,
+      "versionCode": 17,
       "intentFilters": [
         {
           "action": "VIEW",

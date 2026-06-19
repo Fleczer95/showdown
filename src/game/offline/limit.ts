@@ -14,6 +14,8 @@ import { localDate } from '../progression/recordRun';
 export const BASE_DAILY_RUNS = 5;
 /** One-time runs banked for each new level reached. */
 export const BONUS_RUNS_PER_LEVEL = 3;
+/** Sentinel returned for `remaining`/`remainingOfflineRuns` while Premium is active. */
+export const UNLIMITED_RUNS = Number.POSITIVE_INFINITY;
 
 export { canUpsell };
 
@@ -44,7 +46,13 @@ export function effectiveUsed(state: OfflineRunState, today: string): number {
 }
 
 /** Runs still available today: leftover daily allowance plus the banked bonus. */
-export function remaining(state: OfflineRunState, owned: ReadonlySet<string>, today: string): number {
+export function remaining(
+    state: OfflineRunState,
+    owned: ReadonlySet<string>,
+    today: string,
+    isPremium = false,
+): number {
+    if (isPremium) return UNLIMITED_RUNS;
     const dailyLeft = Math.max(0, dailyAllowance(owned) - effectiveUsed(state, today));
     return dailyLeft + state.bonus;
 }
@@ -52,12 +60,15 @@ export function remaining(state: OfflineRunState, owned: ReadonlySet<string>, to
 /**
  * Spend one run. Daily allowance first; the bonus is touched only once the
  * allowance is exhausted. Returns the updated state and whether a run was spent.
+ * Premium subscribers play unlimited runs, so nothing is spent (state untouched).
  */
 export function consume(
     state: OfflineRunState,
     owned: ReadonlySet<string>,
     today: string,
+    isPremium = false,
 ): { state: OfflineRunState; ok: boolean } {
+    if (isPremium) return { state, ok: true };
     const used = effectiveUsed(state, today);
     if (used < dailyAllowance(owned)) {
         return { state: { ...state, day: today, used: used + 1 }, ok: true };
@@ -110,17 +121,18 @@ function saveState(state: OfflineRunState): void {
 }
 
 /** Whether the device can start another offline solo run right now. */
-export function canStartOfflineRun(owned: ReadonlySet<string>): boolean {
-    return remaining(loadState(), owned, localDate()) > 0;
+export function canStartOfflineRun(owned: ReadonlySet<string>, isPremium = false): boolean {
+    return isPremium || remaining(loadState(), owned, localDate()) > 0;
 }
 
-/** Runs still available today (daily leftover + banked bonus). */
-export function remainingOfflineRuns(owned: ReadonlySet<string>): number {
-    return remaining(loadState(), owned, localDate());
+/** Runs still available today (daily leftover + banked bonus). `Infinity` while Premium. */
+export function remainingOfflineRuns(owned: ReadonlySet<string>, isPremium = false): number {
+    return remaining(loadState(), owned, localDate(), isPremium);
 }
 
-/** Spend one run, persisting. Returns false (no-op) when nothing remains. */
-export function consumeOfflineRun(owned: ReadonlySet<string>): boolean {
+/** Spend one run, persisting. No-op (returns true) while Premium; false when nothing remains. */
+export function consumeOfflineRun(owned: ReadonlySet<string>, isPremium = false): boolean {
+    if (isPremium) return true;
     const { state, ok } = consume(loadState(), owned, localDate());
     if (ok) saveState(state);
     return ok;

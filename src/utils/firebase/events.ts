@@ -148,6 +148,10 @@ export type AnalyticsEvent =
           name: 'theme_purchase_failed';
           params: { theme_id: string; error_code: string; error_category: PurchaseErrorCategory };
       }
+    // Premium subscription status flip (cached/store-validated). A subscribe or
+    // restore both surface as `premium_activated`; a flip to false is a lapse.
+    | { name: 'premium_activated'; params: Record<string, never> }
+    | { name: 'premium_lapsed'; params: Record<string, never> }
     // --- Progression events ---
     | { name: 'level_up'; params: { from_level: number; to_level: number; lifetime_xp: number } }
     // Crossed into the near-max band (within NEAR_MAX_LEVEL_BAND of the cap), but

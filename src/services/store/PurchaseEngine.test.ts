@@ -1,12 +1,17 @@
 import { PurchaseEngine } from './PurchaseEngine';
 import { PurchasePersistencePort } from './PurchasePersistencePort';
 
-function makePersistence(purchased: string[] = []): PurchasePersistencePort {
+function makePersistence(purchased: string[] = [], premium = false): PurchasePersistencePort {
     const items = [...purchased];
+    let premiumActive = premium;
     return {
         getPurchasedItems: jest.fn(() => [...items]),
         savePurchasedItem: jest.fn((id) => items.push(id)),
         clearPurchases: jest.fn(),
+        getPremiumActive: jest.fn(() => premiumActive),
+        setPremiumActive: jest.fn((active: boolean) => {
+            premiumActive = active;
+        }),
     };
 }
 
@@ -36,6 +41,23 @@ describe('PurchaseEngine.markAsPurchased', () => {
         engine.markAsPurchased('fw-pack-adults');
         expect(persistence.savePurchasedItem).not.toHaveBeenCalled();
         expect(engine.getState().isProcessing).toBe(false);
+    });
+});
+
+describe('PurchaseEngine.setPremiumActive', () => {
+    it('seeds premiumActive from persistence', () => {
+        expect(new PurchaseEngine(makePersistence([], true)).getState().premiumActive).toBe(true);
+        expect(new PurchaseEngine(makePersistence()).getState().premiumActive).toBe(false);
+    });
+
+    it('persists and broadcasts a status change, but no-ops when unchanged', () => {
+        const persistence = makePersistence();
+        const engine = new PurchaseEngine(persistence);
+        engine.setPremiumActive(true);
+        expect(engine.getState().premiumActive).toBe(true);
+        expect(persistence.setPremiumActive).toHaveBeenCalledTimes(1);
+        engine.setPremiumActive(true); // unchanged
+        expect(persistence.setPremiumActive).toHaveBeenCalledTimes(1);
     });
 });
 

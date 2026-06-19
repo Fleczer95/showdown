@@ -180,7 +180,7 @@ export function GameSetupScreen() {
     const route = useRoute<RouteProp<RootStackParamList, keyof RootStackParamList>>();
     const { t, locale } = useTranslation();
     const theme = useTheme();
-    const { purchasedItemIds } = useStore();
+    const { purchasedItemIds, isPremium } = useStore();
 
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
@@ -198,7 +198,7 @@ export function GameSetupScreen() {
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
     const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
     const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
-    const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds));
+    const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds, isPremium));
     // How much of this game's question pool the player has worked through. Refresh
     // on focus so returning after a session (which marks questions shown) reflects
     // the new tally and can surface the "running low → buy more" nudge.
@@ -207,10 +207,10 @@ export function GameSetupScreen() {
         useCallback(() => {
             setCreatedToday(countCreatedToday());
             setCoverage(poolCoverage(gameId, ownedIds));
-            setRunsLeft(remainingOfflineRuns(ownedIds));
-        }, [gameId, ownedIds]),
+            setRunsLeft(remainingOfflineRuns(ownedIds, isPremium));
+        }, [gameId, ownedIds, isPremium]),
     );
-    const cap = dailyCap(ownedIds);
+    const cap = dailyCap(ownedIds, isPremium);
     const limitReached = createdToday >= cap;
 
     // The id of an in-flight challenge, held across retries. A create whose
@@ -261,13 +261,13 @@ export function GameSetupScreen() {
     // Solo play is daily-capped (offline limit). At zero, open the limit/upsell
     // sheet instead of starting; otherwise spend one run and begin the session.
     const onStart = () => {
-        if (!canStartOfflineRun(ownedIds)) {
+        if (!canStartOfflineRun(ownedIds, isPremium)) {
             SafeAnalytics.logEvent({ name: 'offline_limit_hit', params: { game: game.id } });
             setOfflineLimitSheet(true);
             return;
         }
-        consumeOfflineRun(ownedIds);
-        setRunsLeft(remainingOfflineRuns(ownedIds));
+        consumeOfflineRun(ownedIds, isPremium);
+        setRunsLeft(remainingOfflineRuns(ownedIds, isPremium));
         send({ type: 'START' });
     };
 
@@ -519,7 +519,7 @@ export function GameSetupScreen() {
                     <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
                         {t('challenge.limit.body')}
                     </Text>
-                    {canUpsell(ownedIds) && (
+                    {canUpsell(ownedIds, isPremium) && (
                         <Button
                             variant='primary'
                             fullWidth
@@ -532,7 +532,7 @@ export function GameSetupScreen() {
                         </Button>
                     )}
                     <Button
-                        variant={canUpsell(ownedIds) ? 'ghost' : 'primary'}
+                        variant={canUpsell(ownedIds, isPremium) ? 'ghost' : 'primary'}
                         fullWidth
                         onPress={() => setLimitSheet(false)}
                     >
@@ -553,7 +553,7 @@ export function GameSetupScreen() {
                             bonus: BONUS_RUNS_PER_LEVEL,
                         })}
                     </Text>
-                    {canUpsell(ownedIds) && (
+                    {canUpsell(ownedIds, isPremium) && (
                         <Button
                             variant='primary'
                             fullWidth
@@ -566,7 +566,7 @@ export function GameSetupScreen() {
                         </Button>
                     )}
                     <Button
-                        variant={canUpsell(ownedIds) ? 'ghost' : 'primary'}
+                        variant={canUpsell(ownedIds, isPremium) ? 'ghost' : 'primary'}
                         fullWidth
                         onPress={() => setOfflineLimitSheet(false)}
                     >

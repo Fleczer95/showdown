@@ -15,6 +15,12 @@ import { STORE_CATALOG } from '../../data/store/catalog';
 export const BASE_DAILY_CAP = 3;
 /** Extra daily challenges granted per owned premium item (theme or pack). */
 export const BONUS_PER_PREMIUM_ITEM = 1;
+/**
+ * Flat daily cap while the Premium subscription is active. A finite (not
+ * unlimited) lift on purpose: challenge creation writes to the Firestore free
+ * tier, so an unbounded cap would risk the quota.
+ */
+export const PREMIUM_DAILY_CAP = 15;
 
 /** Catalog ids of every premium (paid) item — derived, so new items count automatically. */
 function premiumItemIds(): string[] {
@@ -31,12 +37,21 @@ export function totalPremiumItems(): number {
     return premiumItemIds().length;
 }
 
-/** The device's daily challenge-creation cap (global, all games). */
-export function dailyCap(ownedIds: ReadonlySet<string>): number {
+/**
+ * The device's daily challenge-creation cap (global, all games). Premium
+ * subscribers get the flat `PREMIUM_DAILY_CAP`; otherwise the base plus one per
+ * owned premium item.
+ */
+export function dailyCap(ownedIds: ReadonlySet<string>, isPremium = false): number {
+    if (isPremium) return PREMIUM_DAILY_CAP;
     return BASE_DAILY_CAP + premiumItemsOwned(ownedIds) * BONUS_PER_PREMIUM_ITEM;
 }
 
-/** Whether there's still a premium item left to buy for more daily challenges. */
-export function canUpsell(ownedIds: ReadonlySet<string>): boolean {
+/**
+ * Whether there's still a premium item left to buy for more daily challenges.
+ * Subscribers already have the flat cap, so there's nothing to upsell.
+ */
+export function canUpsell(ownedIds: ReadonlySet<string>, isPremium = false): boolean {
+    if (isPremium) return false;
     return premiumItemsOwned(ownedIds) < totalPremiumItems();
 }

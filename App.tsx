@@ -11,7 +11,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider, useThemeActions } from './src/theme';
+import { ThemeProvider, useThemeActions, isSubscriberTheme } from './src/theme';
 import { SettingsProvider } from './src/hooks/useSettings';
 import { TranslationProvider } from './src/i18n/TranslationContext';
 import { AppErrorBoundary } from './src/components/AppErrorBoundary';
@@ -35,14 +35,18 @@ initFirebase();
 
 function PremiumThemeGate() {
     const { themeId, setTheme } = useThemeActions();
-    const { purchasedItemIds } = useStore();
+    const { purchasedItemIds, isPremium } = useStore();
 
     React.useEffect(() => {
         const catalogId = `theme-${themeId}`;
+        // A purchased premium theme that is no longer owned, OR the subscriber
+        // theme once Premium lapses, falls back to the free (always-owned) default.
         if (isPremiumCatalogId(catalogId) && !purchasedItemIds.includes(catalogId)) {
             setTheme('default');
+        } else if (isSubscriberTheme(themeId) && !isPremium) {
+            setTheme('default');
         }
-    }, [purchasedItemIds, setTheme, themeId]);
+    }, [purchasedItemIds, isPremium, setTheme, themeId]);
 
     return null;
 }

@@ -4,9 +4,29 @@ import { gameIdForPack, ownsAllPremiumPacks, premiumPackCount } from '../../data
 import { useStore } from '../store/useStore';
 
 export function useStoreAnalyticsBridge(): void {
-    const { purchasedItemIds } = useStore();
+    const { purchasedItemIds, isPremium } = useStore();
     const prevPurchased = useRef<Set<string>>(new Set<string>(purchasedItemIds));
     const initRef = useRef(false);
+    const prevPremium = useRef<boolean>(isPremium);
+    const premiumInitRef = useRef(false);
+
+    // Premium subscription lifecycle: fire when the cached/store-validated status
+    // flips. We can't tell a fresh subscribe from a restore here, so both surface
+    // as `premium_activated`; a flip to false is a lapse.
+    useEffect(() => {
+        if (!premiumInitRef.current) {
+            premiumInitRef.current = true;
+            prevPremium.current = isPremium;
+            return;
+        }
+        if (isPremium !== prevPremium.current) {
+            SafeAnalytics.logEvent({
+                name: isPremium ? 'premium_activated' : 'premium_lapsed',
+                params: {},
+            });
+            prevPremium.current = isPremium;
+        }
+    }, [isPremium]);
 
     useEffect(() => {
         if (!initRef.current) {

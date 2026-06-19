@@ -22,6 +22,7 @@ import { useStore } from '../../hooks/store/useStore';
 import { useResolvedStoreEntries } from '../../hooks/store/useStoreCatalog';
 import type { RootStackParamList } from '../../navigation/types';
 import { ThemePreview } from './ThemePreview';
+import { PremiumPlans } from './PremiumPlans';
 
 type StoreScreenProps = NativeStackScreenProps<RootStackParamList, 'Store'>;
 
@@ -110,6 +111,8 @@ export default function StoreScreen() {
     useEffect(() => {
         if (route.params?.gameId === 'themes') {
             setSelectedCategory('themes');
+        } else if (route.params?.gameId === 'premium') {
+            setSelectedCategory('premium');
         } else if (route.params?.gameId) {
             setSelectedCategory('packs');
         }
@@ -251,6 +254,15 @@ export default function StoreScreen() {
                     </ScrollView>
                 </View>
 
+                {selectedCategory === 'premium' ? (
+                    <ScrollView
+                        style={styles.container}
+                        contentContainerStyle={tabletColumn}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <PremiumPlans />
+                    </ScrollView>
+                ) : (
                 <SectionList
                     ref={sectionListRef}
                     sections={sections}
@@ -291,6 +303,7 @@ export default function StoreScreen() {
                     showsVerticalScrollIndicator={false}
                     onScrollToIndexFailed={() => undefined}
                 />
+                )}
 
                 {restoreMessageVisible && (
                     <View

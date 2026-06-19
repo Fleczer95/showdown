@@ -14,6 +14,7 @@ import {
     totalPremiumItems,
     dailyCap,
     canUpsell,
+    PREMIUM_DAILY_CAP,
 } from './limit';
 
 describe('premiumItemsOwned', () => {
@@ -40,6 +41,11 @@ describe('dailyCap', () => {
     it('never counts a free item', () => {
         expect(dailyCap(new Set(['theme-free']))).toBe(BASE_DAILY_CAP);
     });
+
+    it('is the flat premium cap while Premium, ignoring owned items', () => {
+        expect(dailyCap(new Set(), true)).toBe(PREMIUM_DAILY_CAP);
+        expect(dailyCap(new Set(['theme-a', 'pack-a']), true)).toBe(PREMIUM_DAILY_CAP);
+    });
 });
 
 describe('canUpsell', () => {
@@ -53,5 +59,9 @@ describe('canUpsell', () => {
 
     it('is false once every premium item is owned', () => {
         expect(canUpsell(new Set(['theme-a', 'pack-a']))).toBe(false);
+    });
+
+    it('is false while Premium, even with nothing owned', () => {
+        expect(canUpsell(new Set(), true)).toBe(false);
     });
 });

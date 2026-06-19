@@ -2,6 +2,8 @@ import { PurchasePersistencePort } from './PurchasePersistencePort';
 
 export interface StoreState {
     purchasedItemIds: string[];
+    /** Whether the Premium subscription is active (cached; store-validated on launch). */
+    premiumActive: boolean;
     isProcessing: boolean;
 }
 
@@ -14,6 +16,7 @@ export class PurchaseEngine {
         this.persistence = persistence;
         this.state = {
             purchasedItemIds: this.persistence.getPurchasedItems(),
+            premiumActive: this.persistence.getPremiumActive(),
             isProcessing: false,
         };
         this.listeners = new Set();
@@ -41,6 +44,13 @@ export class PurchaseEngine {
 
     public setProcessing(isProcessing: boolean) {
         this.updateState({ isProcessing });
+    }
+
+    /** Persist + broadcast the Premium subscription status (store-validated or restored). */
+    public setPremiumActive(active: boolean) {
+        if (this.state.premiumActive === active) return;
+        this.persistence.setPremiumActive(active);
+        this.updateState({ premiumActive: active });
     }
 
     public async purchaseItem(itemId: string): Promise<boolean> {

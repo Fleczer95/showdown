@@ -27,6 +27,10 @@ coverage/
 __pycache__/
 *.pyc
 
+# Python Virtual Environments
+.venv/
+venv/
+
 # Native
 ios/Pods/
 ios/build/

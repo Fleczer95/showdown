@@ -52,21 +52,25 @@ function StoreItemCard({
                 style={[
                     styles.card,
                     {
-                        backgroundColor: accent + '10',
-                        borderColor: accent + '30',
-                        borderRadius: theme.radii.lg,
+                        backgroundColor: accent + '12',
+                        borderWidth: 0,
+                        borderRadius: theme.radii.xl,
                         padding: theme.spacing.lg,
                     },
                 ]}
             >
                 <Icon
                     name={IconComponent}
-                    size={iconSize(26)}
+                    size={iconSize(30)}
                     color={accent}
-                    backgroundColor={accent + '18'}
-                    borderRadius={theme.radii.md}
+                    backgroundColor={theme.colors.surface}
+                    borderRadius={theme.radii.lg}
                     padding={theme.spacing.md}
-                    containerStyle={{ marginRight: theme.spacing.md }}
+                    containerStyle={{ 
+                        marginRight: theme.spacing.md,
+                        borderColor: accent + '40',
+                        borderWidth: 2,
+                    }}
                 />
                 <View style={styles.cardContent}>
                     <Text variant='body' weight='bold' numberOfLines={1}>
@@ -369,18 +373,19 @@ export default function StoreScreen() {
                                 style={[
                                     styles.detailIcon,
                                     {
-                                        backgroundColor: detailItem.presentation.accentColor + '15',
-                                        borderColor: detailItem.presentation.accentColor + '2E',
-                                        width: scale(64, 80),
-                                        height: scale(64, 80),
-                                        borderRadius: scale(18, 22),
+                                        backgroundColor: theme.colors.surface,
+                                        borderColor: detailItem.presentation.accentColor + '40',
+                                        borderWidth: 2,
+                                        width: scale(80, 96),
+                                        height: scale(80, 96),
+                                        borderRadius: scale(28, 32),
                                     },
                                 ]}
                             >
                                 {React.createElement(
                                     STORE_ICONS[detailItem.presentation.iconName] ?? STORE_ICONS.themes,
                                     {
-                                        size: iconSize(32),
+                                        size: iconSize(40),
                                         color: detailItem.presentation.accentColor,
                                     },
                                 )}
@@ -418,12 +423,15 @@ export default function StoreScreen() {
                                     <View key={featureKey} style={styles.featureRow}>
                                         <View
                                             style={[
-                                                styles.featureDot,
-                                                { backgroundColor: detailItem.presentation.accentColor },
+                                                styles.featureIconContainer,
+                                                { backgroundColor: detailItem.presentation.accentColor + '1A' },
                                             ]}
-                                        />
+                                        >
+                                            <Check size={14} color={detailItem.presentation.accentColor} />
+                                        </View>
                                         <Text
                                             variant='body'
+                                            weight='medium'
                                             color={theme.colors.textSecondary}
                                             style={styles.featureText}
                                         >
@@ -586,23 +594,25 @@ const styles = StyleSheet.create({
     featuresCard: {
         width: '100%',
         marginTop: 24,
-        padding: 16,
-        borderRadius: 16,
-        borderWidth: 1,
-        gap: 14,
+        padding: 20,
+        borderRadius: 20,
+        borderWidth: 0,
+        gap: 16,
     },
     featureRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 12,
     },
     featureText: {
         flex: 1,
     },
-    featureDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        marginRight: 12,
+    featureIconContainer: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     purchasedNotice: {
         width: '100%',

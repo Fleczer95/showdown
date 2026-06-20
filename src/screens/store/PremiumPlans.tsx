@@ -149,10 +149,17 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                     <View
                         style={[
                             styles.crown,
-                            { backgroundColor: accent + '18', borderRadius: theme.radii.xl, borderColor: accent + '33' },
+                            {
+                                backgroundColor: theme.colors.surface,
+                                borderColor: accent + '40',
+                                borderWidth: 2,
+                                width: 80,
+                                height: 80,
+                                borderRadius: 28,
+                            },
                         ]}
                     >
-                        <Crown size={32} color={accent} />
+                        <Crown size={36} color={accent} />
                     </View>
                     <Spacer size='md' />
                     <Text variant='heading' weight='bold' align='center'>
@@ -299,9 +306,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     perks: {
-        borderWidth: 1,
-        padding: 16,
-        gap: 14,
+        padding: 20,
+        gap: 16,
+        borderWidth: 0,
     },
     perkRow: {
         flexDirection: 'row',

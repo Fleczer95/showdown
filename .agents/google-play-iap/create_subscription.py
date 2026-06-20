@@ -55,12 +55,13 @@ def base_plan_body(plan):
             "billingPeriodDuration": plan["period"],
             "gracePeriodDuration": "P30D",
             "resubscribeState": "RESUBSCRIBE_STATE_ACTIVE",
-            "legacyCompatible": True,
+            # At most one base plan may be legacy-compatible (pre-v5 Play Billing).
+            "legacyCompatible": plan["basePlanId"] == "monthly",
         },
         "regionalConfigs": [
             {"regionCode": "US", "newSubscriberAvailability": True, "price": usd},
         ],
-        "newRegionsConfig": {
+        "otherRegionsConfig": {
             "usdPrice": usd,
             "eurPrice": eur,
             "newSubscriberAvailability": True,

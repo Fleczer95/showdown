@@ -7,7 +7,7 @@ import Spacer from '../../components/atoms/Spacer';
 import Pressable from '../../components/atoms/HapticPressable';
 import Button from '../../components/molecules/Button';
 import { useTheme } from '../../theme';
-import { getContrastColor } from '../../theme/colorUtils';
+import { blend, getContrastColor } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useStore } from '../../hooks/store/useStore';
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '../../data/store/subscription';
@@ -231,7 +231,11 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         fullWidth
                         onPress={() => Linking.openURL(MANAGE_URL)}
                         icon={<Settings size={20} color={accent} />}
-                        style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border }}
+                        style={{
+                            backgroundColor: blend(accent, theme.colors.background, 0.22),
+                            borderColor: accent,
+                            borderWidth: 1.5,
+                        }}
                         textColor={accent}
                     >
                         {t('screen.store.premium.manage')}

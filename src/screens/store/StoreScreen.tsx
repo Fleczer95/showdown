@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Check, ChevronLeft, History } from 'lucide-react-native';
 import SafeContainer from '../../responsive/SafeContainer';
@@ -95,6 +96,7 @@ export default function StoreScreen() {
     const navigation = useNavigation<StoreScreenProps['navigation']>();
     const route = useRoute<StoreScreenProps['route']>();
     const { scale, iconSize, tabletColumn } = useResponsive();
+    const insets = useSafeAreaInsets();
     const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
@@ -183,7 +185,7 @@ export default function StoreScreen() {
     const detailUnlocked = detailItem ? (ownedById.get(detailItem.id) ?? false) : false;
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top']}>
             <View style={styles.container}>
                 <View
                     style={[
@@ -255,13 +257,7 @@ export default function StoreScreen() {
                 </View>
 
                 {selectedCategory === 'premium' ? (
-                    <ScrollView
-                        style={styles.container}
-                        contentContainerStyle={tabletColumn}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <PremiumPlans />
-                    </ScrollView>
+                    <PremiumPlans tabletColumn={tabletColumn} />
                 ) : (
                 <SectionList
                     ref={sectionListRef}
@@ -297,7 +293,7 @@ export default function StoreScreen() {
                     contentContainerStyle={[
                         styles.listContent,
                         tabletColumn,
-                        { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl },
+                        { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + insets.bottom },
                     ]}
                     stickySectionHeadersEnabled={false}
                     showsVerticalScrollIndicator={false}
@@ -313,7 +309,7 @@ export default function StoreScreen() {
                             {
                                 backgroundColor: theme.colors.success,
                                 borderRadius: theme.radii.md,
-                                bottom: theme.spacing.xl,
+                                bottom: theme.spacing.xl + insets.bottom,
                             },
                         ]}
                     >

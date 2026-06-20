@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, Linking, Platform, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Crown, Infinity as InfinityIcon, Swords, Sparkles } from 'lucide-react-native';
 import Text from '../../components/atoms/Text';
 import Spacer from '../../components/atoms/Spacer';
@@ -102,9 +103,10 @@ function PlanCard({
 }
 
 /** The Premium subscription tab — perks-only plus the subscriber-exclusive Aurora theme. */
-export function PremiumPlans() {
+export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewStyle> }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const { isPremium, subscribePremium, isProcessing, subscriptionPriceByPlanId } = useStore();
     const accent = theme.colors.primary;
     const [selected, setSelected] = useState<'monthly' | 'annual'>('annual');
@@ -123,65 +125,110 @@ export function PremiumPlans() {
     };
 
     return (
-        <View style={[styles.container, { paddingHorizontal: theme.spacing.xl }]}>
-            <View style={styles.hero}>
-                <View
-                    style={[
-                        styles.crown,
-                        { backgroundColor: accent + '18', borderRadius: theme.radii.xl, borderColor: accent + '33' },
-                    ]}
-                >
-                    <Crown size={32} color={accent} />
-                </View>
-                <Spacer size='md' />
-                <Text variant='heading' weight='bold' align='center'>
-                    {t('screen.store.premium.title')}
-                </Text>
-                <Spacer size='xs' />
-                <Text variant='body' color={theme.colors.textSecondary} align='center'>
-                    {t('screen.store.premium.subtitle')}
-                </Text>
-            </View>
-
-            <Spacer size='lg' />
-            <PerksList accent={accent} />
-
-            <Spacer size='lg' />
-            <Text variant='caption' weight='bold' color={theme.colors.textMuted} style={styles.exclusiveLabel}>
-                {t('screen.store.premium.exclusiveTheme').toUpperCase()}
-            </Text>
-            <Spacer size='sm' />
-            <View style={styles.previewWrap}>
-                <ThemePreview tokens={auroraTheme} />
-            </View>
-
-            <Spacer size='lg' />
-
-            {isPremium ? (
-                <View
-                    style={[
-                        styles.activeNotice,
-                        { backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
-                    ]}
-                >
-                    <Check size={20} color={theme.colors.success} />
-                    <Spacer size='sm' direction='horizontal' />
-                    <Text variant='body' weight='bold' color={theme.colors.success}>
-                        {t('screen.store.premium.active')}
+        <View style={[styles.root, tabletColumn]}>
+            {/* Scrollable content — hero, perks, the plan picker (visible first),
+                then the exclusive theme preview as the scroll reward at the bottom. */}
+            <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    {
+                        paddingHorizontal: theme.spacing.xl,
+                        // No pinned footer for active subscribers, so the scroll
+                        // content itself clears the home indicator in that case.
+                        paddingBottom: isPremium ? insets.bottom + theme.spacing.lg : theme.spacing.lg,
+                    },
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.hero}>
+                    <View
+                        style={[
+                            styles.crown,
+                            { backgroundColor: accent + '18', borderRadius: theme.radii.xl, borderColor: accent + '33' },
+                        ]}
+                    >
+                        <Crown size={32} color={accent} />
+                    </View>
+                    <Spacer size='md' />
+                    <Text variant='heading' weight='bold' align='center'>
+                        {t('screen.store.premium.title')}
+                    </Text>
+                    <Spacer size='xs' />
+                    <Text variant='body' color={theme.colors.textSecondary} align='center'>
+                        {t('screen.store.premium.subtitle')}
                     </Text>
                 </View>
-            ) : (
-                <>
-                    {SUBSCRIPTION_PLANS.map((plan) => (
-                        <PlanCard
-                            key={plan.id}
-                            plan={plan}
-                            price={priceFor(plan)}
-                            selected={selected === plan.id}
-                            onPress={() => setSelected(plan.id)}
-                        />
-                    ))}
-                    <Spacer size='md' />
+
+                <Spacer size='lg' />
+                <PerksList accent={accent} />
+
+                {isPremium ? (
+                    <>
+                        <Spacer size='lg' />
+                        <View
+                            style={[
+                                styles.activeNotice,
+                                { backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
+                            ]}
+                        >
+                            <Check size={20} color={theme.colors.success} />
+                            <Spacer size='sm' direction='horizontal' />
+                            <Text variant='body' weight='bold' color={theme.colors.success}>
+                                {t('screen.store.premium.active')}
+                            </Text>
+                        </View>
+                    </>
+                ) : (
+                    <>
+                        <Spacer size='lg' />
+                        {SUBSCRIPTION_PLANS.map((plan) => (
+                            <PlanCard
+                                key={plan.id}
+                                plan={plan}
+                                price={priceFor(plan)}
+                                selected={selected === plan.id}
+                                onPress={() => setSelected(plan.id)}
+                            />
+                        ))}
+                    </>
+                )}
+
+                <Spacer size='lg' />
+                <Text variant='caption' weight='bold' color={theme.colors.textMuted} style={styles.exclusiveLabel}>
+                    {t('screen.store.premium.exclusiveTheme').toUpperCase()}
+                </Text>
+                <Spacer size='sm' />
+                <View style={styles.previewWrap}>
+                    <ThemePreview tokens={auroraTheme} />
+                </View>
+
+                {isPremium && (
+                    <>
+                        <Spacer size='lg' />
+                        <Pressable onPress={() => Linking.openURL(MANAGE_URL)} haptic='light'>
+                            <Text variant='caption' color={theme.colors.textMuted} align='center'>
+                                {t('screen.store.premium.manage')}
+                            </Text>
+                        </Pressable>
+                    </>
+                )}
+            </ScrollView>
+
+            {/* Pinned CTA — edge-to-edge to the screen bottom; the bottom inset is
+                absorbed here so the bar reaches the edge with no safe-area cutoff. */}
+            {!isPremium && (
+                <View
+                    style={[
+                        styles.footer,
+                        {
+                            paddingHorizontal: theme.spacing.xl,
+                            paddingBottom: insets.bottom + theme.spacing.sm,
+                            borderTopColor: theme.colors.border,
+                            backgroundColor: theme.colors.background,
+                        },
+                    ]}
+                >
                     <Button
                         variant='primary'
                         size='lg'
@@ -193,23 +240,32 @@ export function PremiumPlans() {
                     >
                         {t('screen.store.premium.subscribe')}
                     </Button>
-                </>
+                    <Spacer size='sm' />
+                    <Pressable onPress={() => Linking.openURL(MANAGE_URL)} haptic='light'>
+                        <Text variant='caption' color={theme.colors.textMuted} align='center'>
+                            {t('screen.store.premium.manage')}
+                        </Text>
+                    </Pressable>
+                </View>
             )}
-
-            <Spacer size='md' />
-            <Pressable onPress={() => Linking.openURL(MANAGE_URL)} haptic='light'>
-                <Text variant='caption' color={theme.colors.textMuted} align='center'>
-                    {t('screen.store.premium.manage')}
-                </Text>
-            </Pressable>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    root: {
+        flex: 1,
+    },
+    scroll: {
+        flex: 1,
+    },
+    scrollContent: {
         paddingTop: 8,
-        paddingBottom: 48,
+    },
+    footer: {
+        paddingTop: 16,
+        paddingBottom: 8,
+        borderTopWidth: 1,
     },
     hero: {
         alignItems: 'center',

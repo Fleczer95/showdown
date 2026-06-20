@@ -45,7 +45,7 @@ describe('resolveSubscriptionPrice', () => {
             id: GOOGLE_SUBSCRIPTION_ID,
             subscriptionOfferDetailsAndroid: [
                 { basePlanId: 'monthly', pricingPhases: { pricingPhaseList: [{ formattedPrice: 'PLN 15.99' }] } },
-                { basePlanId: 'annual', pricingPhases: { pricingPhaseList: [{ formattedPrice: 'PLN 149.99' }] } },
+                { basePlanId: 'yearly', pricingPhases: { pricingPhaseList: [{ formattedPrice: 'PLN 149.99' }] } },
             ],
         };
 
@@ -87,7 +87,7 @@ describe('resolveGoogleOfferToken — Android offer token needed to launch a pur
         id: GOOGLE_SUBSCRIPTION_ID,
         subscriptionOfferDetailsAndroid: [
             { basePlanId: 'monthly', offerToken: 'token-monthly', pricingPhases: { pricingPhaseList: [] } },
-            { basePlanId: 'annual', offerToken: 'token-annual', pricingPhases: { pricingPhaseList: [] } },
+            { basePlanId: 'yearly', offerToken: 'token-annual', pricingPhases: { pricingPhaseList: [] } },
         ],
     };
 

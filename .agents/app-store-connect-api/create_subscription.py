@@ -39,14 +39,14 @@ SUBSCRIPTIONS = [
         "name": "Premium Monthly",
         "period": "ONE_MONTH",
         "price": "3.99",
-        "desc": "Unlimited offline play, 15 daily challenges, and the Aurora theme.",
+        "desc": "Unlimited play, 15 daily challenges & Aurora theme.",
     },
     {
-        "productId": "com.showdown.premium_annual",
+        "productId": "com.showdown.premium_yearly",
         "name": "Premium Annual",
         "period": "ONE_YEAR",
-        "price": "19.99",
-        "desc": "A year of unlimited play, 15 daily challenges, and the Aurora theme.",
+        "price": "34.99",
+        "desc": "A year of unlimited play, 15 challenges & theme.",
     },
 ]
 
@@ -174,17 +174,23 @@ def add_localization(sub_id, sub):
 
 def set_price(sub_id, sub):
     target = sub["price"]
-    pp_resp = get(f"/v1/subscriptions/{sub_id}/pricePoints",
-                  params={"filter[territory]": "USA", "limit": 200})
+    # The price-point ladder has hundreds of entries; page through all of them
+    # (a single 200-row page doesn't reach the higher prices like $34.99).
     match = None
-    for pp in pp_resp.get("data", []):
-        cp = pp["attributes"].get("customerPrice", "")
-        try:
-            if abs(float(cp) - float(target)) < 0.001:
-                match = pp
-                break
-        except (ValueError, TypeError):
-            pass
+    url = f"{BASE_URL}/v1/subscriptions/{sub_id}/pricePoints?filter[territory]=USA&limit=200"
+    while url and not match:
+        page = requests.get(url, headers=headers())
+        page.raise_for_status()
+        page = page.json()
+        for pp in page.get("data", []):
+            cp = pp["attributes"].get("customerPrice", "")
+            try:
+                if abs(float(cp) - float(target)) < 0.001:
+                    match = pp
+                    break
+            except (ValueError, TypeError):
+                pass
+        url = page.get("links", {}).get("next")
     if not match:
         print(f"  ERROR: no price point found for ${target} in USA")
         return

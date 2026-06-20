@@ -37,7 +37,7 @@ LISTING = {
 # basePlanId mirrors SUBSCRIPTION_PLANS[].googleBasePlanId in subscription.ts.
 BASE_PLANS = [
     {"basePlanId": "monthly", "period": "P1M", "price": "3.99"},
-    {"basePlanId": "annual", "period": "P1Y", "price": "19.99"},
+    {"basePlanId": "yearly", "period": "P1Y", "price": "34.99"},
 ]
 
 def split_price(price_str):

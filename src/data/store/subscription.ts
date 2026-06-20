@@ -43,9 +43,9 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
     },
     {
         id: 'annual',
-        appleSku: 'com.showdown.premium_annual',
-        googleBasePlanId: 'annual',
-        fallbackPrice: '$19.99',
+        appleSku: 'com.showdown.premium_yearly',
+        googleBasePlanId: 'yearly',
+        fallbackPrice: '$34.99',
         titleKey: 'screen.store.premium.plan.annual',
         periodKey: 'screen.store.premium.period.year',
     },

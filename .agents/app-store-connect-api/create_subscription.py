@@ -39,14 +39,14 @@ SUBSCRIPTIONS = [
         "name": "Premium Monthly",
         "period": "ONE_MONTH",
         "price": "3.99",
-        "desc": "Unlimited play, 15 daily challenges & Aurora theme.",
+        "desc": "Unlimited play, 10 extra daily challenges & Aurora theme.",
     },
     {
         "productId": "com.showdown.premium_yearly",
         "name": "Premium Annual",
         "period": "ONE_YEAR",
         "price": "34.99",
-        "desc": "A year of unlimited play, 15 challenges & theme.",
+        "desc": "A year of unlimited play, 10 extra challenges & theme.",
     },
 ]
 

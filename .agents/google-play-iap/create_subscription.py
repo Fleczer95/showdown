@@ -31,7 +31,7 @@ PRODUCT_ID = "com.showdown.premium"
 LISTING = {
     "languageCode": "en-US",
     "title": "Showdown Premium",
-    "description": "Unlimited offline play, 15 daily friend challenges, and the exclusive Aurora theme.",
+    "description": "Unlimited offline play, 10 extra daily friend challenges, and the exclusive Aurora theme.",
 }
 
 # basePlanId mirrors SUBSCRIPTION_PLANS[].googleBasePlanId in subscription.ts.

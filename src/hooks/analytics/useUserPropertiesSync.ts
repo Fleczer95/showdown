@@ -21,7 +21,7 @@ export function markFirstGameCompleted(): void {
 export function useUserPropertiesSync(): void {
     const { language } = useSettings();
     const { themeId } = useThemeActions();
-    const { purchasedItemIds } = useStore();
+    const { purchasedItemIds, isPremium } = useStore();
     const initialisedRef = useRef(false);
 
     useEffect(() => {
@@ -34,7 +34,8 @@ export function useUserPropertiesSync(): void {
 
     useEffect(() => {
         const count = purchasedItemIds.length;
-        SafeAnalytics.setUserProperty('is_paying_user', count > 0 ? 'true' : 'false');
+        // Subscribers own zero packs but are still paying users.
+        SafeAnalytics.setUserProperty('is_paying_user', count > 0 || isPremium ? 'true' : 'false');
         SafeAnalytics.setUserProperty('total_packs_owned', String(count));
         if (!initialisedRef.current) {
             initialisedRef.current = true;
@@ -42,5 +43,5 @@ export function useUserPropertiesSync(): void {
                 SafeAnalytics.setUserProperty('has_completed_first_game', 'true');
             }
         }
-    }, [purchasedItemIds]);
+    }, [purchasedItemIds, isPremium]);
 }

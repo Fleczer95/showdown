@@ -96,14 +96,14 @@ describe('resolveGoogleOfferToken — Android offer token needed to launch a pur
         expect(resolveGoogleOfferToken(annual, [product])).toBe('token-annual');
     });
 
-    it('falls back to the first offer when the base plan is not matched', () => {
+    it('is undefined when the chosen base plan is not matched — never bills another plan', () => {
         const monthlyOnly: StoreProductLike = {
             id: GOOGLE_SUBSCRIPTION_ID,
             subscriptionOfferDetailsAndroid: [
                 { basePlanId: 'monthly', offerToken: 'token-monthly', pricingPhases: { pricingPhaseList: [] } },
             ],
         };
-        expect(resolveGoogleOfferToken(annual, [monthlyOnly])).toBe('token-monthly');
+        expect(resolveGoogleOfferToken(annual, [monthlyOnly])).toBeUndefined();
     });
 
     it('is undefined until the subs product loads — the silent-reject guard', () => {

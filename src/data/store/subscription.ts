@@ -95,11 +95,11 @@ export interface StoreProductLike {
 
 /**
  * The Google base plan offer token required to launch this plan's purchase, or
- * `undefined` until the subs product loads. Android-only — iOS purchases by
- * product id and needs no token. Falls back to the first available offer when
- * the exact base plan isn't matched. A missing token means the store product
- * hasn't been fetched yet, so launching would send an empty offer list that
- * Google rejects.
+ * `undefined` until the subs product loads or when the chosen base plan isn't
+ * present. Android-only — iOS purchases by product id and needs no token. We
+ * never substitute another plan's offer: doing so would launch checkout for a
+ * plan the user didn't pick (billing mismatch). `undefined` lets the caller
+ * fail fast instead.
  */
 export function resolveGoogleOfferToken(
     plan: SubscriptionPlan,
@@ -107,7 +107,7 @@ export function resolveGoogleOfferToken(
 ): string | undefined {
     const product = products.find((p) => p.id === GOOGLE_SUBSCRIPTION_ID);
     const offers = product?.subscriptionOfferDetailsAndroid ?? [];
-    const match = offers.find((o) => o.basePlanId === plan.googleBasePlanId) ?? offers[0];
+    const match = offers.find((o) => o.basePlanId === plan.googleBasePlanId);
     return match?.offerToken ?? undefined;
 }
 

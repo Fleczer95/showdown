@@ -98,7 +98,7 @@ export default function StoreScreen() {
     const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
-    const [selectedCategory, setSelectedCategory] = useState<StoreCategory>('themes');
+    const [selectedCategory, setSelectedCategory] = useState<StoreCategory>('premium');
     const [detailItem, setDetailItem] = useState<CatalogEntry | null>(null);
     const [isRestoring, setIsRestoring] = useState(false);
     const [restoreMessageVisible, setRestoreMessageVisible] = useState(false);

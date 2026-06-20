@@ -45,7 +45,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const [state, setState] = useState<StoreState>(() => engine.getState());
 
     // --- IAP Integration ---
-    const { connected, products, fetchProducts, finishTransaction } = useIAP({
+    const { connected, products, subscriptions, fetchProducts, finishTransaction } = useIAP({
         onPurchaseSuccess: async (purchase) => {
             console.log('[StoreProvider] Purchase success:', purchase.productId);
             if (isSubscriptionProductId(purchase.productId)) {
@@ -116,11 +116,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const subscriptionPriceByPlanId = useMemo(() => {
         const map: Record<string, string> = {};
         for (const plan of SUBSCRIPTION_PLANS) {
-            const price = resolveSubscriptionPrice(plan, products);
+            const price = resolveSubscriptionPrice(plan, subscriptions);
             if (price) map[plan.id] = price;
         }
         return map;
-    }, [products]);
+    }, [subscriptions]);
 
     useEffect(() => {
         return engine.subscribe(setState);
@@ -189,7 +189,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 // Android needs the chosen base plan's offer token from the fetched product.
                 let googleOfferToken: string | undefined;
                 if (Platform.OS === 'android') {
-                    googleOfferToken = resolveGoogleOfferToken(plan, products);
+                    googleOfferToken = resolveGoogleOfferToken(plan, subscriptions);
                     if (!googleOfferToken) {
                         // The subs product hasn't loaded yet (slow/failed fetch). Launching
                         // now would send an empty offer list Google rejects, so fail fast
@@ -212,7 +212,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 return false;
             }
         },
-        [engine, products],
+        [engine, subscriptions],
     );
 
     const devSetPremium = useCallback(

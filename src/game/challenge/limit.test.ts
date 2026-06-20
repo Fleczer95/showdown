@@ -14,7 +14,7 @@ import {
     totalPremiumItems,
     dailyCap,
     canUpsell,
-    PREMIUM_DAILY_CAP,
+    PREMIUM_BONUS_CHALLENGES,
 } from './limit';
 
 describe('premiumItemsOwned', () => {
@@ -42,9 +42,11 @@ describe('dailyCap', () => {
         expect(dailyCap(new Set(['theme-free']))).toBe(BASE_DAILY_CAP);
     });
 
-    it('is the flat premium cap while Premium, ignoring owned items', () => {
-        expect(dailyCap(new Set(), true)).toBe(PREMIUM_DAILY_CAP);
-        expect(dailyCap(new Set(['theme-a', 'pack-a']), true)).toBe(PREMIUM_DAILY_CAP);
+    it('adds the flat premium bonus on top of the owned-item cap', () => {
+        expect(dailyCap(new Set(), true)).toBe(BASE_DAILY_CAP + PREMIUM_BONUS_CHALLENGES);
+        expect(dailyCap(new Set(['theme-a', 'pack-a']), true)).toBe(
+            BASE_DAILY_CAP + 2 + PREMIUM_BONUS_CHALLENGES,
+        );
     });
 });
 

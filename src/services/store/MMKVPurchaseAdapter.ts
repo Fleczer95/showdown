@@ -27,6 +27,9 @@ export class MMKVPurchaseAdapter implements PurchasePersistencePort {
 
     clearPurchases(): void {
         storage.remove(PURCHASED_ITEMS_KEY);
+        // Reset Premium too so a full clear doesn't leave a stale `true` behind
+        // (it would otherwise linger until the next store-validated refresh).
+        storage.remove(PREMIUM_ACTIVE_KEY);
     }
 
     getPremiumActive(): boolean {

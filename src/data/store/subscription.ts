@@ -75,7 +75,59 @@ export function isSubscriptionProductId(productId: string): boolean {
     return SUBSCRIPTION_PRODUCT_IDS.has(productId);
 }
 
-/** The store SKU a plan resolves to on the current platform (for price lookup). */
-export function skuForPlan(plan: SubscriptionPlan): string {
-    return Platform.OS === 'android' ? GOOGLE_SUBSCRIPTION_ID : plan.appleSku;
+/**
+ * Minimal structural shape of a fetched store product needed to read a
+ * subscription price — avoids coupling this module to react-native-iap types.
+ * iOS exposes one product per plan with a `displayPrice`; Android exposes one
+ * product whose per-base-plan prices live in `subscriptionOfferDetailsAndroid`.
+ */
+export interface StoreProductLike {
+    id: string;
+    displayPrice?: string | null;
+    subscriptionOfferDetailsAndroid?:
+        | {
+              basePlanId: string;
+              offerToken?: string;
+              pricingPhases: { pricingPhaseList: { formattedPrice: string }[] };
+          }[]
+        | null;
+}
+
+/**
+ * The Google base plan offer token required to launch this plan's purchase, or
+ * `undefined` until the subs product loads. Android-only — iOS purchases by
+ * product id and needs no token. Falls back to the first available offer when
+ * the exact base plan isn't matched. A missing token means the store product
+ * hasn't been fetched yet, so launching would send an empty offer list that
+ * Google rejects.
+ */
+export function resolveGoogleOfferToken(
+    plan: SubscriptionPlan,
+    products: readonly StoreProductLike[],
+): string | undefined {
+    const product = products.find((p) => p.id === GOOGLE_SUBSCRIPTION_ID);
+    const offers = product?.subscriptionOfferDetailsAndroid ?? [];
+    const match = offers.find((o) => o.basePlanId === plan.googleBasePlanId) ?? offers[0];
+    return match?.offerToken ?? undefined;
+}
+
+/**
+ * The localized store price for a plan, or `undefined` until products load.
+ *   - iOS: the matching per-plan product's `displayPrice`.
+ *   - Android: the matching base plan's standard recurring price — the last
+ *     pricing phase (any free-trial/intro phases precede it).
+ */
+export function resolveSubscriptionPrice(
+    plan: SubscriptionPlan,
+    products: readonly StoreProductLike[],
+): string | undefined {
+    if (Platform.OS === 'android') {
+        const product = products.find((p) => p.id === GOOGLE_SUBSCRIPTION_ID);
+        const offer = product?.subscriptionOfferDetailsAndroid?.find(
+            (o) => o.basePlanId === plan.googleBasePlanId,
+        );
+        const phases = offer?.pricingPhases.pricingPhaseList ?? [];
+        return phases[phases.length - 1]?.formattedPrice;
+    }
+    return products.find((p) => p.id === plan.appleSku)?.displayPrice ?? undefined;
 }

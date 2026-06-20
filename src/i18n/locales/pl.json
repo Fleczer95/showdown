@@ -289,6 +289,8 @@
                 "exclusiveTheme": "Ekskluzywny motyw",
                 "active": "Premium aktywne",
                 "subscribe": "Włącz Premium",
+                "errorTitle": "Nie udało się rozpocząć płatności",
+                "errorDesc": "Nie udało się połączyć ze sklepem. Sprawdź połączenie i spróbuj ponownie.",
                 "manage": "Zarządzaj subskrypcją",
                 "bestValue": "NAJLEPSZA OFERTA",
                 "plan": {

@@ -10,6 +10,8 @@ import {
     SUBSCRIPTION_PLANS,
     GOOGLE_SUBSCRIPTION_ID,
     isSubscriptionProductId,
+    resolveSubscriptionPrice,
+    resolveGoogleOfferToken,
 } from '../../data/store/subscription';
 
 // Toggle this flag to switch between mock buying and real IAP
@@ -21,6 +23,8 @@ interface StoreContextValue extends StoreState {
     restorePurchases: () => Promise<boolean>;
     /** Localized store prices keyed by SKU. Empty until products load or in mock mode. */
     priceBySku: Record<string, string>;
+    /** Localized subscription prices keyed by plan id. Empty until subs products load. */
+    subscriptionPriceByPlanId: Record<string, string>;
     /** Whether the Premium subscription is active. Gates the perks + exclusive theme. */
     isPremium: boolean;
     /** Start the Premium subscription for a plan. The unlock lands via `onPurchaseSuccess`. */
@@ -107,6 +111,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return map;
     }, [products]);
 
+    // Subscription prices resolve per plan, not by SKU: iOS keys on the per-plan
+    // product id, Android reads each base plan's price out of one shared product.
+    const subscriptionPriceByPlanId = useMemo(() => {
+        const map: Record<string, string> = {};
+        for (const plan of SUBSCRIPTION_PLANS) {
+            const price = resolveSubscriptionPrice(plan, products);
+            if (price) map[plan.id] = price;
+        }
+        return map;
+    }, [products]);
+
     useEffect(() => {
         return engine.subscribe(setState);
     }, [engine]);
@@ -174,12 +189,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 // Android needs the chosen base plan's offer token from the fetched product.
                 let googleOfferToken: string | undefined;
                 if (Platform.OS === 'android') {
-                    const product = products.find((p) => p.id === GOOGLE_SUBSCRIPTION_ID) as
-                        | { subscriptionOfferDetailsAndroid?: { basePlanId: string; offerToken: string }[] }
-                        | undefined;
-                    const offers = product?.subscriptionOfferDetailsAndroid ?? [];
-                    const match = offers.find((o) => o.basePlanId === plan.googleBasePlanId) ?? offers[0];
-                    googleOfferToken = match?.offerToken;
+                    googleOfferToken = resolveGoogleOfferToken(plan, products);
+                    if (!googleOfferToken) {
+                        // The subs product hasn't loaded yet (slow/failed fetch). Launching
+                        // now would send an empty offer list Google rejects, so fail fast
+                        // and let the caller surface it instead of a silent no-op.
+                        console.warn('[StoreProvider] Subscription not ready: missing Android offer token');
+                        engine.setProcessing(false);
+                        return false;
+                    }
                 }
                 await IAPService.getInstance().buySubscription({
                     appleSku: plan.appleSku,
@@ -212,6 +230,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 purchaseItem,
                 restorePurchases,
                 priceBySku,
+                subscriptionPriceByPlanId,
                 isPremium: state.premiumActive,
                 subscribePremium,
                 devSetPremium,

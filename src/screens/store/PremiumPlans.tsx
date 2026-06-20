@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Platform, StyleSheet, View } from 'react-native';
 import { Check, Crown, Infinity as InfinityIcon, Swords, Sparkles } from 'lucide-react-native';
 import Text from '../../components/atoms/Text';
 import Spacer from '../../components/atoms/Spacer';
@@ -105,15 +105,21 @@ function PlanCard({
 export function PremiumPlans() {
     const theme = useTheme();
     const { t } = useTranslation();
-    const { isPremium, subscribePremium, isProcessing, priceBySku } = useStore();
+    const { isPremium, subscribePremium, isProcessing, subscriptionPriceByPlanId } = useStore();
     const accent = theme.colors.primary;
     const [selected, setSelected] = useState<'monthly' | 'annual'>('annual');
 
     const priceFor = (plan: SubscriptionPlan): string =>
-        priceBySku[plan.appleSku] ?? plan.fallbackPrice;
+        subscriptionPriceByPlanId[plan.id] ?? plan.fallbackPrice;
 
-    const onSubscribe = () => {
-        void subscribePremium(selected);
+    const onSubscribe = async () => {
+        // `false` means the purchase never launched (e.g. the store product
+        // wasn't ready) — surface it. User cancellation flows through the IAP
+        // error handler, not this return, so this won't fire on cancel.
+        const launched = await subscribePremium(selected);
+        if (!launched) {
+            Alert.alert(t('screen.store.premium.errorTitle'), t('screen.store.premium.errorDesc'));
+        }
     };
 
     return (

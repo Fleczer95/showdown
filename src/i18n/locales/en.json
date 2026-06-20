@@ -135,7 +135,11 @@
             "sections": {
                 "free": "FREE",
                 "premium": "PREMIUM",
+                "subscriber": "PREMIUM PASS",
                 "earned": "EARNED"
+            },
+            "themes": {
+                "aurora": "Aurora"
             },
             "store": "Browse Theme Store"
         },
@@ -272,8 +276,33 @@
             "title": "Store",
             "back": "Back",
             "category": {
-                "packs": "Question Packs",
+                "premium": "Premium",
+                "packs": "Packs",
                 "themes": "Themes"
+            },
+            "premium": {
+                "title": "Showdown Premium",
+                "subtitle": "Play without limits and unlock the exclusive Aurora theme.",
+                "exclusiveTheme": "Exclusive theme",
+                "active": "Premium active",
+                "subscribe": "Buy Premium",
+                "errorTitle": "Couldn't start checkout",
+                "errorDesc": "We couldn't reach the store. Please check your connection and try again.",
+                "manage": "Manage subscription",
+                "bestValue": "BEST VALUE",
+                "plan": {
+                    "monthly": "Monthly",
+                    "annual": "Annual"
+                },
+                "period": {
+                    "month": "/ mo",
+                    "year": "/ yr"
+                },
+                "perk": {
+                    "offline": "Unlimited offline solo runs",
+                    "challenges": "10 extra friend challenges a day",
+                    "theme": "Exclusive Aurora theme"
+                }
             },
             "item": {
                 "theme_cyberpunk": {

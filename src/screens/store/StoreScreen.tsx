@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Check, ChevronLeft, History } from 'lucide-react-native';
 import SafeContainer from '../../responsive/SafeContainer';
@@ -22,6 +23,7 @@ import { useStore } from '../../hooks/store/useStore';
 import { useResolvedStoreEntries } from '../../hooks/store/useStoreCatalog';
 import type { RootStackParamList } from '../../navigation/types';
 import { ThemePreview } from './ThemePreview';
+import { PremiumPlans } from './PremiumPlans';
 
 type StoreScreenProps = NativeStackScreenProps<RootStackParamList, 'Store'>;
 
@@ -94,10 +96,14 @@ export default function StoreScreen() {
     const navigation = useNavigation<StoreScreenProps['navigation']>();
     const route = useRoute<StoreScreenProps['route']>();
     const { scale, iconSize, tabletColumn } = useResponsive();
+    const insets = useSafeAreaInsets();
     const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
-    const [selectedCategory, setSelectedCategory] = useState<StoreCategory>('themes');
+    const tabsScrollRef = useRef<ScrollView>(null);
+    const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>({});
+    const tabsViewportWidthRef = useRef(0);
+    const [selectedCategory, setSelectedCategory] = useState<StoreCategory>('premium');
     const [detailItem, setDetailItem] = useState<CatalogEntry | null>(null);
     const [isRestoring, setIsRestoring] = useState(false);
     const [restoreMessageVisible, setRestoreMessageVisible] = useState(false);
@@ -110,10 +116,23 @@ export default function StoreScreen() {
     useEffect(() => {
         if (route.params?.gameId === 'themes') {
             setSelectedCategory('themes');
+        } else if (route.params?.gameId === 'premium') {
+            setSelectedCategory('premium');
         } else if (route.params?.gameId) {
             setSelectedCategory('packs');
         }
     }, [route.params?.gameId]);
+
+    const handleSelectCategory = (id: StoreCategory) => {
+        setSelectedCategory(id);
+        // Keep the tapped tab fully in view when the row overflows (e.g. XL font sizes).
+        const layout = tabLayoutsRef.current[id];
+        const viewport = tabsViewportWidthRef.current;
+        if (layout && viewport) {
+            const target = Math.max(0, layout.x + layout.width / 2 - viewport / 2);
+            tabsScrollRef.current?.scrollTo({ x: target, animated: true });
+        }
+    };
 
     const resolvePrice = (entry: CatalogEntry): string =>
         (entry.sku ? priceBySku[entry.sku] : undefined) ?? entry.presentation.fallbackPrice ?? '';
@@ -180,7 +199,7 @@ export default function StoreScreen() {
     const detailUnlocked = detailItem ? (ownedById.get(detailItem.id) ?? false) : false;
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top']}>
             <View style={styles.container}>
                 <View
                     style={[
@@ -214,43 +233,65 @@ export default function StoreScreen() {
                 </View>
 
                 <View style={[styles.categoriesContainer, tabletColumn]}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+                    <ScrollView
+                        ref={tabsScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.tabs}
+                        onLayout={(e) => {
+                            tabsViewportWidthRef.current = e.nativeEvent.layout.width;
+                        }}
+                    >
                         {STORE_CATEGORIES.map((category) => {
                             const active = selectedCategory === category.id;
                             const CategoryIcon = category.icon;
                             return (
-                                <Pressable
+                                <View
                                     key={category.id}
-                                    onPress={() => setSelectedCategory(category.id)}
-                                    haptic='light'
-                                    style={[
-                                        styles.tab,
-                                        {
-                                            borderRadius: theme.radii.lg,
-                                            borderColor: active ? theme.colors.primary : theme.colors.border,
-                                            backgroundColor: active ? theme.colors.primary + '12' : theme.colors.surface,
-                                        },
-                                    ]}
+                                    onLayout={(e) => {
+                                        tabLayoutsRef.current[category.id] = {
+                                            x: e.nativeEvent.layout.x,
+                                            width: e.nativeEvent.layout.width,
+                                        };
+                                    }}
                                 >
-                                    <View pointerEvents='none' style={styles.tabContent}>
-                                        <CategoryIcon
-                                            size={iconSize(18)}
-                                            color={active ? theme.colors.primary : theme.colors.textSecondary}
-                                        />
-                                        <Text
-                                            variant='body'
-                                            weight={active ? 'bold' : 'medium'}
-                                            color={active ? theme.colors.primary : theme.colors.textSecondary}
-                                        >
-                                            {t(`screen.store.category.${category.id}`)}
-                                        </Text>
-                                    </View>
-                                </Pressable>
+                                    <Pressable
+                                        onPress={() => handleSelectCategory(category.id)}
+                                        haptic='light'
+                                        style={[
+                                            styles.tab,
+                                            {
+                                                borderRadius: theme.radii.lg,
+                                                borderColor: active ? theme.colors.primary : theme.colors.border,
+                                                backgroundColor: active
+                                                    ? theme.colors.primary + '12'
+                                                    : theme.colors.surface,
+                                            },
+                                        ]}
+                                    >
+                                        <View pointerEvents='none' style={styles.tabContent}>
+                                            <CategoryIcon
+                                                size={iconSize(18)}
+                                                color={active ? theme.colors.primary : theme.colors.textSecondary}
+                                            />
+                                            <Text
+                                                variant='body'
+                                                weight={active ? 'bold' : 'medium'}
+                                                color={active ? theme.colors.primary : theme.colors.textSecondary}
+                                            >
+                                                {t(`screen.store.category.${category.id}`)}
+                                            </Text>
+                                        </View>
+                                    </Pressable>
+                                </View>
                             );
                         })}
                     </ScrollView>
                 </View>
 
+                {selectedCategory === 'premium' ? (
+                    <PremiumPlans tabletColumn={tabletColumn} />
+                ) : (
                 <SectionList
                     ref={sectionListRef}
                     sections={sections}
@@ -285,12 +326,13 @@ export default function StoreScreen() {
                     contentContainerStyle={[
                         styles.listContent,
                         tabletColumn,
-                        { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl },
+                        { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + insets.bottom },
                     ]}
                     stickySectionHeadersEnabled={false}
                     showsVerticalScrollIndicator={false}
                     onScrollToIndexFailed={() => undefined}
                 />
+                )}
 
                 {restoreMessageVisible && (
                     <View
@@ -300,7 +342,7 @@ export default function StoreScreen() {
                             {
                                 backgroundColor: theme.colors.success,
                                 borderRadius: theme.radii.md,
-                                bottom: theme.spacing.xl,
+                                bottom: theme.spacing.xl + insets.bottom,
                             },
                         ]}
                     >
@@ -465,6 +507,8 @@ const styles = StyleSheet.create({
     tabs: {
         gap: 10,
         paddingHorizontal: 20,
+        flexGrow: 1,
+        justifyContent: 'center',
     },
     tab: {
         borderWidth: 1,

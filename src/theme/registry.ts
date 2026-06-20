@@ -23,6 +23,7 @@ import {
 import { STORE_CATALOG } from '../data/store/catalog';
 import type { ThemeDefinition } from '../data/store/types';
 import { PROGRESSION_THEMES } from '../game/progression/themes';
+import { auroraTheme } from './themes';
 
 export interface ThemeOption {
     value: string;
@@ -34,6 +35,8 @@ export interface ThemeOption {
     isEarned?: boolean;
     /** The reward id used to resolve an earned theme's lock. Set iff `isEarned`. */
     rewardId?: string;
+    /** Subscriber-exclusive — its lock resolves against the Premium subscription (`isPremium`). */
+    isSubscriber?: boolean;
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -91,6 +94,29 @@ const progressionThemes: ThemeOption[] = PROGRESSION_THEMES.map((earned) => ({
     rewardId: earned.id,
 }));
 
-export const themeRegistry: ThemeOption[] = [...storeThemes, ...progressionThemes];
+/**
+ * Subscriber-exclusive themes. They live OUTSIDE `STORE_CATALOG` (never sold
+ * individually) and are gated by the Premium subscription (`isPremium`), not by
+ * purchases or progression. Today just Aurora.
+ */
+const subscriberThemes: ThemeOption[] = [
+    {
+        value: 'aurora',
+        labelKey: 'screen.themePicker.themes.aurora',
+        icon: getIcon('sparkles'),
+        theme: auroraTheme,
+        isSubscriber: true,
+    },
+];
+
+/** Picker values that are subscriber-exclusive — used by the lapse revert gate. */
+const SUBSCRIBER_THEME_VALUES: ReadonlySet<string> = new Set(subscriberThemes.map((t) => t.value));
+
+/** Whether a theme value is subscriber-exclusive (reverts to default when Premium lapses). */
+export function isSubscriberTheme(value: string): boolean {
+    return SUBSCRIBER_THEME_VALUES.has(value);
+}
+
+export const themeRegistry: ThemeOption[] = [...storeThemes, ...subscriberThemes, ...progressionThemes];
 
 export default themeRegistry;

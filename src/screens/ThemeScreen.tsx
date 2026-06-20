@@ -22,6 +22,7 @@ interface ThemeTile {
     lockLabel?: string;
     isEarned?: boolean;
     rewardId?: string;
+    isSubscriber?: boolean;
 }
 
 /** Splits a flat list of tiles into grid rows of `columns` each. */
@@ -45,7 +46,7 @@ export function ThemeScreen() {
     const { t } = useTranslation();
     const theme = useTheme();
     const { themeId, setTheme } = useThemeActions();
-    const { purchasedItemIds } = useStore();
+    const { purchasedItemIds, isPremium } = useStore();
     const { unlockedRewards } = useProgression();
     const { breakpoint, iconSize } = useResponsive();
 
@@ -54,12 +55,15 @@ export function ThemeScreen() {
     const sections = useMemo(() => {
         const free: ThemeTile[] = [];
         const premium: ThemeTile[] = [];
+        const subscriber: ThemeTile[] = [];
         const earned: ThemeTile[] = [];
 
         themeRegistry.forEach((opt) => {
-            const isLocked = opt.isEarned
-                ? !unlockedRewards.has(opt.rewardId!)
-                : !!opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`);
+            const isLocked = opt.isSubscriber
+                ? !isPremium
+                : opt.isEarned
+                  ? !unlockedRewards.has(opt.rewardId!)
+                  : !!opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`);
             const requiredLevel = opt.isEarned
                 ? LEVEL_MAP.find((node) => node.rewardId === opt.rewardId)?.level
                 : undefined;
@@ -75,9 +79,11 @@ export function ThemeScreen() {
                         : undefined,
                 isEarned: opt.isEarned,
                 rewardId: opt.rewardId,
+                isSubscriber: opt.isSubscriber,
             };
 
-            if (opt.isEarned) earned.push(tile);
+            if (opt.isSubscriber) subscriber.push(tile);
+            else if (opt.isEarned) earned.push(tile);
             else if (opt.isPremium) premium.push(tile);
             else free.push(tile);
         });
@@ -85,16 +91,19 @@ export function ThemeScreen() {
         return [
             { key: 'free', title: t('screen.themePicker.sections.free'), tiles: free },
             { key: 'premium', title: t('screen.themePicker.sections.premium'), tiles: premium },
+            { key: 'subscriber', title: t('screen.themePicker.sections.subscriber'), tiles: subscriber },
             { key: 'earned', title: t('screen.themePicker.sections.earned'), tiles: earned },
         ]
             .filter((section) => section.tiles.length > 0)
             .map((section) => ({ ...section, data: toRows(section.tiles, columns) }));
-    }, [t, purchasedItemIds, unlockedRewards, columns]);
+    }, [t, purchasedItemIds, isPremium, unlockedRewards, columns]);
 
     const handlePress = (tile: ThemeTile) => {
         if (tile.isLocked) {
             if (tile.isEarned) {
                 navigation.navigate('Progress' as any, { focusRewardId: tile.rewardId });
+            } else if (tile.isSubscriber) {
+                navigation.navigate('Store' as any, { gameId: 'premium' });
             } else {
                 navigation.navigate('Store' as any, { gameId: 'themes' });
             }

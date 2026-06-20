@@ -23,6 +23,14 @@ autoresearch.md
 # Test coverage
 coverage/
 
+# Python bytecode (IAP provisioning scripts)
+__pycache__/
+*.pyc
+
+# Python Virtual Environments
+.venv/
+venv/
+
 # Native
 ios/Pods/
 ios/build/

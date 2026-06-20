@@ -15,6 +15,14 @@ import { STORE_CATALOG } from '../../data/store/catalog';
 export const BASE_DAILY_CAP = 3;
 /** Extra daily challenges granted per owned premium item (theme or pack). */
 export const BONUS_PER_PREMIUM_ITEM = 1;
+/**
+ * Extra daily challenges the Premium subscription adds on top of the normal
+ * (base + owned items) cap. Additive, not a flat number, so a subscriber who
+ * also owns packs/themes is never capped below what their items already grant.
+ * Still finite — challenge creation writes to the Firestore free tier, so an
+ * unbounded cap would risk the quota.
+ */
+export const PREMIUM_BONUS_CHALLENGES = 10;
 
 /** Catalog ids of every premium (paid) item — derived, so new items count automatically. */
 function premiumItemIds(): string[] {
@@ -31,12 +39,21 @@ export function totalPremiumItems(): number {
     return premiumItemIds().length;
 }
 
-/** The device's daily challenge-creation cap (global, all games). */
-export function dailyCap(ownedIds: ReadonlySet<string>): number {
-    return BASE_DAILY_CAP + premiumItemsOwned(ownedIds) * BONUS_PER_PREMIUM_ITEM;
+/**
+ * The device's daily challenge-creation cap (global, all games): the base plus
+ * one per owned premium item, plus a flat `PREMIUM_BONUS_CHALLENGES` while the
+ * Premium subscription is active.
+ */
+export function dailyCap(ownedIds: ReadonlySet<string>, isPremium = false): number {
+    const cap = BASE_DAILY_CAP + premiumItemsOwned(ownedIds) * BONUS_PER_PREMIUM_ITEM;
+    return isPremium ? cap + PREMIUM_BONUS_CHALLENGES : cap;
 }
 
-/** Whether there's still a premium item left to buy for more daily challenges. */
-export function canUpsell(ownedIds: ReadonlySet<string>): boolean {
+/**
+ * Whether there's still a premium item left to buy for more daily challenges.
+ * Subscribers already get the raised cap, so there's nothing to upsell.
+ */
+export function canUpsell(ownedIds: ReadonlySet<string>, isPremium = false): boolean {
+    if (isPremium) return false;
     return premiumItemsOwned(ownedIds) < totalPremiumItems();
 }

@@ -135,7 +135,11 @@
             "sections": {
                 "free": "DARMOWE",
                 "premium": "PREMIUM",
+                "subscriber": "KARNET PREMIUM",
                 "earned": "ZDOBYTE"
+            },
+            "themes": {
+                "aurora": "Zorza"
             },
             "store": "Przeglądaj sklep z motywami"
         },
@@ -275,8 +279,33 @@
             "title": "Sklep",
             "back": "Wróć",
             "category": {
-                "packs": "Pakiety pytań",
+                "premium": "Premium",
+                "packs": "Pakiety",
                 "themes": "Motywy"
+            },
+            "premium": {
+                "title": "Showdown Premium",
+                "subtitle": "Graj bez limitów i odblokuj ekskluzywny motyw Zorza.",
+                "exclusiveTheme": "Ekskluzywny motyw",
+                "active": "Premium aktywne",
+                "subscribe": "Kup Premium",
+                "errorTitle": "Nie udało się rozpocząć płatności",
+                "errorDesc": "Nie udało się połączyć ze sklepem. Sprawdź połączenie i spróbuj ponownie.",
+                "manage": "Zarządzaj subskrypcją",
+                "bestValue": "NAJLEPSZA OFERTA",
+                "plan": {
+                    "monthly": "Miesięczny",
+                    "annual": "Roczny"
+                },
+                "period": {
+                    "month": "/ mies.",
+                    "year": "/ rok"
+                },
+                "perk": {
+                    "offline": "Nieograniczone gry solo offline",
+                    "challenges": "10 dodatkowych „wyzwań dla znajomych” dziennie",
+                    "theme": "Ekskluzywny motyw Zorza"
+                }
             },
             "item": {
                 "theme_cyberpunk": {

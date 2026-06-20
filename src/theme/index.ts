@@ -14,7 +14,7 @@ export {
 export { createTheme, deepMerge } from './createTheme';
 export { resolveTheme } from './resolveTheme';
 export { defaultTokens, defaultComponentVariants } from './defaults';
-export { default as themeRegistry } from './registry';
+export { default as themeRegistry, isSubscriberTheme } from './registry';
 export { partyTheme } from './themes/party';
 export { pastelTheme } from './themes/pastel';
 export { minimalTheme } from './themes/minimal';

@@ -3,6 +3,7 @@ import { PurchasePersistencePort } from './PurchasePersistencePort';
 
 const storage = createMMKV({ id: 'showdown-store' });
 const PURCHASED_ITEMS_KEY = 'purchased_items';
+const PREMIUM_ACTIVE_KEY = 'premium_active';
 
 export class MMKVPurchaseAdapter implements PurchasePersistencePort {
     getPurchasedItems(): string[] {
@@ -26,5 +27,16 @@ export class MMKVPurchaseAdapter implements PurchasePersistencePort {
 
     clearPurchases(): void {
         storage.remove(PURCHASED_ITEMS_KEY);
+        // Reset Premium too so a full clear doesn't leave a stale `true` behind
+        // (it would otherwise linger until the next store-validated refresh).
+        storage.remove(PREMIUM_ACTIVE_KEY);
+    }
+
+    getPremiumActive(): boolean {
+        return storage.getBoolean(PREMIUM_ACTIVE_KEY) ?? false;
+    }
+
+    setPremiumActive(active: boolean): void {
+        storage.set(PREMIUM_ACTIVE_KEY, active);
     }
 }

@@ -15,6 +15,7 @@ import {
     remaining,
     consume,
     grantBonus,
+    UNLIMITED_RUNS,
     type OfflineRunState,
 } from './limit';
 
@@ -56,6 +57,9 @@ describe('remaining', () => {
     it('never goes below the bonus when the allowance is overspent', () => {
         expect(remaining(state({ used: 99, bonus: 2 }), owned(), TODAY)).toBe(2);
     });
+    it('is unlimited while Premium, regardless of usage', () => {
+        expect(remaining(state({ used: 99, bonus: 0 }), owned(), TODAY, true)).toBe(UNLIMITED_RUNS);
+    });
 });
 
 describe('consume — daily allowance first, bonus only after', () => {
@@ -82,6 +86,12 @@ describe('consume — daily allowance first, bonus only after', () => {
         const r = consume(state({ used: BASE_DAILY_RUNS, bonus: 0 }), owned(), TODAY);
         expect(r.ok).toBe(false);
         expect(r.state).toEqual(state({ used: BASE_DAILY_RUNS, bonus: 0 }));
+    });
+    it('always succeeds without spending while Premium', () => {
+        const exhausted = state({ used: BASE_DAILY_RUNS, bonus: 0 });
+        const r = consume(exhausted, owned(), TODAY, true);
+        expect(r.ok).toBe(true);
+        expect(r.state).toBe(exhausted); // untouched
     });
 });
 

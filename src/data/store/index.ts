@@ -2,6 +2,7 @@ import {
     LucideIcon,
     BookOpen,
     Palette,
+    Crown,
     Sparkles,
     MessageSquare,
     Zap,
@@ -24,9 +25,10 @@ import {
     UserSearch,
 } from 'lucide-react-native';
 
-export type StoreCategory = 'packs' | 'themes';
+export type StoreCategory = 'premium' | 'packs' | 'themes';
 
 export const STORE_CATEGORIES = [
+    { id: 'premium', titleKey: 'store.category.premium', icon: Crown },
     { id: 'packs', titleKey: 'store.category.packs', icon: BookOpen },
     { id: 'themes', titleKey: 'store.category.themes', icon: Palette },
 ] as const;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Crown, Infinity as InfinityIcon, Swords, Sparkles } from 'lucide-react-native';
+import { Check, Crown, Infinity as InfinityIcon, Swords, Sparkles, Settings } from 'lucide-react-native';
 import Text from '../../components/atoms/Text';
 import Spacer from '../../components/atoms/Spacer';
 import Pressable from '../../components/atoms/HapticPressable';
@@ -110,6 +110,9 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
     const { isPremium, subscribePremium, isProcessing, subscriptionPriceByPlanId } = useStore();
     const accent = theme.colors.primary;
     const [selected, setSelected] = useState<'monthly' | 'annual'>('annual');
+    // Measured height of the floating CTA so the scroll content can clear it
+    // (the footer floats over the scroll, mirroring the game-setup screen).
+    const [footerHeight, setFooterHeight] = useState(0);
 
     const priceFor = (plan: SubscriptionPlan): string =>
         subscriptionPriceByPlanId[plan.id] ?? plan.fallbackPrice;
@@ -134,9 +137,10 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                     styles.scrollContent,
                     {
                         paddingHorizontal: theme.spacing.xl,
-                        // No pinned footer for active subscribers, so the scroll
-                        // content itself clears the home indicator in that case.
-                        paddingBottom: isPremium ? insets.bottom + theme.spacing.lg : theme.spacing.lg,
+                        // The floating CTA overlaps the scroll, so we pad by its
+                        // measured height to let the last content (the theme
+                        // preview) scroll fully clear of it.
+                        paddingBottom: footerHeight + theme.spacing.lg,
                     },
                 ]}
                 showsVerticalScrollIndicator={false}
@@ -202,33 +206,37 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                 <View style={styles.previewWrap}>
                     <ThemePreview tokens={auroraTheme} />
                 </View>
-
-                {isPremium && (
-                    <>
-                        <Spacer size='lg' />
-                        <Pressable onPress={() => Linking.openURL(MANAGE_URL)} haptic='light'>
-                            <Text variant='caption' color={theme.colors.textMuted} align='center'>
-                                {t('screen.store.premium.manage')}
-                            </Text>
-                        </Pressable>
-                    </>
-                )}
             </ScrollView>
 
-            {/* Pinned CTA — edge-to-edge to the screen bottom; the bottom inset is
-                absorbed here so the bar reaches the edge with no safe-area cutoff. */}
-            {!isPremium && (
-                <View
-                    style={[
-                        styles.footer,
-                        {
-                            paddingHorizontal: theme.spacing.xl,
-                            paddingBottom: insets.bottom + theme.spacing.sm,
-                            borderTopColor: theme.colors.border,
-                            backgroundColor: theme.colors.background,
-                        },
-                    ]}
-                >
+            {/* Floating CTA — sits over the scroll (transparent, like the
+                game-setup screen) so the theme preview stays visible underneath
+                while scrolling. The bottom inset is absorbed here so the button
+                clears the home indicator. One button that swaps by state:
+                subscribe when not premium, manage the subscription when already
+                subscribed. */}
+            <View
+                onLayout={(e) => setFooterHeight(e.nativeEvent.layout.height)}
+                style={[
+                    styles.footer,
+                    {
+                        paddingHorizontal: theme.spacing.xl,
+                        paddingBottom: insets.bottom + theme.spacing.sm,
+                    },
+                ]}
+            >
+                {isPremium ? (
+                    <Button
+                        variant='primary'
+                        size='lg'
+                        fullWidth
+                        onPress={() => Linking.openURL(MANAGE_URL)}
+                        icon={<Settings size={20} color={accent} />}
+                        style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border }}
+                        textColor={accent}
+                    >
+                        {t('screen.store.premium.manage')}
+                    </Button>
+                ) : (
                     <Button
                         variant='primary'
                         size='lg'
@@ -240,14 +248,8 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                     >
                         {t('screen.store.premium.subscribe')}
                     </Button>
-                    <Spacer size='sm' />
-                    <Pressable onPress={() => Linking.openURL(MANAGE_URL)} haptic='light'>
-                        <Text variant='caption' color={theme.colors.textMuted} align='center'>
-                            {t('screen.store.premium.manage')}
-                        </Text>
-                    </Pressable>
-                </View>
-            )}
+                )}
+            </View>
         </View>
     );
 }
@@ -263,9 +265,11 @@ const styles = StyleSheet.create({
         paddingTop: 8,
     },
     footer: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
         paddingTop: 16,
-        paddingBottom: 8,
-        borderTopWidth: 1,
     },
     hero: {
         alignItems: 'center',

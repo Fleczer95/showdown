@@ -100,6 +100,9 @@ export default function StoreScreen() {
     const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
+    const tabsScrollRef = useRef<ScrollView>(null);
+    const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>({});
+    const tabsViewportWidthRef = useRef(0);
     const [selectedCategory, setSelectedCategory] = useState<StoreCategory>('premium');
     const [detailItem, setDetailItem] = useState<CatalogEntry | null>(null);
     const [isRestoring, setIsRestoring] = useState(false);
@@ -119,6 +122,17 @@ export default function StoreScreen() {
             setSelectedCategory('packs');
         }
     }, [route.params?.gameId]);
+
+    const handleSelectCategory = (id: StoreCategory) => {
+        setSelectedCategory(id);
+        // Keep the tapped tab fully in view when the row overflows (e.g. XL font sizes).
+        const layout = tabLayoutsRef.current[id];
+        const viewport = tabsViewportWidthRef.current;
+        if (layout && viewport) {
+            const target = Math.max(0, layout.x + layout.width / 2 - viewport / 2);
+            tabsScrollRef.current?.scrollTo({ x: target, animated: true });
+        }
+    };
 
     const resolvePrice = (entry: CatalogEntry): string =>
         (entry.sku ? priceBySku[entry.sku] : undefined) ?? entry.presentation.fallbackPrice ?? '';
@@ -219,38 +233,57 @@ export default function StoreScreen() {
                 </View>
 
                 <View style={[styles.categoriesContainer, tabletColumn]}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
+                    <ScrollView
+                        ref={tabsScrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.tabs}
+                        onLayout={(e) => {
+                            tabsViewportWidthRef.current = e.nativeEvent.layout.width;
+                        }}
+                    >
                         {STORE_CATEGORIES.map((category) => {
                             const active = selectedCategory === category.id;
                             const CategoryIcon = category.icon;
                             return (
-                                <Pressable
+                                <View
                                     key={category.id}
-                                    onPress={() => setSelectedCategory(category.id)}
-                                    haptic='light'
-                                    style={[
-                                        styles.tab,
-                                        {
-                                            borderRadius: theme.radii.lg,
-                                            borderColor: active ? theme.colors.primary : theme.colors.border,
-                                            backgroundColor: active ? theme.colors.primary + '12' : theme.colors.surface,
-                                        },
-                                    ]}
+                                    onLayout={(e) => {
+                                        tabLayoutsRef.current[category.id] = {
+                                            x: e.nativeEvent.layout.x,
+                                            width: e.nativeEvent.layout.width,
+                                        };
+                                    }}
                                 >
-                                    <View pointerEvents='none' style={styles.tabContent}>
-                                        <CategoryIcon
-                                            size={iconSize(18)}
-                                            color={active ? theme.colors.primary : theme.colors.textSecondary}
-                                        />
-                                        <Text
-                                            variant='body'
-                                            weight={active ? 'bold' : 'medium'}
-                                            color={active ? theme.colors.primary : theme.colors.textSecondary}
-                                        >
-                                            {t(`screen.store.category.${category.id}`)}
-                                        </Text>
-                                    </View>
-                                </Pressable>
+                                    <Pressable
+                                        onPress={() => handleSelectCategory(category.id)}
+                                        haptic='light'
+                                        style={[
+                                            styles.tab,
+                                            {
+                                                borderRadius: theme.radii.lg,
+                                                borderColor: active ? theme.colors.primary : theme.colors.border,
+                                                backgroundColor: active
+                                                    ? theme.colors.primary + '12'
+                                                    : theme.colors.surface,
+                                            },
+                                        ]}
+                                    >
+                                        <View pointerEvents='none' style={styles.tabContent}>
+                                            <CategoryIcon
+                                                size={iconSize(18)}
+                                                color={active ? theme.colors.primary : theme.colors.textSecondary}
+                                            />
+                                            <Text
+                                                variant='body'
+                                                weight={active ? 'bold' : 'medium'}
+                                                color={active ? theme.colors.primary : theme.colors.textSecondary}
+                                            >
+                                                {t(`screen.store.category.${category.id}`)}
+                                            </Text>
+                                        </View>
+                                    </Pressable>
+                                </View>
                             );
                         })}
                     </ScrollView>
@@ -474,6 +507,8 @@ const styles = StyleSheet.create({
     tabs: {
         gap: 10,
         paddingHorizontal: 20,
+        flexGrow: 1,
+        justifyContent: 'center',
     },
     tab: {
         borderWidth: 1,

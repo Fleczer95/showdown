@@ -461,6 +461,11 @@ export function GameSetupScreen() {
                         style={{
                             backgroundColor: accent,
                             borderColor: accent,
+                            shadowColor: accent,
+                            shadowOpacity: 0.35,
+                            shadowRadius: 16,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 8,
                             opacity: runsLeft <= 0 ? 0.7 : 1,
                         }}
                         textColor={onAccent}

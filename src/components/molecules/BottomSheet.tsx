@@ -37,9 +37,8 @@ function BottomSheet({
     const insets = useSafeAreaInsets();
     const { scale, contentMaxWidth } = useResponsive();
 
-    // Fluid chrome so the handle / close affordance keep pace on tablet.
-    const closeSize = scale(28);
-    const handleSize = { width: scale(40), height: scale(5), borderRadius: scale(2.5) };
+    // Fluid chrome so the handle affordance keeps pace on tablet.
+    const handleSize = { width: scale(48), height: scale(6), borderRadius: scale(3) };
 
     const translateY = useSharedValue(500);
     const opacity = useSharedValue(0);
@@ -126,8 +125,8 @@ function BottomSheet({
                                 sheetStyle,
                                 {
                                     backgroundColor: t.colors.surface,
-                                    borderTopLeftRadius: t.radii.xl,
-                                    borderTopRightRadius: t.radii.xl,
+                                    borderTopLeftRadius: 32,
+                                    borderTopRightRadius: 32,
                                     padding: t.spacing.xl,
                                     paddingBottom: t.spacing.xxl + insets.bottom,
                                     // Cap + centre on tablet so content keeps a readable measure
@@ -135,6 +134,11 @@ function BottomSheet({
                                     width: '100%',
                                     maxWidth: contentMaxWidth,
                                     alignSelf: 'center',
+                                    shadowColor: t.colors.shadow,
+                                    shadowOffset: { width: 0, height: -8 },
+                                    shadowOpacity: 0.15,
+                                    shadowRadius: 24,
+                                    elevation: 24,
                                     ...(height ? { maxHeight: height, height } : {}),
                                 },
                             ]}
@@ -149,36 +153,6 @@ function BottomSheet({
                                     <Text variant='subheading' weight='bold' style={styles.title}>
                                         {title}
                                     </Text>
-                                    {onClose ? (
-                                        <View
-                                            accessibilityRole='button'
-                                            accessibilityLabel='Close'
-                                            onStartShouldSetResponder={() => true}
-                                            onTouchEnd={requestClose}
-                                            style={styles.closeButton}
-                                        >
-                                            <View
-                                                style={[
-                                                    styles.closeIconBg,
-                                                    {
-                                                        width: closeSize,
-                                                        height: closeSize,
-                                                        borderRadius: closeSize / 2,
-                                                        backgroundColor: t.colors.borderLight + '40',
-                                                    },
-                                                ]}
-                                            >
-                                                <Text
-                                                    variant='body'
-                                                    weight='bold'
-                                                    color={t.colors.textSecondary}
-                                                    style={{ fontSize: scale(14) }}
-                                                >
-                                                    ✕
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    ) : null}
                                 </View>
                             ) : (
                                 <View
@@ -232,16 +206,6 @@ const styles = StyleSheet.create({
     header: {
         alignItems: 'center',
         paddingBottom: 20,
-    },
-    closeButton: {
-        position: 'absolute',
-        right: 0,
-        top: 4,
-        padding: 8,
-    },
-    closeIconBg: {
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     handle: {
         marginBottom: 8,

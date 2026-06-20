@@ -235,6 +235,11 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                             backgroundColor: blend(accent, theme.colors.background, 0.22),
                             borderColor: accent,
                             borderWidth: 1.5,
+                            shadowColor: accent,
+                            shadowOpacity: 0.3,
+                            shadowRadius: 14,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 8,
                         }}
                         textColor={accent}
                     >
@@ -247,7 +252,15 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         fullWidth
                         onPress={onSubscribe}
                         loading={isProcessing}
-                        style={{ backgroundColor: accent, borderColor: accent }}
+                        style={{
+                            backgroundColor: accent,
+                            borderColor: accent,
+                            shadowColor: accent,
+                            shadowOpacity: 0.35,
+                            shadowRadius: 16,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 8,
+                        }}
                         textColor={getContrastColor(accent)}
                     >
                         {t('screen.store.premium.subscribe')}

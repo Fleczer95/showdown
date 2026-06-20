@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { ChevronLeft, RefreshCw, WifiOff } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -137,6 +138,7 @@ export function RankingScreen() {
     const route = useRoute<RouteProp<RootStackParamList, 'Ranking'>>();
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const reduceMotion = useReducedMotion();
 
     const initialGame = (RANKED_GAMES as readonly string[]).includes(route.params?.gameId ?? '')
         ? (route.params!.gameId as RankedGame)
@@ -241,6 +243,11 @@ export function RankingScreen() {
                     </Text>
                 ) : null}
 
+                <Animated.View
+                    key={status}
+                    entering={reduceMotion ? undefined : FadeIn.duration(250)}
+                    style={styles.contentArea}
+                >
                 {status === 'loading' ? (
                     <View style={styles.centered}>
                         <ActivityIndicator />
@@ -295,6 +302,7 @@ export function RankingScreen() {
                         showsVerticalScrollIndicator={false}
                     />
                 )}
+                </Animated.View>
             </View>
         </SafeContainer>
     );
@@ -309,6 +317,9 @@ const styles = StyleSheet.create({
     titleCol: {
         flex: 1,
         alignItems: 'center',
+    },
+    contentArea: {
+        flex: 1,
     },
     gameTabSlot: {
         flex: 1,

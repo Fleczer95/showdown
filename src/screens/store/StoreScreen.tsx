@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -97,6 +98,7 @@ export default function StoreScreen() {
     const route = useRoute<StoreScreenProps['route']>();
     const { scale, iconSize, tabletColumn } = useResponsive();
     const insets = useSafeAreaInsets();
+    const reduceMotion = useReducedMotion();
     const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
@@ -289,6 +291,11 @@ export default function StoreScreen() {
                     </ScrollView>
                 </View>
 
+                <Animated.View
+                    key={selectedCategory}
+                    entering={reduceMotion ? undefined : FadeIn.duration(220)}
+                    style={styles.contentArea}
+                >
                 {selectedCategory === 'premium' ? (
                     <PremiumPlans tabletColumn={tabletColumn} />
                 ) : (
@@ -333,6 +340,7 @@ export default function StoreScreen() {
                     onScrollToIndexFailed={() => undefined}
                 />
                 )}
+                </Animated.View>
 
                 {restoreMessageVisible && (
                     <View
@@ -490,6 +498,9 @@ export default function StoreScreen() {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+    },
+    contentArea: {
         flex: 1,
     },
     header: {

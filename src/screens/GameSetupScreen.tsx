@@ -43,6 +43,7 @@ import { hasBuyablePacks } from '../data/store/catalog';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import type { RootStackParamList } from '../navigation/types';
+import { useResponsive } from '../responsive/useResponsive';
 
 // Fraction of a game's question pool the player must have seen before the pool
 // meter escalates from a quiet tally into a repeats-ahead purchase nudge. Below
@@ -181,6 +182,7 @@ export function GameSetupScreen() {
     const { t, locale } = useTranslation();
     const theme = useTheme();
     const { purchasedItemIds, isPremium } = useStore();
+    const { tabletColumn } = useResponsive();
 
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
@@ -326,11 +328,10 @@ export function GameSetupScreen() {
             paddingHorizontal: theme.spacing.xl,
             paddingTop: theme.spacing.lg,
             // Clearance for the floating footer (two stacked buttons + its bottom
-            // offset), so the last card — the question-pool widget — scrolls fully
-            // clear of it instead of being overlapped.
             paddingBottom: theme.spacing.xxl * 5, // ~160
             gap: theme.spacing.xxl,
         },
+        tabletColumn,
     ];
 
     if (isPlaying && PlayScreen) {
@@ -452,60 +453,62 @@ export function GameSetupScreen() {
             </ScrollView>
 
             <View style={[styles.footer, { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl }]}>
-                <Stack gap='sm'>
-                    {/* At zero runs the Start button keeps its accent look but
-                        swaps the play glyph for a lock; it stays tappable to
-                        open the limit/upsell sheet. */}
-                    <Button
-                        fullWidth
-                        size='lg'
-                        onPress={onStart}
-                        style={{
-                            backgroundColor: accent,
-                            borderColor: accent,
-                            shadowColor: accent,
-                            shadowOpacity: 0.35,
-                            shadowRadius: 16,
-                            shadowOffset: { width: 0, height: 6 },
-                            elevation: 8,
-                            opacity: runsLeft <= 0 ? 0.7 : 1,
-                        }}
-                        textColor={onAccent}
-                        icon={
-                            runsLeft <= 0 ? (
-                                <Lock size={20} color={onAccent} />
-                            ) : (
-                                <Play size={20} color={onAccent} fill={onAccent} />
-                            )
-                        }
-                    >
-                        {runsLeft === 1 ? t('offline.startLastRun') : t('offline.start')}
-                    </Button>
-                    <Button
-                        fullWidth
-                        onPress={onCreateChallenge}
-                        disabled={creating}
-                        style={{
-                            backgroundColor: blend(accent, theme.colors.background, 0.22),
-                            borderColor: accent,
-                            borderWidth: 1.5,
-                            shadowColor: accent,
-                            shadowOpacity: 0.3,
-                            shadowRadius: 14,
-                            shadowOffset: { width: 0, height: 6 },
-                            elevation: 8,
-                            // Looks disabled at the cap but stays tappable to open
-                            // the limit/upsell sheet.
-                            opacity: limitReached ? 0.7 : 1,
-                        }}
-                        textColor={accent}
-                        icon={<Swords size={22} color={accent} />}
-                    >
-                        {creating
-                            ? t('challenge.creating')
-                            : t('challenge.createWithCount', { count: createdToday, cap })}
-                    </Button>
-                </Stack>
+                <View style={tabletColumn}>
+                    <Stack gap='sm'>
+                        {/* At zero runs the Start button keeps its accent look but
+                            swaps the play glyph for a lock; it stays tappable to
+                            open the limit/upsell sheet. */}
+                        <Button
+                            fullWidth
+                            size='lg'
+                            onPress={onStart}
+                            style={{
+                                backgroundColor: accent,
+                                borderColor: accent,
+                                shadowColor: accent,
+                                shadowOpacity: 0.35,
+                                shadowRadius: 16,
+                                shadowOffset: { width: 0, height: 6 },
+                                elevation: 8,
+                                opacity: runsLeft <= 0 ? 0.7 : 1,
+                            }}
+                            textColor={onAccent}
+                            icon={
+                                runsLeft <= 0 ? (
+                                    <Lock size={20} color={onAccent} />
+                                ) : (
+                                    <Play size={20} color={onAccent} fill={onAccent} />
+                                )
+                            }
+                        >
+                            {runsLeft === 1 ? t('offline.startLastRun') : t('offline.start')}
+                        </Button>
+                        <Button
+                            fullWidth
+                            onPress={onCreateChallenge}
+                            disabled={creating}
+                            style={{
+                                backgroundColor: blend(accent, theme.colors.background, 0.22),
+                                borderColor: accent,
+                                borderWidth: 1.5,
+                                shadowColor: accent,
+                                shadowOpacity: 0.3,
+                                shadowRadius: 14,
+                                shadowOffset: { width: 0, height: 6 },
+                                elevation: 8,
+                                // Looks disabled at the cap but stays tappable to open
+                                // the limit/upsell sheet.
+                                opacity: limitReached ? 0.7 : 1,
+                            }}
+                            textColor={accent}
+                            icon={<Swords size={22} color={accent} />}
+                        >
+                            {creating
+                                ? t('challenge.creating')
+                                : t('challenge.createWithCount', { count: createdToday, cap })}
+                        </Button>
+                    </Stack>
+                </View>
             </View>
 
             <BottomSheet

@@ -4,6 +4,7 @@ import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText }
 import { useNavigation } from '@react-navigation/native';
 import { Settings, ArrowRight, ShoppingBag, Swords } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
+import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
@@ -171,6 +172,7 @@ export function HomeScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
+    const { tabletColumn } = useResponsive();
 
     const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
 
@@ -183,6 +185,7 @@ export function HomeScreen() {
             paddingBottom: theme.spacing.lg, // fixed footer holds the bottom action
             gap: theme.spacing.xl,
         },
+        tabletColumn,
     ];
 
     return (
@@ -233,15 +236,17 @@ export function HomeScreen() {
                     },
                 ]}
             >
-                <Button
-                    variant='secondary'
-                    fullWidth
-                    onPress={() => navigation.navigate('ChallengeHistory')}
-                    icon={<Swords size={20} color={theme.colors.text} />}
-                    accessibilityLabel={t('screen.home.challenges')}
-                >
-                    {t('challenge.history.title')}
-                </Button>
+                <View style={tabletColumn}>
+                    <Button
+                        variant='secondary'
+                        fullWidth
+                        onPress={() => navigation.navigate('ChallengeHistory')}
+                        icon={<Swords size={20} color={theme.colors.text} />}
+                        accessibilityLabel={t('screen.home.challenges')}
+                    >
+                        {t('challenge.history.title')}
+                    </Button>
+                </View>
             </View>
         </SafeContainer>
     );

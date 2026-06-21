@@ -254,6 +254,7 @@ export default function StoreScreen() {
                             return (
                                 <View
                                     key={category.id}
+                                    style={{ flexGrow: 1 }}
                                     onLayout={(e) => {
                                         tabLayoutsRef.current[category.id] = {
                                             x: e.nativeEvent.layout.x,
@@ -267,6 +268,7 @@ export default function StoreScreen() {
                                         style={[
                                             styles.tab,
                                             {
+                                                flexGrow: 1,
                                                 borderRadius: theme.radii.lg,
                                                 borderColor: active ? theme.colors.primary : theme.colors.border,
                                                 backgroundColor: active
@@ -275,7 +277,7 @@ export default function StoreScreen() {
                                             },
                                         ]}
                                     >
-                                        <View pointerEvents='none' style={styles.tabContent}>
+                                        <View pointerEvents='none' style={[styles.tabContent, { justifyContent: 'center' }]}>
                                             <CategoryIcon
                                                 size={iconSize(18)}
                                                 color={active ? theme.colors.primary : theme.colors.textSecondary}

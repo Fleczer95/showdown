@@ -7,6 +7,7 @@ import { Swords, Trophy, Hourglass, Crown, type LucideIcon } from 'lucide-react-
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
 import SafeContainer from '../responsive/SafeContainer';
+import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
@@ -65,6 +66,7 @@ export function ChallengeScreen() {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { purchasedItemIds } = useStore();
+    const { tabletColumn } = useResponsive();
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
@@ -229,7 +231,7 @@ export function ChallengeScreen() {
 
     return (
         <SafeContainer edges={['top', 'bottom']}>
-            <View style={styles.center}>
+            <View style={[styles.center, tabletColumn]}>
                 {phase === 'loading' || phase === 'submitting' ? (
                     <Stack gap='md' align='center'>
                         <ActivityIndicator color={theme.colors.primary} />

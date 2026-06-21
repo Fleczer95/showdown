@@ -17,6 +17,7 @@ import { useTheme } from '../theme';
 import { hexToRgba, readableOn, resolveAccent, RANK_MEDAL_COLORS } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { games, GAME_ICONS } from '../data/games';
+import { useResponsive } from '../responsive/useResponsive';
 import type { RootStackParamList } from '../navigation/types';
 import {
     ALLTIME_PERIOD,
@@ -172,6 +173,7 @@ export function RankingScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'Ranking'>>();
     const theme = useTheme();
+    const { tabletColumn } = useResponsive();
     const { t, locale } = useTranslation();
     const reduceMotion = useReducedMotion();
 
@@ -253,7 +255,7 @@ export function RankingScreen() {
                 <View style={{ width: 44 }} />
             </View>
 
-            <View style={{ paddingHorizontal: theme.spacing.xl, gap: theme.spacing.lg, flex: 1 }}>
+            <View style={[{ paddingHorizontal: theme.spacing.xl, gap: theme.spacing.lg, flex: 1 }, tabletColumn]}>
                 {/* Variant A — accent game medallions */}
                 <Stack direction='horizontal' gap='sm'>
                     {RANKED_GAMES.map((g) => (

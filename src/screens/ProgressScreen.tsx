@@ -29,6 +29,7 @@ import {
     type LucideIcon,
 } from 'lucide-react-native';
 import type { RootStackParamList } from '../navigation/types';
+import { useResponsive } from '../responsive/useResponsive';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -119,6 +120,7 @@ export function ProgressScreen() {
     const route = useRoute<ProgressScreenProps['route']>();
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { tabletColumn } = useResponsive();
     const { level, progress, unlockedRewards, achievements, stats } = useProgression();
     const [tab, setTab] = useState<ProgressTab>('map');
     const [selected, setSelected] = useState<SelectedAchievement>(null);
@@ -165,7 +167,7 @@ export function ProgressScreen() {
 
             {/* Level summary + tabs (fixed above the scrollable section) */}
             <View
-                style={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }}
+                style={[{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }, tabletColumn]}
             >
                 <Card variant='elevated' padding='lg'>
                     <Stack gap='sm'>
@@ -201,12 +203,15 @@ export function ProgressScreen() {
 
             <ScrollView
                 ref={scrollRef}
-                contentContainerStyle={{
-                    paddingHorizontal: theme.spacing.xl,
-                    paddingTop: theme.spacing.md,
-                    paddingBottom: theme.spacing.xxl,
-                    gap: theme.spacing.sm,
-                }}
+                contentContainerStyle={[
+                    {
+                        paddingHorizontal: theme.spacing.xl,
+                        paddingTop: theme.spacing.md,
+                        paddingBottom: theme.spacing.xxl,
+                        gap: theme.spacing.sm,
+                    },
+                    tabletColumn,
+                ]}
                 showsVerticalScrollIndicator={false}
             >
                 {tab === 'map' &&

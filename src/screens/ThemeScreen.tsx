@@ -48,7 +48,7 @@ export function ThemeScreen() {
     const { themeId, setTheme } = useThemeActions();
     const { purchasedItemIds, isPremium } = useStore();
     const { unlockedRewards } = useProgression();
-    const { breakpoint, iconSize } = useResponsive();
+    const { breakpoint, iconSize, tabletColumn } = useResponsive();
 
     const columns = breakpoint === 'expanded' ? 4 : 3;
 
@@ -117,6 +117,7 @@ export function ThemeScreen() {
             <View
                 style={[
                     styles.header,
+                    tabletColumn,
                     { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md },
                 ]}
             >
@@ -137,10 +138,13 @@ export function ThemeScreen() {
                 keyExtractor={(row, index) => row.map((tile) => tile.value).join('-') + index}
                 stickySectionHeadersEnabled={false}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingHorizontal: theme.spacing.lg,
-                    paddingBottom: theme.spacing.xxl,
-                }}
+                contentContainerStyle={[
+                    tabletColumn,
+                    {
+                        paddingHorizontal: theme.spacing.lg,
+                        paddingBottom: theme.spacing.xxl,
+                    },
+                ]}
                 ListHeaderComponent={
                     <Text
                         variant='body'

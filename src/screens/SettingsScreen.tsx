@@ -26,7 +26,7 @@ export function SettingsScreen() {
     const theme = useTheme();
     const { themeId } = useThemeActions();
     const settings = useSettings();
-    const { scale } = useResponsive();
+    const { scale, tabletColumn } = useResponsive();
 
     const handleBack = () => navigation.goBack();
 
@@ -65,6 +65,7 @@ export function SettingsScreen() {
                 contentContainerStyle={[
                     styles.content,
                     { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + theme.spacing.sm },
+                    tabletColumn,
                 ]}
             >
                 <Stack gap='xl'>

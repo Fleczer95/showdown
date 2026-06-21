@@ -11,6 +11,7 @@ import IconButton from '../components/molecules/IconButton';
 import { useTheme } from '../theme';
 import { hexToRgba, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
+import { useResponsive } from '../responsive/useResponsive';
 import { games } from '../data/games';
 import { listChallenges, challengeStatus, type ChallengeStub, type ChallengeStatus } from '../game/challenge/log';
 
@@ -103,6 +104,7 @@ export function ChallengeHistoryScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
+    const { tabletColumn } = useResponsive();
     const [stubs, setStubs] = useState<ChallengeStub[]>(() => listChallenges());
 
     // Refresh on focus so a just-played challenge reflects its new status.
@@ -146,6 +148,7 @@ export function ChallengeHistoryScreen() {
                         paddingBottom: theme.spacing.xxl,
                         gap: theme.spacing.md,
                     },
+                    tabletColumn,
                 ]}
                 showsVerticalScrollIndicator={false}
             />

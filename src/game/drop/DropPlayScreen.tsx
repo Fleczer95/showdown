@@ -96,7 +96,8 @@ export default function DropPlayScreen({
     const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
-    const { tabletColumn } = useResponsive();
+    const { tabletColumn, breakpoint } = useResponsive();
+    const isTablet = breakpoint !== 'compact';
 
     // Free bank plus any owned premium pack questions (reconstructed bilingual).
     const { purchasedItemIds } = useStore();
@@ -430,6 +431,7 @@ export default function DropPlayScreen({
                             answerShown={answerShown}
                             lockedByCover={phase === 'allocating' && allocation[i] === 0 && coveredCount >= maxCover}
                             sliderMax={state.bank}
+                            isTablet={isTablet}
                             onChange={(v) => setSlot(i, v)}
                         />
                     ))}
@@ -499,6 +501,7 @@ interface DropOptionProps {
     answerShown: boolean;
     lockedByCover: boolean;
     sliderMax: number;
+    isTablet: boolean;
     onChange: (value: number) => void;
 }
 
@@ -522,6 +525,7 @@ function DropOption({
     answerShown,
     lockedByCover,
     sliderMax,
+    isTablet,
     onChange,
 }: DropOptionProps) {
     const t = useTheme();
@@ -610,7 +614,12 @@ function DropOption({
         springBouncy,
     ]);
 
-    const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+    const cardStyle = useAnimatedStyle(() => ({
+        transform: [
+            { scaleX: isTablet ? 1 : scale.value },
+            { scaleY: scale.value }
+        ]
+    }));
     const textStyle = useAnimatedStyle(() => ({
         opacity: textOpacity.value,
         transform: [{ translateY: textY.value }],

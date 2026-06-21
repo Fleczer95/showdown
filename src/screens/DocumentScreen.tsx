@@ -24,7 +24,7 @@ export function DocumentScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'privacyPolicy' | 'termsOfUse'>>();
-    const { scale } = useResponsive();
+    const { scale, tabletColumn } = useResponsive();
 
     // Use route name as document key ('privacyPolicy' or 'termsOfUse')
     const documentKey = route.name;
@@ -52,6 +52,7 @@ export function DocumentScreen() {
             <View
                 style={[
                     styles.header,
+                    tabletColumn,
                     { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md },
                 ]}
             >
@@ -72,6 +73,7 @@ export function DocumentScreen() {
                 style={styles.scroll}
                 contentContainerStyle={[
                     styles.scrollContent,
+                    tabletColumn,
                     {
                         paddingHorizontal: theme.spacing.xl, // approx 20
                         paddingBottom: theme.spacing.xxl + theme.spacing.sm, // approx 40

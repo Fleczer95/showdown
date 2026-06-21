@@ -712,6 +712,13 @@
         ],
         "lastUpdated": "Ostatnia aktualizacja: {{lastUpdated}}"
     },
+    "review": {
+        "title": "Podoba Ci się ShowDown?",
+        "body": "Krótka ocena pomoże innym graczom odkryć grę.",
+        "hint": "Dotknij gwiazdki, aby ocenić",
+        "later": "Może później",
+        "starLabel": "Oceń na %{n} z 5 gwiazdek"
+    },
     "progression": {
         "title": "Postępy",
         "levelShort": "Lv %{n}",

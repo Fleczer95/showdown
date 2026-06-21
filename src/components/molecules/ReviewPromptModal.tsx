@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable as RNPressable, StyleSheet } from 'react-native';
+import { Modal, Pressable as RNPressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut, Easing, useReducedMotion } from 'react-native-reanimated';
 import { Star } from 'lucide-react-native';
 import Text from '../atoms/Text';
@@ -104,12 +104,14 @@ function ReviewPromptModal({ visible, onRate, onDismiss }: ReviewPromptModalProp
                                                 accessibilityLabel={t('review.starLabel', { n: value })}
                                                 style={styles.star}
                                             >
-                                                <Star
-                                                    size={starSize}
-                                                    color={filled ? theme.colors.primary : theme.colors.textMuted}
-                                                    fill={filled ? theme.colors.primary : 'transparent'}
-                                                    strokeWidth={1.5}
-                                                />
+                                                <View pointerEvents='none'>
+                                                    <Star
+                                                        size={starSize}
+                                                        color={filled ? theme.colors.primary : theme.colors.textMuted}
+                                                        fill={filled ? theme.colors.primary : 'transparent'}
+                                                        strokeWidth={1.5}
+                                                    />
+                                                </View>
                                             </Pressable>
                                         </Animated.View>
                                     );

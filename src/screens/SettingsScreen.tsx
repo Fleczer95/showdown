@@ -15,8 +15,6 @@ import { useTranslation } from '../i18n';
 import { useSettings } from '../hooks/useSettings';
 import { useResponsive } from '../responsive/useResponsive';
 import { FULL_VERSION_STRING } from '../utils/version';
-import ReviewPromptModal from '../components/molecules/ReviewPromptModal'; // TEMP: debug review preview — remove before release
-import { acceptReview } from '../services/review/reviewPrompt'; // TEMP: remove before release
 
 /**
  * Settings screen. Allows users to customize themes, timers, sounds,
@@ -29,7 +27,6 @@ export function SettingsScreen() {
     const { themeId } = useThemeActions();
     const settings = useSettings();
     const { scale, tabletColumn, iconSize } = useResponsive();
-    const [reviewPreview, setReviewPreview] = React.useState(false); // TEMP: remove before release
 
     const handleBack = () => navigation.goBack();
 
@@ -206,18 +203,6 @@ export function SettingsScreen() {
                                 {t('screen.settings.labels.termsOfUse')}
                             </Text>
                         </Pressable>
-
-                        {/* TEMP: preview the rate pre-prompt modal — remove before release */}
-                        <Pressable
-                            style={[styles.linkButton, { paddingVertical: theme.spacing.sm }]}
-                            onPress={() => setReviewPreview(true)}
-                            haptic='light'
-                            accessibilityRole='button'
-                        >
-                            <Text variant='body' color={theme.colors.primary}>
-                                [DEBUG] Preview rate prompt
-                            </Text>
-                        </Pressable>
                     </Stack>
 
                     <Stack
@@ -234,16 +219,6 @@ export function SettingsScreen() {
                     </Stack>
                 </Stack>
             </ScrollView>
-
-            {/* TEMP: rate pre-prompt preview — remove before release */}
-            <ReviewPromptModal
-                visible={reviewPreview}
-                onRate={() => {
-                    setReviewPreview(false);
-                    void acceptReview();
-                }}
-                onDismiss={() => setReviewPreview(false)}
-            />
         </SafeContainer>
     );
 }

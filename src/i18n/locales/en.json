@@ -694,6 +694,13 @@
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"
     },
+    "review": {
+        "title": "Enjoying ShowDown?",
+        "body": "A quick rating helps other players find the game.",
+        "hint": "Tap a star to rate",
+        "later": "Maybe later",
+        "starLabel": "Rate %{n} of 5 stars"
+    },
     "progression": {
         "title": "Progress",
         "levelShort": "Lv %{n}",

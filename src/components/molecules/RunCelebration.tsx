@@ -25,6 +25,8 @@ import {
     type RecordRunDiff,
 } from '../../game/progression';
 import { SafeAnalytics } from '../../utils/firebase/init';
+import { shouldPromptReview, acceptReview } from '../../services/review/reviewPrompt';
+import ReviewPromptModal from './ReviewPromptModal';
 
 const fillOf = (lifetimeXp: number) => {
     const band = levelProgress(lifetimeXp);
@@ -179,8 +181,10 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const [diff, setDiff] = useState<RecordRunDiff | null>(null);
     const [displayLevel, setDisplayLevel] = useState<number | null>(null);
     const [burst, setBurst] = useState(false);
+    const [reviewVisible, setReviewVisible] = useState(false);
     const recorded = useRef(false);
     const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const reviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Persist the finished run as a real side effect (not in render) and exactly
     // once — the ref guards against a StrictMode setup/cleanup/setup double-call.
@@ -200,6 +204,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     useEffect(
         () => () => {
             if (burstTimer.current) clearTimeout(burstTimer.current);
+            if (reviewTimer.current) clearTimeout(reviewTimer.current);
         },
         [],
     );
@@ -223,6 +228,11 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     lifetime_xp: diff.lifetimeXp,
                 },
             });
+        }
+        // After the level-up animation settles, surface the rate pre-prompt on every
+        // 5th-level milestone until the player accepts (see services/review).
+        if (shouldPromptReview(diff.previousLevel, diff.level)) {
+            reviewTimer.current = setTimeout(() => setReviewVisible(true), 3000);
         }
     }, [diff]);
 
@@ -293,6 +303,15 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     <Confetti active={burst} colors={[accent, theme.colors.secondary, theme.colors.success]} />
                 </View>
             </Modal>
+
+            <ReviewPromptModal
+                visible={reviewVisible}
+                onRate={() => {
+                    setReviewVisible(false);
+                    void acceptReview();
+                }}
+                onDismiss={() => setReviewVisible(false)}
+            />
 
             <Stack gap='xs'>
                 <Stack direction='horizontal' justify='between' align='center'>

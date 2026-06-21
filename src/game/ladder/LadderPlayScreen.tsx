@@ -38,6 +38,7 @@ import { useSound } from '../../hooks/useSound';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useStore } from '../../hooks/store/useStore';
 import { getOwnedPackContent } from '../../data/store/packContent';
+import { useResponsive } from '../../responsive/useResponsive';
 import {
     buildRun,
     applyAnswer,
@@ -106,6 +107,7 @@ export default function LadderPlayScreen({
 
     const { play } = useSound();
     const haptics = useHaptics();
+    const { tabletColumn } = useResponsive();
 
     const [run, setRun] = useState<LadderRun>(
         () => challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
@@ -282,7 +284,7 @@ export default function LadderPlayScreen({
                 { padding: theme.spacing.lg, paddingBottom: theme.spacing.xxl + theme.spacing.lg },
             ]}
         >
-            <Stack gap='lg'>
+            <Stack gap='lg' style={tabletColumn}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center'>
                         <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16) }]}>

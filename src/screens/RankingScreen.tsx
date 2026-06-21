@@ -14,7 +14,7 @@ import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import ToggleGroup from '../components/molecules/ToggleGroup';
 import { useTheme } from '../theme';
-import { hexToRgba, readableOn, resolveAccent } from '../theme/colorUtils';
+import { hexToRgba, readableOn, resolveAccent, RANK_MEDAL_COLORS } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { games, GAME_ICONS } from '../data/games';
 import type { RootStackParamList } from '../navigation/types';
@@ -71,21 +71,15 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
     );
 }
 
-const RANK_COLORS = {
-    1: '#FFD700', // Gold
-    2: '#C0C0C0', // Silver
-    3: '#CD7F32', // Bronze
-};
-
 function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const sig = signatureEmoji(entry.signature);
-    const rankColor = rank <= 3 ? RANK_COLORS[rank as keyof typeof RANK_COLORS] : theme.colors.textMuted;
+    const rankColor = rank <= 3 ? RANK_MEDAL_COLORS[rank as 1 | 2 | 3] : theme.colors.textMuted;
     const isTop3 = rank <= 3;
-    
+
     return (
-        <Animated.View
+        <View
             style={[
                 styles.row,
                 { 
@@ -123,7 +117,7 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
             <Text variant='body' weight='bold' style={styles.score} color={isTop3 ? 'text' : 'textSecondary'}>
                 {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
             </Text>
-        </Animated.View>
+        </View>
     );
 }
 

@@ -9,7 +9,7 @@ import Glyph from '../atoms/Glyph';
 import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
-import { hexToRgba } from '../../theme/colorUtils';
+import { hexToRgba, RANK_MEDAL_COLORS } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { games } from '../../data/games';
 import {
@@ -31,12 +31,6 @@ interface LeaderboardProps {
     pendingProgress?: number;
 }
 
-const RANK_COLORS = {
-    1: '#FFD700', // Gold
-    2: '#C0C0C0', // Silver
-    3: '#CD7F32', // Bronze
-};
-
 function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
@@ -46,6 +40,8 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     const [nickname, setNickname] = useState<string>(() => getLastNickname());
     const [savedTimestamp, setSavedTimestamp] = useState<number | null>(null);
 
+    // Only offer to save a run that actually got somewhere — a zero-progress run
+    // (busted immediately, missed question 1, solved nothing) never reaches the board.
     const canEnter =
         pendingScore !== undefined &&
         pendingProgress !== undefined &&
@@ -59,6 +55,8 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     const formatDate = (timestamp: number): string =>
         new Date(timestamp).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 
+    // Per-game label for the ranking metric shown beneath each nickname, taken
+    // from the game registry (same source as the accent/route config).
     const formatProgress = (progress: number): string => {
         const game = games.find((g) => g.id === gameId);
         return game ? t(game.progressLabelKey, { n: progress }) : '';
@@ -78,7 +76,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 const rank = i + 1;
                 const highlighted = entry.timestamp === savedTimestamp;
                 const sig = signatureEmoji(entry.signature);
-                const rankColor = rank <= 3 ? RANK_COLORS[rank as keyof typeof RANK_COLORS] : theme.colors.textMuted;
+                const rankColor = rank <= 3 ? RANK_MEDAL_COLORS[rank as 1 | 2 | 3] : theme.colors.textMuted;
                 const isTop3 = rank <= 3;
                 
                 return (
@@ -253,4 +251,3 @@ const styles = StyleSheet.create({
 });
 
 export default React.memo(Leaderboard);
-

@@ -40,6 +40,7 @@ import { createDeck } from '../deck';
 import { getHistory, markShown } from '../history';
 import { useStore } from '../../hooks/store/useStore';
 import { getOwnedPackContent } from '../../data/store/packContent';
+import { useResponsive } from '../../responsive/useResponsive';
 import {
     WHEEL,
     VOWEL_COST,
@@ -104,6 +105,9 @@ export default function WheelPlayScreen({
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
+    const { tabletColumn, isTablet } = useResponsive();
+    const wheelSize = isTablet ? 400 : 240;
+    const keySize = isTablet ? 56 : 44;
 
     // Owned premium pack puzzles, localized, merged into the puzzle pool.
     const { purchasedItemIds } = useStore();
@@ -486,7 +490,7 @@ export default function WheelPlayScreen({
             ]}
             keyboardShouldPersistTaps='handled'
         >
-            <Stack gap='lg' flex={1}>
+            <Stack gap='lg' flex={1} style={tabletColumn}>
                 {/* Header: progress + banked score + round cash */}
                 <Stack gap='sm'>
                     <Stack direction='horizontal' gap='sm'>
@@ -637,9 +641,17 @@ export default function WheelPlayScreen({
                         style={styles.centerRegion}
                     >
                         <Stack gap='sm' align='center'>
-                            <View style={[styles.pointer, { borderTopColor: accent }]} />
-                            <Animated.View style={[styles.wheel, wheelStyle]}>
-                                <WheelGraphic accent={accent} />
+                            <View style={[
+                                styles.pointer, 
+                                { borderTopColor: accent },
+                                isTablet && { borderLeftWidth: 14, borderRightWidth: 14, borderTopWidth: 26 }
+                            ]} />
+                            <Animated.View style={[
+                                styles.wheel, 
+                                { width: wheelSize, height: wheelSize }, 
+                                wheelStyle
+                            ]}>
+                                <WheelGraphic accent={accent} size={wheelSize} />
                             </Animated.View>
                             <View style={styles.statusSlot}>
                                 {status ? (
@@ -702,6 +714,7 @@ export default function WheelPlayScreen({
                                     {
                                         backgroundColor: spinning ? t.colors.surfaceVariant : accent,
                                         borderColor: spinning ? t.colors.border : accent,
+                                        ...t.shadows.md,
                                     },
                                 ]}
                             >
@@ -755,6 +768,7 @@ export default function WheelPlayScreen({
                                                 accessibilityLabel={ch}
                                                 style={[
                                                     styles.key,
+                                                    { width: keySize, height: keySize },
                                                     {
                                                         borderColor: guessed ? t.colors.border : keyColor,
                                                         backgroundColor: guessed
@@ -817,6 +831,7 @@ export default function WheelPlayScreen({
                                         accessibilityLabel={ch}
                                         style={[
                                             styles.key,
+                                            { width: keySize, height: keySize },
                                             {
                                                 borderColor: solveComplete ? t.colors.border : accent,
                                                 backgroundColor: solveComplete
@@ -841,6 +856,7 @@ export default function WheelPlayScreen({
                                     accessibilityLabel={tr('game.the-wheel.active.clear')}
                                     style={[
                                         styles.key,
+                                        { width: keySize, height: keySize },
                                         {
                                             borderColor: filled.length === 0 ? t.colors.border : t.colors.secondary,
                                             backgroundColor:
@@ -1024,7 +1040,8 @@ const styles = StyleSheet.create({
         borderRadius: 7,
     },
     spinButton: {
-        height: 56,
+        minHeight: 56,
+        paddingVertical: 16,
         borderRadius: 8,
         borderWidth: 1.5,
         alignItems: 'center',

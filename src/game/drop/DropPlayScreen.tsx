@@ -36,6 +36,7 @@ import { useTheme, useAnimationPresets } from '../../theme';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useResponsive } from '../../responsive/useResponsive';
 
 import { dropQuestions, zipDropCard, type DropPackCard, type Language } from './content';
 import { getHistory, markShown } from '../history';
@@ -95,6 +96,7 @@ export default function DropPlayScreen({
     const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
+    const { tabletColumn } = useResponsive();
 
     // Free bank plus any owned premium pack questions (reconstructed bilingual).
     const { purchasedItemIds } = useStore();
@@ -355,9 +357,10 @@ export default function DropPlayScreen({
     return (
         <View style={styles.container}>
             {/* Top fixed content */}
-            <Stack gap='lg' style={[styles.staticHeader, { borderBottomColor: t.colors.border }]}>
-                {/* Header */}
-                <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
+            <View style={[styles.staticHeader, { borderBottomColor: t.colors.border }]}>
+                <Stack gap='lg' style={tabletColumn}>
+                    {/* Header */}
+                    <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
                     <Stack gap='xs'>
                         <Text variant='overline' weight='bold' color={accent}>
                             {translate('game.the-drop.header.round', {
@@ -405,7 +408,8 @@ export default function DropPlayScreen({
                         {translate('game.the-drop.active.instruction', { max: maxCover })}
                     </Text>
                 )}
-            </Stack>
+                </Stack>
+            </View>
 
             {/* Scrollable middle content (options) */}
             <ScrollView
@@ -413,7 +417,7 @@ export default function DropPlayScreen({
                 contentContainerStyle={styles.optionsContent}
                 showsVerticalScrollIndicator={true}
             >
-                <Stack gap='md'>
+                <Stack gap='md' style={tabletColumn}>
                     {question.options.map((option, i) => (
                         <DropOption
                             key={`${state.round}-${i}`}
@@ -434,39 +438,41 @@ export default function DropPlayScreen({
 
             {/* Bottom fixed content (actions) */}
             <View style={[styles.footer, { borderTopColor: t.colors.border }]}>
-                {phase === 'allocating' ? (
-                    <Stack gap='sm'>
-                        <Button
-                            variant='primary'
-                            onPress={onConfirm}
-                            disabled={!canConfirm}
-                            fullWidth
-                            style={canConfirm ? { backgroundColor: accent, borderColor: accent } : undefined}
-                            textColor={canConfirm ? onAccent : undefined}
-                        >
-                            {translate('game.the-drop.active.lockIn')}
-                        </Button>
-                        <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
-                            {translate('game.the-drop.active.leave')}
-                        </Button>
-                    </Stack>
-                ) : canAdvance ? (
-                    <Animated.View entering={FadeIn.duration(fade.duration)}>
-                        <Button
-                            variant='primary'
-                            onPress={onAdvance}
-                            fullWidth
-                            style={{ backgroundColor: accent, borderColor: accent }}
-                            textColor={onAccent}
-                        >
-                            {state.round + 1 >= TOTAL_ROUNDS || allocation[question.correctIndex] === 0
-                                ? translate('game.the-drop.reveal.seeResult')
-                                : translate('game.the-drop.reveal.next')}
-                        </Button>
-                    </Animated.View>
-                ) : (
-                    phase === 'suspense' && <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
-                )}
+                <View style={tabletColumn}>
+                    {phase === 'allocating' ? (
+                        <Stack gap='sm'>
+                            <Button
+                                variant='primary'
+                                onPress={onConfirm}
+                                disabled={!canConfirm}
+                                fullWidth
+                                style={canConfirm ? { backgroundColor: accent, borderColor: accent } : undefined}
+                                textColor={canConfirm ? onAccent : undefined}
+                            >
+                                {translate('game.the-drop.active.lockIn')}
+                            </Button>
+                            <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
+                                {translate('game.the-drop.active.leave')}
+                            </Button>
+                        </Stack>
+                    ) : canAdvance ? (
+                        <Animated.View entering={FadeIn.duration(fade.duration)}>
+                            <Button
+                                variant='primary'
+                                onPress={onAdvance}
+                                fullWidth
+                                style={{ backgroundColor: accent, borderColor: accent }}
+                                textColor={onAccent}
+                            >
+                                {state.round + 1 >= TOTAL_ROUNDS || allocation[question.correctIndex] === 0
+                                    ? translate('game.the-drop.reveal.seeResult')
+                                    : translate('game.the-drop.reveal.next')}
+                            </Button>
+                        </Animated.View>
+                    ) : (
+                        phase === 'suspense' && <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
+                    )}
+                </View>
             </View>
 
             <LeaveConfirmModal

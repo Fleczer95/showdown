@@ -1,7 +1,17 @@
 import React from 'react';
+import { useWindowDimensions } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { runOnJS } from 'react-native-reanimated';
+import { useResponsive } from '../../responsive/useResponsive';
+
+// How close to a screen edge a swipe must *start* to count as a back gesture.
+// Gating on the origin keeps mid-screen horizontal scrolls (category strips,
+// sliders, carousels) from ever qualifying as "back". A density-independent dp
+// zone (not a % of width) so the catch area stays a thumb-width everywhere;
+// scaled up modestly on tablets where the device is held more loosely.
+const EDGE_PHONE = 48;
+const EDGE_TABLET = 72;
 
 interface SwipeBackWrapperProps {
     children: React.ReactNode;
@@ -16,6 +26,9 @@ interface SwipeBackWrapperProps {
 
 export default function SwipeBackWrapper({ children, enableLeftSwipe = false }: SwipeBackWrapperProps) {
     const navigation = useNavigation();
+    const { width } = useWindowDimensions();
+    const { scale } = useResponsive();
+    const edgeWidth = scale(EDGE_PHONE, EDGE_TABLET);
 
     const handleGoBack = () => {
         if (navigation.canGoBack()) {
@@ -26,12 +39,19 @@ export default function SwipeBackWrapper({ children, enableLeftSwipe = false }: 
     const panGesture = Gesture.Pan()
         .activeOffsetX([-20, 20])
         .onEnd((e) => {
-            // Right swipe (standard)
-            if (e.translationX > 50 && e.velocityX > 300) {
+            // Where the gesture began (absolute current pos minus how far it travelled).
+            const startX = e.absoluteX - e.translationX;
+            // Right swipe (standard): must start from the left edge.
+            if (startX <= edgeWidth && e.translationX > 50 && e.velocityX > 300) {
                 runOnJS(handleGoBack)();
             }
-            // Left swipe (opt-in)
-            else if (enableLeftSwipe && e.translationX < -50 && e.velocityX < -300) {
+            // Left swipe (opt-in): must start from the right edge.
+            else if (
+                enableLeftSwipe &&
+                startX >= width - edgeWidth &&
+                e.translationX < -50 &&
+                e.velocityX < -300
+            ) {
                 runOnJS(handleGoBack)();
             }
         });

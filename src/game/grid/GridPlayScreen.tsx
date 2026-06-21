@@ -9,6 +9,7 @@ import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import Icon from '../../components/atoms/Icon';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { useResponsive } from '../../responsive/useResponsive';
 import { getGridPack } from './content';
 import {
     buildBoard,
@@ -29,6 +30,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     const teams = Math.max(2, Math.min(6, players));
     const { t, locale } = useTranslation();
     const { colors, spacing } = useTheme();
+    const { tabletColumn } = useResponsive();
 
     const [state, setState] = useState<GridState>(() => buildBoard(getGridPack('all'), teams));
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
         const winner = winningTeam(state);
         return (
             <View style={styles.screen}>
-                <Stack gap='xl' align='center' justify='center' flex={1} style={styles.padded}>
+                <Stack gap='xl' align='center' justify='center' flex={1} style={[styles.padded, tabletColumn]}>
                     <Icon name={Crown} size={56} color={colors.primary} />
                     <Text variant='overline' color='textMuted'>
                         {t('game.the-grid.score.gameOver')}
@@ -107,7 +109,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     if (selected) {
         return (
             <View style={styles.screen}>
-                <Stack gap='xl' align='stretch' flex={1} justify='center' style={styles.padded}>
+                <Stack gap='xl' align='stretch' flex={1} justify='center' style={[styles.padded, tabletColumn]}>
                     <Stack gap='xs' align='center'>
                         <Text variant='overline' color='textMuted'>
                             {state.categories[selected.categoryIndex].title[locale]}
@@ -160,9 +162,11 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     // Board view.
     return (
         <View style={styles.screen}>
-            <Scoreboard state={state} t={t} />
+            <View style={tabletColumn}>
+                <Scoreboard state={state} t={t} />
+            </View>
             <ScrollView contentContainerStyle={styles.boardScroll}>
-                <Stack direction='horizontal' gap='xs' align='start'>
+                <Stack direction='horizontal' gap='xs' align='start' style={tabletColumn}>
                     {state.cells.map((column, ci) => (
                         <Stack key={ci} gap='xs' flex={1} align='stretch'>
                             <View style={[styles.headerCell, { backgroundColor: colors.surface }]}>
@@ -200,15 +204,17 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
                 </Stack>
             </ScrollView>
             <View style={[styles.footer, { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg }]}>
-                <Button
-                    variant='ghost'
+                <View style={tabletColumn}>
+                    <Button
+                        variant='ghost'
                     size='md'
                     fullWidth
                     onPress={() => setShowLeaveConfirm(true)}
-                    icon={<Icon name={X} size={18} color={colors.textSecondary} />}
-                >
-                    {t('game.the-grid.active.leave')}
-                </Button>
+                        icon={<Icon name={X} size={18} color={colors.textSecondary} />}
+                    >
+                        {t('game.the-grid.active.leave')}
+                    </Button>
+                </View>
             </View>
             <LeaveConfirmModal
                 visible={showLeaveConfirm}

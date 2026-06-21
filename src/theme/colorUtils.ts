@@ -58,3 +58,11 @@ const ACCENT_FALLBACK: Record<GameAccent, 'primary' | 'secondary' | 'warning'> =
 export function resolveAccent(theme: ResolvedTheme, token: GameAccent): string {
     return theme.gameAccents?.[token] ?? theme.colors[ACCENT_FALLBACK[token]];
 }
+
+/** Fixed medal colors for the top-3 ranks (gold / silver / bronze), shared by the
+ * local leaderboard and the online ranking board so they stay in sync. */
+export const RANK_MEDAL_COLORS: Record<1 | 2 | 3, string> = {
+    1: '#FFD700', // Gold
+    2: '#C0C0C0', // Silver
+    3: '#CD7F32', // Bronze
+};

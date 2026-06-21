@@ -72,6 +72,7 @@ function Button({
                 minWidth: 44,
                 minHeight: 44,
                 ...(fullWidth ? { width: '100%' } : {}),
+                ...t.shadows.md,
             },
             style,
         ],

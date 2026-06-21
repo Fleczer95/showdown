@@ -125,8 +125,8 @@ function BottomSheet({
                                 sheetStyle,
                                 {
                                     backgroundColor: t.colors.surface,
-                                    borderTopLeftRadius: 32,
-                                    borderTopRightRadius: 32,
+                                    borderTopLeftRadius: t.radii.xl,
+                                    borderTopRightRadius: t.radii.xl,
                                     padding: t.spacing.xl,
                                     // Scrollable sheets let the ScrollView run to the bottom edge and
                                     // carry the safe-area clearance in its content, so content can use

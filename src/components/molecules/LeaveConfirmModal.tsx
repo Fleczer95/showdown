@@ -27,7 +27,7 @@ interface LeaveConfirmModalProps {
 function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfirmModalProps) {
     const { t } = useTranslation();
     const { setIsBlurry } = useBlur();
-    const { isTablet } = useResponsive();
+    const { scale } = useResponsive();
     const base = `game.${gameKey}.active`;
 
     useEffect(() => {
@@ -54,7 +54,7 @@ function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfi
                 <Animated.View
                     entering={ZoomIn.duration(600).easing(Easing.bezier(0.33, 1, 0.68, 1))}
                     exiting={ZoomOut.duration(300)}
-                    style={[styles.cardWrap, isTablet && { maxWidth: 540 }]}
+                    style={[styles.cardWrap, { maxWidth: scale(360) }]}
                 >
                     <Card variant='glass' padding='xl' gap='xl'>
                         <Stack gap='xl'>

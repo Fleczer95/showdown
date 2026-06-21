@@ -32,18 +32,18 @@ const PERK_KEYS = [
 function PerksList({ accent }: { accent: string }) {
     const theme = useTheme();
     const { t } = useTranslation();
-    const { iconSize } = useResponsive();
+    const { iconSize, scale } = useResponsive();
     return (
         <View
             style={[
                 styles.perks,
-                { backgroundColor: accent + '12', borderColor: accent + '30', borderRadius: theme.radii.lg },
+                { padding: scale(20), gap: theme.spacing.lg, backgroundColor: accent + '12', borderColor: accent + '30', borderRadius: theme.radii.lg },
             ]}
         >
             {PERK_KEYS.map((key, i) => {
                 const PerkIcon = PERK_ICONS[i];
                 return (
-                    <View key={key} style={styles.perkRow}>
+                    <View key={key} style={[styles.perkRow, { gap: theme.spacing.md }]}>
                         <PerkIcon size={iconSize(20)} color={accent} />
                         <Text variant='body' color={theme.colors.textSecondary} style={styles.perkText}>
                             {t(key)}
@@ -68,15 +68,17 @@ function PlanCard({
 }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale } = useResponsive();
     const accent = theme.colors.primary;
     const isAnnual = plan.id === 'annual';
     return (
-        <Pressable onPress={onPress} haptic='light' style={styles.planPressable}>
+        <Pressable onPress={onPress} haptic='light' style={[styles.planPressable, { marginBottom: scale(10) }]}>
             <View
                 pointerEvents='none'
                 style={[
                     styles.planCard,
                     {
+                        padding: theme.spacing.lg,
                         borderRadius: theme.radii.lg,
                         borderColor: selected ? accent : theme.colors.border,
                         borderWidth: selected ? 2 : 1,
@@ -84,7 +86,7 @@ function PlanCard({
                     },
                 ]}
             >
-                <View style={styles.planText}>
+                <View style={[styles.planText, { gap: theme.spacing.xs }]}>
                     <Text variant='body' weight='bold'>
                         {t(plan.titleKey)}
                     </Text>
@@ -93,7 +95,7 @@ function PlanCard({
                     </Text>
                 </View>
                 {isAnnual && (
-                    <View style={[styles.saveBadge, { backgroundColor: theme.colors.success + '1F' }]}>
+                    <View style={[styles.saveBadge, { paddingHorizontal: scale(10), paddingVertical: scale(6), borderRadius: scale(10), backgroundColor: theme.colors.success + '1F' }]}>
                         <Text variant='caption' weight='bold' color={theme.colors.success}>
                             {t('screen.store.premium.bestValue')}
                         </Text>
@@ -139,6 +141,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                 contentContainerStyle={[
                     styles.scrollContent,
                     {
+                        paddingTop: theme.spacing.sm,
                         paddingHorizontal: theme.spacing.xl,
                         // The floating CTA overlaps the scroll, so we pad by its
                         // measured height to let the last content (the theme
@@ -183,7 +186,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         <View
                             style={[
                                 styles.activeNotice,
-                                { backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
+                                { padding: scale(18), borderRadius: 9999, backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
                             ]}
                         >
                             <Check size={iconSize(20)} color={theme.colors.success} />
@@ -229,6 +232,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                 style={[
                     styles.footer,
                     {
+                        paddingTop: theme.spacing.lg,
                         paddingHorizontal: theme.spacing.xl,
                         paddingBottom: insets.bottom + theme.spacing.sm,
                     },
@@ -289,14 +293,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingTop: 8,
     },
     footer: {
         position: 'absolute',
         left: 0,
         right: 0,
         bottom: 0,
-        paddingTop: 16,
     },
     hero: {
         alignItems: 'center',
@@ -307,14 +309,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     perks: {
-        padding: 20,
-        gap: 16,
         borderWidth: 0,
     },
     perkRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
     },
     perkText: {
         flex: 1,
@@ -326,28 +325,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     planPressable: {
-        marginBottom: 10,
     },
     planCard: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
     },
     planText: {
-        gap: 4,
     },
     saveBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
     },
     activeNotice: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 18,
-        borderRadius: 9999,
         borderWidth: 1,
     },
 });

@@ -48,7 +48,7 @@ export function ThemeScreen() {
     const { themeId, setTheme } = useThemeActions();
     const { purchasedItemIds, isPremium } = useStore();
     const { unlockedRewards } = useProgression();
-    const { breakpoint, iconSize, tabletColumn } = useResponsive();
+    const { breakpoint, iconSize, tabletColumn, scale } = useResponsive();
 
     const columns = breakpoint === 'expanded' ? 4 : 3;
 
@@ -130,7 +130,7 @@ export function ThemeScreen() {
                 <Text variant='heading' weight='bold' style={styles.title}>
                     {t('screen.themePicker.title')}
                 </Text>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             <SectionList
@@ -213,7 +213,7 @@ export function ThemeScreen() {
                             },
                         ]}
                     >
-                        <View pointerEvents='none' style={styles.storeRowContent}>
+                        <View pointerEvents='none' style={[styles.storeRowContent, { gap: theme.spacing.sm }]}>
                             <Store size={iconSize(20)} color={theme.colors.primary} />
                             <Text variant='body' weight='semibold' color={theme.colors.primary}>
                                 {t('screen.themePicker.store')}
@@ -259,7 +259,6 @@ const styles = StyleSheet.create({
     storeRowContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
     },
 });
 

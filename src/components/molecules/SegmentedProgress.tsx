@@ -3,6 +3,7 @@ import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
 import type { ColorToken } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export interface SegmentedProgressProps {
     /** Progress value between 0 and 1. */
@@ -25,6 +26,7 @@ const SEGMENTS_DEFAULT = 12;
  */
 function SegmentedProgress({ progress, segments = SEGMENTS_DEFAULT, color, style, accessibilityLabel }: SegmentedProgressProps) {
     const theme = useTheme();
+    const { scale } = useResponsive();
     const fillColor = color ? (color in theme.colors ? theme.colors[color as ColorToken] : color) : theme.colors.primary;
     const trackColor = hexToRgba(fillColor, 0.2);
 
@@ -35,7 +37,7 @@ function SegmentedProgress({ progress, segments = SEGMENTS_DEFAULT, color, style
 
     return (
         <View
-            style={[styles.row, style]}
+            style={[styles.row, { gap: scale(4) }, style]}
             accessible
             accessibilityRole='progressbar'
             accessibilityLabel={accessibilityLabel}
@@ -43,21 +45,21 @@ function SegmentedProgress({ progress, segments = SEGMENTS_DEFAULT, color, style
         >
             {Array.from({ length: segments }).map((_, i) => {
                 if (i < fullPips) {
-                    return <View key={i} style={[styles.pip, { backgroundColor: fillColor, shadowColor: fillColor }]} />;
+                    return <View key={i} style={[styles.pip, { height: scale(8), backgroundColor: fillColor, shadowColor: fillColor }]} />;
                 }
                 if (i === fullPips && partial > 0) {
                     return (
-                        <View key={i} style={[styles.pip, { backgroundColor: trackColor }]}>
+                        <View key={i} style={[styles.pip, { height: scale(8), backgroundColor: trackColor }]}>
                             <View
                                 style={[
                                     styles.partial,
-                                    { width: `${partial * 100}%`, backgroundColor: fillColor, shadowColor: fillColor },
+                                    { height: scale(8), width: `${partial * 100}%`, backgroundColor: fillColor, shadowColor: fillColor },
                                 ]}
                             />
                         </View>
                     );
                 }
-                return <View key={i} style={[styles.pip, { backgroundColor: trackColor }]} />;
+                return <View key={i} style={[styles.pip, { height: scale(8), backgroundColor: trackColor }]} />;
             })}
         </View>
     );
@@ -67,11 +69,9 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
     },
     pip: {
         flex: 1,
-        height: 8,
         borderRadius: 9999,
         overflow: 'hidden',
         shadowOpacity: 0.6,
@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     partial: {
-        height: 8,
         borderRadius: 9999,
     },
 });

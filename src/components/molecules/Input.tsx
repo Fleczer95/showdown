@@ -4,6 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming } 
 import Pressable from '../atoms/HapticPressable';
 import Text from '../atoms/Text';
 import { useTheme } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export interface InputProps {
     value: string;
@@ -73,6 +74,7 @@ function Input({
     editable,
 }: InputProps) {
     const t = useTheme();
+    const { scale } = useResponsive();
     const [focused, setFocused] = useState(false);
     const shakeOffset = useSharedValue(0);
     const prevErrorRef = useRef(error);
@@ -127,11 +129,12 @@ function Input({
             borderWidth: 1,
             borderRadius: t.radii.md,
             paddingHorizontal: t.spacing.md,
+            gap: scale(8),
             // Match the 44px button touch-target height so inputs and buttons
             // align when stacked (e.g. the leaderboard nickname + Save).
-            minHeight: 44,
+            minHeight: scale(44),
         }),
-        [bgColor, borderColor, t.radii.md, t.spacing.md],
+        [bgColor, borderColor, t.radii.md, t.spacing.md, scale],
     );
 
     const inputTextStyle = useMemo(
@@ -224,7 +227,6 @@ const styles = StyleSheet.create({
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
     },
     flexInput: {
         flex: 1,
@@ -246,7 +248,6 @@ const styles = StyleSheet.create({
     },
     wrapper: {
         width: '100%',
-        paddingHorizontal: 16,
     },
 });
 

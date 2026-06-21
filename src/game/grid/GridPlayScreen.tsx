@@ -30,7 +30,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     const teams = Math.max(2, Math.min(6, players));
     const { t, locale } = useTranslation();
     const { colors, spacing } = useTheme();
-    const { tabletColumn, iconSize } = useResponsive();
+    const { tabletColumn, iconSize, scale } = useResponsive();
 
     const [state, setState] = useState<GridState>(() => buildBoard(getGridPack('all'), teams));
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
         const winner = winningTeam(state);
         return (
             <View style={styles.screen}>
-                <Stack gap='xl' align='center' justify='center' flex={1} style={[styles.padded, tabletColumn]}>
+                <Stack gap='xl' align='center' justify='center' flex={1} style={[{ padding: spacing.xl }, tabletColumn]}>
                     <Icon name={Crown} size={iconSize(56)} color={colors.primary} />
                     <Text variant='overline' color='textMuted'>
                         {t('game.the-grid.score.gameOver')}
@@ -109,7 +109,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     if (selected) {
         return (
             <View style={styles.screen}>
-                <Stack gap='xl' align='stretch' flex={1} justify='center' style={[styles.padded, tabletColumn]}>
+                <Stack gap='xl' align='stretch' flex={1} justify='center' style={[{ padding: spacing.xl }, tabletColumn]}>
                     <Stack gap='xs' align='center'>
                         <Text variant='overline' color='textMuted'>
                             {state.categories[selected.categoryIndex].title[locale]}
@@ -165,11 +165,11 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
             <View style={tabletColumn}>
                 <Scoreboard state={state} t={t} />
             </View>
-            <ScrollView contentContainerStyle={styles.boardScroll}>
+            <ScrollView contentContainerStyle={[styles.boardScroll, { paddingHorizontal: spacing.md, paddingVertical: spacing.sm }]}>
                 <Stack direction='horizontal' gap='xs' align='start' style={tabletColumn}>
                     {state.cells.map((column, ci) => (
                         <Stack key={ci} gap='xs' flex={1} align='stretch'>
-                            <View style={[styles.headerCell, { backgroundColor: colors.surface }]}>
+                            <View style={[styles.headerCell, { backgroundColor: colors.surface, minHeight: scale(48), borderRadius: scale(8), paddingHorizontal: scale(4), paddingVertical: scale(6) }]}>
                                 <Text variant='caption' weight='bold' align='center' numberOfLines={2}>
                                     {state.categories[ci].title[locale]}
                                 </Text>
@@ -186,6 +186,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
                                         {
                                             backgroundColor: cell.revealed ? colors.surfaceVariant : colors.primary,
                                             opacity: cell.revealed ? 0.4 : 1,
+                                            minHeight: scale(56),
                                         },
                                     ]}
                                 >
@@ -230,7 +231,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
 }
 
 function Scoreboard({ state, t }: { state: GridState; t: (key: string, options?: Record<string, any>) => any }) {
-    const { colors } = useTheme();
+    const { colors, spacing } = useTheme();
     const items = useMemo(
         () =>
             state.scores.map((score, i) => ({
@@ -242,7 +243,7 @@ function Scoreboard({ state, t }: { state: GridState; t: (key: string, options?:
     );
 
     return (
-        <View style={styles.scoreboard}>
+        <View style={[styles.scoreboard, { paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.sm }]}>
             <Stack direction='horizontal' gap='xs' wrap justify='center'>
                 {items.map((item, i) => (
                     <Card
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     headerCell: {
-        minHeight: scale(48),
+        minHeight: 48,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
     },
     cell: {
-        minHeight: scale(56),
+        minHeight: 56,
         alignItems: 'center',
         justifyContent: 'center',
     },

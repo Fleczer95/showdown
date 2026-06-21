@@ -133,6 +133,7 @@ function BottomSheet({
                                     // the full bottom space instead of leaving a dead band below it.
                                     paddingBottom: scrollable ? 0 : t.spacing.xxl + insets.bottom,
                                     width: '100%',
+                                    minHeight: scale(200),
                                     shadowColor: t.colors.shadow,
                                     shadowOffset: { width: 0, height: -8 },
                                     shadowOpacity: 0.15,
@@ -144,9 +145,9 @@ function BottomSheet({
                             accessibilityViewIsModal={true}
                         >
                             {title ? (
-                                <View style={styles.header}>
+                                <View style={[styles.header, { paddingBottom: t.spacing.xl }]}>
                                     <View
-                                        style={[styles.handle, handleSize, { backgroundColor: t.colors.borderLight }]}
+                                        style={[styles.handle, handleSize, { backgroundColor: t.colors.borderLight, marginBottom: t.spacing.sm }]}
                                     />
                                     <Spacer size='xs' />
                                     <Text variant='subheading' weight='bold' style={styles.title}>
@@ -155,7 +156,7 @@ function BottomSheet({
                                 </View>
                             ) : (
                                 <View
-                                    style={[styles.handleCenter, handleSize, { backgroundColor: t.colors.borderLight }]}
+                                    style={[styles.handleCenter, handleSize, { backgroundColor: t.colors.borderLight, marginBottom: t.spacing.md }]}
                                 />
                             )}
                             {scrollable ? (
@@ -193,7 +194,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     sheet: {
-        minHeight: 200,
         maxHeight: '90%',
     },
     scrollContent: {
@@ -205,14 +205,11 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        paddingBottom: 20,
     },
     handle: {
-        marginBottom: 8,
     },
     handleCenter: {
         alignSelf: 'center',
-        marginBottom: 16,
     },
     title: {
         textAlign: 'center',

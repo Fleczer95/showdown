@@ -4,6 +4,8 @@ import Text from './Text';
 import { useTheme, useRadii } from '../../theme';
 import type { ColorToken } from '../../theme';
 
+import { useResponsive } from '../../responsive/useResponsive';
+
 export type AvatarSize = 'sm' | 'md' | 'lg';
 
 export interface AvatarProps {
@@ -25,8 +27,8 @@ const sizeMap = { sm: 32, md: 44, lg: 64 };
 function Avatar({ source, label, size = 'md', color, bgColor, status, style, testID }: AvatarProps) {
     const t = useTheme();
     const radii = useRadii();
-    const scale = t.typography.md / 14;
-    const dimension = sizeMap[size] * scale;
+    const { scale } = useResponsive();
+    const dimension = scale(sizeMap[size]);
 
     const containerStyle = useMemo(
         () => [

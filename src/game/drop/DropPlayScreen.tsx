@@ -288,7 +288,7 @@ export default function DropPlayScreen({
             <View style={styles.container}>
                 <ScrollView
                     style={styles.container}
-                    contentContainerStyle={styles.gameOverContent}
+                    contentContainerStyle={[styles.gameOverContent, { paddingHorizontal: t.spacing.xl, paddingBottom: t.spacing.xxl }]}
                     keyboardShouldPersistTaps='handled'
                 >
                     <GameOverCard gameId={GAME_ID}>
@@ -357,10 +357,10 @@ export default function DropPlayScreen({
     return (
         <View style={styles.container}>
             {/* Top fixed content */}
-            <View style={[styles.staticHeader, { borderBottomColor: t.colors.border }]}>
+            <View style={[styles.staticHeader, { borderBottomColor: t.colors.border, paddingHorizontal: t.spacing.md, paddingBottom: t.spacing.md }]}>
                 <Stack gap='lg' style={tabletColumn}>
                     {/* Header */}
-                    <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
+                    <Stack direction='horizontal' justify='between' align='center' style={[styles.header, { paddingHorizontal: t.spacing.md + 2 }]}>
                     <Stack gap='xs'>
                         <Text variant='overline' weight='bold' color={accent}>
                             {translate('game.the-drop.header.round', {
@@ -414,7 +414,7 @@ export default function DropPlayScreen({
             {/* Scrollable middle content (options) */}
             <ScrollView
                 style={styles.optionsScroll}
-                contentContainerStyle={styles.optionsContent}
+                contentContainerStyle={[styles.optionsContent, { padding: t.spacing.md }]}
                 showsVerticalScrollIndicator={true}
             >
                 <Stack gap='md' style={tabletColumn}>
@@ -438,7 +438,7 @@ export default function DropPlayScreen({
             </ScrollView>
 
             {/* Bottom fixed content (actions) */}
-            <View style={[styles.footer, { borderTopColor: t.colors.border }]}>
+            <View style={[styles.footer, { borderTopColor: t.colors.border, padding: t.spacing.md }]}>
                 <View style={tabletColumn}>
                     {phase === 'allocating' ? (
                         <Stack gap='sm'>
@@ -532,6 +532,7 @@ function DropOption({
     const prefix = String.fromCharCode(65 + index);
     const reduceMotion = useReducedMotion();
     const { spring, springBouncy, pulse } = useAnimationPresets();
+    const { iconSize } = useResponsive();
 
     const scale = useSharedValue(1);
     const textOpacity = useSharedValue(1);
@@ -678,7 +679,7 @@ function DropOption({
                     <Stack direction='horizontal' justify='between' align='center' style={[styles.optionHeader, { paddingHorizontal: t.spacing.md }]}>
                         <Stack direction='horizontal' gap='md' align='center' flex={1}>
                             <IndexBadge label={prefix} accent={accent} state={badgeState} size={t.typography.lineHeight.xl + t.spacing.xs} />
-                            <Text variant='body' weight='semibold' style={styles.optionText}>
+                            <Text variant='body' weight='semibold' style={[styles.optionText, { marginRight: t.spacing.md }]}>
                                 {label}
                             </Text>
                         </Stack>
@@ -694,7 +695,7 @@ function DropOption({
                         ) : reveal !== 'none' ? (
                             <Icon
                                 name={reveal === 'win' ? Check : X}
-                                size={20}
+                                size={iconSize(20)}
                                 color={reveal === 'win' ? t.colors.success : t.colors.error}
                             />
                         ) : null}
@@ -753,40 +754,27 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingHorizontal: 16,
     },
     staticHeader: {
-        paddingHorizontal: 16,
-        paddingBottom: 16,
         borderBottomWidth: 1,
     },
     optionsScroll: {
         flex: 1,
     },
     optionsContent: {
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 16,
     },
     footer: {
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 16,
         borderTopWidth: 1,
     },
     header: {
-        paddingHorizontal: 18, // content (16) + 12 = 28px total indent
     },
     gameOverContent: {
-        paddingHorizontal: 24,
-        paddingBottom: 32,
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
     optionText: {
         flexShrink: 1,
-        marginRight: 12,
     },
     optionHeader: {
         // Horizontal padding is set dynamically via t.spacing.md to match the slider track indent.

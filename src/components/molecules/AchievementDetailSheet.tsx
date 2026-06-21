@@ -9,6 +9,7 @@ import Icon from '../atoms/Icon';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n';
+import { useResponsive } from '../../responsive/useResponsive';
 import {
     ACHIEVEMENT_FAMILIES,
     ACHIEVEMENT_XP_ONE_OFF,
@@ -41,6 +42,7 @@ function AchievementDetailSheet({
 }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     const accent = theme.colors.primary;
 
     const family = selected?.kind === 'family' ? ACHIEVEMENT_FAMILIES.find((f) => f.family === selected.family) : null;
@@ -78,7 +80,7 @@ function AchievementDetailSheet({
                                         <Stack key={tier} direction='horizontal' gap='md' align='center'>
                                             <Icon
                                                 name={earned ? Check : Lock}
-                                                size={18}
+                                                size={iconSize(18)}
                                                 color={earned ? accent : theme.colors.textMuted}
                                             />
                                             <Stack gap='xs' flex={1}>
@@ -118,12 +120,15 @@ function AchievementDetailSheet({
                                             backgroundColor: earned
                                                 ? hexToRgba(accent, 0.12)
                                                 : hexToRgba(theme.colors.text, 0.06),
+                                            paddingHorizontal: scale(12),
+                                            paddingVertical: scale(6),
+                                            gap: scale(6),
                                         },
                                     ]}
                                 >
                                     <Icon
                                         name={earned ? Check : Lock}
-                                        size={14}
+                                        size={iconSize(14)}
                                         color={earned ? accent : theme.colors.textMuted}
                                     />
                                     <Text variant='caption' weight='semibold' color={earned ? accent : 'textMuted'}>
@@ -146,9 +151,6 @@ const styles = StyleSheet.create({
     statusPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
     },
 });
 

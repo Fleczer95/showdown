@@ -322,6 +322,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                                 borderRadius: theme.radii.md,
                                 backgroundColor: hexToRgba(accent, 0.12),
                                 marginTop: i === 0 ? theme.spacing.sm : 0,
+                                padding: theme.spacing.md,
                             },
                         ]}
                     >
@@ -361,7 +362,6 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     rewardChip: {
-        padding: 12,
     },
 });
 

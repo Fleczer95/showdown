@@ -46,7 +46,7 @@ function formatMonth(monthId: string, locale: string): string {
 function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean; onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
-    const { iconSize } = useResponsive();
+    const { iconSize, scale } = useResponsive();
     const def = games.find((g) => g.id === game);
     const accent = def ? resolveAccent(theme, def.accent) : theme.colors.primary;
     const GameIcon = def ? GAME_ICONS[def.iconName] : null;
@@ -59,6 +59,9 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
             style={[
                 styles.gameTab,
                 {
+                    gap: scale(6),
+                    paddingVertical: theme.spacing.md,
+                    paddingHorizontal: scale(6),
                     borderRadius: theme.radii.lg,
                     backgroundColor: active ? accent : hexToRgba(accent, 0.12),
                     borderColor: active ? accent : hexToRgba(accent, 0.35),
@@ -86,6 +89,9 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
             style={[
                 styles.row,
                 { 
+                    paddingVertical: theme.spacing.md,
+                    paddingHorizontal: theme.spacing.md,
+                    gap: theme.spacing.md,
                     backgroundColor: theme.colors.surface,
                     borderColor: theme.colors.border,
                     borderRadius: theme.radii.lg,
@@ -95,7 +101,7 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
                     shadowOpacity: theme.shadows.sm.shadowOpacity,
                     shadowRadius: theme.shadows.sm.shadowRadius,
                     elevation: theme.shadows.sm.elevation,
-                    marginBottom: 8,
+                    marginBottom: theme.spacing.sm,
                 },
             ]}
         >
@@ -111,7 +117,7 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
                 )}
             </View>
             
-            <View style={styles.name}>
+            <View style={[styles.name, { gap: scale(6) }]}>
                 {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                 <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
                     {entry.nickname}
@@ -128,12 +134,14 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
 function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
-    const { iconSize } = useResponsive();
+    const { iconSize, scale } = useResponsive();
     return (
         <View
             style={[
                 styles.chip,
                 { 
+                    gap: theme.spacing.md,
+                    padding: scale(14),
                     borderRadius: theme.radii.lg, 
                     backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderColor: hexToRgba(theme.colors.primary, 0.3),
@@ -156,7 +164,7 @@ function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
                     </Text>
                 </View>
             ) : (
-                <Pressable onPress={onRetry} haptic='light' style={styles.retry}>
+                <Pressable onPress={onRetry} haptic='light' style={[styles.retry, { gap: scale(6) }]}>
                     <Icon name={RefreshCw} size={iconSize(14)} color={theme.colors.primary} />
                     <Text variant='caption' weight='bold' color='primary'>
                         {t('ranking.pending')} · {t('ranking.retry')}
@@ -176,7 +184,7 @@ export function RankingScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'Ranking'>>();
     const theme = useTheme();
-    const { tabletColumn, iconSize } = useResponsive();
+    const { tabletColumn, iconSize, scale } = useResponsive();
     const { t, locale } = useTranslation();
     const reduceMotion = useReducedMotion();
 
@@ -255,7 +263,7 @@ export function RankingScreen() {
                         {t('ranking.subtitle')}
                     </Text>
                 </View>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             <View style={[{ paddingHorizontal: theme.spacing.xl, gap: theme.spacing.lg, flex: 1 }, tabletColumn]}>
@@ -289,11 +297,11 @@ export function RankingScreen() {
                     style={styles.contentArea}
                 >
                 {status === 'loading' ? (
-                    <View style={styles.centered}>
+                    <View style={[styles.centered, { gap: theme.spacing.md }]}>
                         <ActivityIndicator />
                     </View>
                 ) : status === 'offline' || status === 'error' ? (
-                    <View style={styles.centered}>
+                    <View style={[styles.centered, { gap: theme.spacing.md }]}>
                         <Icon name={WifiOff} size={iconSize(36)} color={theme.colors.textMuted} />
                         <Text variant='body' weight='bold' align='center'>
                             {t(status === 'error' ? 'ranking.error' : 'ranking.offline')}
@@ -367,16 +375,12 @@ const styles = StyleSheet.create({
     gameTab: {
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 12,
-        paddingHorizontal: 6,
         borderWidth: StyleSheet.hairlineWidth,
     },
     centered: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 12,
     },
     rankBadge: {
         alignItems: 'center',
@@ -385,15 +389,11 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        gap: 12,
     },
     name: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
     },
     nameText: {
         flexShrink: 1,
@@ -404,12 +404,9 @@ const styles = StyleSheet.create({
     chip: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        padding: 14,
     },
     retry: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
     },
 });

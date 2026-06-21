@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import Text from './Text';
 import Stack from './Stack';
 import { useTheme } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export type BadgeVariant = 'default' | 'primary' | 'success' | 'error' | 'warning';
 
@@ -32,6 +33,7 @@ function Badge({
     testID,
 }: BadgeProps) {
     const t = useTheme();
+    const { scale } = useResponsive();
     const v = t.components.badge[variant] || t.components.badge.default;
 
     const containerStyle = useMemo(
@@ -49,13 +51,13 @@ function Badge({
                           padding: 0,
                       }
                     : size === 'sm'
-                      ? { paddingHorizontal: t.spacing.xs, paddingVertical: 2, fontSize: t.typography.xs }
+                      ? { paddingHorizontal: t.spacing.xs, paddingVertical: scale(2), fontSize: t.typography.xs }
                       : { paddingHorizontal: t.spacing.sm, paddingVertical: t.spacing.xs }),
                 borderRadius: t.radii.full,
             },
             style,
         ],
-        [v.bg, v.text, t.spacing.sm, t.spacing.xs, t.radii.full, dot, size, bordered, t.typography.xs, style],
+        [v.bg, v.text, t.spacing.sm, t.spacing.xs, t.radii.full, dot, size, bordered, t.typography.xs, style, scale],
     );
 
     if (dot) return <View style={containerStyle} testID={testID} accessibilityRole='text' />;

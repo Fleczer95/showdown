@@ -11,21 +11,25 @@ import { useResponsive } from '../../responsive/useResponsive';
 const LEAF_THEMES = new Set(['forest', 'nature']);
 const WAVE_THEMES = new Set(['ocean']);
 
-const Bar = ({ w, color, h = 7 }: { w: DimensionValue; color: string; h?: number }) => (
-    <View style={{ width: w, height: h, borderRadius: h / 2, backgroundColor: color }} />
-);
+const Bar = ({ w, color, h = 7 }: { w: DimensionValue; color: string; h?: number }) => {
+    const { scale } = useResponsive();
+    return <View style={{ width: w, height: scale(h), borderRadius: scale(h) / 2, backgroundColor: color }} />;
+};
 
-const MockCard = ({ colors }: { colors: ThemeColors }) => (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-        <View style={[styles.cardDot, { backgroundColor: colors.primary }]} />
-        <View style={styles.cardBody}>
-            <Bar w='70%' color={colors.text} />
-            <View style={{ height: 5 }} />
-            <Bar w='90%' color={colors.textSecondary} h={5} />
+const MockCard = ({ colors }: { colors: ThemeColors }) => {
+    const { scale } = useResponsive();
+    return (
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.borderLight, borderRadius: scale(14), padding: scale(10), marginBottom: scale(10) }]}>
+            <View style={[styles.cardDot, { backgroundColor: colors.primary, width: scale(18), height: scale(18), borderRadius: scale(9), marginRight: scale(10) }]} />
+            <View style={styles.cardBody}>
+                <Bar w='70%' color={colors.text} />
+                <View style={{ height: scale(5) }} />
+                <Bar w='90%' color={colors.textSecondary} h={5} />
+            </View>
+            <View style={[styles.cardBadge, { backgroundColor: colors.primary + '33', width: scale(22), height: scale(10), borderRadius: scale(5), marginLeft: scale(8) }]} />
         </View>
-        <View style={[styles.cardBadge, { backgroundColor: colors.primary + '33' }]} />
-    </View>
-);
+    );
+};
 
 /**
  * A miniature home-screen mockup rendered in the previewed theme's colors and
@@ -50,21 +54,21 @@ export function ThemePreview({ tokens }: { tokens: Theme }) {
                 {WAVE_THEMES.has(tokens.id) && <WaveEffect width={width} height={height} colors={colors} />}
             </Canvas>
 
-            <View style={styles.content} pointerEvents='none'>
+            <View style={[styles.content, { padding: scale(16) }]} pointerEvents='none'>
                 {/* Header */}
                 <View style={styles.header}>
-                    <View style={[styles.headerIcon, { backgroundColor: colors.primary }]} />
+                    <View style={[styles.headerIcon, { backgroundColor: colors.primary, width: scale(26), height: scale(26), borderRadius: scale(8), marginRight: scale(10) }]} />
                     <View style={styles.headerText}>
                         <Bar w='80%' color={colors.text} h={9} />
-                        <View style={{ height: 5 }} />
+                        <View style={{ height: scale(5) }} />
                         <Bar w='55%' color={colors.textMuted} h={5} />
                     </View>
                 </View>
 
                 {/* Section label */}
-                <View style={{ height: 14 }} />
+                <View style={{ height: scale(14) }} />
                 <Bar w='40%' color={colors.textMuted} h={5} />
-                <View style={{ height: 10 }} />
+                <View style={{ height: scale(10) }} />
 
                 <MockCard colors={colors} />
                 <MockCard colors={colors} />
@@ -82,17 +86,12 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: 16,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     headerIcon: {
-        width: 26,
-        height: 26,
-        borderRadius: 8,
-        marginRight: 10,
     },
     headerText: {
         flex: 1,
@@ -101,23 +100,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderRadius: 14,
-        padding: 10,
-        marginBottom: 10,
     },
     cardDot: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        marginRight: 10,
     },
     cardBody: {
         flex: 1,
     },
     cardBadge: {
-        width: 22,
-        height: 10,
-        borderRadius: 5,
-        marginLeft: 8,
     },
 });

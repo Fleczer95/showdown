@@ -55,6 +55,7 @@ const POOL_NUDGE_THRESHOLD = 0.8;
 function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale } = useResponsive();
     return (
         <Card
             variant='outlined'
@@ -74,7 +75,7 @@ function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
             ]}
         >
             <Stack direction='horizontal' gap='sm' align='center'>
-                <View style={[styles.dot, { width: 8, height: 8, borderRadius: 4, backgroundColor: accent }]} />
+                <View style={[styles.dot, { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: accent }]} />
                 <Text variant='overline' color={accent} weight='bold'>
                     {t('common.how_to_play')}
                 </Text>
@@ -106,6 +107,7 @@ interface QuestionPoolCardProps {
 function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: QuestionPoolCardProps) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale, iconSize } = useResponsive();
     const { seen, total, floor, reseen } = coverage;
     if (total <= 0) return null;
 
@@ -135,7 +137,7 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
         >
             <Stack direction='horizontal' gap='sm' align='center' justify='between'>
                 <Stack direction='horizontal' gap='sm' align='center'>
-                    <View style={[styles.dot, { width: 8, height: 8, borderRadius: 4, backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
+                    <View style={[styles.dot, { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
                     <Text variant='overline' color={escalated ? accent : 'textMuted'} weight='bold'>
                         {t('screen.gameSetup.pool.title')}
                     </Text>
@@ -162,7 +164,7 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
                         borderWidth: 1.5,
                     }}
                     textColor={accent}
-                    icon={<Sparkles size={18} color={accent} />}
+                    icon={<Sparkles size={iconSize(18)} color={accent} />}
                 >
                     {t('screen.gameSetup.pool.getMore')}
                 </Button>
@@ -369,7 +371,7 @@ export function GameSetupScreen() {
                     direction='horizontal'
                     gap='sm'
                     align='center'
-                    style={[styles.navBar, { paddingVertical: theme.spacing.md }]}
+                    style={[styles.navBar, { paddingVertical: theme.spacing.md, marginLeft: -theme.spacing.sm }]}
                 >
                     <IconButton
                         icon={<ChevronLeft size={iconSize(28)} color={theme.colors.text} />}
@@ -477,9 +479,9 @@ export function GameSetupScreen() {
                             textColor={onAccent}
                             icon={
                                 runsLeft <= 0 ? (
-                                    <Lock size={20} color={onAccent} />
+                                    <Lock size={iconSize(20)} color={onAccent} />
                                 ) : (
-                                    <Play size={20} color={onAccent} fill={onAccent} />
+                                    <Play size={iconSize(20)} color={onAccent} fill={onAccent} />
                                 )
                             }
                         >
@@ -503,7 +505,7 @@ export function GameSetupScreen() {
                                 opacity: limitReached ? 0.7 : 1,
                             }}
                             textColor={accent}
-                            icon={<Swords size={22} color={accent} />}
+                            icon={<Swords size={iconSize(22)} color={accent} />}
                         >
                             {creating
                                 ? t('challenge.creating')
@@ -528,7 +530,7 @@ export function GameSetupScreen() {
                 title={t('challenge.limit.title')}
             >
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
+                    <Text variant='body' color='textSecondary' align='center' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
                         {t('challenge.limit.body')}
                     </Text>
                     {canUpsell(ownedIds, isPremium) && (
@@ -559,7 +561,7 @@ export function GameSetupScreen() {
                 title={t('offline.limit.title')}
             >
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='left' style={styles.limitBody}>
+                    <Text variant='body' color='textSecondary' align='left' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
                         {t('offline.limit.body', {
                             count: dailyAllowance(ownedIds),
                             bonus: BONUS_RUNS_PER_LEVEL,
@@ -637,7 +639,6 @@ const styles = StyleSheet.create({
         // dynamic spacing moved
     },
     navBar: {
-        marginLeft: -8,
     },
     navTitle: {
         flex: 1,
@@ -659,7 +660,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0,
     },
     limitBody: {
-        marginBottom: 4,
     },
     dot: {
     },

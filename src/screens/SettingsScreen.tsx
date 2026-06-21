@@ -58,7 +58,7 @@ export function SettingsScreen() {
                 <Text variant='heading' weight='bold' style={styles.title}>
                     {t('screen.settings.title')}
                 </Text>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             <ScrollView

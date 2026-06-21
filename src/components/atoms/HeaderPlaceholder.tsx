@@ -1,6 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export default function HeaderPlaceholder() {
-    return <View style={{ width: 36, height: 36 }} />;
+    const { scale } = useResponsive();
+    return <View style={{ width: scale(36), height: scale(36) }} />;
 }

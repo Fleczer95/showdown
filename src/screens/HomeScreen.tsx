@@ -145,6 +145,9 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                 theme.shadows.sm,
                 {
                     height: scale(44),
+                    gap: theme.spacing.md,
+                    paddingLeft: theme.spacing.sm,
+                    paddingRight: theme.spacing.lg,
                     backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderRadius: theme.radii.full,
                     borderWidth: 1,
@@ -152,7 +155,7 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                 },
             ]}
         >
-            <View style={[styles.levelChip, { height: scale(28), backgroundColor: theme.colors.primary, borderRadius: theme.radii.full }]}>
+            <View style={[styles.levelChip, { height: scale(28), paddingHorizontal: scale(12), backgroundColor: theme.colors.primary, borderRadius: theme.radii.full }]}>
                 <Text variant='caption' weight='bold' color={readableOn(theme.colors.primary)}>
                     {t('progression.levelShort', { n: level })}
                 </Text>
@@ -203,7 +206,7 @@ export function HomeScreen() {
                         <View style={[styles.titleContainer, { paddingLeft: theme.spacing.md }]}>
                             <Wordmark />
                         </View>
-                        <View style={styles.headerActions}>
+                        <View style={[styles.headerActions, { gap: theme.spacing.sm }]}>
                             <IconButton
                                 icon={<ShoppingBag size={iconSize(24)} color={theme.colors.text} />}
                                 onPress={() => navigation.navigate('Store')}
@@ -275,18 +278,13 @@ const styles = StyleSheet.create({
     },
     headerActions: {
         flexDirection: 'row',
-        gap: 8,
         alignItems: 'center',
     },
     levelBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        paddingLeft: 8,
-        paddingRight: 16,
     },
     levelChip: {
-        paddingHorizontal: 12,
         alignItems: 'center',
         justifyContent: 'center',
     },

@@ -65,7 +65,7 @@ export function DocumentScreen() {
                 <Text variant='heading' weight='bold' style={styles.headerTitle} numberOfLines={1}>
                     {title}
                 </Text>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             <ScrollView

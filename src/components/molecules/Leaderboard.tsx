@@ -88,6 +88,9 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                         style={[
                             styles.row,
                             { 
+                                paddingVertical: theme.spacing.md,
+                                paddingHorizontal: theme.spacing.md,
+                                gap: theme.spacing.md,
                                 backgroundColor: highlighted ? hexToRgba(theme.colors.primary, 0.15) : theme.colors.surface,
                                 borderColor: highlighted ? theme.colors.primary : theme.colors.border,
                                 borderRadius: theme.radii.lg,
@@ -112,8 +115,8 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                             )}
                         </View>
                         
-                        <View style={styles.nameCol}>
-                            <View style={styles.nameLine}>
+                        <View style={[styles.nameCol, { gap: scale(2) }]}>
+                            <View style={[styles.nameLine, { gap: scale(6) }]}>
                                 {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                                 <Text
                                     variant='body'
@@ -148,7 +151,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
         <Animated.View entering={reduceMotion ? undefined : FadeIn.duration(300)} style={styles.container}>
             <Stack gap='md' align='stretch' style={styles.listContainer}>
                 {board.length === 0 ? (
-                    <View style={styles.emptyContainer}>
+                    <View style={[styles.emptyContainer, { paddingVertical: theme.spacing.xxl }]}>
                         <Text variant='body' color='textMuted' align='center'>
                             {t('leaderboard.empty')}
                         </Text>
@@ -158,7 +161,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 )}
 
                 {savedTimestamp !== null ? (
-                    <Animated.View entering={FadeIn} style={styles.successMessage}>
+                    <Animated.View entering={FadeIn} style={[styles.successMessage, { marginTop: theme.spacing.sm }]}>
                         <Text variant='caption' weight='bold' color='success' align='center'>
                             {t('leaderboard.saved')}
                         </Text>
@@ -166,7 +169,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 ) : null}
 
                 {canEnter ? (
-                    <Animated.View entering={FadeInDown.delay(200)} style={[styles.entryForm, { backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }]}>
+                    <Animated.View entering={FadeInDown.delay(200)} style={[styles.entryForm, { padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }]}>
                         <Stack gap='sm' align='stretch'>
                             <Text variant="caption" weight="bold" color="primary" align="center">
                                 {t('leaderboard.newHighScore')}
@@ -204,16 +207,12 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     emptyContainer: {
-        paddingVertical: 32,
         alignItems: 'center',
         justifyContent: 'center',
     },
     entryForm: {
-        padding: 16,
-        marginTop: 8,
     },
     successMessage: {
-        marginTop: 8,
     },
     inputWrapper: {
         paddingHorizontal: 0,
@@ -221,9 +220,6 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        gap: 12,
     },
     rankBadge: {
         alignItems: 'center',
@@ -231,12 +227,10 @@ const styles = StyleSheet.create({
     },
     nameCol: {
         flex: 1,
-        gap: 2,
     },
     nameLine: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
     },
     nameText: {
         flexShrink: 1,

@@ -79,7 +79,7 @@ function EmptyState() {
     const { t } = useTranslation();
     const { scale, iconSize } = useResponsive();
     return (
-        <View style={styles.empty}>
+        <View style={[styles.empty, { gap: theme.spacing.lg, paddingHorizontal: theme.spacing.xl }]}>
             <View
                 style={[styles.badge, styles.emptyBadge, { width: scale(64), height: scale(64), borderRadius: theme.radii.xl, backgroundColor: hexToRgba(theme.colors.primary, 0.12) }]}
             >
@@ -176,8 +176,6 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
-        paddingHorizontal: 24,
     },
     emptyBadge: {
     },

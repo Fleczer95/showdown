@@ -364,7 +364,7 @@ export function ProgressScreen() {
                         <Text variant='caption' weight='bold' color='textMuted'>
                             {t('progression.feats')}
                         </Text>
-                        <View style={styles.grid}>
+                        <View style={[styles.grid, { gap: theme.spacing.sm }]}>
                             {ONE_OFF_IDS.map((id) => {
                                 const done = achievements.has(id);
                                 return (
@@ -406,7 +406,7 @@ export function ProgressScreen() {
                         <Text variant='caption' weight='bold' color='textMuted'>
                             {t('progression.signaturesTitle')}
                         </Text>
-                        <View style={styles.grid}>
+                        <View style={[styles.grid, { gap: theme.spacing.sm }]}>
                             {SIGNATURES.map((s) => {
                                 const earned = unlockedRewards.has(s.id);
                                 return (
@@ -473,7 +473,6 @@ const styles = StyleSheet.create({
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
     },
     badge: {
         width: '31%',

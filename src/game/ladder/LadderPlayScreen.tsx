@@ -287,7 +287,7 @@ export default function LadderPlayScreen({
             <Stack gap='lg' style={tabletColumn}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center'>
-                        <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16) }]}>
+                        <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16), paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs }]}>
                             <Text variant='overline' color={accent} weight='bold' style={{ flexShrink: 1 }}>
                                 {`${t('game.the-ladder.active.question', { number: run.currentIndex + 1 })} / ${RUN_LENGTH}`}
                             </Text>
@@ -438,6 +438,7 @@ function AnswerOption({
     const reduceMotion = useReducedMotion();
     const { springBouncy, spring } = useAnimationPresets();
     const theme = useTheme();
+    const { iconSize } = useResponsive();
     const pop = useSharedValue(1);
     // A slow heartbeat throb while the answer is locked but unjudged — the visual
     // half of the suspense beat (haptic heartbeats run in parallel on the screen).
@@ -660,9 +661,9 @@ function AudienceBar({
     const fillStyle = useAnimatedStyle(() => ({ width: `${width.value}%` }));
 
     return (
-        <View style={[styles.audienceTrack, { backgroundColor: track, height: scale(12) }]}>
+        <View style={[styles.audienceTrack, { backgroundColor: track, height: scale(12), borderRadius: scale(6) }]}>
             <Animated.View
-                style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5 }]}
+                style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5, borderRadius: scale(6) }]}
             />
         </View>
     );
@@ -686,9 +687,10 @@ function GameOverView({
     onExit: () => void;
 }) {
     const { t, locale } = useTranslation();
+    const theme = useTheme();
 
     return (
-        <ScrollView style={styles.flex} contentContainerStyle={styles.center} keyboardShouldPersistTaps='handled'>
+        <ScrollView style={styles.flex} contentContainerStyle={[styles.center, { padding: theme.spacing.xl }]} keyboardShouldPersistTaps='handled'>
             <GameOverCard gameId={GAME_ID}>
                 {({ accent, onAccent }) => (
                     <>
@@ -747,8 +749,6 @@ const styles = StyleSheet.create({
     },
     counterPill: {
         flexShrink: 1,
-        paddingHorizontal: 12,
-        paddingVertical: 4,
         borderRadius: 999,
         alignSelf: 'flex-start',
     },
@@ -791,6 +791,5 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
     },
 });

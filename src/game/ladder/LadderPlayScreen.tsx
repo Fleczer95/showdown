@@ -519,6 +519,13 @@ function LifelineChip({
     available: boolean;
     onPress: () => void;
 }) {
+    const theme = useTheme();
+    const { scale, iconSize } = useResponsive();
+    // Reserve a constant two-line height for the label so every chip's content
+    // block is the same height regardless of how the label wraps — this keeps
+    // the stacked icons aligned on a single baseline across all chips. The
+    // line-height token already scales for tablet via the theme.
+    const labelHeight = theme.typography.lineHeight.sm * 2;
     return (
         <View style={styles.chipCol}>
             <Pressable
@@ -529,6 +536,11 @@ function LifelineChip({
                 style={[
                     styles.chip,
                     {
+                        // Chip box + padding grow with the device so the larger
+                        // tablet text/icon don't get cramped against the edges.
+                        height: scale(84),
+                        paddingHorizontal: scale(8),
+                        borderRadius: scale(16),
                         borderColor: available ? accent : border,
                         backgroundColor: available ? hexToRgba(accent, 0.12) : surfaceVariant,
                         opacity: available ? 1 : 0.5,
@@ -536,16 +548,18 @@ function LifelineChip({
                 ]}
             >
                 <Stack gap='xs' align='center'>
-                    <Icon name={icon} size={22} color={available ? accent : textMuted} />
-                    <Text
-                        variant='caption'
-                        weight='semibold'
-                        align='center'
-                        color={available ? accent : textMuted}
-                        numberOfLines={2}
-                    >
-                        {label}
-                    </Text>
+                    <Icon name={icon} size={iconSize(22)} color={available ? accent : textMuted} />
+                    <View style={{ height: labelHeight, justifyContent: 'center' }}>
+                        <Text
+                            variant='caption'
+                            weight='semibold'
+                            align='center'
+                            color={available ? accent : textMuted}
+                            numberOfLines={2}
+                        >
+                            {label}
+                        </Text>
+                    </View>
                 </Stack>
             </Pressable>
         </View>
@@ -767,9 +781,7 @@ const styles = StyleSheet.create({
     chip: {
         width: '100%',
         borderWidth: 2,
-        borderRadius: 16,
-        paddingHorizontal: 8,
-        height: 84,
+        // height / paddingHorizontal / borderRadius are set responsively inline.
         alignItems: 'center',
         justifyContent: 'center',
     },

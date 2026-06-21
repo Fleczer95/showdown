@@ -56,14 +56,12 @@
             "bullets": {
                 "dailyRuns": {
                     "one": "· %{count} gra solo dziennie",
-                    "few": "· %{count} gry solo dziennie",
-                    "many": "· %{count} gier solo dziennie"
+                    "other": "· %{count} gier solo dziennie"
                 },
                 "resets": "· Odnawia się o północy",
                 "levelBonus": {
                     "one": "· +%{count} gra za każdy zdobyty poziom",
-                    "few": "· +%{count} gry za każdy zdobyty poziom",
-                    "many": "· +%{count} gier za każdy zdobyty poziom"
+                    "other": "· +%{count} gier za każdy zdobyty poziom"
                 },
                 "premiumBonus": "· Każdy pakiet lub motyw premium dodaje +1 dziennie"
             },
@@ -191,7 +189,10 @@
                 {
                     "title": "5. Cele Przetwarzania",
                     "content": "Przetwarzamy zebrane dane w celu:",
-                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                    "listItems": [
+                        "Diagnostyki błędów",
+                        "Poprawy jakości działania aplikacji"
+                    ]
                 },
                 {
                     "title": "6. Podstawa Prawna",
@@ -421,20 +422,11 @@
         "speed": "Tempo",
         "bonus": "Bonus",
         "progress": {
-            "ladder": {
-                "one": "%{n} poprawna",
-                "few": "%{n} poprawne",
-                "many": "%{n} poprawnych"
-            },
-            "wheel": {
-                "one": "%{n} rozwiązane",
-                "few": "%{n} rozwiązane",
-                "many": "%{n} rozwiązanych"
-            },
+            "ladder": "%{n} poprawnych",
+            "wheel": "%{n} rozwiązanych",
             "drop": {
                 "one": "%{n} runda",
-                "few": "%{n} rundy",
-                "many": "%{n} rund"
+                "other": "%{n} rund"
             }
         }
     },
@@ -580,8 +572,7 @@
             "active": {
                 "instruction": {
                     "one": "Rozłóż cały bank na maksymalnie %{max} opcję (nigdy na wszystkie 4).",
-                    "few": "Rozłóż cały bank na maksymalnie %{max} opcje (nigdy na wszystkie 4).",
-                    "many": "Rozłóż cały bank na maksymalnie %{max} opcji (nigdy na wszystkie 4)."
+                    "other": "Rozłóż cały bank na maksymalnie %{max} opcji (nigdy na wszystkie 4)."
                 },
                 "placed": "Obstawione",
                 "lockIn": "Zatwierdź",
@@ -643,7 +634,10 @@
             {
                 "title": "5. Cele Przetwarzania",
                 "content": "Przetwarzamy zebrane dane w celu:",
-                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
+                "listItems": [
+                    "Diagnostyki błędów",
+                    "Poprawy jakości działania aplikacji"
+                ]
             },
             {
                 "title": "6. Podstawa Prawna",
@@ -736,8 +730,6 @@
         "levelUp": "Poziom %{n}!",
         "bonusRuns": {
             "one": "+%{n} dodatkowa gra",
-            "few": "+%{n} dodatkowe gry",
-            "many": "+%{n} dodatkowych gier",
             "other": "+%{n} dodatkowych gier"
         },
         "xpGained": "+%{n} XP",
@@ -808,6 +800,7 @@
             "gem": "Klejnot",
             "star": "Gwiazda",
             "crown": "Korona"
-        }
+        },
+        "progress": "Postęp"
     }
 }

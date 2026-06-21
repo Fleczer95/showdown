@@ -234,6 +234,28 @@ function analyze() {
         console.log('✅ No obviously unused keys found.');
     }
 
+    // Code Usage Check
+    console.log('\n' + '='.repeat(50));
+    console.log('🔍 CODE USAGE CHECK');
+    console.log('='.repeat(50));
+
+    const missingBaseKeys = Array.from(usedKeys).filter((k) => !baseKeySet.has(k));
+    
+    // Filter out keys that are objects or plurals in the JSON (e.g., used 'key' in code, but JSON has 'key.one' and 'key.other')
+    const definitelyMissing = missingBaseKeys.filter(k => {
+        const isPluralOrObject = baseKeys.some(baseKey => baseKey.startsWith(k + '.'));
+        return !isPluralOrObject;
+    });
+
+    if (definitelyMissing.length > 0) {
+        console.log(`❌ Found ${definitelyMissing.length} keys used in code but missing from ${baseLocale}.json:`);
+        definitelyMissing.slice(0, 20).forEach((k) => console.log(`   - ${k}`));
+        if (definitelyMissing.length > 20) console.log(`   ... and ${definitelyMissing.length - 20} more`);
+        process.exitCode = 1;
+    } else {
+        console.log(`✅ All static keys used in code exist in ${baseLocale}.json.`);
+    }
+
     console.log('\n' + '='.repeat(50));
     console.log('✅ Analysis complete.');
 }

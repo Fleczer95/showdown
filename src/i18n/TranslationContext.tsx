@@ -26,6 +26,8 @@ interface TranslationContextValue {
     locale: Language;
 }
 
+import { SafeSentry } from '../utils/sentry/init';
+
 const TranslationContext = createContext<TranslationContextValue | undefined>(undefined);
 
 export const TranslationProvider = ({ children }: { children: React.ReactNode }) => {
@@ -36,7 +38,14 @@ export const TranslationProvider = ({ children }: { children: React.ReactNode })
 
     const t = useCallback(
         (key: string, options?: Record<string, any>) => {
-            return i18n.t(key, options);
+            const translation = i18n.t(key, options);
+            if (typeof translation === 'string' && translation.startsWith('[missing "') && translation.includes('translation]')) {
+                SafeSentry.captureMessage(`Missing translation key: ${key}`, {
+                    tags: { locale: language, area: 'i18n' },
+                    extra: { key, options },
+                });
+            }
+            return translation;
         },
         // language is kept so memoized callers re-run when the locale changes
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -7,6 +7,7 @@ import Animated, {
     withDelay,
     withSequence,
     runOnJS,
+    useReducedMotion,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 import type { ColorToken } from '../../theme';
@@ -53,12 +54,20 @@ function XpRiseBar({
     testID,
 }: XpRiseBarProps) {
     const t = useTheme();
+    const reduceMotion = useReducedMotion();
     const barHeight = height ?? t.spacing.sm;
-    const progress = useSharedValue(clamp(prevFill));
+    const progress = useSharedValue(reduceMotion ? clamp(newFill) : clamp(prevFill));
 
     // Run the rise exactly once on mount — the diff that drives it is fixed.
     useEffect(() => {
         const to = clamp(newFill);
+        // Reduced motion: settle at the final fill immediately, but still notify
+        // the parent so the level number flips / haptic fires (no rise, no confetti).
+        if (reduceMotion) {
+            progress.value = to;
+            if (leveledUp && onRollover) onRollover();
+            return;
+        }
         if (leveledUp) {
             progress.value = withDelay(
                 startDelay,

@@ -6,11 +6,10 @@ import Stack from '../atoms/Stack';
 import Text from '../atoms/Text';
 import Icon from '../atoms/Icon';
 import Glyph from '../atoms/Glyph';
-import Divider from '../atoms/Divider';
 import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
-import { hexToRgba, readableOn } from '../../theme/colorUtils';
+import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { games } from '../../data/games';
 import {
@@ -170,7 +169,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                     <Animated.View entering={FadeInDown.delay(200)} style={[styles.entryForm, { backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }]}>
                         <Stack gap='sm' align='stretch'>
                             <Text variant="caption" weight="bold" color="primary" align="center">
-                                New High Score!
+                                {t('leaderboard.newHighScore')}
                             </Text>
                             <Input
                                 value={nickname}

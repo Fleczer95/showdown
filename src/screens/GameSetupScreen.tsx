@@ -338,7 +338,9 @@ export function GameSetupScreen() {
         // Home screen, not this game's config view. Home is the stack root, so
         // navigating to it pops the setup screen and resets its machine on remount.
         return (
-            <SafeContainer edges={['top']}>
+            // No swipe-back during an active run — exiting goes through the game's
+            // own Leave / Main Menu flow so a stray swipe can't drop a run.
+            <SafeContainer edges={['top']} enableSwipeBack={false}>
                 <PlayScreen onExit={() => navigation.navigate('Home')} />
             </SafeContainer>
         );
@@ -356,7 +358,7 @@ export function GameSetupScreen() {
     );
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={contentContainerStyle}

@@ -41,7 +41,7 @@ export function SettingsScreen() {
     ];
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             {/* Header */}
             <View
                 style={[

@@ -661,9 +661,9 @@ function DropOption({
         <Animated.View entering={reduceMotion ? undefined : springEnter(index * 70)} style={cardStyle}>
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
-                    <Stack direction='horizontal' justify='between' align='center' style={styles.optionHeader}>
+                    <Stack direction='horizontal' justify='between' align='center' style={[styles.optionHeader, { paddingHorizontal: t.spacing.md }]}>
                         <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                            <IndexBadge label={prefix} accent={accent} state={badgeState} size={36} />
+                            <IndexBadge label={prefix} accent={accent} state={badgeState} size={t.typography.lineHeight.xl + t.spacing.xs} />
                             <Text variant='body' weight='semibold' style={styles.optionText}>
                                 {label}
                             </Text>
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     optionHeader: {
-        paddingHorizontal: 12, // card (12) + 0 = 12px from card border, 28px total indent
+        // Horizontal padding is set dynamically via t.spacing.md to match the slider track indent.
     },
     optionOutcome: {
         paddingHorizontal: 0,

@@ -12,11 +12,16 @@ interface SafeContainerProps {
     testID?: string;
     edges?: ('top' | 'right' | 'bottom' | 'left')[];
     disableEffects?: boolean;
-    /** 
+    /**
      * Enables swipe gestures to go back.
      * Default: true. Disable if it interferes with swipable child components.
      */
     enableSwipeBack?: boolean;
+    /**
+     * Also allow swiping left (right-to-left) to go back. Default: false.
+     * Enable on screens that already show a back button.
+     */
+    enableLeftSwipe?: boolean;
 }
 
 function SafeContainer({
@@ -26,6 +31,7 @@ function SafeContainer({
     edges = ['top', 'right', 'bottom', 'left'],
     disableEffects = false,
     enableSwipeBack = true,
+    enableLeftSwipe = false,
 }: SafeContainerProps) {
     const insets = useSafeAreaInsets();
     const t = useTheme();
@@ -63,7 +69,7 @@ function SafeContainer({
     }
 
     return (
-        <SwipeBackWrapper>
+        <SwipeBackWrapper enableLeftSwipe={enableLeftSwipe}>
             {content}
         </SwipeBackWrapper>
     );

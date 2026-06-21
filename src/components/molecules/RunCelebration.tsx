@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Modal, TextInput } from 'react-native';
-import Animated, { ZoomIn, FadeIn, useSharedValue, useAnimatedProps, withTiming, withDelay } from 'react-native-reanimated';
+import Animated, { ZoomIn, FadeIn, useSharedValue, useAnimatedProps, withTiming, withDelay, useReducedMotion } from 'react-native-reanimated';
 import { Sparkles, ArrowUpCircle, Award, Trophy, Crown } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
@@ -75,6 +75,7 @@ function CountUpStat({
     separator: string;
 }) {
     const theme = useTheme();
+    const reduceMotion = useReducedMotion();
     const progress = useSharedValue(0);
 
     useEffect(() => {
@@ -82,8 +83,12 @@ function CountUpStat({
             progress.value = 0;
             return;
         }
+        if (reduceMotion) {
+            progress.value = 1;
+            return;
+        }
         progress.value = withDelay(150, withTiming(1, { duration: 700 }));
-    }, [total, progress]);
+    }, [total, progress, reduceMotion]);
 
     const animatedProps = useAnimatedProps(() => {
         const val = Math.round(total * progress.value);
@@ -130,6 +135,7 @@ function CountUpStat({
 /** Cycles the header stat slot through its slides (XP gained, bonus runs, …),
  * cross-fading every few seconds. With a single slide it just renders it. */
 function CelebrationTicker({ slides }: { slides: React.ReactNode[] }) {
+    const reduceMotion = useReducedMotion();
     const [index, setIndex] = useState(0);
 
     useEffect(() => {
@@ -140,7 +146,7 @@ function CelebrationTicker({ slides }: { slides: React.ReactNode[] }) {
 
     const i = index % slides.length;
     return (
-        <Animated.View key={i} entering={FadeIn.duration(300)}>
+        <Animated.View key={i} entering={reduceMotion ? undefined : FadeIn.duration(300)}>
             {slides[i]}
         </Animated.View>
     );
@@ -156,6 +162,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const haptics = useHaptics();
+    const reduceMotion = useReducedMotion();
 
     const [diff, setDiff] = useState<RecordRunDiff | null>(null);
     const [displayLevel, setDisplayLevel] = useState<number | null>(null);
@@ -212,11 +219,13 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const handleRollover = useCallback(() => {
         if (!diff) return;
         setDisplayLevel(diff.level);
-        setBurst(true);
         haptics.notification();
+        // Reduced motion: flip the level + fire the haptic, but skip the confetti.
+        if (reduceMotion) return;
+        setBurst(true);
         if (burstTimer.current) clearTimeout(burstTimer.current);
         burstTimer.current = setTimeout(() => setBurst(false), 3200);
-    }, [diff, haptics]);
+    }, [diff, haptics, reduceMotion]);
 
     if (!diff) return null;
 
@@ -275,7 +284,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
 
             <Stack gap='xs'>
                 <Stack direction='horizontal' justify='between' align='center'>
-                    <Animated.View key={displayLevel} entering={ZoomIn.duration(250)}>
+                    <Animated.View key={displayLevel} entering={reduceMotion ? undefined : ZoomIn.duration(250)}>
                         {leveledUpNow ? (
                             <Stack direction='horizontal' gap='xs' align='center'>
                                 <Icon name={ArrowUpCircle} size={16} color={accent} />
@@ -304,7 +313,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                 {rewards.map((r, i) => (
                     <Animated.View
                         key={r.id}
-                        entering={ZoomIn.duration(280).delay(900 + i * 120)}
+                        entering={reduceMotion ? undefined : ZoomIn.duration(280).delay(900 + i * 120)}
                         style={[
                             styles.rewardChip,
                             {

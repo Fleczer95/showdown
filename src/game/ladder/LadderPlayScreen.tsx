@@ -435,6 +435,7 @@ function AnswerOption({
 }) {
     const reduceMotion = useReducedMotion();
     const { springBouncy, spring } = useAnimationPresets();
+    const theme = useTheme();
     const pop = useSharedValue(1);
     // A slow heartbeat throb while the answer is locked but unjudged — the visual
     // half of the suspense beat (haptic heartbeats run in parallel on the screen).
@@ -483,7 +484,7 @@ function AnswerOption({
             >
                 <Stack direction='horizontal' gap='md' align='center' justify='between'>
                     <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                        <IndexBadge label={letter} accent={accent} state={badgeState} size={36} />
+                        <IndexBadge label={letter} accent={accent} state={badgeState} size={theme.typography.lineHeight.xl + theme.spacing.xs} />
                         <Text variant='body' weight='semibold' style={styles.answerText}>
                             {label}
                         </Text>
@@ -569,6 +570,8 @@ function AudienceResult({
     // Hidden options carry 0%; show only the options the crowd actually voted on.
     const rows = percentages.map((value, index) => ({ value, index })).filter((r) => r.value > 0);
 
+    const badgeSize = theme.typography.lineHeight.md + theme.spacing.xs * 1.5; // ~28 on mobile
+
     return (
         <Animated.View entering={reduceMotion ? undefined : springEnter()}>
             <Card variant='flat' padding='md' gap='md'>
@@ -583,8 +586,8 @@ function AudienceResult({
                 <Stack gap='sm'>
                     {rows.map((row, order) => (
                         <Stack key={row.index} direction='horizontal' gap='sm' align='center'>
-                            <View style={[styles.audienceBadge, { backgroundColor: accent, borderRadius: theme.radii.md }]}>
-                                <Text variant='body' weight='bold' color={readableOn(accent)} style={styles.audienceBadgeText}>
+                            <View style={[styles.audienceBadge, { backgroundColor: accent, borderRadius: theme.radii.md, width: badgeSize, height: badgeSize }]}>
+                                <Text variant='body' weight='bold' color={readableOn(accent)} align='center' style={{ lineHeight: badgeSize }}>
                                     {String.fromCharCode(65 + row.index)}
                                 </Text>
                             </View>
@@ -735,13 +738,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     audienceBadge: {
-        width: 28,
-        height: 28,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    audienceBadgeText: {
-        textAlign: 'center',
     },
     audienceBarSlot: {
         flex: 1,

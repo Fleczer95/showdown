@@ -113,7 +113,7 @@ export function ThemeScreen() {
     };
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View
                 style={[
                     styles.header,

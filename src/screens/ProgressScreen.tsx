@@ -149,7 +149,7 @@ export function ProgressScreen() {
     );
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
                     icon={<ChevronLeft size={24} color={theme.colors.text} />}

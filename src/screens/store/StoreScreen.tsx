@@ -205,7 +205,7 @@ export default function StoreScreen() {
     const detailUnlocked = detailItem ? (ownedById.get(detailItem.id) ?? false) : false;
 
     return (
-        <SafeContainer edges={['top']}>
+        <SafeContainer edges={['top']} enableLeftSwipe>
             <View style={styles.container}>
                 <View
                     style={[

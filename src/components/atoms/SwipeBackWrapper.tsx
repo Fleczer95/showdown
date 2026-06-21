@@ -1,20 +1,20 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { runOnJS } from 'react-native-reanimated';
 
 interface SwipeBackWrapperProps {
     children: React.ReactNode;
-    style?: ViewStyle;
-    /** 
-     * If true, enables swiping left to go back (in addition to right). 
-     * Included since the request mentioned "swiping screen left".
+    /**
+     * Enables swiping left (right-to-left) to go back, in addition to the
+     * standard right swipe. Off by default — opt in only on screens that
+     * already show a back button, so the extra direction doesn't collide
+     * with horizontal content on screens where "back" is ambiguous.
      */
     enableLeftSwipe?: boolean;
 }
 
-export default function SwipeBackWrapper({ children, style, enableLeftSwipe = true }: SwipeBackWrapperProps) {
+export default function SwipeBackWrapper({ children, enableLeftSwipe = false }: SwipeBackWrapperProps) {
     const navigation = useNavigation();
 
     const handleGoBack = () => {
@@ -30,7 +30,7 @@ export default function SwipeBackWrapper({ children, style, enableLeftSwipe = tr
             if (e.translationX > 50 && e.velocityX > 300) {
                 runOnJS(handleGoBack)();
             }
-            // Left swipe (based on prompt request)
+            // Left swipe (opt-in)
             else if (enableLeftSwipe && e.translationX < -50 && e.velocityX < -300) {
                 runOnJS(handleGoBack)();
             }

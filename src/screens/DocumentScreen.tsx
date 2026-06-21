@@ -48,7 +48,7 @@ export function DocumentScreen() {
     const lastUpdated = t(`screen.${documentKey}.lastUpdated` as any, { lastUpdated: '2026-05-31', defaultValue: '' });
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View
                 style={[
                     styles.header,

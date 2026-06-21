@@ -240,7 +240,7 @@ export function RankingScreen() {
     }, [load]);
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
                     icon={<ChevronLeft size={24} color={theme.colors.text} />}
@@ -392,10 +392,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 12,
         gap: 12,
-    },
-    rank: {
-        width: 28,
-        textAlign: 'center',
     },
     name: {
         flex: 1,

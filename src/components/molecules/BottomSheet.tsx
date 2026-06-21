@@ -35,7 +35,7 @@ function BottomSheet({
 }: BottomSheetProps) {
     const t = useTheme();
     const insets = useSafeAreaInsets();
-    const { scale, contentMaxWidth } = useResponsive();
+    const { scale } = useResponsive();
 
     // Fluid chrome so the handle affordance keeps pace on tablet.
     const handleSize = { width: scale(48), height: scale(6), borderRadius: scale(3) };
@@ -132,11 +132,7 @@ function BottomSheet({
                                     // carry the safe-area clearance in its content, so content can use
                                     // the full bottom space instead of leaving a dead band below it.
                                     paddingBottom: scrollable ? 0 : t.spacing.xxl + insets.bottom,
-                                    // Cap + centre on tablet so content keeps a readable measure
-                                    // instead of stretching edge-to-edge (no effect on phones).
                                     width: '100%',
-                                    maxWidth: contentMaxWidth,
-                                    alignSelf: 'center',
                                     shadowColor: t.colors.shadow,
                                     shadowOffset: { width: 0, height: -8 },
                                     shadowOpacity: 0.15,

@@ -31,6 +31,7 @@ import {
 } from '../game/ranking/config';
 import { resolveDisplayedMonth } from '../game/ranking/rank';
 import { getBoard, countEntries } from '../game/ranking/store';
+import { readCachedBoard, writeCachedBoard } from '../game/ranking/cache';
 import { getLocalState } from '../game/ranking/local';
 import { retryPending } from '../game/ranking/push';
 import { signatureEmoji } from '../game/progression';
@@ -193,10 +194,21 @@ export function RankingScreen() {
 
     const load = useCallback(async () => {
         setStatus('loading');
+        // A board barely moves minute-to-minute, so serve a day-fresh cached pull
+        // when there is one — zero Firestore reads, and it works offline (ADR-0004).
+        const cached = readCachedBoard(game, scope);
+        if (cached) {
+            setBoard(cached.board);
+            setDisplayedMonth(cached.displayedMonth);
+            setStatus('ready');
+            return;
+        }
         try {
+            let nextBoard: RankingEntry[];
+            let displayed: string | null;
             if (scope === 'alltime') {
-                setBoard(await getBoard(game, ALLTIME_PERIOD));
-                setDisplayedMonth(null);
+                nextBoard = await getBoard(game, ALLTIME_PERIOD);
+                displayed = null;
             } else {
                 // Delayed switch: stay on the previous month until the current one
                 // reaches the threshold (count() decides, no full read).
@@ -207,10 +219,12 @@ export function RankingScreen() {
                 // whether to keep showing last month's fuller board (ADR-0004).
                 const previousCount = currentCount >= ROLLOVER_THRESHOLD ? 0 : await countEntries(game, previousMonth);
                 const which = resolveDisplayedMonth({ currentCount, previousCount });
-                const period = which === 'current' ? currentMonth : previousMonth;
-                setBoard(await getBoard(game, period));
-                setDisplayedMonth(period);
+                displayed = which === 'current' ? currentMonth : previousMonth;
+                nextBoard = await getBoard(game, displayed);
             }
+            writeCachedBoard(game, scope, nextBoard, displayed);
+            setBoard(nextBoard);
+            setDisplayedMonth(displayed);
             setStatus('ready');
         } catch (err) {
             if (err instanceof BlockedError) setStatus('error');
@@ -327,6 +341,9 @@ export function RankingScreen() {
                             <Stack gap='md' style={{ marginTop: theme.spacing.lg }}>
                                 {best ? <BestChip best={best} onRetry={handleRetrySync} /> : null}
 
+                                <Text variant='caption' color='textMuted'>
+                                    {t('ranking.updatesNote')}
+                                </Text>
                                 <Text variant='caption' color='textMuted'>
                                     {t('ranking.rolloverNote')}
                                 </Text>

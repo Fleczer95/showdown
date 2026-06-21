@@ -1,15 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
-import { Crown, Medal } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
 import Text from '../atoms/Text';
-import Icon from '../atoms/Icon';
 import Glyph from '../atoms/Glyph';
+import RankBadge from '../atoms/RankBadge';
 import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
-import { hexToRgba, RANK_MEDAL_COLORS } from '../../theme/colorUtils';
+import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { games } from '../../data/games';
 import {
@@ -78,7 +77,6 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 const rank = i + 1;
                 const highlighted = entry.timestamp === savedTimestamp;
                 const sig = signatureEmoji(entry.signature);
-                const rankColor = rank <= 3 ? RANK_MEDAL_COLORS[rank as 1 | 2 | 3] : theme.colors.textMuted;
                 const isTop3 = rank <= 3;
                 
                 return (
@@ -103,18 +101,9 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                             },
                         ]}
                     >
-                        <View style={[styles.rankBadge, { width: scale(32), height: scale(32), borderRadius: scale(16) }, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
-                            {rank === 1 ? (
-                                <Icon name={Crown} size={iconSize(16)} color={rankColor} />
-                            ) : rank === 2 || rank === 3 ? (
-                                <Icon name={Medal} size={iconSize(16)} color={rankColor} />
-                            ) : (
-                                <Text variant="caption" weight="bold" color="textMuted">
-                                    {rank}
-                                </Text>
-                            )}
-                        </View>
-                        
+                        <RankBadge rank={rank} />
+
+
                         <View style={[styles.nameCol, { gap: scale(2) }]}>
                             <View style={[styles.nameLine, { gap: scale(6) }]}>
                                 {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
@@ -161,7 +150,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 )}
 
                 {savedTimestamp !== null ? (
-                    <Animated.View entering={FadeIn} style={[styles.successMessage, { marginTop: theme.spacing.sm }]}>
+                    <Animated.View entering={FadeIn} style={{ marginTop: theme.spacing.sm }}>
                         <Text variant='caption' weight='bold' color='success' align='center'>
                             {t('leaderboard.saved')}
                         </Text>
@@ -169,7 +158,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 ) : null}
 
                 {canEnter ? (
-                    <Animated.View entering={FadeInDown.delay(200)} style={[styles.entryForm, { padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }]}>
+                    <Animated.View entering={FadeInDown.delay(200)} style={{ padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }}>
                         <Stack gap='sm' align='stretch'>
                             <Text variant="caption" weight="bold" color="primary" align="center">
                                 {t('leaderboard.newHighScore')}
@@ -210,20 +199,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    entryForm: {
-    },
-    successMessage: {
-    },
     inputWrapper: {
         paddingHorizontal: 0,
     },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    rankBadge: {
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     nameCol: {
         flex: 1,

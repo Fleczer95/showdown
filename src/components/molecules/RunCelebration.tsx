@@ -316,15 +316,12 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     <Animated.View
                         key={r.id}
                         entering={reduceMotion ? undefined : ZoomIn.duration(280).delay(900 + i * 120)}
-                        style={[
-                            styles.rewardChip,
-                            {
-                                borderRadius: theme.radii.md,
-                                backgroundColor: hexToRgba(accent, 0.12),
-                                marginTop: i === 0 ? theme.spacing.sm : 0,
-                                padding: theme.spacing.md,
-                            },
-                        ]}
+                        style={{
+                            borderRadius: theme.radii.md,
+                            backgroundColor: hexToRgba(accent, 0.12),
+                            marginTop: i === 0 ? theme.spacing.sm : 0,
+                            padding: theme.spacing.md,
+                        }}
                     >
                         <Stack direction='horizontal' gap='sm' align='center'>
                             <Stack gap='xs' flex={1}>
@@ -360,8 +357,6 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-    },
-    rewardChip: {
     },
 });
 

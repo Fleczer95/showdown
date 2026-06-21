@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -30,31 +30,38 @@ export default function SwipeBackWrapper({ children, enableLeftSwipe = false }: 
     const { scale } = useResponsive();
     const edgeWidth = scale(EDGE_PHONE, EDGE_TABLET);
 
-    const handleGoBack = () => {
+    const handleGoBack = useCallback(() => {
         if (navigation.canGoBack()) {
             navigation.goBack();
         }
-    };
+    }, [navigation]);
 
-    const panGesture = Gesture.Pan()
-        .activeOffsetX([-20, 20])
-        .onEnd((e) => {
-            // Where the gesture began (absolute current pos minus how far it travelled).
-            const startX = e.absoluteX - e.translationX;
-            // Right swipe (standard): must start from the left edge.
-            if (startX <= edgeWidth && e.translationX > 50 && e.velocityX > 300) {
-                runOnJS(handleGoBack)();
-            }
-            // Left swipe (opt-in): must start from the right edge.
-            else if (
-                enableLeftSwipe &&
-                startX >= width - edgeWidth &&
-                e.translationX < -50 &&
-                e.velocityX < -300
-            ) {
-                runOnJS(handleGoBack)();
-            }
-        });
+    // Rebuilt only when the inputs the worklet reads change — this wrapper sits on
+    // every screen (via SafeContainer), so a fresh gesture per render would force
+    // gesture-handler to reconcile a new object on every screen re-render.
+    const panGesture = useMemo(
+        () =>
+            Gesture.Pan()
+                .activeOffsetX([-20, 20])
+                .onEnd((e) => {
+                    // Where the gesture began (absolute current pos minus how far it travelled).
+                    const startX = e.absoluteX - e.translationX;
+                    // Right swipe (standard): must start from the left edge.
+                    if (startX <= edgeWidth && e.translationX > 50 && e.velocityX > 300) {
+                        runOnJS(handleGoBack)();
+                    }
+                    // Left swipe (opt-in): must start from the right edge.
+                    else if (
+                        enableLeftSwipe &&
+                        startX >= width - edgeWidth &&
+                        e.translationX < -50 &&
+                        e.velocityX < -300
+                    ) {
+                        runOnJS(handleGoBack)();
+                    }
+                }),
+        [edgeWidth, width, enableLeftSwipe, handleGoBack],
+    );
 
     return (
         <GestureDetector gesture={panGesture}>

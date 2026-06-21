@@ -753,7 +753,6 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
     },
     audienceHeaderIcon: {
-        width: 28, // This is fine as it wraps the icon
         alignItems: 'center',
     },
     audienceBadge: {
@@ -765,8 +764,6 @@ const styles = StyleSheet.create({
     },
     audienceTrack: {
         width: '100%',
-        height: 12, // handled in responsive refactor below (or inline)
-        borderRadius: 6,
         overflow: 'hidden',
     },
     audienceFill: {
@@ -774,7 +771,6 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     audiencePct: {
-        width: 42, // handled via padding/minWidth usually, let's leave it or fix below
         textAlign: 'right',
     },
     chipCol: {
@@ -783,7 +779,6 @@ const styles = StyleSheet.create({
     chip: {
         width: '100%',
         borderWidth: 2,
-        // height / paddingHorizontal / borderRadius are set responsively inline.
         alignItems: 'center',
         justifyContent: 'center',
     },

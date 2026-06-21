@@ -162,7 +162,7 @@ export function ProgressScreen() {
                 <Text variant='subheading' weight='bold'>
                     {t('progression.title')}
                 </Text>
-                <View style={[styles.headerSpacer, { width: scale(44) }]} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             {/* Level summary + tabs (fixed above the scrollable section) */}
@@ -462,9 +462,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-    },
-    headerSpacer: {
-        width: 44, // Using inline scale(44) wouldn't work in Stylesheet without wrapper, but since this is fixed for chevron, it can stay 44 or be removed
     },
     levelPip: {
         alignItems: 'center',

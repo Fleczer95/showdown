@@ -56,7 +56,7 @@ function Divider({
         return (
             <View style={styles.labeledRow} testID={testID} importantForAccessibility='no-hide-descendants'>
                 <View style={lineStyle} />
-                <Text variant='caption' color={t.colors.textSecondary} style={[styles.label, { paddingHorizontal: scale(12) }]}>
+                <Text variant='caption' color={t.colors.textSecondary} style={{ paddingHorizontal: scale(12) }}>
                     {label}
                 </Text>
                 <View style={lineStyle} />
@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
     },
-    label: {},
 });
 
 export default React.memo(Divider);

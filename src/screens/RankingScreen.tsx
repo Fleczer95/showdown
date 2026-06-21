@@ -2,19 +2,20 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { ChevronLeft, RefreshCw, WifiOff, Crown, Medal } from 'lucide-react-native';
+import { ChevronLeft, RefreshCw, WifiOff } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Glyph from '../components/atoms/Glyph';
+import RankBadge from '../components/atoms/RankBadge';
 import Pressable from '../components/atoms/HapticPressable';
 import ActivityIndicator from '../components/atoms/ActivityIndicator';
 import IconButton from '../components/molecules/IconButton';
 import Button from '../components/molecules/Button';
 import ToggleGroup from '../components/molecules/ToggleGroup';
 import { useTheme } from '../theme';
-import { hexToRgba, readableOn, resolveAccent, RANK_MEDAL_COLORS } from '../theme/colorUtils';
+import { hexToRgba, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { games, GAME_ICONS } from '../data/games';
 import { useResponsive } from '../responsive/useResponsive';
@@ -81,7 +82,6 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
     const { t, locale } = useTranslation();
     const { iconSize, scale } = useResponsive();
     const sig = signatureEmoji(entry.signature);
-    const rankColor = rank <= 3 ? RANK_MEDAL_COLORS[rank as 1 | 2 | 3] : theme.colors.textMuted;
     const isTop3 = rank <= 3;
 
     return (
@@ -105,18 +105,9 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
                 },
             ]}
         >
-            <View style={[styles.rankBadge, { width: scale(32), height: scale(32), borderRadius: scale(16) }, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
-                {rank === 1 ? (
-                    <Icon name={Crown} size={iconSize(16)} color={rankColor} />
-                ) : rank === 2 || rank === 3 ? (
-                    <Icon name={Medal} size={iconSize(16)} color={rankColor} />
-                ) : (
-                    <Text variant="caption" weight="bold" color="textMuted">
-                        {rank}
-                    </Text>
-                )}
-            </View>
-            
+            <RankBadge rank={rank} />
+
+
             <View style={[styles.name, { gap: scale(6) }]}>
                 {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                 <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
@@ -379,10 +370,6 @@ const styles = StyleSheet.create({
     },
     centered: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    rankBadge: {
         alignItems: 'center',
         justifyContent: 'center',
     },

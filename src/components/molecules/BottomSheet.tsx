@@ -147,7 +147,7 @@ function BottomSheet({
                             {title ? (
                                 <View style={[styles.header, { paddingBottom: t.spacing.xl }]}>
                                     <View
-                                        style={[styles.handle, handleSize, { backgroundColor: t.colors.borderLight, marginBottom: t.spacing.sm }]}
+                                        style={[handleSize, { backgroundColor: t.colors.borderLight, marginBottom: t.spacing.sm }]}
                                     />
                                     <Spacer size='xs' />
                                     <Text variant='subheading' weight='bold' style={styles.title}>
@@ -205,8 +205,6 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-    },
-    handle: {
     },
     handleCenter: {
         alignSelf: 'center',

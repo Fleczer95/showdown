@@ -11,6 +11,7 @@ import IconButton from '../components/molecules/IconButton';
 import { useTheme } from '../theme';
 import { hexToRgba, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
+import { useResponsive } from '../responsive/useResponsive';
 import { games } from '../data/games';
 import { listChallenges, challengeStatus, type ChallengeStub, type ChallengeStatus } from '../game/challenge/log';
 
@@ -24,6 +25,7 @@ const STATUS_META: Record<ChallengeStatus, { icon: LucideIcon; labelKey: string 
 function ChallengeRow({ stub, onPress }: { stub: ChallengeStub; onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale, iconSize } = useResponsive();
     const game = games.find((g) => g.id === stub.game);
     const status = challengeStatus(stub);
     const meta = STATUS_META[status];
@@ -52,10 +54,10 @@ function ChallengeRow({ stub, onPress }: { stub: ChallengeStub; onPress: () => v
                 <View
                     style={[
                         styles.badge,
-                        { borderRadius: theme.radii.lg, backgroundColor: hexToRgba(tint, 0.16) },
+                        { width: scale(44), height: scale(44), borderRadius: theme.radii.lg, backgroundColor: hexToRgba(tint, 0.16) },
                     ]}
                 >
-                    <Icon name={meta.icon} size={22} color={tint} />
+                    <Icon name={meta.icon} size={iconSize(22)} color={tint} />
                 </View>
                 <Stack gap='xs' flex={1}>
                     <Text variant='body' weight='bold' numberOfLines={1}>
@@ -66,7 +68,7 @@ function ChallengeRow({ stub, onPress }: { stub: ChallengeStub; onPress: () => v
                         {t(meta.labelKey)}
                     </Text>
                 </Stack>
-                {status !== 'expired' ? <Icon name={ChevronRight} size={20} color={theme.colors.textMuted} /> : null}
+                {status !== 'expired' ? <Icon name={ChevronRight} size={iconSize(20)} color={theme.colors.textMuted} /> : null}
             </Stack>
         </Card>
     );
@@ -75,12 +77,13 @@ function ChallengeRow({ stub, onPress }: { stub: ChallengeStub; onPress: () => v
 function EmptyState() {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale, iconSize } = useResponsive();
     return (
-        <View style={styles.empty}>
+        <View style={[styles.empty, { gap: theme.spacing.lg, paddingHorizontal: theme.spacing.xl }]}>
             <View
-                style={[styles.badge, styles.emptyBadge, { borderRadius: theme.radii.xl, backgroundColor: hexToRgba(theme.colors.primary, 0.12) }]}
+                style={[styles.badge, styles.emptyBadge, { width: scale(64), height: scale(64), borderRadius: theme.radii.xl, backgroundColor: hexToRgba(theme.colors.primary, 0.12) }]}
             >
-                <Icon name={Swords} size={32} color={theme.colors.primary} />
+                <Icon name={Swords} size={iconSize(32)} color={theme.colors.primary} />
             </View>
             <Stack gap='xs' align='center'>
                 <Text variant='heading' weight='bold' align='center'>
@@ -103,6 +106,7 @@ export function ChallengeHistoryScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
+    const { tabletColumn, iconSize } = useResponsive();
     const [stubs, setStubs] = useState<ChallengeStub[]>(() => listChallenges());
 
     // Refresh on focus so a just-played challenge reflects its new status.
@@ -113,10 +117,10 @@ export function ChallengeHistoryScreen() {
     );
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
                     size='md'
                     accessibilityLabel={t('common.home')}
@@ -125,7 +129,7 @@ export function ChallengeHistoryScreen() {
                     {t('challenge.history.title')}
                 </Text>
                 <IconButton
-                    icon={<Trophy size={24} color={theme.colors.text} />}
+                    icon={<Trophy size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.navigate('Ranking')}
                     size='md'
                     accessibilityLabel={t('ranking.title')}
@@ -146,6 +150,7 @@ export function ChallengeHistoryScreen() {
                         paddingBottom: theme.spacing.xxl,
                         gap: theme.spacing.md,
                     },
+                    tabletColumn,
                 ]}
                 showsVerticalScrollIndicator={false}
             />
@@ -164,8 +169,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     badge: {
-        width: 44,
-        height: 44,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -173,12 +176,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
-        paddingHorizontal: 24,
     },
     emptyBadge: {
-        width: 64,
-        height: 64,
     },
     emptyContent: {
         flexGrow: 1,

@@ -186,7 +186,7 @@ function SelectionList({
                                                     backgroundColor: theme.colors.borderLight + '60',
                                                     borderColor: theme.colors.border,
                                                     paddingHorizontal: theme.spacing.sm,
-                                                    paddingVertical: 2,
+                                                    paddingVertical: scale(2),
                                                     borderRadius: theme.radii.full,
                                                 },
                                             ]}

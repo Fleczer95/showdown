@@ -40,6 +40,7 @@ import { createDeck } from '../deck';
 import { getHistory, markShown } from '../history';
 import { useStore } from '../../hooks/store/useStore';
 import { getOwnedPackContent } from '../../data/store/packContent';
+import { useResponsive } from '../../responsive/useResponsive';
 import {
     WHEEL,
     VOWEL_COST,
@@ -104,6 +105,9 @@ export default function WheelPlayScreen({
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
+    const { tabletColumn, scale, iconSize } = useResponsive();
+    const wheelSize = scale(240);
+    const keySize = scale(44);
 
     // Owned premium pack puzzles, localized, merged into the puzzle pool.
     const { purchasedItemIds } = useStore();
@@ -422,7 +426,14 @@ export default function WheelPlayScreen({
         return (
             <ScrollView
                 style={styles.flex}
-                contentContainerStyle={[styles.gameOver, { paddingBottom: Math.max(insets.bottom, 24) + 24 }]}
+                contentContainerStyle={[
+                    styles.gameOver, 
+                    { 
+                        paddingHorizontal: t.spacing.xl,
+                        paddingTop: t.spacing.xl,
+                        paddingBottom: Math.max(insets.bottom, t.spacing.xl) + t.spacing.xxl 
+                    }
+                ]}
                 keyboardShouldPersistTaps='handled'
             >
                 <GameOverCard gameId={GAME_ID}>
@@ -486,7 +497,7 @@ export default function WheelPlayScreen({
             ]}
             keyboardShouldPersistTaps='handled'
         >
-            <Stack gap='lg' flex={1}>
+            <Stack gap='lg' flex={1} style={tabletColumn}>
                 {/* Header: progress + banked score + round cash */}
                 <Stack gap='sm'>
                     <Stack direction='horizontal' gap='sm'>
@@ -541,9 +552,9 @@ export default function WheelPlayScreen({
                             {puzzle.category}
                         </Text>
                         {solveMode ? (
-                            <View style={styles.slotWords}>
+                            <View style={[styles.slotWords, { rowGap: scale(12) }]}>
                                 {solveWords.words.map((word, wi) => (
-                                    <View key={wi} style={styles.slotWord}>
+                                    <View key={wi} style={[styles.slotWord, { marginHorizontal: scale(8) }]}>
                                         {word.map((tok, ci) => {
                                             if (tok.kind === 'punct') {
                                                 return (
@@ -551,7 +562,7 @@ export default function WheelPlayScreen({
                                                         key={ci}
                                                         variant='heading'
                                                         weight='bold'
-                                                        style={styles.slotPunct}
+                                                        style={[styles.slotPunct, { marginHorizontal: scale(1) }]}
                                                     >
                                                         {tok.ch}
                                                     </Text>
@@ -559,7 +570,7 @@ export default function WheelPlayScreen({
                                             }
                                             if (tok.kind === 'fixed') {
                                                 return (
-                                                    <View key={ci} style={styles.slotBox}>
+                                                    <View key={ci} style={[styles.slotBox, { minWidth: scale(24), height: scale(40), marginHorizontal: scale(1) }]}>
                                                         <Text variant='heading' weight='bold' color={accent}>
                                                             {tok.ch}
                                                         </Text>
@@ -579,6 +590,11 @@ export default function WheelPlayScreen({
                                                             backgroundColor: isNext
                                                                 ? hexToRgba(accent, 0.12)
                                                                 : 'transparent',
+                                                            minWidth: scale(24),
+                                                            height: scale(40),
+                                                            marginHorizontal: scale(1),
+                                                            borderBottomWidth: scale(2),
+                                                            borderRadius: scale(4),
                                                         },
                                                     ]}
                                                 >
@@ -637,11 +653,18 @@ export default function WheelPlayScreen({
                         style={styles.centerRegion}
                     >
                         <Stack gap='sm' align='center'>
-                            <View style={[styles.pointer, { borderTopColor: accent }]} />
-                            <Animated.View style={[styles.wheel, wheelStyle]}>
-                                <WheelGraphic accent={accent} />
+                            <View style={[
+                                styles.pointer, 
+                                { borderTopColor: accent, borderLeftWidth: scale(10), borderRightWidth: scale(10), borderTopWidth: scale(18) },
+                            ]} />
+                            <Animated.View style={[
+                                styles.wheel, 
+                                { width: wheelSize, height: wheelSize }, 
+                                wheelStyle
+                            ]}>
+                                <WheelGraphic accent={accent} size={wheelSize} />
                             </Animated.View>
-                            <View style={styles.statusSlot}>
+                            <View style={[styles.statusSlot, { minHeight: scale(32) }]}>
                                 {status ? (
                                     <Text variant='subheading' weight='bold' color={accent} align='center'>
                                         {status}
@@ -661,7 +684,7 @@ export default function WheelPlayScreen({
                             <Text variant='caption' weight='medium' color='textSecondary' align='center'>
                                 {tr('game.the-wheel.active.choosePower')}
                             </Text>
-                            <View style={styles.powerChips}>
+                            <View style={[styles.powerChips, { gap: scale(10) }]}>
                                 {POWER_LEVELS.map((lvl, i) => (
                                     <Pressable
                                         key={i}
@@ -672,9 +695,12 @@ export default function WheelPlayScreen({
                                         style={[
                                             styles.powerChip,
                                             {
-                                                height: 20 + i * 12,
+                                                width: scale(44),
+                                                height: scale(20 + i * 12),
                                                 borderColor: accent,
                                                 backgroundColor: hexToRgba(accent, 0.16),
+                                                borderRadius: scale(8),
+                                                borderWidth: scale(1.5),
                                             },
                                         ]}
                                     >
@@ -685,9 +711,9 @@ export default function WheelPlayScreen({
                         </Stack>
                     ) : (
                         <Stack gap='sm'>
-                            <View style={[styles.powerTrack, { backgroundColor: t.colors.surfaceVariant }]}>
+                            <View style={[styles.powerTrack, { backgroundColor: t.colors.surfaceVariant, height: scale(14), borderRadius: scale(7) }]}>
                                 <Animated.View
-                                    style={[styles.powerFill, powerBarStyle, { backgroundColor: accent }]}
+                                    style={[styles.powerFill, powerBarStyle, { backgroundColor: accent, borderRadius: scale(7) }]}
                                 />
                             </View>
                             <Pressable
@@ -702,6 +728,11 @@ export default function WheelPlayScreen({
                                     {
                                         backgroundColor: spinning ? t.colors.surfaceVariant : accent,
                                         borderColor: spinning ? t.colors.border : accent,
+                                        ...t.shadows.md,
+                                        minHeight: scale(56),
+                                        paddingVertical: scale(16),
+                                        borderRadius: scale(8),
+                                        borderWidth: scale(1.5),
                                     },
                                 ]}
                             >
@@ -737,7 +768,7 @@ export default function WheelPlayScreen({
                                 {tr('game.the-wheel.active.vowelHint', { cost: VOWEL_COST })}
                                 {')'}
                             </Text>
-                            <View style={styles.keyboard}>
+                            <View style={[styles.keyboard, { gap: scale(8) }]}>
                                 {ALPHABET.map((ch, i) => {
                                     const vowel = isVowel(ch);
                                     const guessed = alreadyGuessed(game, ch);
@@ -755,11 +786,14 @@ export default function WheelPlayScreen({
                                                 accessibilityLabel={ch}
                                                 style={[
                                                     styles.key,
+                                                    { width: keySize, height: keySize },
                                                     {
                                                         borderColor: guessed ? t.colors.border : keyColor,
                                                         backgroundColor: guessed
                                                             ? t.colors.surfaceVariant
                                                             : hexToRgba(keyColor, 0.14),
+                                                        borderRadius: scale(8),
+                                                        borderWidth: scale(1.5),
                                                     },
                                                 ]}
                                             >
@@ -807,7 +841,7 @@ export default function WheelPlayScreen({
                             <Text variant='caption' weight='medium' color='textSecondary' align='center'>
                                 {tr('game.the-wheel.active.fillBlanks')}
                             </Text>
-                            <View style={styles.keyboard}>
+                            <View style={[styles.keyboard, { gap: scale(8) }]}>
                                 {ALPHABET.map((ch) => (
                                     <Pressable
                                         key={ch}
@@ -817,11 +851,14 @@ export default function WheelPlayScreen({
                                         accessibilityLabel={ch}
                                         style={[
                                             styles.key,
+                                            { width: keySize, height: keySize },
                                             {
                                                 borderColor: solveComplete ? t.colors.border : accent,
                                                 backgroundColor: solveComplete
                                                     ? t.colors.surfaceVariant
                                                     : hexToRgba(accent, 0.14),
+                                                borderRadius: scale(8),
+                                                borderWidth: scale(1.5),
                                             },
                                         ]}
                                     >
@@ -841,18 +878,21 @@ export default function WheelPlayScreen({
                                     accessibilityLabel={tr('game.the-wheel.active.clear')}
                                     style={[
                                         styles.key,
+                                        { width: keySize, height: keySize },
                                         {
                                             borderColor: filled.length === 0 ? t.colors.border : t.colors.secondary,
                                             backgroundColor:
                                                 filled.length === 0
                                                     ? t.colors.surfaceVariant
                                                     : hexToRgba(t.colors.secondary, 0.14),
+                                            borderRadius: scale(8),
+                                            borderWidth: scale(1.5),
                                         },
                                     ]}
                                 >
                                     <Icon
                                         name={Delete}
-                                        size={22}
+                                        size={iconSize(22)}
                                         color={filled.length === 0 ? t.colors.textMuted : t.colors.secondary}
                                     />
                                 </Pressable>
@@ -932,7 +972,6 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     gameOver: {
-        padding: 24,
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -986,8 +1025,6 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     key: {
-        width: 44,
-        height: 44,
         borderRadius: 8,
         borderWidth: 1.5,
         alignItems: 'center',
@@ -1006,9 +1043,6 @@ const styles = StyleSheet.create({
     pointer: {
         width: 0,
         height: 0,
-        borderLeftWidth: 10,
-        borderRightWidth: 10,
-        borderTopWidth: 18,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
         zIndex: 2,
@@ -1024,7 +1058,8 @@ const styles = StyleSheet.create({
         borderRadius: 7,
     },
     spinButton: {
-        height: 56,
+        minHeight: 56,
+        paddingVertical: 16,
         borderRadius: 8,
         borderWidth: 1.5,
         alignItems: 'center',
@@ -1038,7 +1073,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     powerChip: {
-        width: 44,
         borderRadius: 8,
         borderWidth: 1.5,
     },

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -40,34 +41,38 @@ function StoreItemCard({
 }) {
     const theme = useTheme();
     const { t } = useTranslation();
-    const { iconSize } = useResponsive();
+    const { iconSize, scale } = useResponsive();
     const IconComponent = STORE_ICONS[entry.presentation.iconName] ?? STORE_ICONS.themes;
     const accent = entry.presentation.accentColor;
 
     return (
-        <Pressable onPress={() => onPress(entry)} haptic='light' style={styles.cardPressable}>
+        <Pressable onPress={() => onPress(entry)} haptic='light' style={[styles.cardPressable, { marginBottom: theme.spacing.md }]}>
             <View
                 pointerEvents='none'
                 style={[
                     styles.card,
                     {
-                        backgroundColor: accent + '10',
-                        borderColor: accent + '30',
-                        borderRadius: theme.radii.lg,
+                        backgroundColor: accent + '12',
+                        borderWidth: 0,
+                        borderRadius: theme.radii.xl,
                         padding: theme.spacing.lg,
                     },
                 ]}
             >
                 <Icon
                     name={IconComponent}
-                    size={iconSize(26)}
+                    size={iconSize(30)}
                     color={accent}
-                    backgroundColor={accent + '18'}
-                    borderRadius={theme.radii.md}
+                    backgroundColor={theme.colors.surface}
+                    borderRadius={theme.radii.lg}
                     padding={theme.spacing.md}
-                    containerStyle={{ marginRight: theme.spacing.md }}
+                    containerStyle={{ 
+                        marginRight: theme.spacing.md,
+                        borderColor: accent + '40',
+                        borderWidth: 2,
+                    }}
                 />
-                <View style={styles.cardContent}>
+                <View style={[styles.cardContent, { gap: theme.spacing.xs }]}>
                     <Text variant='body' weight='bold' numberOfLines={1}>
                         {t(entry.presentation.titleKey)}
                     </Text>
@@ -78,7 +83,13 @@ function StoreItemCard({
                 <View
                     style={[
                         styles.badge,
-                        { backgroundColor: unlocked ? theme.colors.success + '15' : accent + '18' },
+                        { 
+                            marginLeft: theme.spacing.md,
+                            paddingHorizontal: scale(10),
+                            paddingVertical: scale(6),
+                            borderRadius: scale(10),
+                            backgroundColor: unlocked ? theme.colors.success + '15' : accent + '18' 
+                        },
                     ]}
                 >
                     <Text variant='caption' weight='bold' color={unlocked ? theme.colors.success : accent}>
@@ -97,6 +108,7 @@ export default function StoreScreen() {
     const route = useRoute<StoreScreenProps['route']>();
     const { scale, iconSize, tabletColumn } = useResponsive();
     const insets = useSafeAreaInsets();
+    const reduceMotion = useReducedMotion();
     const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
@@ -199,7 +211,7 @@ export default function StoreScreen() {
     const detailUnlocked = detailItem ? (ownedById.get(detailItem.id) ?? false) : false;
 
     return (
-        <SafeContainer edges={['top']}>
+        <SafeContainer edges={['top']} enableLeftSwipe>
             <View style={styles.container}>
                 <View
                     style={[
@@ -232,12 +244,12 @@ export default function StoreScreen() {
                     />
                 </View>
 
-                <View style={[styles.categoriesContainer, tabletColumn]}>
+                <View style={[styles.categoriesContainer, tabletColumn, { paddingBottom: theme.spacing.md }]}>
                     <ScrollView
                         ref={tabsScrollRef}
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.tabs}
+                        contentContainerStyle={[styles.tabs, { gap: scale(10), paddingHorizontal: theme.spacing.xl }]}
                         onLayout={(e) => {
                             tabsViewportWidthRef.current = e.nativeEvent.layout.width;
                         }}
@@ -248,6 +260,7 @@ export default function StoreScreen() {
                             return (
                                 <View
                                     key={category.id}
+                                    style={{ flexGrow: 1 }}
                                     onLayout={(e) => {
                                         tabLayoutsRef.current[category.id] = {
                                             x: e.nativeEvent.layout.x,
@@ -261,6 +274,9 @@ export default function StoreScreen() {
                                         style={[
                                             styles.tab,
                                             {
+                                                paddingHorizontal: scale(14),
+                                                paddingVertical: scale(10),
+                                                flexGrow: 1,
                                                 borderRadius: theme.radii.lg,
                                                 borderColor: active ? theme.colors.primary : theme.colors.border,
                                                 backgroundColor: active
@@ -269,7 +285,7 @@ export default function StoreScreen() {
                                             },
                                         ]}
                                     >
-                                        <View pointerEvents='none' style={styles.tabContent}>
+                                        <View pointerEvents='none' style={[styles.tabContent, { justifyContent: 'center', gap: theme.spacing.sm }]}>
                                             <CategoryIcon
                                                 size={iconSize(18)}
                                                 color={active ? theme.colors.primary : theme.colors.textSecondary}
@@ -289,6 +305,11 @@ export default function StoreScreen() {
                     </ScrollView>
                 </View>
 
+                <Animated.View
+                    key={selectedCategory}
+                    entering={reduceMotion ? undefined : FadeIn.duration(220)}
+                    style={styles.contentArea}
+                >
                 {selectedCategory === 'premium' ? (
                     <PremiumPlans tabletColumn={tabletColumn} />
                 ) : (
@@ -310,7 +331,7 @@ export default function StoreScreen() {
                                 variant='caption'
                                 weight='bold'
                                 color={theme.colors.textMuted}
-                                style={[styles.sectionHeader, { paddingTop: theme.spacing.md }]}
+                                style={[styles.sectionHeader, { paddingTop: theme.spacing.md, paddingBottom: theme.spacing.sm }]}
                             >
                                 {section.title.toUpperCase()}
                             </Text>
@@ -326,13 +347,14 @@ export default function StoreScreen() {
                     contentContainerStyle={[
                         styles.listContent,
                         tabletColumn,
-                        { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + insets.bottom },
+                        { paddingTop: theme.spacing.sm, paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + insets.bottom },
                     ]}
                     stickySectionHeadersEnabled={false}
                     showsVerticalScrollIndicator={false}
                     onScrollToIndexFailed={() => undefined}
                 />
                 )}
+                </Animated.View>
 
                 {restoreMessageVisible && (
                     <View
@@ -340,6 +362,9 @@ export default function StoreScreen() {
                         style={[
                             styles.toast,
                             {
+                                left: theme.spacing.xl,
+                                right: theme.spacing.xl,
+                                padding: scale(14),
                                 backgroundColor: theme.colors.success,
                                 borderRadius: theme.radii.md,
                                 bottom: theme.spacing.xl + insets.bottom,
@@ -355,24 +380,25 @@ export default function StoreScreen() {
 
             <BottomSheet scrollable visible={!!detailItem} onClose={() => !isProcessing && setDetailItem(null)}>
                 {detailItem && (
-                    <View style={[styles.detailContainer, { paddingBottom: theme.spacing.sm }]}>
-                        <View style={styles.detailHeader}>
+                    <View style={[styles.detailContainer, { paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.sm }]}>
+                        <View style={[styles.detailHeader, { gap: theme.spacing.lg }]}>
                             <View
                                 style={[
                                     styles.detailIcon,
                                     {
-                                        backgroundColor: detailItem.presentation.accentColor + '15',
-                                        borderColor: detailItem.presentation.accentColor + '2E',
-                                        width: scale(64, 80),
-                                        height: scale(64, 80),
-                                        borderRadius: scale(18, 22),
+                                        backgroundColor: theme.colors.surface,
+                                        borderColor: detailItem.presentation.accentColor + '40',
+                                        borderWidth: 2,
+                                        width: scale(80, 96),
+                                        height: scale(80, 96),
+                                        borderRadius: scale(28, 32),
                                     },
                                 ]}
                             >
                                 {React.createElement(
                                     STORE_ICONS[detailItem.presentation.iconName] ?? STORE_ICONS.themes,
                                     {
-                                        size: iconSize(32),
+                                        size: iconSize(40),
                                         color: detailItem.presentation.accentColor,
                                     },
                                 )}
@@ -401,21 +427,33 @@ export default function StoreScreen() {
                                 style={[
                                     styles.featuresCard,
                                     {
+                                        marginTop: theme.spacing.xl,
+                                        padding: scale(20),
+                                        borderRadius: scale(20),
+                                        gap: theme.spacing.lg,
                                         backgroundColor: detailItem.presentation.accentColor + '14',
                                         borderColor: detailItem.presentation.accentColor + '33',
                                     },
                                 ]}
                             >
                                 {detailItem.presentation.featuresKey.map((featureKey) => (
-                                    <View key={featureKey} style={styles.featureRow}>
+                                    <View key={featureKey} style={[styles.featureRow, { gap: theme.spacing.md }]}>
                                         <View
                                             style={[
-                                                styles.featureDot,
-                                                { backgroundColor: detailItem.presentation.accentColor },
+                                                styles.featureIconContainer,
+                                                { 
+                                                    backgroundColor: detailItem.presentation.accentColor + '1A',
+                                                    width: scale(24),
+                                                    height: scale(24),
+                                                    borderRadius: scale(12)
+                                                },
                                             ]}
-                                        />
+                                        >
+                                            <Check size={iconSize(14)} color={detailItem.presentation.accentColor} />
+                                        </View>
                                         <Text
                                             variant='body'
+                                            weight='medium'
                                             color={theme.colors.textSecondary}
                                             style={styles.featureText}
                                         >
@@ -433,6 +471,7 @@ export default function StoreScreen() {
                                 style={[
                                     styles.purchasedNotice,
                                     {
+                                        padding: scale(18),
                                         backgroundColor: theme.colors.success + '12',
                                         borderColor: theme.colors.success + '2E',
                                     },
@@ -492,6 +531,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    contentArea: {
+        flex: 1,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -502,29 +544,21 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     categoriesContainer: {
-        paddingBottom: 12,
     },
     tabs: {
-        gap: 10,
-        paddingHorizontal: 20,
         flexGrow: 1,
         justifyContent: 'center',
     },
     tab: {
         borderWidth: 1,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
     },
     tabContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
     },
     listContent: {
-        paddingTop: 8,
     },
     cardPressable: {
-        marginBottom: 12,
     },
     card: {
         borderWidth: 1,
@@ -533,16 +567,10 @@ const styles = StyleSheet.create({
     },
     cardContent: {
         flex: 1,
-        gap: 4,
     },
     badge: {
-        marginLeft: 12,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
     },
     sectionHeader: {
-        paddingBottom: 8,
         letterSpacing: 1.2,
     },
     empty: {
@@ -550,19 +578,14 @@ const styles = StyleSheet.create({
     },
     toast: {
         position: 'absolute',
-        left: 20,
-        right: 20,
-        padding: 14,
     },
     detailContainer: {
         alignItems: 'center',
-        paddingTop: 8,
     },
     detailHeader: {
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
     },
     detailHeaderText: {
         flex: 1,
@@ -574,11 +597,7 @@ const styles = StyleSheet.create({
     },
     featuresCard: {
         width: '100%',
-        marginTop: 24,
-        padding: 16,
-        borderRadius: 16,
-        borderWidth: 1,
-        gap: 14,
+        borderWidth: 0,
     },
     featureRow: {
         flexDirection: 'row',
@@ -587,19 +606,15 @@ const styles = StyleSheet.create({
     featureText: {
         flex: 1,
     },
-    featureDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        marginRight: 12,
+    featureIconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     purchasedNotice: {
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 18,
-        borderRadius: 9999,
         borderWidth: 1,
     },
     buyButtonShadow: {

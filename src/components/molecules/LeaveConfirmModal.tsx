@@ -6,6 +6,7 @@ import Button from './Button';
 import Card from './Card';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useBlur } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut, Easing } from 'react-native-reanimated';
 
 export type LeaveConfirmGameKey = 'the-ladder' | 'the-grid' | 'the-drop' | 'the-wheel';
@@ -26,6 +27,7 @@ interface LeaveConfirmModalProps {
 function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfirmModalProps) {
     const { t } = useTranslation();
     const { setIsBlurry } = useBlur();
+    const { scale } = useResponsive();
     const base = `game.${gameKey}.active`;
 
     useEffect(() => {
@@ -52,10 +54,10 @@ function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfi
                 <Animated.View
                     entering={ZoomIn.duration(600).easing(Easing.bezier(0.33, 1, 0.68, 1))}
                     exiting={ZoomOut.duration(300)}
-                    style={styles.cardWrap}
+                    style={[styles.cardWrap, { maxWidth: scale(360) }]}
                 >
-                    <Card variant='glass' padding='lg' gap='lg'>
-                        <Stack gap='lg'>
+                    <Card variant='glass' padding='xl' gap='xl'>
+                        <Stack gap='xl'>
                             <Text variant='subheading' weight='bold' align='center'>
                                 {t(`${base}.leaveConfirm`)}
                             </Text>

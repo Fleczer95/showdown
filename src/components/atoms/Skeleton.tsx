@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, StyleSheet, type DimensionValue } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export type SkeletonVariant = 'text' | 'circle' | 'card' | 'rect';
 
@@ -27,18 +28,19 @@ function Skeleton({ variant = 'text', width, height, borderRadius, style, testID
         opacity: opacity.value,
     }));
 
+    const { scale } = useResponsive();
     const dimensions = useMemo((): { w: DimensionValue; h: DimensionValue; r: number } => {
         switch (variant) {
             case 'text':
-                return { w: width ?? '100%', h: height ?? t.typography.lineHeight.md, r: 4 };
+                return { w: width ?? '100%', h: height ?? t.typography.lineHeight.md, r: scale(4) };
             case 'circle':
-                return { w: width ?? 44, h: height ?? 44, r: 9999 };
+                return { w: width ?? scale(44), h: height ?? scale(44), r: 9999 };
             case 'card':
-                return { w: width ?? '100%', h: height ?? 120, r: t.radii.lg };
+                return { w: width ?? '100%', h: height ?? scale(120), r: t.radii.lg };
             case 'rect':
-                return { w: width ?? '100%', h: height ?? 16, r: t.radii.sm };
+                return { w: width ?? '100%', h: height ?? scale(16), r: t.radii.sm };
         }
-    }, [variant, width, height, t.typography.lineHeight.md, t.radii.lg, t.radii.sm]);
+    }, [variant, width, height, t.typography.lineHeight.md, t.radii.lg, t.radii.sm, scale]);
 
     return (
         <Animated.View

@@ -35,11 +35,10 @@ function BottomSheet({
 }: BottomSheetProps) {
     const t = useTheme();
     const insets = useSafeAreaInsets();
-    const { scale, contentMaxWidth } = useResponsive();
+    const { scale } = useResponsive();
 
-    // Fluid chrome so the handle / close affordance keep pace on tablet.
-    const closeSize = scale(28);
-    const handleSize = { width: scale(40), height: scale(5), borderRadius: scale(2.5) };
+    // Fluid chrome so the handle affordance keeps pace on tablet.
+    const handleSize = { width: scale(48), height: scale(6), borderRadius: scale(3) };
 
     const translateY = useSharedValue(500);
     const opacity = useSharedValue(0);
@@ -96,7 +95,7 @@ function BottomSheet({
         });
 
     return (
-        <Modal visible={mounted} transparent animationType='none' statusBarTranslucent onRequestClose={requestClose}>
+        <Modal visible={mounted} transparent animationType='none' statusBarTranslucent navigationBarTranslucent onRequestClose={requestClose}>
             <GestureHandlerRootView style={styles.root}>
                 <Animated.View
                     style={[
@@ -129,65 +128,41 @@ function BottomSheet({
                                     borderTopLeftRadius: t.radii.xl,
                                     borderTopRightRadius: t.radii.xl,
                                     padding: t.spacing.xl,
-                                    paddingBottom: t.spacing.xxl + insets.bottom,
-                                    // Cap + centre on tablet so content keeps a readable measure
-                                    // instead of stretching edge-to-edge (no effect on phones).
+                                    // Scrollable sheets let the ScrollView run to the bottom edge and
+                                    // carry the safe-area clearance in its content, so content can use
+                                    // the full bottom space instead of leaving a dead band below it.
+                                    paddingBottom: scrollable ? 0 : t.spacing.xxl + insets.bottom,
                                     width: '100%',
-                                    maxWidth: contentMaxWidth,
-                                    alignSelf: 'center',
+                                    minHeight: scale(200),
+                                    shadowColor: t.colors.shadow,
+                                    shadowOffset: { width: 0, height: -8 },
+                                    shadowOpacity: 0.15,
+                                    shadowRadius: 24,
+                                    elevation: 24,
                                     ...(height ? { maxHeight: height, height } : {}),
                                 },
                             ]}
                             accessibilityViewIsModal={true}
                         >
                             {title ? (
-                                <View style={styles.header}>
+                                <View style={[styles.header, { paddingBottom: t.spacing.xl }]}>
                                     <View
-                                        style={[styles.handle, handleSize, { backgroundColor: t.colors.borderLight }]}
+                                        style={[handleSize, { backgroundColor: t.colors.borderLight, marginBottom: t.spacing.sm }]}
                                     />
                                     <Spacer size='xs' />
                                     <Text variant='subheading' weight='bold' style={styles.title}>
                                         {title}
                                     </Text>
-                                    {onClose ? (
-                                        <View
-                                            accessibilityRole='button'
-                                            accessibilityLabel='Close'
-                                            onStartShouldSetResponder={() => true}
-                                            onTouchEnd={requestClose}
-                                            style={styles.closeButton}
-                                        >
-                                            <View
-                                                style={[
-                                                    styles.closeIconBg,
-                                                    {
-                                                        width: closeSize,
-                                                        height: closeSize,
-                                                        borderRadius: closeSize / 2,
-                                                        backgroundColor: t.colors.borderLight + '40',
-                                                    },
-                                                ]}
-                                            >
-                                                <Text
-                                                    variant='body'
-                                                    weight='bold'
-                                                    color={t.colors.textSecondary}
-                                                    style={{ fontSize: scale(14) }}
-                                                >
-                                                    ✕
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    ) : null}
                                 </View>
                             ) : (
                                 <View
-                                    style={[styles.handleCenter, handleSize, { backgroundColor: t.colors.borderLight }]}
+                                    style={[styles.handleCenter, handleSize, { backgroundColor: t.colors.borderLight, marginBottom: t.spacing.md }]}
                                 />
                             )}
                             {scrollable ? (
                                 <ScrollView
                                     style={styles.scrollContent}
+                                    contentContainerStyle={{ paddingBottom: t.spacing.lg + insets.bottom }}
                                     showsVerticalScrollIndicator={false}
                                     bounces={true}
                                     keyboardShouldPersistTaps='handled'
@@ -219,7 +194,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     sheet: {
-        minHeight: 200,
         maxHeight: '90%',
     },
     scrollContent: {
@@ -231,24 +205,9 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        paddingBottom: 20,
-    },
-    closeButton: {
-        position: 'absolute',
-        right: 0,
-        top: 4,
-        padding: 8,
-    },
-    closeIconBg: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    handle: {
-        marginBottom: 8,
     },
     handleCenter: {
         alignSelf: 'center',
-        marginBottom: 16,
     },
     title: {
         textAlign: 'center',

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, StyleSheet, type DimensionValue } from 'react-native';
 import Text from './Text';
 import { useTheme, type ColorToken } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export interface DividerProps {
     direction?: 'horizontal' | 'vertical';
@@ -27,6 +28,7 @@ function Divider({
     testID,
 }: DividerProps) {
     const t = useTheme();
+    const { scale } = useResponsive();
 
     const lineStyle = useMemo(
         () =>
@@ -54,7 +56,7 @@ function Divider({
         return (
             <View style={styles.labeledRow} testID={testID} importantForAccessibility='no-hide-descendants'>
                 <View style={lineStyle} />
-                <Text variant='caption' color={t.colors.textSecondary} style={styles.label}>
+                <Text variant='caption' color={t.colors.textSecondary} style={{ paddingHorizontal: scale(12) }}>
                     {label}
                 </Text>
                 <View style={lineStyle} />
@@ -81,9 +83,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-    },
-    label: {
-        paddingHorizontal: 12,
     },
 });
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { ChevronLeft, RefreshCw, WifiOff } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -7,6 +8,7 @@ import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Glyph from '../components/atoms/Glyph';
+import RankBadge from '../components/atoms/RankBadge';
 import Pressable from '../components/atoms/HapticPressable';
 import ActivityIndicator from '../components/atoms/ActivityIndicator';
 import IconButton from '../components/molecules/IconButton';
@@ -16,6 +18,7 @@ import { useTheme } from '../theme';
 import { hexToRgba, readableOn, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { games, GAME_ICONS } from '../data/games';
+import { useResponsive } from '../responsive/useResponsive';
 import type { RootStackParamList } from '../navigation/types';
 import {
     ALLTIME_PERIOD,
@@ -44,6 +47,7 @@ function formatMonth(monthId: string, locale: string): string {
 function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean; onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     const def = games.find((g) => g.id === game);
     const accent = def ? resolveAccent(theme, def.accent) : theme.colors.primary;
     const GameIcon = def ? GAME_ICONS[def.iconName] : null;
@@ -56,13 +60,16 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
             style={[
                 styles.gameTab,
                 {
+                    gap: scale(6),
+                    paddingVertical: theme.spacing.md,
+                    paddingHorizontal: scale(6),
                     borderRadius: theme.radii.lg,
                     backgroundColor: active ? accent : hexToRgba(accent, 0.12),
                     borderColor: active ? accent : hexToRgba(accent, 0.35),
                 },
             ]}
         >
-            {GameIcon ? <Icon name={GameIcon} size={24} color={active ? readableOn(accent) : accent} /> : null}
+            {GameIcon ? <Icon name={GameIcon} size={iconSize(24)} color={active ? readableOn(accent) : accent} /> : null}
             <Text variant='caption' weight='bold' color={active ? readableOn(accent) : 'text'} numberOfLines={1}>
                 {t(`game.${game}.name`)}
             </Text>
@@ -73,19 +80,41 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
 function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     const sig = signatureEmoji(entry.signature);
+    const isTop3 = rank <= 3;
+
     return (
-        <View style={[styles.row, { borderBottomColor: theme.colors.border }]}>
-            <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
-                {rank}
-            </Text>
-            <View style={styles.name}>
-                {sig ? <Glyph emoji={sig} size={16} /> : null}
+        <View
+            style={[
+                styles.row,
+                { 
+                    paddingVertical: theme.spacing.md,
+                    paddingHorizontal: theme.spacing.md,
+                    gap: theme.spacing.md,
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    borderRadius: theme.radii.lg,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    shadowColor: theme.shadows.sm.shadowColor,
+                    shadowOffset: theme.shadows.sm.shadowOffset,
+                    shadowOpacity: theme.shadows.sm.shadowOpacity,
+                    shadowRadius: theme.shadows.sm.shadowRadius,
+                    elevation: theme.shadows.sm.elevation,
+                    marginBottom: theme.spacing.sm,
+                },
+            ]}
+        >
+            <RankBadge rank={rank} />
+
+
+            <View style={[styles.name, { gap: scale(6) }]}>
+                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                 <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
                     {entry.nickname}
                 </Text>
             </View>
-            <Text variant='body' weight='bold' style={styles.score}>
+            <Text variant='body' weight='bold' style={styles.score} color={isTop3 ? 'text' : 'textSecondary'}>
                 {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
             </Text>
         </View>
@@ -96,15 +125,23 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
 function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     return (
         <View
             style={[
                 styles.chip,
-                { borderRadius: theme.radii.lg, backgroundColor: hexToRgba(theme.colors.primary, 0.1) },
+                { 
+                    gap: theme.spacing.md,
+                    padding: scale(14),
+                    borderRadius: theme.radii.lg, 
+                    backgroundColor: hexToRgba(theme.colors.primary, 0.1),
+                    borderColor: hexToRgba(theme.colors.primary, 0.3),
+                    borderWidth: 1,
+                },
             ]}
         >
             <Stack gap='xs' flex={1}>
-                <Text variant='caption' color='textSecondary'>
+                <Text variant='caption' weight='bold' color='primary'>
                     {t('ranking.yourBest')}
                 </Text>
                 <Text variant='body' weight='bold'>
@@ -112,12 +149,14 @@ function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
                 </Text>
             </Stack>
             {best.synced ? (
-                <Text variant='caption' color='success'>
-                    {t('ranking.synced')}
-                </Text>
+                <View style={{ backgroundColor: hexToRgba(theme.colors.success, 0.15), paddingHorizontal: 8, paddingVertical: 4, borderRadius: theme.radii.full }}>
+                    <Text variant='caption' weight='bold' color='success'>
+                        {t('ranking.synced')}
+                    </Text>
+                </View>
             ) : (
-                <Pressable onPress={onRetry} haptic='light' style={styles.retry}>
-                    <Icon name={RefreshCw} size={14} color={theme.colors.primary} />
+                <Pressable onPress={onRetry} haptic='light' style={[styles.retry, { gap: scale(6) }]}>
+                    <Icon name={RefreshCw} size={iconSize(14)} color={theme.colors.primary} />
                     <Text variant='caption' weight='bold' color='primary'>
                         {t('ranking.pending')} · {t('ranking.retry')}
                     </Text>
@@ -136,7 +175,9 @@ export function RankingScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'Ranking'>>();
     const theme = useTheme();
+    const { tabletColumn, iconSize, scale } = useResponsive();
     const { t, locale } = useTranslation();
+    const reduceMotion = useReducedMotion();
 
     const initialGame = (RANKED_GAMES as readonly string[]).includes(route.params?.gameId ?? '')
         ? (route.params!.gameId as RankedGame)
@@ -197,10 +238,10 @@ export function RankingScreen() {
     }, [load]);
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
                     size='md'
                     accessibilityLabel={t('common.home')}
@@ -213,10 +254,10 @@ export function RankingScreen() {
                         {t('ranking.subtitle')}
                     </Text>
                 </View>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
-            <View style={{ paddingHorizontal: theme.spacing.xl, gap: theme.spacing.lg, flex: 1 }}>
+            <View style={[{ paddingHorizontal: theme.spacing.xl, gap: theme.spacing.lg, flex: 1 }, tabletColumn]}>
                 {/* Variant A — accent game medallions */}
                 <Stack direction='horizontal' gap='sm'>
                     {RANKED_GAMES.map((g) => (
@@ -241,13 +282,18 @@ export function RankingScreen() {
                     </Text>
                 ) : null}
 
+                <Animated.View
+                    key={status}
+                    entering={reduceMotion ? undefined : FadeIn.duration(250)}
+                    style={styles.contentArea}
+                >
                 {status === 'loading' ? (
-                    <View style={styles.centered}>
+                    <View style={[styles.centered, { gap: theme.spacing.md }]}>
                         <ActivityIndicator />
                     </View>
                 ) : status === 'offline' || status === 'error' ? (
-                    <View style={styles.centered}>
-                        <Icon name={WifiOff} size={36} color={theme.colors.textMuted} />
+                    <View style={[styles.centered, { gap: theme.spacing.md }]}>
+                        <Icon name={WifiOff} size={iconSize(36)} color={theme.colors.textMuted} />
                         <Text variant='body' weight='bold' align='center'>
                             {t(status === 'error' ? 'ranking.error' : 'ranking.offline')}
                         </Text>
@@ -257,7 +303,7 @@ export function RankingScreen() {
                         <Button
                             variant='secondary'
                             onPress={load}
-                            icon={<RefreshCw size={18} color={theme.colors.text} />}
+                            icon={<RefreshCw size={iconSize(18)} color={theme.colors.text} />}
                         >
                             {t('ranking.loadRetry')}
                         </Button>
@@ -295,6 +341,7 @@ export function RankingScreen() {
                         showsVerticalScrollIndicator={false}
                     />
                 )}
+                </Animated.View>
             </View>
         </SafeContainer>
     );
@@ -310,39 +357,30 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
     },
+    contentArea: {
+        flex: 1,
+    },
     gameTabSlot: {
         flex: 1,
     },
     gameTab: {
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 12,
-        paddingHorizontal: 6,
         borderWidth: StyleSheet.hairlineWidth,
     },
     centered: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 12,
     },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        gap: 12,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-    },
-    rank: {
-        width: 28,
-        textAlign: 'center',
     },
     name: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
     },
     nameText: {
         flexShrink: 1,
@@ -353,12 +391,9 @@ const styles = StyleSheet.create({
     chip: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        padding: 14,
     },
     retry: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
     },
 });

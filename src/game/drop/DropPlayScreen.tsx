@@ -36,6 +36,7 @@ import { useTheme, useAnimationPresets } from '../../theme';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useResponsive } from '../../responsive/useResponsive';
 
 import { dropQuestions, zipDropCard, type DropPackCard, type Language } from './content';
 import { getHistory, markShown } from '../history';
@@ -95,6 +96,7 @@ export default function DropPlayScreen({
     const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
+    const { tabletColumn, isTablet } = useResponsive();
 
     // Free bank plus any owned premium pack questions (reconstructed bilingual).
     const { purchasedItemIds } = useStore();
@@ -286,7 +288,7 @@ export default function DropPlayScreen({
             <View style={styles.container}>
                 <ScrollView
                     style={styles.container}
-                    contentContainerStyle={styles.gameOverContent}
+                    contentContainerStyle={[styles.gameOverContent, { paddingHorizontal: t.spacing.xl, paddingBottom: t.spacing.xxl }]}
                     keyboardShouldPersistTaps='handled'
                 >
                     <GameOverCard gameId={GAME_ID}>
@@ -355,9 +357,10 @@ export default function DropPlayScreen({
     return (
         <View style={styles.container}>
             {/* Top fixed content */}
-            <Stack gap='lg' style={[styles.staticHeader, { borderBottomColor: t.colors.border }]}>
-                {/* Header */}
-                <Stack direction='horizontal' justify='between' align='center' style={styles.header}>
+            <View style={[styles.staticHeader, { borderBottomColor: t.colors.border, paddingHorizontal: t.spacing.md, paddingBottom: t.spacing.md }]}>
+                <Stack gap='lg' style={tabletColumn}>
+                    {/* Header */}
+                    <Stack direction='horizontal' justify='between' align='center' style={[styles.header, { paddingHorizontal: t.spacing.md + 2 }]}>
                     <Stack gap='xs'>
                         <Text variant='overline' weight='bold' color={accent}>
                             {translate('game.the-drop.header.round', {
@@ -405,15 +408,16 @@ export default function DropPlayScreen({
                         {translate('game.the-drop.active.instruction', { max: maxCover })}
                     </Text>
                 )}
-            </Stack>
+                </Stack>
+            </View>
 
             {/* Scrollable middle content (options) */}
             <ScrollView
                 style={styles.optionsScroll}
-                contentContainerStyle={styles.optionsContent}
+                contentContainerStyle={[styles.optionsContent, { padding: t.spacing.md }]}
                 showsVerticalScrollIndicator={true}
             >
-                <Stack gap='md'>
+                <Stack gap='md' style={tabletColumn}>
                     {question.options.map((option, i) => (
                         <DropOption
                             key={`${state.round}-${i}`}
@@ -426,6 +430,7 @@ export default function DropPlayScreen({
                             answerShown={answerShown}
                             lockedByCover={phase === 'allocating' && allocation[i] === 0 && coveredCount >= maxCover}
                             sliderMax={state.bank}
+                            isTablet={isTablet}
                             onChange={(v) => setSlot(i, v)}
                         />
                     ))}
@@ -433,40 +438,42 @@ export default function DropPlayScreen({
             </ScrollView>
 
             {/* Bottom fixed content (actions) */}
-            <View style={[styles.footer, { borderTopColor: t.colors.border }]}>
-                {phase === 'allocating' ? (
-                    <Stack gap='sm'>
-                        <Button
-                            variant='primary'
-                            onPress={onConfirm}
-                            disabled={!canConfirm}
-                            fullWidth
-                            style={canConfirm ? { backgroundColor: accent, borderColor: accent } : undefined}
-                            textColor={canConfirm ? onAccent : undefined}
-                        >
-                            {translate('game.the-drop.active.lockIn')}
-                        </Button>
-                        <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
-                            {translate('game.the-drop.active.leave')}
-                        </Button>
-                    </Stack>
-                ) : canAdvance ? (
-                    <Animated.View entering={FadeIn.duration(fade.duration)}>
-                        <Button
-                            variant='primary'
-                            onPress={onAdvance}
-                            fullWidth
-                            style={{ backgroundColor: accent, borderColor: accent }}
-                            textColor={onAccent}
-                        >
-                            {state.round + 1 >= TOTAL_ROUNDS || allocation[question.correctIndex] === 0
-                                ? translate('game.the-drop.reveal.seeResult')
-                                : translate('game.the-drop.reveal.next')}
-                        </Button>
-                    </Animated.View>
-                ) : (
-                    phase === 'suspense' && <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
-                )}
+            <View style={[styles.footer, { borderTopColor: t.colors.border, padding: t.spacing.md }]}>
+                <View style={tabletColumn}>
+                    {phase === 'allocating' ? (
+                        <Stack gap='sm'>
+                            <Button
+                                variant='primary'
+                                onPress={onConfirm}
+                                disabled={!canConfirm}
+                                fullWidth
+                                style={canConfirm ? { backgroundColor: accent, borderColor: accent } : undefined}
+                                textColor={canConfirm ? onAccent : undefined}
+                            >
+                                {translate('game.the-drop.active.lockIn')}
+                            </Button>
+                            <Button variant='ghost' fullWidth onPress={() => setShowLeaveConfirm(true)}>
+                                {translate('game.the-drop.active.leave')}
+                            </Button>
+                        </Stack>
+                    ) : canAdvance ? (
+                        <Animated.View entering={FadeIn.duration(fade.duration)}>
+                            <Button
+                                variant='primary'
+                                onPress={onAdvance}
+                                fullWidth
+                                style={{ backgroundColor: accent, borderColor: accent }}
+                                textColor={onAccent}
+                            >
+                                {state.round + 1 >= TOTAL_ROUNDS || allocation[question.correctIndex] === 0
+                                    ? translate('game.the-drop.reveal.seeResult')
+                                    : translate('game.the-drop.reveal.next')}
+                            </Button>
+                        </Animated.View>
+                    ) : (
+                        phase === 'suspense' && <SuspenseStatus label={translate('game.the-drop.active.lockingIn')} />
+                    )}
+                </View>
             </View>
 
             <LeaveConfirmModal
@@ -493,6 +500,7 @@ interface DropOptionProps {
     answerShown: boolean;
     lockedByCover: boolean;
     sliderMax: number;
+    isTablet: boolean;
     onChange: (value: number) => void;
 }
 
@@ -516,6 +524,7 @@ function DropOption({
     answerShown,
     lockedByCover,
     sliderMax,
+    isTablet,
     onChange,
 }: DropOptionProps) {
     const t = useTheme();
@@ -523,6 +532,7 @@ function DropOption({
     const prefix = String.fromCharCode(65 + index);
     const reduceMotion = useReducedMotion();
     const { spring, springBouncy, pulse } = useAnimationPresets();
+    const { iconSize } = useResponsive();
 
     const scale = useSharedValue(1);
     const textOpacity = useSharedValue(1);
@@ -604,7 +614,12 @@ function DropOption({
         springBouncy,
     ]);
 
-    const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+    const cardStyle = useAnimatedStyle(() => ({
+        transform: [
+            { scaleX: isTablet ? 1 : scale.value },
+            { scaleY: scale.value }
+        ]
+    }));
     const textStyle = useAnimatedStyle(() => ({
         opacity: textOpacity.value,
         transform: [{ translateY: textY.value }],
@@ -661,10 +676,10 @@ function DropOption({
         <Animated.View entering={reduceMotion ? undefined : springEnter(index * 70)} style={cardStyle}>
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
-                    <Stack direction='horizontal' justify='between' align='center' style={styles.optionHeader}>
+                    <Stack direction='horizontal' justify='between' align='center' style={[styles.optionHeader, { paddingHorizontal: t.spacing.md }]}>
                         <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                            <IndexBadge label={prefix} accent={accent} state={badgeState} size={36} />
-                            <Text variant='body' weight='semibold' style={styles.optionText}>
+                            <IndexBadge label={prefix} accent={accent} state={badgeState} size={t.typography.lineHeight.xl + t.spacing.xs} />
+                            <Text variant='body' weight='semibold' style={[styles.optionText, { marginRight: t.spacing.md }]}>
                                 {label}
                             </Text>
                         </Stack>
@@ -680,7 +695,7 @@ function DropOption({
                         ) : reveal !== 'none' ? (
                             <Icon
                                 name={reveal === 'win' ? Check : X}
-                                size={20}
+                                size={iconSize(20)}
                                 color={reveal === 'win' ? t.colors.success : t.colors.error}
                             />
                         ) : null}
@@ -739,43 +754,30 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingHorizontal: 16,
     },
     staticHeader: {
-        paddingHorizontal: 16,
-        paddingBottom: 16,
         borderBottomWidth: 1,
     },
     optionsScroll: {
         flex: 1,
     },
     optionsContent: {
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 16,
     },
     footer: {
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 16,
         borderTopWidth: 1,
     },
     header: {
-        paddingHorizontal: 18, // content (16) + 12 = 28px total indent
     },
     gameOverContent: {
-        paddingHorizontal: 24,
-        paddingBottom: 32,
         flexGrow: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
     optionText: {
         flexShrink: 1,
-        marginRight: 12,
     },
     optionHeader: {
-        paddingHorizontal: 12, // card (12) + 0 = 12px from card border, 28px total indent
+        // Horizontal padding is set dynamically via t.spacing.md to match the slider track indent.
     },
     optionOutcome: {
         paddingHorizontal: 0,

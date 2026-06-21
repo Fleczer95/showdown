@@ -7,6 +7,7 @@ import { Swords, Trophy, Hourglass, Crown, type LucideIcon } from 'lucide-react-
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
 import SafeContainer from '../responsive/SafeContainer';
+import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
@@ -65,6 +66,7 @@ export function ChallengeScreen() {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { purchasedItemIds } = useStore();
+    const { tabletColumn } = useResponsive();
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
@@ -229,7 +231,7 @@ export function ChallengeScreen() {
 
     return (
         <SafeContainer edges={['top', 'bottom']}>
-            <View style={styles.center}>
+            <View style={[styles.center, tabletColumn, { padding: theme.spacing.xl }]}>
                 {phase === 'loading' || phase === 'submitting' ? (
                     <Stack gap='md' align='center'>
                         <ActivityIndicator color={theme.colors.primary} />
@@ -398,6 +400,7 @@ function IntroCard({
 }) {
     const theme = useTheme();
     const reduceMotion = useReducedMotion();
+    const { iconSize } = useResponsive();
     const accent = challengeAccent(theme, record.game);
     const onAccent = readableOn(accent);
 
@@ -443,7 +446,7 @@ function IntroCard({
                     onPress={onStart}
                     style={{ backgroundColor: accent, borderColor: accent }}
                     textColor={onAccent}
-                    icon={<Swords size={20} color={onAccent} />}
+                    icon={<Swords size={iconSize(20)} color={onAccent} />}
                 >
                     {t('challenge.start')}
                 </Button>
@@ -511,6 +514,7 @@ function ResultsCard({
 }) {
     const theme = useTheme();
     const reduceMotion = useReducedMotion();
+    const { iconSize, scale } = useResponsive();
     const game = games.find((g) => g.id === record.game);
     const accent = challengeAccent(theme, record.game);
     const onAccent = readableOn(accent);
@@ -567,7 +571,7 @@ function ResultsCard({
                                 entering={reduceMotion ? undefined : springEnter(i * 80)}
                                 style={[
                                     styles.row,
-                                    { borderBottomColor: theme.colors.border },
+                                    { gap: theme.spacing.sm, paddingVertical: scale(10), paddingHorizontal: theme.spacing.sm, borderBottomColor: theme.colors.border },
                                     mine && { backgroundColor: hexToRgba(accent, 0.13), borderRadius: theme.radii.sm },
                                 ]}
                             >
@@ -575,7 +579,7 @@ function ResultsCard({
                                     variant='body'
                                     weight='bold'
                                     color={isWinner ? undefined : 'textSecondary'}
-                                    style={[styles.rank, isWinner && { color: accent }]}
+                                    style={[styles.rank, { width: scale(24) }, isWinner && { color: accent }]}
                                 >
                                     {i + 1}
                                 </Text>
@@ -590,7 +594,7 @@ function ResultsCard({
                                             {entry.nickname}
                                             {mine ? ` (${t('challenge.you')})` : ''}
                                         </Text>
-                                        {isWinner ? <Crown size={14} color={accent} /> : null}
+                                        {isWinner ? <Crown size={iconSize(14)} color={accent} /> : null}
                                     </Stack>
                                     {game ? (
                                         <Text variant='caption' color='textMuted' numberOfLines={1}>
@@ -624,7 +628,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 24,
     },
     keyboardAvoider: {
         flex: 1,
@@ -644,13 +647,9 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 8,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        gap: 10,
     },
     rank: {
-        width: 24,
         textAlign: 'center',
     },
     nameCol: {

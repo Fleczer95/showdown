@@ -26,7 +26,7 @@ export function SettingsScreen() {
     const theme = useTheme();
     const { themeId } = useThemeActions();
     const settings = useSettings();
-    const { scale } = useResponsive();
+    const { scale, tabletColumn, iconSize } = useResponsive();
 
     const handleBack = () => navigation.goBack();
 
@@ -41,7 +41,7 @@ export function SettingsScreen() {
     ];
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             {/* Header */}
             <View
                 style={[
@@ -50,7 +50,7 @@ export function SettingsScreen() {
                 ]}
             >
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={handleBack}
                     size='md'
                     accessibilityLabel={t('screen.settings.back')}
@@ -58,13 +58,14 @@ export function SettingsScreen() {
                 <Text variant='heading' weight='bold' style={styles.title}>
                     {t('screen.settings.title')}
                 </Text>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             <ScrollView
                 contentContainerStyle={[
                     styles.content,
                     { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + theme.spacing.sm },
+                    tabletColumn,
                 ]}
             >
                 <Stack gap='xl'>

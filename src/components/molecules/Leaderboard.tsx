@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import Stack from '../atoms/Stack';
 import Text from '../atoms/Text';
 import Glyph from '../atoms/Glyph';
-import Divider from '../atoms/Divider';
+import RankBadge from '../atoms/RankBadge';
 import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
+import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { games } from '../../data/games';
 import {
@@ -19,6 +21,7 @@ import {
     type LeaderboardEntry,
 } from '../../game/leaderboard';
 import { signatureEmoji } from '../../game/progression';
+import { useResponsive } from '../../responsive/useResponsive';
 
 interface LeaderboardProps {
     gameId: string;
@@ -31,6 +34,8 @@ interface LeaderboardProps {
 function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const reduceMotion = useReducedMotion();
+    const { scale, iconSize } = useResponsive();
 
     const [board, setBoard] = useState<LeaderboardEntry[]>(() => getBoard(gameId));
     const [nickname, setNickname] = useState<string>(() => getLastNickname());
@@ -69,26 +74,39 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     const rows = useMemo(
         () =>
             board.map((entry, i) => {
+                const rank = i + 1;
                 const highlighted = entry.timestamp === savedTimestamp;
                 const sig = signatureEmoji(entry.signature);
+                const isTop3 = rank <= 3;
+                
                 return (
-                    <View
+                    <Animated.View
                         key={`${entry.timestamp}-${i}`}
+                        entering={reduceMotion ? undefined : FadeInDown.delay(i * 50).duration(400)}
                         style={[
                             styles.row,
-                            { borderBottomColor: theme.colors.border },
-                            highlighted && {
-                                backgroundColor: theme.colors.primary + '22',
-                                borderRadius: theme.radii.sm,
+                            { 
+                                paddingVertical: theme.spacing.md,
+                                paddingHorizontal: theme.spacing.md,
+                                gap: theme.spacing.md,
+                                backgroundColor: highlighted ? hexToRgba(theme.colors.primary, 0.15) : theme.colors.surface,
+                                borderColor: highlighted ? theme.colors.primary : theme.colors.border,
+                                borderRadius: theme.radii.lg,
+                                borderWidth: highlighted ? 1 : StyleSheet.hairlineWidth,
+                                shadowColor: theme.shadows.sm.shadowColor,
+                                shadowOffset: theme.shadows.sm.shadowOffset,
+                                shadowOpacity: theme.shadows.sm.shadowOpacity,
+                                shadowRadius: theme.shadows.sm.shadowRadius,
+                                elevation: theme.shadows.sm.elevation,
                             },
                         ]}
                     >
-                        <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
-                            {i + 1}
-                        </Text>
-                        <View style={styles.nameCol}>
-                            <View style={styles.nameLine}>
-                                {sig ? <Glyph emoji={sig} size={15} /> : null}
+                        <RankBadge rank={rank} />
+
+
+                        <View style={[styles.nameCol, { gap: scale(2) }]}>
+                            <View style={[styles.nameLine, { gap: scale(6) }]}>
+                                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                                 <Text
                                     variant='body'
                                     weight={highlighted ? 'bold' : 'semibold'}
@@ -98,65 +116,75 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                                     {entry.nickname}
                                 </Text>
                             </View>
-                            <Text variant='caption' color='textMuted' numberOfLines={1}>
+                            <Text variant='caption' color='textSecondary' numberOfLines={1}>
                                 {formatProgress(entry.progress)}
                             </Text>
                         </View>
-                        <Text variant='caption' color='textMuted' style={styles.date}>
-                            {formatDate(entry.timestamp)}
-                        </Text>
-                        <Text variant='body' weight='bold' style={styles.score}>
-                            {formatScore(entry.score)}
-                        </Text>
-                    </View>
+                        
+                        <Stack align="end" gap="xs">
+                            <Text variant='body' weight='bold' style={styles.score} color={isTop3 ? 'text' : 'textSecondary'}>
+                                {formatScore(entry.score)}
+                            </Text>
+                            <Text variant='caption' color='textMuted' style={styles.date}>
+                                {formatDate(entry.timestamp)}
+                            </Text>
+                        </Stack>
+                    </Animated.View>
                 );
             }),
-        // formatScore/formatDate/formatProgress are stable per render; board + highlight drive updates.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [board, savedTimestamp, theme, gameId],
+        [board, savedTimestamp, theme, gameId, reduceMotion],
     );
 
     return (
-        <Stack gap='md' align='stretch' style={styles.container}>
-            {board.length === 0 ? (
-                <Text variant='body' color='textMuted' align='center'>
-                    {t('leaderboard.empty')}
-                </Text>
-            ) : (
-                <View>{rows}</View>
-            )}
+        <Animated.View entering={reduceMotion ? undefined : FadeIn.duration(300)} style={styles.container}>
+            <Stack gap='md' align='stretch' style={styles.listContainer}>
+                {board.length === 0 ? (
+                    <View style={[styles.emptyContainer, { paddingVertical: theme.spacing.xxl }]}>
+                        <Text variant='body' color='textMuted' align='center'>
+                            {t('leaderboard.empty')}
+                        </Text>
+                    </View>
+                ) : (
+                    <Stack gap='sm'>{rows}</Stack>
+                )}
 
-            {savedTimestamp !== null ? (
-                <Text variant='caption' color='success' align='center'>
-                    {t('leaderboard.saved')}
-                </Text>
-            ) : null}
+                {savedTimestamp !== null ? (
+                    <Animated.View entering={FadeIn} style={{ marginTop: theme.spacing.sm }}>
+                        <Text variant='caption' weight='bold' color='success' align='center'>
+                            {t('leaderboard.saved')}
+                        </Text>
+                    </Animated.View>
+                ) : null}
 
-            {canEnter ? (
-                <>
-                    {board.length > 0 ? <Divider /> : null}
-                    <Stack gap='sm' align='stretch'>
-                        <Input
-                            value={nickname}
-                            onChangeText={setNickname}
-                            placeholder={t('leaderboard.nicknamePlaceholder')}
-                            maxLength={MAX_NICKNAME_LENGTH}
-                            clearable
-                            autoFocus
-                            autoCapitalize='words'
-                            returnKeyType='done'
-                            onSubmitEditing={handleSave}
-                            accessibilityLabel={t('leaderboard.nicknamePlaceholder')}
-                            textAlign='center'
-                            wrapperStyle={styles.inputWrapper}
-                        />
-                        <Button variant='primary' fullWidth disabled={trimmed.length === 0} onPress={handleSave}>
-                            {t('leaderboard.save')}
-                        </Button>
-                    </Stack>
-                </>
-            ) : null}
-        </Stack>
+                {canEnter ? (
+                    <Animated.View entering={FadeInDown.delay(200)} style={{ padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }}>
+                        <Stack gap='sm' align='stretch'>
+                            <Text variant="caption" weight="bold" color="primary" align="center">
+                                {t('leaderboard.newHighScore')}
+                            </Text>
+                            <Input
+                                value={nickname}
+                                onChangeText={setNickname}
+                                placeholder={t('leaderboard.nicknamePlaceholder')}
+                                maxLength={MAX_NICKNAME_LENGTH}
+                                clearable
+                                autoFocus
+                                autoCapitalize='words'
+                                returnKeyType='done'
+                                onSubmitEditing={handleSave}
+                                accessibilityLabel={t('leaderboard.nicknamePlaceholder')}
+                                textAlign='center'
+                                wrapperStyle={styles.inputWrapper}
+                            />
+                            <Button variant='primary' fullWidth disabled={trimmed.length === 0} onPress={handleSave}>
+                                {t('leaderboard.save')}
+                            </Button>
+                        </Stack>
+                    </Animated.View>
+                ) : null}
+            </Stack>
+        </Animated.View>
     );
 }
 
@@ -164,20 +192,19 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
     },
+    listContainer: {
+        width: '100%',
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     inputWrapper: {
         paddingHorizontal: 0,
     },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 8,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        gap: 10,
-    },
-    rank: {
-        width: 24,
-        textAlign: 'center',
     },
     nameCol: {
         flex: 1,
@@ -185,17 +212,14 @@ const styles = StyleSheet.create({
     nameLine: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 5,
     },
     nameText: {
         flexShrink: 1,
     },
     date: {
-        width: 56,
         textAlign: 'right',
     },
     score: {
-        minWidth: 64,
         textAlign: 'right',
     },
 });

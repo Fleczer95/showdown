@@ -43,6 +43,7 @@ import { hasBuyablePacks } from '../data/store/catalog';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import type { RootStackParamList } from '../navigation/types';
+import { useResponsive } from '../responsive/useResponsive';
 
 // Fraction of a game's question pool the player must have seen before the pool
 // meter escalates from a quiet tally into a repeats-ahead purchase nudge. Below
@@ -54,6 +55,7 @@ const POOL_NUDGE_THRESHOLD = 0.8;
 function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale } = useResponsive();
     return (
         <Card
             variant='outlined'
@@ -73,7 +75,7 @@ function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
             ]}
         >
             <Stack direction='horizontal' gap='sm' align='center'>
-                <View style={[styles.dot, { backgroundColor: accent }]} />
+                <View style={[styles.dot, { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: accent }]} />
                 <Text variant='overline' color={accent} weight='bold'>
                     {t('common.how_to_play')}
                 </Text>
@@ -105,6 +107,7 @@ interface QuestionPoolCardProps {
 function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: QuestionPoolCardProps) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale, iconSize } = useResponsive();
     const { seen, total, floor, reseen } = coverage;
     if (total <= 0) return null;
 
@@ -134,7 +137,7 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
         >
             <Stack direction='horizontal' gap='sm' align='center' justify='between'>
                 <Stack direction='horizontal' gap='sm' align='center'>
-                    <View style={[styles.dot, { backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
+                    <View style={[styles.dot, { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
                     <Text variant='overline' color={escalated ? accent : 'textMuted'} weight='bold'>
                         {t('screen.gameSetup.pool.title')}
                     </Text>
@@ -161,7 +164,7 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
                         borderWidth: 1.5,
                     }}
                     textColor={accent}
-                    icon={<Sparkles size={18} color={accent} />}
+                    icon={<Sparkles size={iconSize(18)} color={accent} />}
                 >
                     {t('screen.gameSetup.pool.getMore')}
                 </Button>
@@ -181,6 +184,7 @@ export function GameSetupScreen() {
     const { t, locale } = useTranslation();
     const theme = useTheme();
     const { purchasedItemIds, isPremium } = useStore();
+    const { tabletColumn, iconSize, scale } = useResponsive();
 
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
@@ -326,11 +330,10 @@ export function GameSetupScreen() {
             paddingHorizontal: theme.spacing.xl,
             paddingTop: theme.spacing.lg,
             // Clearance for the floating footer (two stacked buttons + its bottom
-            // offset), so the last card — the question-pool widget — scrolls fully
-            // clear of it instead of being overlapped.
             paddingBottom: theme.spacing.xxl * 5, // ~160
             gap: theme.spacing.xxl,
         },
+        tabletColumn,
     ];
 
     if (isPlaying && PlayScreen) {
@@ -338,7 +341,9 @@ export function GameSetupScreen() {
         // Home screen, not this game's config view. Home is the stack root, so
         // navigating to it pops the setup screen and resets its machine on remount.
         return (
-            <SafeContainer edges={['top']}>
+            // No swipe-back during an active run — exiting goes through the game's
+            // own Leave / Main Menu flow so a stray swipe can't drop a run.
+            <SafeContainer edges={['top']} enableSwipeBack={false}>
                 <PlayScreen onExit={() => navigation.navigate('Home')} />
             </SafeContainer>
         );
@@ -356,7 +361,7 @@ export function GameSetupScreen() {
     );
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={contentContainerStyle}
@@ -366,10 +371,10 @@ export function GameSetupScreen() {
                     direction='horizontal'
                     gap='sm'
                     align='center'
-                    style={[styles.navBar, { paddingVertical: theme.spacing.md }]}
+                    style={[styles.navBar, { paddingVertical: theme.spacing.md, marginLeft: -theme.spacing.sm }]}
                 >
                     <IconButton
-                        icon={<ChevronLeft size={28} color={theme.colors.text} />}
+                        icon={<ChevronLeft size={iconSize(28)} color={theme.colors.text} />}
                         onPress={() => navigation.goBack()}
                         accessibilityLabel={t('screen.gameSetup.back')}
                     />
@@ -377,7 +382,7 @@ export function GameSetupScreen() {
                         {t('screen.gameSetup.title')}
                     </Text>
                     <IconButton
-                        icon={<Trophy size={28} color={theme.colors.text} />}
+                        icon={<Trophy size={iconSize(28)} color={theme.colors.text} />}
                         onPress={() => setShowLeaderboard(true)}
                         accessibilityLabel={t('leaderboard.view')}
                     />
@@ -388,6 +393,8 @@ export function GameSetupScreen() {
                         style={[
                             styles.mainIconContainer,
                             {
+                                width: scale(100),
+                                height: scale(100),
                                 borderRadius: theme.radii.xl,
                                 marginBottom: theme.spacing.sm,
                                 borderWidth: 1,
@@ -414,11 +421,11 @@ export function GameSetupScreen() {
                                 <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${medallionGradientId})`} />
                             </Svg>
                         </View>
-                        {GameIcon ? <Icon name={GameIcon} size={48} color={onAccent} /> : null}
+                        {GameIcon ? <Icon name={GameIcon} size={iconSize(48)} color={onAccent} /> : null}
                     </View>
                     <Stack gap='xs' align='center'>
                         <Stack direction='horizontal' gap='xs' align='center'>
-                            <Glyph emoji={game.emoji} size={26} />
+                            <Glyph emoji={game.emoji} size={iconSize(26)} />
                             <Text variant='heading' weight='bold' align='center'>
                                 {t(`game.${game.id}.name`)}
                             </Text>
@@ -450,55 +457,62 @@ export function GameSetupScreen() {
             </ScrollView>
 
             <View style={[styles.footer, { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl }]}>
-                <Stack gap='sm'>
-                    {/* At zero runs the Start button keeps its accent look but
-                        swaps the play glyph for a lock; it stays tappable to
-                        open the limit/upsell sheet. */}
-                    <Button
-                        fullWidth
-                        size='lg'
-                        onPress={onStart}
-                        style={{
-                            backgroundColor: accent,
-                            borderColor: accent,
-                            opacity: runsLeft <= 0 ? 0.7 : 1,
-                        }}
-                        textColor={onAccent}
-                        icon={
-                            runsLeft <= 0 ? (
-                                <Lock size={20} color={onAccent} />
-                            ) : (
-                                <Play size={20} color={onAccent} fill={onAccent} />
-                            )
-                        }
-                    >
-                        {runsLeft === 1 ? t('offline.startLastRun') : t('offline.start')}
-                    </Button>
-                    <Button
-                        fullWidth
-                        onPress={onCreateChallenge}
-                        disabled={creating}
-                        style={{
-                            backgroundColor: blend(accent, theme.colors.background, 0.22),
-                            borderColor: accent,
-                            borderWidth: 1.5,
-                            shadowColor: accent,
-                            shadowOpacity: 0.3,
-                            shadowRadius: 14,
-                            shadowOffset: { width: 0, height: 6 },
-                            elevation: 8,
-                            // Looks disabled at the cap but stays tappable to open
-                            // the limit/upsell sheet.
-                            opacity: limitReached ? 0.7 : 1,
-                        }}
-                        textColor={accent}
-                        icon={<Swords size={22} color={accent} />}
-                    >
-                        {creating
-                            ? t('challenge.creating')
-                            : t('challenge.createWithCount', { count: createdToday, cap })}
-                    </Button>
-                </Stack>
+                <View style={tabletColumn}>
+                    <Stack gap='sm'>
+                        {/* At zero runs the Start button keeps its accent look but
+                            swaps the play glyph for a lock; it stays tappable to
+                            open the limit/upsell sheet. */}
+                        <Button
+                            fullWidth
+                            size='lg'
+                            onPress={onStart}
+                            style={{
+                                backgroundColor: accent,
+                                borderColor: accent,
+                                shadowColor: accent,
+                                shadowOpacity: 0.35,
+                                shadowRadius: 16,
+                                shadowOffset: { width: 0, height: 6 },
+                                elevation: 8,
+                                opacity: runsLeft <= 0 ? 0.7 : 1,
+                            }}
+                            textColor={onAccent}
+                            icon={
+                                runsLeft <= 0 ? (
+                                    <Lock size={iconSize(20)} color={onAccent} />
+                                ) : (
+                                    <Play size={iconSize(20)} color={onAccent} fill={onAccent} />
+                                )
+                            }
+                        >
+                            {runsLeft === 1 ? t('offline.startLastRun') : t('offline.start')}
+                        </Button>
+                        <Button
+                            fullWidth
+                            onPress={onCreateChallenge}
+                            disabled={creating}
+                            style={{
+                                backgroundColor: blend(accent, theme.colors.background, 0.22),
+                                borderColor: accent,
+                                borderWidth: 1.5,
+                                shadowColor: accent,
+                                shadowOpacity: 0.3,
+                                shadowRadius: 14,
+                                shadowOffset: { width: 0, height: 6 },
+                                elevation: 8,
+                                // Looks disabled at the cap but stays tappable to open
+                                // the limit/upsell sheet.
+                                opacity: limitReached ? 0.7 : 1,
+                            }}
+                            textColor={accent}
+                            icon={<Swords size={iconSize(22)} color={accent} />}
+                        >
+                            {creating
+                                ? t('challenge.creating')
+                                : t('challenge.createWithCount', { count: createdToday, cap })}
+                        </Button>
+                    </Stack>
+                </View>
             </View>
 
             <BottomSheet
@@ -516,7 +530,7 @@ export function GameSetupScreen() {
                 title={t('challenge.limit.title')}
             >
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
+                    <Text variant='body' color='textSecondary' align='center' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
                         {t('challenge.limit.body')}
                     </Text>
                     {canUpsell(ownedIds, isPremium) && (
@@ -547,7 +561,7 @@ export function GameSetupScreen() {
                 title={t('offline.limit.title')}
             >
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='left' style={styles.limitBody}>
+                    <Text variant='body' color='textSecondary' align='left' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
                         {t('offline.limit.body', {
                             count: dailyAllowance(ownedIds),
                             bonus: BONUS_RUNS_PER_LEVEL,
@@ -625,7 +639,6 @@ const styles = StyleSheet.create({
         // dynamic spacing moved
     },
     navBar: {
-        marginLeft: -8,
     },
     navTitle: {
         flex: 1,
@@ -634,8 +647,6 @@ const styles = StyleSheet.create({
         // dynamic spacing moved
     },
     mainIconContainer: {
-        width: 100,
-        height: 100,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -649,12 +660,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0,
     },
     limitBody: {
-        marginBottom: 4,
     },
     dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
     },
     rulesText: {
         lineHeight: 24,

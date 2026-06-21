@@ -13,6 +13,7 @@ import { useStore } from '../../hooks/store/useStore';
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '../../data/store/subscription';
 import { auroraTheme } from '../../theme/themes';
 import { ThemePreview } from './ThemePreview';
+import { useResponsive } from '../../responsive/useResponsive';
 
 /** Where the OS lets the user manage / cancel an active subscription. */
 const MANAGE_URL = Platform.select({
@@ -31,18 +32,19 @@ const PERK_KEYS = [
 function PerksList({ accent }: { accent: string }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     return (
         <View
             style={[
                 styles.perks,
-                { backgroundColor: accent + '12', borderColor: accent + '30', borderRadius: theme.radii.lg },
+                { padding: scale(20), gap: theme.spacing.lg, backgroundColor: accent + '12', borderColor: accent + '30', borderRadius: theme.radii.lg },
             ]}
         >
             {PERK_KEYS.map((key, i) => {
                 const PerkIcon = PERK_ICONS[i];
                 return (
-                    <View key={key} style={styles.perkRow}>
-                        <PerkIcon size={20} color={accent} />
+                    <View key={key} style={[styles.perkRow, { gap: theme.spacing.md }]}>
+                        <PerkIcon size={iconSize(20)} color={accent} />
                         <Text variant='body' color={theme.colors.textSecondary} style={styles.perkText}>
                             {t(key)}
                         </Text>
@@ -66,15 +68,17 @@ function PlanCard({
 }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale } = useResponsive();
     const accent = theme.colors.primary;
     const isAnnual = plan.id === 'annual';
     return (
-        <Pressable onPress={onPress} haptic='light' style={styles.planPressable}>
+        <Pressable onPress={onPress} haptic='light' style={[styles.planPressable, { marginBottom: scale(10) }]}>
             <View
                 pointerEvents='none'
                 style={[
                     styles.planCard,
                     {
+                        padding: theme.spacing.lg,
                         borderRadius: theme.radii.lg,
                         borderColor: selected ? accent : theme.colors.border,
                         borderWidth: selected ? 2 : 1,
@@ -82,7 +86,7 @@ function PlanCard({
                     },
                 ]}
             >
-                <View style={styles.planText}>
+                <View style={[styles.planText, { gap: theme.spacing.xs }]}>
                     <Text variant='body' weight='bold'>
                         {t(plan.titleKey)}
                     </Text>
@@ -91,7 +95,7 @@ function PlanCard({
                     </Text>
                 </View>
                 {isAnnual && (
-                    <View style={[styles.saveBadge, { backgroundColor: theme.colors.success + '1F' }]}>
+                    <View style={[styles.saveBadge, { paddingHorizontal: scale(10), paddingVertical: scale(6), borderRadius: scale(10), backgroundColor: theme.colors.success + '1F' }]}>
                         <Text variant='caption' weight='bold' color={theme.colors.success}>
                             {t('screen.store.premium.bestValue')}
                         </Text>
@@ -107,6 +111,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
     const theme = useTheme();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const { iconSize, scale } = useResponsive();
     const { isPremium, subscribePremium, isProcessing, subscriptionPriceByPlanId } = useStore();
     const accent = theme.colors.primary;
     const [selected, setSelected] = useState<'monthly' | 'annual'>('annual');
@@ -136,6 +141,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                 contentContainerStyle={[
                     styles.scrollContent,
                     {
+                        paddingTop: theme.spacing.sm,
                         paddingHorizontal: theme.spacing.xl,
                         // The floating CTA overlaps the scroll, so we pad by its
                         // measured height to let the last content (the theme
@@ -149,10 +155,17 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                     <View
                         style={[
                             styles.crown,
-                            { backgroundColor: accent + '18', borderRadius: theme.radii.xl, borderColor: accent + '33' },
+                            {
+                                backgroundColor: theme.colors.surface,
+                                borderColor: accent + '40',
+                                borderWidth: 2,
+                                width: scale(80),
+                                height: scale(80),
+                                borderRadius: scale(28),
+                            },
                         ]}
                     >
-                        <Crown size={32} color={accent} />
+                        <Crown size={iconSize(36)} color={accent} />
                     </View>
                     <Spacer size='md' />
                     <Text variant='heading' weight='bold' align='center'>
@@ -173,10 +186,10 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         <View
                             style={[
                                 styles.activeNotice,
-                                { backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
+                                { padding: scale(18), borderRadius: 9999, backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
                             ]}
                         >
-                            <Check size={20} color={theme.colors.success} />
+                            <Check size={iconSize(20)} color={theme.colors.success} />
                             <Spacer size='sm' direction='horizontal' />
                             <Text variant='body' weight='bold' color={theme.colors.success}>
                                 {t('screen.store.premium.active')}
@@ -219,6 +232,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                 style={[
                     styles.footer,
                     {
+                        paddingTop: theme.spacing.lg,
                         paddingHorizontal: theme.spacing.xl,
                         paddingBottom: insets.bottom + theme.spacing.sm,
                     },
@@ -230,11 +244,16 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         size='lg'
                         fullWidth
                         onPress={() => Linking.openURL(MANAGE_URL)}
-                        icon={<Settings size={20} color={accent} />}
+                        icon={<Settings size={iconSize(20)} color={accent} />}
                         style={{
                             backgroundColor: blend(accent, theme.colors.background, 0.22),
                             borderColor: accent,
                             borderWidth: 1.5,
+                            shadowColor: accent,
+                            shadowOpacity: 0.3,
+                            shadowRadius: 14,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 8,
                         }}
                         textColor={accent}
                     >
@@ -247,7 +266,15 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         fullWidth
                         onPress={onSubscribe}
                         loading={isProcessing}
-                        style={{ backgroundColor: accent, borderColor: accent }}
+                        style={{
+                            backgroundColor: accent,
+                            borderColor: accent,
+                            shadowColor: accent,
+                            shadowOpacity: 0.35,
+                            shadowRadius: 16,
+                            shadowOffset: { width: 0, height: 6 },
+                            elevation: 8,
+                        }}
                         textColor={getContrastColor(accent)}
                     >
                         {t('screen.store.premium.subscribe')}
@@ -266,34 +293,27 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingTop: 8,
     },
     footer: {
         position: 'absolute',
         left: 0,
         right: 0,
         bottom: 0,
-        paddingTop: 16,
     },
     hero: {
         alignItems: 'center',
     },
     crown: {
-        width: 64,
-        height: 64,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
     },
     perks: {
-        borderWidth: 1,
-        padding: 16,
-        gap: 14,
+        borderWidth: 0,
     },
     perkRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
     },
     perkText: {
         flex: 1,
@@ -305,28 +325,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     planPressable: {
-        marginBottom: 10,
     },
     planCard: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
     },
     planText: {
-        gap: 4,
     },
     saveBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
     },
     activeNotice: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 18,
-        borderRadius: 9999,
         borderWidth: 1,
     },
 });

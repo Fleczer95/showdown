@@ -1,16 +1,15 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useResponsive } from '../../responsive/useResponsive';
 
 /** Short accent-colored tab centered atop a question/puzzle card. */
 function AccentTab({ color }: { color: string }) {
-    return <View style={[styles.tab, { backgroundColor: color }]} />;
+    const { scale } = useResponsive();
+    return <View style={[styles.tab, { backgroundColor: color, width: scale(40), height: scale(4), borderRadius: scale(2) }]} />;
 }
 
 const styles = StyleSheet.create({
     tab: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
         alignSelf: 'center',
     },
 });

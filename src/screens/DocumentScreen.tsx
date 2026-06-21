@@ -24,7 +24,7 @@ export function DocumentScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'privacyPolicy' | 'termsOfUse'>>();
-    const { scale } = useResponsive();
+    const { scale, tabletColumn, iconSize } = useResponsive();
 
     // Use route name as document key ('privacyPolicy' or 'termsOfUse')
     const documentKey = route.name;
@@ -48,15 +48,16 @@ export function DocumentScreen() {
     const lastUpdated = t(`screen.${documentKey}.lastUpdated` as any, { lastUpdated: '2026-05-31', defaultValue: '' });
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View
                 style={[
                     styles.header,
+                    tabletColumn,
                     { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md },
                 ]}
             >
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
                     size='md'
                     accessibilityLabel={t('screen.settings.back')}
@@ -64,7 +65,7 @@ export function DocumentScreen() {
                 <Text variant='heading' weight='bold' style={styles.headerTitle} numberOfLines={1}>
                     {title}
                 </Text>
-                <View style={{ width: 44 }} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             <ScrollView
@@ -72,6 +73,7 @@ export function DocumentScreen() {
                 style={styles.scroll}
                 contentContainerStyle={[
                     styles.scrollContent,
+                    tabletColumn,
                     {
                         paddingHorizontal: theme.spacing.xl, // approx 20
                         paddingBottom: theme.spacing.xxl + theme.spacing.sm, // approx 40

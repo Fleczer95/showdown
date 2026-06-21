@@ -23,8 +23,9 @@ export interface IndexBadgeProps {
  * Setup). Carries the per-game accent in active play screens and recolors to
  * success/error on reveal, giving answer options a bold, on-brand index marker.
  */
-function IndexBadge({ label, accent, state = 'default', size = 40, testID }: IndexBadgeProps) {
+function IndexBadge({ label, accent, state = 'default', size: overrideSize, testID }: IndexBadgeProps) {
     const t = useTheme();
+    const size = overrideSize ?? (t.typography.lineHeight.xl + t.spacing.sm);
 
     const stateFill = { correct: t.colors.success, wrong: t.colors.error, muted: t.colors.surfaceVariant };
     const fill = stateFill[state as keyof typeof stateFill] ?? accent;
@@ -36,7 +37,7 @@ function IndexBadge({ label, accent, state = 'default', size = 40, testID }: Ind
             testID={testID}
             pointerEvents='none'
         >
-            <Text variant='subheading' weight='bold' color={glyph}>
+            <Text variant='subheading' weight='bold' color={glyph} align='center' style={{ lineHeight: size }}>
                 {label}
             </Text>
         </View>

@@ -29,6 +29,7 @@ import {
     type LucideIcon,
 } from 'lucide-react-native';
 import type { RootStackParamList } from '../navigation/types';
+import { useResponsive } from '../responsive/useResponsive';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -119,6 +120,7 @@ export function ProgressScreen() {
     const route = useRoute<ProgressScreenProps['route']>();
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { tabletColumn, iconSize, scale } = useResponsive();
     const { level, progress, unlockedRewards, achievements, stats } = useProgression();
     const [tab, setTab] = useState<ProgressTab>('map');
     const [selected, setSelected] = useState<SelectedAchievement>(null);
@@ -149,10 +151,10 @@ export function ProgressScreen() {
     );
 
     return (
-        <SafeContainer edges={['top', 'bottom']}>
+        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
                     size='md'
                     accessibilityLabel={t('common.back')}
@@ -160,12 +162,12 @@ export function ProgressScreen() {
                 <Text variant='subheading' weight='bold'>
                     {t('progression.title')}
                 </Text>
-                <View style={styles.headerSpacer} />
+                <View style={{ width: scale(44) }} />
             </View>
 
             {/* Level summary + tabs (fixed above the scrollable section) */}
             <View
-                style={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }}
+                style={[{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }, tabletColumn]}
             >
                 <Card variant='elevated' padding='lg'>
                     <Stack gap='sm'>
@@ -201,12 +203,15 @@ export function ProgressScreen() {
 
             <ScrollView
                 ref={scrollRef}
-                contentContainerStyle={{
-                    paddingHorizontal: theme.spacing.xl,
-                    paddingTop: theme.spacing.md,
-                    paddingBottom: theme.spacing.xxl,
-                    gap: theme.spacing.sm,
-                }}
+                contentContainerStyle={[
+                    {
+                        paddingHorizontal: theme.spacing.xl,
+                        paddingTop: theme.spacing.md,
+                        paddingBottom: theme.spacing.xxl,
+                        gap: theme.spacing.sm,
+                    },
+                    tabletColumn,
+                ]}
                 showsVerticalScrollIndicator={false}
             >
                 {tab === 'map' &&
@@ -233,6 +238,8 @@ export function ProgressScreen() {
                                         style={[
                                             styles.levelPip,
                                             {
+                                                width: scale(40),
+                                                height: scale(40),
                                                 borderRadius: theme.radii.full,
                                                 backgroundColor: reached ? accent : hexToRgba(theme.colors.text, 0.08),
                                             },
@@ -255,7 +262,7 @@ export function ProgressScreen() {
                                         </Text>
                                         {isReward ? (
                                             <Stack direction='horizontal' gap='xs' align='center'>
-                                                {sig ? <Glyph emoji={sig.emoji} size={14} /> : null}
+                                                {sig ? <Glyph emoji={sig.emoji} size={iconSize(14)} /> : null}
                                                 <Text variant='caption' color='textMuted'>
                                                     {sig
                                                         ? `${t('progression.rewardSignature')}: ${rewardName}`
@@ -271,11 +278,11 @@ export function ProgressScreen() {
                                     {isReward ? (
                                         <Icon
                                             name={reached && unlockedRewards.has(node.rewardId!) ? Sparkles : Lock}
-                                            size={18}
+                                            size={iconSize(18)}
                                             color={reached ? accent : theme.colors.textMuted}
                                         />
                                     ) : reached ? (
-                                        <Icon name={Check} size={18} color={accent} />
+                                        <Icon name={Check} size={iconSize(18)} color={accent} />
                                     ) : null}
                                 </Stack>
                             </Card>
@@ -326,6 +333,8 @@ export function ProgressScreen() {
                                                             style={[
                                                                 styles.tierPip,
                                                                 {
+                                                                    width: scale(10),
+                                                                    height: scale(10),
                                                                     borderRadius: theme.radii.full,
                                                                     backgroundColor:
                                                                         prog.earnedTiers > i
@@ -355,7 +364,7 @@ export function ProgressScreen() {
                         <Text variant='caption' weight='bold' color='textMuted'>
                             {t('progression.feats')}
                         </Text>
-                        <View style={styles.grid}>
+                        <View style={[styles.grid, { gap: theme.spacing.sm }]}>
                             {ONE_OFF_IDS.map((id) => {
                                 const done = achievements.has(id);
                                 return (
@@ -369,13 +378,14 @@ export function ProgressScreen() {
                                             padding='md'
                                             style={[
                                                 styles.badgeCard,
+                                                { minHeight: scale(92) },
                                                 done ? { borderColor: accent } : { opacity: 0.55 },
                                             ]}
                                         >
                                             <Stack gap='xs' align='center'>
                                                 <Icon
                                                     name={done ? (ONEOFF_ICONS[id] ?? Sparkles) : Lock}
-                                                    size={22}
+                                                    size={iconSize(22)}
                                                     color={done ? accent : theme.colors.textMuted}
                                                 />
                                                 <Text
@@ -396,7 +406,7 @@ export function ProgressScreen() {
                         <Text variant='caption' weight='bold' color='textMuted'>
                             {t('progression.signaturesTitle')}
                         </Text>
-                        <View style={styles.grid}>
+                        <View style={[styles.grid, { gap: theme.spacing.sm }]}>
                             {SIGNATURES.map((s) => {
                                 const earned = unlockedRewards.has(s.id);
                                 return (
@@ -406,14 +416,15 @@ export function ProgressScreen() {
                                             padding='md'
                                             style={[
                                                 styles.badgeCard,
+                                                { minHeight: scale(92) },
                                                 earned ? { borderColor: accent } : { opacity: 0.55 },
                                             ]}
                                         >
                                             <Stack gap='xs' align='center'>
                                                 {earned ? (
-                                                    <Glyph emoji={s.emoji} size={26} />
+                                                    <Glyph emoji={s.emoji} size={iconSize(26)} />
                                                 ) : (
-                                                    <Icon name={Lock} size={22} color={theme.colors.textMuted} />
+                                                    <Icon name={Lock} size={iconSize(22)} color={theme.colors.textMuted} />
                                                 )}
                                                 <Text
                                                     variant='caption'
@@ -452,31 +463,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    headerSpacer: {
-        width: 44,
-    },
     levelPip: {
-        width: 40,
-        height: 40,
         alignItems: 'center',
         justifyContent: 'center',
     },
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
     },
     badge: {
         width: '31%',
     },
     badgeCard: {
-        minHeight: 92,
         alignItems: 'center',
         justifyContent: 'center',
     },
     tierPip: {
-        width: 10,
-        height: 10,
     },
 });
 

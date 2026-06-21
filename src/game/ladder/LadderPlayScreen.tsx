@@ -38,6 +38,7 @@ import { useSound } from '../../hooks/useSound';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useStore } from '../../hooks/store/useStore';
 import { getOwnedPackContent } from '../../data/store/packContent';
+import { useResponsive } from '../../responsive/useResponsive';
 import {
     buildRun,
     applyAnswer,
@@ -106,6 +107,7 @@ export default function LadderPlayScreen({
 
     const { play } = useSound();
     const haptics = useHaptics();
+    const { tabletColumn, isTablet } = useResponsive();
 
     const [run, setRun] = useState<LadderRun>(
         () => challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
@@ -282,15 +284,15 @@ export default function LadderPlayScreen({
                 { padding: theme.spacing.lg, paddingBottom: theme.spacing.xxl + theme.spacing.lg },
             ]}
         >
-            <Stack gap='lg'>
+            <Stack gap='lg' style={tabletColumn}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center'>
-                        <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16) }]}>
-                            <Text variant='overline' color={accent} weight='bold'>
+                        <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16), paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs }]}>
+                            <Text variant='overline' color={accent} weight='bold' style={{ flexShrink: 1 }}>
                                 {`${t('game.the-ladder.active.question', { number: run.currentIndex + 1 })} / ${RUN_LENGTH}`}
                             </Text>
                         </View>
-                        <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
+                        <Button variant='ghost' size={isTablet ? 'md' : 'sm'} style={{ flexShrink: 1 }} onPress={() => setShowLeaveConfirm(true)}>
                             {t('game.the-ladder.active.leave')}
                         </Button>
                     </Stack>
@@ -435,6 +437,8 @@ function AnswerOption({
 }) {
     const reduceMotion = useReducedMotion();
     const { springBouncy, spring } = useAnimationPresets();
+    const theme = useTheme();
+    const { iconSize } = useResponsive();
     const pop = useSharedValue(1);
     // A slow heartbeat throb while the answer is locked but unjudged — the visual
     // half of the suspense beat (haptic heartbeats run in parallel on the screen).
@@ -483,13 +487,13 @@ function AnswerOption({
             >
                 <Stack direction='horizontal' gap='md' align='center' justify='between'>
                     <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                        <IndexBadge label={letter} accent={accent} state={badgeState} size={36} />
+                        <IndexBadge label={letter} accent={accent} state={badgeState} size={theme.typography.lineHeight.xl + theme.spacing.xs} />
                         <Text variant='body' weight='semibold' style={styles.answerText}>
                             {label}
                         </Text>
                     </Stack>
-                    {revealCorrect ? <Icon name={Check} size={20} color={success} /> : null}
-                    {revealWrong ? <Icon name={X} size={20} color={error} /> : null}
+                    {revealCorrect ? <Icon name={Check} size={iconSize(20)} color={success} /> : null}
+                    {revealWrong ? <Icon name={X} size={iconSize(20)} color={error} /> : null}
                 </Stack>
             </Card>
         </Animated.View>
@@ -516,6 +520,13 @@ function LifelineChip({
     available: boolean;
     onPress: () => void;
 }) {
+    const theme = useTheme();
+    const { scale, iconSize } = useResponsive();
+    // Reserve a constant two-line height for the label so every chip's content
+    // block is the same height regardless of how the label wraps — this keeps
+    // the stacked icons aligned on a single baseline across all chips. The
+    // line-height token already scales for tablet via the theme.
+    const labelHeight = theme.typography.lineHeight.sm * 2;
     return (
         <View style={styles.chipCol}>
             <Pressable
@@ -526,6 +537,11 @@ function LifelineChip({
                 style={[
                     styles.chip,
                     {
+                        // Chip box + padding grow with the device so the larger
+                        // tablet text/icon don't get cramped against the edges.
+                        height: scale(84),
+                        paddingHorizontal: scale(8),
+                        borderRadius: scale(16),
                         borderColor: available ? accent : border,
                         backgroundColor: available ? hexToRgba(accent, 0.12) : surfaceVariant,
                         opacity: available ? 1 : 0.5,
@@ -533,16 +549,18 @@ function LifelineChip({
                 ]}
             >
                 <Stack gap='xs' align='center'>
-                    <Icon name={icon} size={22} color={available ? accent : textMuted} />
-                    <Text
-                        variant='caption'
-                        weight='semibold'
-                        align='center'
-                        color={available ? accent : textMuted}
-                        numberOfLines={2}
-                    >
-                        {label}
-                    </Text>
+                    <Icon name={icon} size={iconSize(22)} color={available ? accent : textMuted} />
+                    <View style={{ height: labelHeight, justifyContent: 'center' }}>
+                        <Text
+                            variant='caption'
+                            weight='semibold'
+                            align='center'
+                            color={available ? accent : textMuted}
+                            numberOfLines={2}
+                        >
+                            {label}
+                        </Text>
+                    </View>
                 </Stack>
             </Pressable>
         </View>
@@ -565,16 +583,19 @@ function AudienceResult({
 }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     const leading = percentages.indexOf(Math.max(...percentages));
     // Hidden options carry 0%; show only the options the crowd actually voted on.
     const rows = percentages.map((value, index) => ({ value, index })).filter((r) => r.value > 0);
+
+    const badgeSize = theme.typography.lineHeight.md + theme.spacing.xs * 1.5; // ~28 on mobile
 
     return (
         <Animated.View entering={reduceMotion ? undefined : springEnter()}>
             <Card variant='flat' padding='md' gap='md'>
                 <Stack direction='horizontal' gap='sm' align='center'>
-                    <View style={styles.audienceHeaderIcon}>
-                        <Icon name={Users} size={18} color={accent} />
+                    <View style={[styles.audienceHeaderIcon, { width: scale(28) }]}>
+                        <Icon name={Users} size={iconSize(18)} color={accent} />
                     </View>
                     <Text variant='overline' weight='bold' color={accent}>
                         {t('game.the-ladder.audience.title')}
@@ -583,8 +604,8 @@ function AudienceResult({
                 <Stack gap='sm'>
                     {rows.map((row, order) => (
                         <Stack key={row.index} direction='horizontal' gap='sm' align='center'>
-                            <View style={[styles.audienceBadge, { backgroundColor: accent, borderRadius: theme.radii.md }]}>
-                                <Text variant='body' weight='bold' color={readableOn(accent)} style={styles.audienceBadgeText}>
+                            <View style={[styles.audienceBadge, { backgroundColor: accent, borderRadius: theme.radii.md, width: badgeSize, height: badgeSize }]}>
+                                <Text variant='body' weight='bold' color={readableOn(accent)} align='center' style={{ lineHeight: badgeSize }}>
                                     {String.fromCharCode(65 + row.index)}
                                 </Text>
                             </View>
@@ -602,7 +623,7 @@ function AudienceResult({
                                 variant='caption'
                                 weight={row.index === leading ? 'bold' : 'semibold'}
                                 color={row.index === leading ? accent : 'textSecondary'}
-                                style={styles.audiencePct}
+                                style={[styles.audiencePct, { width: scale(42) }]}
                             >
                                 {`${row.value}%`}
                             </Text>
@@ -630,6 +651,7 @@ function AudienceBar({
     delay: number;
     reduceMotion: boolean;
 }) {
+    const { scale } = useResponsive();
     const width = useSharedValue(reduceMotion ? value : 0);
 
     useEffect(() => {
@@ -639,9 +661,9 @@ function AudienceBar({
     const fillStyle = useAnimatedStyle(() => ({ width: `${width.value}%` }));
 
     return (
-        <View style={[styles.audienceTrack, { backgroundColor: track }]}>
+        <View style={[styles.audienceTrack, { backgroundColor: track, height: scale(12), borderRadius: scale(6) }]}>
             <Animated.View
-                style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5 }]}
+                style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5, borderRadius: scale(6) }]}
             />
         </View>
     );
@@ -665,9 +687,10 @@ function GameOverView({
     onExit: () => void;
 }) {
     const { t, locale } = useTranslation();
+    const theme = useTheme();
 
     return (
-        <ScrollView style={styles.flex} contentContainerStyle={styles.center} keyboardShouldPersistTaps='handled'>
+        <ScrollView style={styles.flex} contentContainerStyle={[styles.center, { padding: theme.spacing.xl }]} keyboardShouldPersistTaps='handled'>
             <GameOverCard gameId={GAME_ID}>
                 {({ accent, onAccent }) => (
                     <>
@@ -725,31 +748,22 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     counterPill: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
+        flexShrink: 1,
         borderRadius: 999,
         alignSelf: 'flex-start',
     },
     audienceHeaderIcon: {
-        width: 28,
         alignItems: 'center',
     },
     audienceBadge: {
-        width: 28,
-        height: 28,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    audienceBadgeText: {
-        textAlign: 'center',
     },
     audienceBarSlot: {
         flex: 1,
     },
     audienceTrack: {
         width: '100%',
-        height: 12,
-        borderRadius: 6,
         overflow: 'hidden',
     },
     audienceFill: {
@@ -757,7 +771,6 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     audiencePct: {
-        width: 42,
         textAlign: 'right',
     },
     chipCol: {
@@ -766,9 +779,6 @@ const styles = StyleSheet.create({
     chip: {
         width: '100%',
         borderWidth: 2,
-        borderRadius: 16,
-        paddingHorizontal: 8,
-        height: 84,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -776,6 +786,5 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
     },
 });

@@ -14,6 +14,7 @@ import Animated, {
 import { useTheme, useAnimationPresets } from '../../theme';
 import { useTranslation } from '../../i18n';
 import type { ColorToken } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export interface CircularTimerProps {
     /** Timer duration in seconds */
@@ -50,9 +51,12 @@ function CircularTimer({
     const t = useTheme();
     const { t: translate } = useTranslation();
     const { pulse } = useAnimationPresets();
-    const cx = size / 2;
-    const cy = size / 2;
-    const radius = size / 2 - STROKE_WIDTH;
+    const { scale } = useResponsive();
+    
+    const scaledSize = scale(size);
+    const cx = scaledSize / 2;
+    const cy = scaledSize / 2;
+    const radius = scaledSize / 2 - STROKE_WIDTH;
     const circumference = 2 * Math.PI * radius;
 
     const progress = useSharedValue(1);
@@ -183,11 +187,11 @@ function CircularTimer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const fontSize = Math.round(size * 0.22);
+    const fontSize = Math.round(scaledSize * 0.22);
 
     return (
         <View
-            style={[styles.container, { width: size, height: size }]}
+            style={[styles.container, { width: scaledSize, height: scaledSize }]}
             testID={testID}
             accessible
             accessibilityLabel={accessibilityLabel ?? translate('common.timer')}
@@ -223,7 +227,7 @@ function CircularTimer({
             </Animated.View>
             {/* Timer label — overlaid via RN Animated.Text for proper text rendering */}
             {showLabel && (
-                <View style={[styles.label, { width: size, height: size }]}>
+                <View style={[styles.label, { width: scaledSize, height: scaledSize }]}>
                     <Animated.Text
                         style={[
                             styles.labelText,

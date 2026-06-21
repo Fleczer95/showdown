@@ -7,9 +7,9 @@ export type CardVariant = 'elevated' | 'outlined' | 'flat' | 'glass';
 
 export interface CardProps {
     variant?: CardVariant;
-    padding?: 'sm' | 'md' | 'lg' | 'none';
+    padding?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'none';
     /** Gap between children */
-    gap?: 'sm' | 'md' | 'lg';
+    gap?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
     style?: View['props']['style'];
     children?: React.ReactNode;
     testID?: string;

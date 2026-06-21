@@ -22,6 +22,7 @@ import {
     type LeaderboardEntry,
 } from '../../game/leaderboard';
 import { signatureEmoji } from '../../game/progression';
+import { useResponsive } from '../../responsive/useResponsive';
 
 interface LeaderboardProps {
     gameId: string;
@@ -35,6 +36,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const reduceMotion = useReducedMotion();
+    const { scale, iconSize } = useResponsive();
 
     const [board, setBoard] = useState<LeaderboardEntry[]>(() => getBoard(gameId));
     const [nickname, setNickname] = useState<string>(() => getLastNickname());
@@ -98,11 +100,11 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                             },
                         ]}
                     >
-                        <View style={[styles.rankBadge, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
+                        <View style={[styles.rankBadge, { width: scale(32), height: scale(32), borderRadius: scale(16) }, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
                             {rank === 1 ? (
-                                <Icon name={Crown} size={16} color={rankColor} />
+                                <Icon name={Crown} size={iconSize(16)} color={rankColor} />
                             ) : rank === 2 || rank === 3 ? (
-                                <Icon name={Medal} size={16} color={rankColor} />
+                                <Icon name={Medal} size={iconSize(16)} color={rankColor} />
                             ) : (
                                 <Text variant="caption" weight="bold" color="textMuted">
                                     {rank}
@@ -112,7 +114,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                         
                         <View style={styles.nameCol}>
                             <View style={styles.nameLine}>
-                                {sig ? <Glyph emoji={sig} size={16} /> : null}
+                                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                                 <Text
                                     variant='body'
                                     weight={highlighted ? 'bold' : 'semibold'}
@@ -224,9 +226,6 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     rankBadge: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },

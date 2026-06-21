@@ -105,9 +105,9 @@ export default function WheelPlayScreen({
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
-    const { tabletColumn, isTablet } = useResponsive();
-    const wheelSize = isTablet ? 400 : 240;
-    const keySize = isTablet ? 56 : 44;
+    const { tabletColumn, scale, iconSize } = useResponsive();
+    const wheelSize = scale(240);
+    const keySize = scale(44);
 
     // Owned premium pack puzzles, localized, merged into the puzzle pool.
     const { purchasedItemIds } = useStore();
@@ -643,8 +643,7 @@ export default function WheelPlayScreen({
                         <Stack gap='sm' align='center'>
                             <View style={[
                                 styles.pointer, 
-                                { borderTopColor: accent },
-                                isTablet && { borderLeftWidth: 14, borderRightWidth: 14, borderTopWidth: 26 }
+                                { borderTopColor: accent, borderLeftWidth: scale(10), borderRightWidth: scale(10), borderTopWidth: scale(18) },
                             ]} />
                             <Animated.View style={[
                                 styles.wheel, 
@@ -684,7 +683,8 @@ export default function WheelPlayScreen({
                                         style={[
                                             styles.powerChip,
                                             {
-                                                height: 20 + i * 12,
+                                                width: scale(44),
+                                                height: scale(20 + i * 12),
                                                 borderColor: accent,
                                                 backgroundColor: hexToRgba(accent, 0.16),
                                             },
@@ -868,7 +868,7 @@ export default function WheelPlayScreen({
                                 >
                                     <Icon
                                         name={Delete}
-                                        size={22}
+                                        size={iconSize(22)}
                                         color={filled.length === 0 ? t.colors.textMuted : t.colors.secondary}
                                     />
                                 </Pressable>
@@ -1002,8 +1002,6 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     key: {
-        width: 44,
-        height: 44,
         borderRadius: 8,
         borderWidth: 1.5,
         alignItems: 'center',
@@ -1022,9 +1020,6 @@ const styles = StyleSheet.create({
     pointer: {
         width: 0,
         height: 0,
-        borderLeftWidth: 10,
-        borderRightWidth: 10,
-        borderTopWidth: 18,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
         zIndex: 2,
@@ -1055,7 +1050,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     powerChip: {
-        width: 44,
         borderRadius: 8,
         borderWidth: 1.5,
     },

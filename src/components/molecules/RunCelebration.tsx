@@ -12,6 +12,7 @@ import Confetti from '../../animations/Confetti';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n';
+import { useResponsive } from '../../responsive/useResponsive';
 import { useHaptics } from '../../hooks/useHaptics';
 import {
     recordRun,
@@ -162,6 +163,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const haptics = useHaptics();
+    const { iconSize } = useResponsive();
     const reduceMotion = useReducedMotion();
 
     const [diff, setDiff] = useState<RecordRunDiff | null>(null);
@@ -287,7 +289,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     <Animated.View key={displayLevel} entering={reduceMotion ? undefined : ZoomIn.duration(250)}>
                         {leveledUpNow ? (
                             <Stack direction='horizontal' gap='xs' align='center'>
-                                <Icon name={ArrowUpCircle} size={16} color={accent} />
+                                <Icon name={ArrowUpCircle} size={iconSize(16)} color={accent} />
                                 <Text variant='caption' weight='bold' color={accent}>
                                     {t('progression.levelUp', { n: diff.level })}
                                 </Text>
@@ -333,9 +335,9 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                                 </Text>
                             </Stack>
                             {r.emoji ? (
-                                <Glyph emoji={r.emoji} size={32} />
+                                <Glyph emoji={r.emoji} size={iconSize(32)} />
                             ) : r.IconComp ? (
-                                <Icon name={r.IconComp} size={30} color={r.iconColor ?? accent} />
+                                <Icon name={r.IconComp} size={iconSize(30)} color={r.iconColor ?? accent} />
                             ) : null}
                         </Stack>
                     </Animated.View>
@@ -343,7 +345,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
 
                 {diff.newAchievements.length > 0 ? (
                     <Stack direction='horizontal' gap='xs' align='center'>
-                        <Icon name={Award} size={16} color={accent} />
+                        <Icon name={Award} size={iconSize(16)} color={accent} />
                         <Text variant='caption' weight='semibold'>
                             {`${t('progression.newAchievement')} (${diff.newAchievements.length})`}
                         </Text>

@@ -26,7 +26,7 @@ export function SettingsScreen() {
     const theme = useTheme();
     const { themeId } = useThemeActions();
     const settings = useSettings();
-    const { scale, tabletColumn } = useResponsive();
+    const { scale, tabletColumn, iconSize } = useResponsive();
 
     const handleBack = () => navigation.goBack();
 
@@ -50,7 +50,7 @@ export function SettingsScreen() {
                 ]}
             >
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={handleBack}
                     size='md'
                     accessibilityLabel={t('screen.settings.back')}

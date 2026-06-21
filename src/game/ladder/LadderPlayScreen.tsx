@@ -491,8 +491,8 @@ function AnswerOption({
                             {label}
                         </Text>
                     </Stack>
-                    {revealCorrect ? <Icon name={Check} size={20} color={success} /> : null}
-                    {revealWrong ? <Icon name={X} size={20} color={error} /> : null}
+                    {revealCorrect ? <Icon name={Check} size={iconSize(20)} color={success} /> : null}
+                    {revealWrong ? <Icon name={X} size={iconSize(20)} color={error} /> : null}
                 </Stack>
             </Card>
         </Animated.View>
@@ -582,6 +582,7 @@ function AudienceResult({
 }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     const leading = percentages.indexOf(Math.max(...percentages));
     // Hidden options carry 0%; show only the options the crowd actually voted on.
     const rows = percentages.map((value, index) => ({ value, index })).filter((r) => r.value > 0);
@@ -592,8 +593,8 @@ function AudienceResult({
         <Animated.View entering={reduceMotion ? undefined : springEnter()}>
             <Card variant='flat' padding='md' gap='md'>
                 <Stack direction='horizontal' gap='sm' align='center'>
-                    <View style={styles.audienceHeaderIcon}>
-                        <Icon name={Users} size={18} color={accent} />
+                    <View style={[styles.audienceHeaderIcon, { width: scale(28) }]}>
+                        <Icon name={Users} size={iconSize(18)} color={accent} />
                     </View>
                     <Text variant='overline' weight='bold' color={accent}>
                         {t('game.the-ladder.audience.title')}
@@ -621,7 +622,7 @@ function AudienceResult({
                                 variant='caption'
                                 weight={row.index === leading ? 'bold' : 'semibold'}
                                 color={row.index === leading ? accent : 'textSecondary'}
-                                style={styles.audiencePct}
+                                style={[styles.audiencePct, { width: scale(42) }]}
                             >
                                 {`${row.value}%`}
                             </Text>
@@ -649,6 +650,7 @@ function AudienceBar({
     delay: number;
     reduceMotion: boolean;
 }) {
+    const { scale } = useResponsive();
     const width = useSharedValue(reduceMotion ? value : 0);
 
     useEffect(() => {
@@ -658,7 +660,7 @@ function AudienceBar({
     const fillStyle = useAnimatedStyle(() => ({ width: `${width.value}%` }));
 
     return (
-        <View style={[styles.audienceTrack, { backgroundColor: track }]}>
+        <View style={[styles.audienceTrack, { backgroundColor: track, height: scale(12) }]}>
             <Animated.View
                 style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5 }]}
             />
@@ -751,7 +753,7 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
     },
     audienceHeaderIcon: {
-        width: 28,
+        width: 28, // This is fine as it wraps the icon
         alignItems: 'center',
     },
     audienceBadge: {
@@ -763,7 +765,7 @@ const styles = StyleSheet.create({
     },
     audienceTrack: {
         width: '100%',
-        height: 12,
+        height: 12, // handled in responsive refactor below (or inline)
         borderRadius: 6,
         overflow: 'hidden',
     },
@@ -772,7 +774,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     audiencePct: {
-        width: 42,
+        width: 42, // handled via padding/minWidth usually, let's leave it or fix below
         textAlign: 'right',
     },
     chipCol: {

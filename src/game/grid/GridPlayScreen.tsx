@@ -30,7 +30,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
     const teams = Math.max(2, Math.min(6, players));
     const { t, locale } = useTranslation();
     const { colors, spacing } = useTheme();
-    const { tabletColumn } = useResponsive();
+    const { tabletColumn, iconSize } = useResponsive();
 
     const [state, setState] = useState<GridState>(() => buildBoard(getGridPack('all'), teams));
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
         return (
             <View style={styles.screen}>
                 <Stack gap='xl' align='center' justify='center' flex={1} style={[styles.padded, tabletColumn]}>
-                    <Icon name={Crown} size={56} color={colors.primary} />
+                    <Icon name={Crown} size={iconSize(56)} color={colors.primary} />
                     <Text variant='overline' color='textMuted'>
                         {t('game.the-grid.score.gameOver')}
                     </Text>
@@ -210,7 +210,7 @@ export default function GridPlayScreen({ players, onExit }: GridPlayScreenProps)
                     size='md'
                     fullWidth
                     onPress={() => setShowLeaveConfirm(true)}
-                        icon={<Icon name={X} size={18} color={colors.textSecondary} />}
+                        icon={<Icon name={X} size={iconSize(18)} color={colors.textSecondary} />}
                     >
                         {t('game.the-grid.active.leave')}
                     </Button>
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     headerCell: {
-        minHeight: 48,
+        minHeight: scale(48),
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
     },
     cell: {
-        minHeight: 56,
+        minHeight: scale(56),
         alignItems: 'center',
         justifyContent: 'center',
     },

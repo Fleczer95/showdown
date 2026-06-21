@@ -46,6 +46,7 @@ function formatMonth(monthId: string, locale: string): string {
 function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean; onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { iconSize } = useResponsive();
     const def = games.find((g) => g.id === game);
     const accent = def ? resolveAccent(theme, def.accent) : theme.colors.primary;
     const GameIcon = def ? GAME_ICONS[def.iconName] : null;
@@ -64,7 +65,7 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
                 },
             ]}
         >
-            {GameIcon ? <Icon name={GameIcon} size={24} color={active ? readableOn(accent) : accent} /> : null}
+            {GameIcon ? <Icon name={GameIcon} size={iconSize(24)} color={active ? readableOn(accent) : accent} /> : null}
             <Text variant='caption' weight='bold' color={active ? readableOn(accent) : 'text'} numberOfLines={1}>
                 {t(`game.${game}.name`)}
             </Text>
@@ -75,6 +76,7 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
 function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { iconSize, scale } = useResponsive();
     const sig = signatureEmoji(entry.signature);
     const rankColor = rank <= 3 ? RANK_MEDAL_COLORS[rank as 1 | 2 | 3] : theme.colors.textMuted;
     const isTop3 = rank <= 3;
@@ -97,11 +99,11 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
                 },
             ]}
         >
-            <View style={[styles.rankBadge, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
+            <View style={[styles.rankBadge, { width: scale(32), height: scale(32), borderRadius: scale(16) }, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
                 {rank === 1 ? (
-                    <Icon name={Crown} size={16} color={rankColor} />
+                    <Icon name={Crown} size={iconSize(16)} color={rankColor} />
                 ) : rank === 2 || rank === 3 ? (
-                    <Icon name={Medal} size={16} color={rankColor} />
+                    <Icon name={Medal} size={iconSize(16)} color={rankColor} />
                 ) : (
                     <Text variant="caption" weight="bold" color="textMuted">
                         {rank}
@@ -110,7 +112,7 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
             </View>
             
             <View style={styles.name}>
-                {sig ? <Glyph emoji={sig} size={16} /> : null}
+                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                 <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
                     {entry.nickname}
                 </Text>
@@ -126,6 +128,7 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
 function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
+    const { iconSize } = useResponsive();
     return (
         <View
             style={[
@@ -154,7 +157,7 @@ function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
                 </View>
             ) : (
                 <Pressable onPress={onRetry} haptic='light' style={styles.retry}>
-                    <Icon name={RefreshCw} size={14} color={theme.colors.primary} />
+                    <Icon name={RefreshCw} size={iconSize(14)} color={theme.colors.primary} />
                     <Text variant='caption' weight='bold' color='primary'>
                         {t('ranking.pending')} · {t('ranking.retry')}
                     </Text>
@@ -173,7 +176,7 @@ export function RankingScreen() {
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'Ranking'>>();
     const theme = useTheme();
-    const { tabletColumn } = useResponsive();
+    const { tabletColumn, iconSize } = useResponsive();
     const { t, locale } = useTranslation();
     const reduceMotion = useReducedMotion();
 
@@ -239,7 +242,7 @@ export function RankingScreen() {
         <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
                     size='md'
                     accessibilityLabel={t('common.home')}
@@ -291,7 +294,7 @@ export function RankingScreen() {
                     </View>
                 ) : status === 'offline' || status === 'error' ? (
                     <View style={styles.centered}>
-                        <Icon name={WifiOff} size={36} color={theme.colors.textMuted} />
+                        <Icon name={WifiOff} size={iconSize(36)} color={theme.colors.textMuted} />
                         <Text variant='body' weight='bold' align='center'>
                             {t(status === 'error' ? 'ranking.error' : 'ranking.offline')}
                         </Text>
@@ -301,7 +304,7 @@ export function RankingScreen() {
                         <Button
                             variant='secondary'
                             onPress={load}
-                            icon={<RefreshCw size={18} color={theme.colors.text} />}
+                            icon={<RefreshCw size={iconSize(18)} color={theme.colors.text} />}
                         >
                             {t('ranking.loadRetry')}
                         </Button>
@@ -376,9 +379,6 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     rankBadge: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },

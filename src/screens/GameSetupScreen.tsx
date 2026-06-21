@@ -74,7 +74,7 @@ function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
             ]}
         >
             <Stack direction='horizontal' gap='sm' align='center'>
-                <View style={[styles.dot, { backgroundColor: accent }]} />
+                <View style={[styles.dot, { width: 8, height: 8, borderRadius: 4, backgroundColor: accent }]} />
                 <Text variant='overline' color={accent} weight='bold'>
                     {t('common.how_to_play')}
                 </Text>
@@ -135,7 +135,7 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
         >
             <Stack direction='horizontal' gap='sm' align='center' justify='between'>
                 <Stack direction='horizontal' gap='sm' align='center'>
-                    <View style={[styles.dot, { backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
+                    <View style={[styles.dot, { width: 8, height: 8, borderRadius: 4, backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
                     <Text variant='overline' color={escalated ? accent : 'textMuted'} weight='bold'>
                         {t('screen.gameSetup.pool.title')}
                     </Text>
@@ -182,7 +182,7 @@ export function GameSetupScreen() {
     const { t, locale } = useTranslation();
     const theme = useTheme();
     const { purchasedItemIds, isPremium } = useStore();
-    const { tabletColumn } = useResponsive();
+    const { tabletColumn, iconSize, scale } = useResponsive();
 
     const gameId = (route.params as { gameId: string }).gameId;
     const game = games.find((g) => g.id === gameId) ?? games[0];
@@ -372,7 +372,7 @@ export function GameSetupScreen() {
                     style={[styles.navBar, { paddingVertical: theme.spacing.md }]}
                 >
                     <IconButton
-                        icon={<ChevronLeft size={28} color={theme.colors.text} />}
+                        icon={<ChevronLeft size={iconSize(28)} color={theme.colors.text} />}
                         onPress={() => navigation.goBack()}
                         accessibilityLabel={t('screen.gameSetup.back')}
                     />
@@ -380,7 +380,7 @@ export function GameSetupScreen() {
                         {t('screen.gameSetup.title')}
                     </Text>
                     <IconButton
-                        icon={<Trophy size={28} color={theme.colors.text} />}
+                        icon={<Trophy size={iconSize(28)} color={theme.colors.text} />}
                         onPress={() => setShowLeaderboard(true)}
                         accessibilityLabel={t('leaderboard.view')}
                     />
@@ -391,6 +391,8 @@ export function GameSetupScreen() {
                         style={[
                             styles.mainIconContainer,
                             {
+                                width: scale(100),
+                                height: scale(100),
                                 borderRadius: theme.radii.xl,
                                 marginBottom: theme.spacing.sm,
                                 borderWidth: 1,
@@ -417,11 +419,11 @@ export function GameSetupScreen() {
                                 <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${medallionGradientId})`} />
                             </Svg>
                         </View>
-                        {GameIcon ? <Icon name={GameIcon} size={48} color={onAccent} /> : null}
+                        {GameIcon ? <Icon name={GameIcon} size={iconSize(48)} color={onAccent} /> : null}
                     </View>
                     <Stack gap='xs' align='center'>
                         <Stack direction='horizontal' gap='xs' align='center'>
-                            <Glyph emoji={game.emoji} size={26} />
+                            <Glyph emoji={game.emoji} size={iconSize(26)} />
                             <Text variant='heading' weight='bold' align='center'>
                                 {t(`game.${game.id}.name`)}
                             </Text>
@@ -644,8 +646,6 @@ const styles = StyleSheet.create({
         // dynamic spacing moved
     },
     mainIconContainer: {
-        width: 100,
-        height: 100,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -662,9 +662,6 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
     },
     rulesText: {
         lineHeight: 24,

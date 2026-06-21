@@ -26,6 +26,7 @@ import SegmentedProgress from '../components/molecules/SegmentedProgress';
 function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale, iconSize } = useResponsive();
     const accent = resolveAccent(theme, game.accent);
     const onAccent = readableOn(accent);
     const GameIcon = GAME_ICONS[game.iconName];
@@ -49,7 +50,7 @@ function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
             }}
         >
             <Stack direction='horizontal' gap='lg' align='center'>
-                <View style={[styles.iconContainer, { borderRadius: theme.radii.xl }]}>
+                <View style={[styles.iconContainer, { width: scale(56), height: scale(56), borderRadius: theme.radii.xl }]}>
                     <View style={StyleSheet.absoluteFill} pointerEvents='none'>
                         <Svg width='100%' height='100%'>
                             <Defs>
@@ -61,7 +62,7 @@ function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
                             <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${gradientId})`} />
                         </Svg>
                     </View>
-                    {GameIcon ? <Icon name={GameIcon} size={28} color={onAccent} /> : null}
+                    {GameIcon ? <Icon name={GameIcon} size={iconSize(28)} color={onAccent} /> : null}
                 </View>
                 <Stack gap='xs' flex={1}>
                     <Text variant='heading' weight='bold'>
@@ -72,10 +73,10 @@ function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
                     </Text>
                 </Stack>
                 <View
-                    style={[styles.ctaPill, { backgroundColor: hexToRgba(accent, 0.16), borderRadius: theme.radii.full }]}
+                    style={[styles.ctaPill, { width: scale(40), height: scale(40), backgroundColor: hexToRgba(accent, 0.16), borderRadius: theme.radii.full }]}
                     pointerEvents='none'
                 >
-                    <Icon name={ArrowRight} size={20} color={accent} />
+                    <Icon name={ArrowRight} size={iconSize(20)} color={accent} />
                 </View>
             </Stack>
         </Card>
@@ -130,6 +131,7 @@ function Wordmark() {
 function LevelBar({ onPress }: { onPress: () => void }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { scale } = useResponsive();
     const { level, progress } = useProgression();
     const fill = progress.span > 0 ? Math.max(0, Math.min(1, progress.intoLevel / progress.span)) : 1;
 
@@ -142,6 +144,7 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                 styles.levelBar,
                 theme.shadows.sm,
                 {
+                    height: scale(44),
                     backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderRadius: theme.radii.full,
                     borderWidth: 1,
@@ -149,7 +152,7 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                 },
             ]}
         >
-            <View style={[styles.levelChip, { backgroundColor: theme.colors.primary, borderRadius: theme.radii.full }]}>
+            <View style={[styles.levelChip, { height: scale(28), backgroundColor: theme.colors.primary, borderRadius: theme.radii.full }]}>
                 <Text variant='caption' weight='bold' color={readableOn(theme.colors.primary)}>
                     {t('progression.levelShort', { n: level })}
                 </Text>
@@ -172,7 +175,7 @@ export function HomeScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
-    const { tabletColumn } = useResponsive();
+    const { tabletColumn, iconSize } = useResponsive();
 
     const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
 
@@ -202,13 +205,13 @@ export function HomeScreen() {
                         </View>
                         <View style={styles.headerActions}>
                             <IconButton
-                                icon={<ShoppingBag size={24} color={theme.colors.text} />}
+                                icon={<ShoppingBag size={iconSize(24)} color={theme.colors.text} />}
                                 onPress={() => navigation.navigate('Store')}
                                 size='md'
                                 accessibilityLabel={t('screen.home.store')}
                             />
                             <IconButton
-                                icon={<Settings size={24} color={theme.colors.text} />}
+                                icon={<Settings size={iconSize(24)} color={theme.colors.text} />}
                                 onPress={() => navigation.navigate('Settings')}
                                 size='md'
                                 accessibilityLabel={t('screen.home.settings')}
@@ -241,7 +244,7 @@ export function HomeScreen() {
                         variant='secondary'
                         fullWidth
                         onPress={() => navigation.navigate('ChallengeHistory')}
-                        icon={<Swords size={20} color={theme.colors.text} />}
+                        icon={<Swords size={iconSize(20)} color={theme.colors.text} />}
                         accessibilityLabel={t('screen.home.challenges')}
                     >
                         {t('challenge.history.title')}
@@ -279,13 +282,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
-        height: 44,
         paddingLeft: 8,
         paddingRight: 16,
     },
     levelChip: {
         paddingHorizontal: 12,
-        height: 28,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -293,15 +294,11 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     iconContainer: {
-        width: 56,
-        height: 56,
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
     },
     ctaPill: {
-        width: 40,
-        height: 40,
         alignItems: 'center',
         justifyContent: 'center',
     },

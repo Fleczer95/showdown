@@ -6,6 +6,7 @@ import Icon from '../atoms/Icon';
 import Card from './Card';
 import { useTheme } from '../../theme';
 import { hexToRgba, darken, readableOn, resolveAccent } from '../../theme/colorUtils';
+import { useResponsive } from '../../responsive/useResponsive';
 import { games, GAME_ICONS } from '../../data/games';
 
 interface GameOverCardProps {
@@ -21,6 +22,7 @@ interface GameOverCardProps {
  */
 function GameOverCard({ gameId, children }: GameOverCardProps) {
     const theme = useTheme();
+    const { scale, iconSize } = useResponsive();
     const game = games.find((g) => g.id === gameId) ?? games[0];
     const accent = resolveAccent(theme, game.accent);
     const onAccent = readableOn(accent);
@@ -34,6 +36,7 @@ function GameOverCard({ gameId, children }: GameOverCardProps) {
             style={[
                 styles.card,
                 {
+                    maxWidth: scale(380),
                     borderRadius: theme.radii.xl,
                     borderColor: hexToRgba(accent, 0.5),
                     shadowColor: accent,
@@ -45,7 +48,7 @@ function GameOverCard({ gameId, children }: GameOverCardProps) {
             ]}
         >
             <Stack gap='xl' align='stretch'>
-                <View style={[styles.medallion, { borderRadius: theme.radii.xl }]}>
+                <View style={[styles.medallion, { width: scale(88), height: scale(88), borderRadius: theme.radii.xl }]}>
                     <View
                         style={[StyleSheet.absoluteFill, { borderRadius: theme.radii.xl, overflow: 'hidden' }]}
                         pointerEvents='none'
@@ -60,7 +63,7 @@ function GameOverCard({ gameId, children }: GameOverCardProps) {
                             <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${gradientId})`} />
                         </Svg>
                     </View>
-                    {GameIcon ? <Icon name={GameIcon} size={44} color={onAccent} /> : null}
+                    {GameIcon ? <Icon name={GameIcon} size={iconSize(44)} color={onAccent} /> : null}
                 </View>
                 {children({ accent, onAccent })}
             </Stack>
@@ -71,11 +74,8 @@ function GameOverCard({ gameId, children }: GameOverCardProps) {
 const styles = StyleSheet.create({
     card: {
         width: '100%',
-        maxWidth: 380,
     },
     medallion: {
-        width: 88,
-        height: 88,
         alignSelf: 'center',
         alignItems: 'center',
         justifyContent: 'center',

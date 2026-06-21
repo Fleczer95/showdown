@@ -13,6 +13,7 @@ import { useStore } from '../../hooks/store/useStore';
 import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '../../data/store/subscription';
 import { auroraTheme } from '../../theme/themes';
 import { ThemePreview } from './ThemePreview';
+import { useResponsive } from '../../responsive/useResponsive';
 
 /** Where the OS lets the user manage / cancel an active subscription. */
 const MANAGE_URL = Platform.select({
@@ -31,6 +32,7 @@ const PERK_KEYS = [
 function PerksList({ accent }: { accent: string }) {
     const theme = useTheme();
     const { t } = useTranslation();
+    const { iconSize } = useResponsive();
     return (
         <View
             style={[
@@ -42,7 +44,7 @@ function PerksList({ accent }: { accent: string }) {
                 const PerkIcon = PERK_ICONS[i];
                 return (
                     <View key={key} style={styles.perkRow}>
-                        <PerkIcon size={20} color={accent} />
+                        <PerkIcon size={iconSize(20)} color={accent} />
                         <Text variant='body' color={theme.colors.textSecondary} style={styles.perkText}>
                             {t(key)}
                         </Text>
@@ -107,6 +109,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
     const theme = useTheme();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const { iconSize, scale } = useResponsive();
     const { isPremium, subscribePremium, isProcessing, subscriptionPriceByPlanId } = useStore();
     const accent = theme.colors.primary;
     const [selected, setSelected] = useState<'monthly' | 'annual'>('annual');
@@ -153,13 +156,13 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                                 backgroundColor: theme.colors.surface,
                                 borderColor: accent + '40',
                                 borderWidth: 2,
-                                width: 80,
-                                height: 80,
-                                borderRadius: 28,
+                                width: scale(80),
+                                height: scale(80),
+                                borderRadius: scale(28),
                             },
                         ]}
                     >
-                        <Crown size={36} color={accent} />
+                        <Crown size={iconSize(36)} color={accent} />
                     </View>
                     <Spacer size='md' />
                     <Text variant='heading' weight='bold' align='center'>
@@ -183,7 +186,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                                 { backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
                             ]}
                         >
-                            <Check size={20} color={theme.colors.success} />
+                            <Check size={iconSize(20)} color={theme.colors.success} />
                             <Spacer size='sm' direction='horizontal' />
                             <Text variant='body' weight='bold' color={theme.colors.success}>
                                 {t('screen.store.premium.active')}
@@ -237,7 +240,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         size='lg'
                         fullWidth
                         onPress={() => Linking.openURL(MANAGE_URL)}
-                        icon={<Settings size={20} color={accent} />}
+                        icon={<Settings size={iconSize(20)} color={accent} />}
                         style={{
                             backgroundColor: blend(accent, theme.colors.background, 0.22),
                             borderColor: accent,
@@ -299,8 +302,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     crown: {
-        width: 64,
-        height: 64,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,

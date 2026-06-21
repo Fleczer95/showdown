@@ -24,7 +24,7 @@ export function DocumentScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation();
     const route = useRoute<RouteProp<RootStackParamList, 'privacyPolicy' | 'termsOfUse'>>();
-    const { scale, tabletColumn } = useResponsive();
+    const { scale, tabletColumn, iconSize } = useResponsive();
 
     // Use route name as document key ('privacyPolicy' or 'termsOfUse')
     const documentKey = route.name;
@@ -57,7 +57,7 @@ export function DocumentScreen() {
                 ]}
             >
                 <IconButton
-                    icon={<ChevronLeft size={24} color={theme.colors.text} />}
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={() => navigation.goBack()}
                     size='md'
                     accessibilityLabel={t('screen.settings.back')}

@@ -452,7 +452,7 @@ export default function DropPlayScreen({
                             >
                                 {translate('game.the-drop.active.lockIn')}
                             </Button>
-                            <Button variant='ghost' onPress={() => setShowLeaveConfirm(true)}>
+                            <Button variant='ghost' fullWidth onPress={() => setShowLeaveConfirm(true)}>
                                 {translate('game.the-drop.active.leave')}
                             </Button>
                         </Stack>

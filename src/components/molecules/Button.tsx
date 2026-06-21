@@ -5,6 +5,7 @@ import Text from '../atoms/Text';
 import ActivityIndicator from '../atoms/ActivityIndicator';
 import Stack from '../atoms/Stack';
 import { useTheme } from '../../theme';
+import { useResponsive } from '../../responsive/useResponsive';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -56,6 +57,7 @@ function Button({
     textColor,
 }: ButtonProps) {
     const t = useTheme();
+    const { scale } = useResponsive();
     const v = t.components.button[variant] || t.components.button.primary;
     const padding = sizePadding[size];
     const isDisabled = disabled || loading;
@@ -69,14 +71,14 @@ function Button({
                 paddingVertical: t.spacing[padding.vertical],
                 paddingHorizontal: t.spacing[padding.horizontal],
                 borderRadius: t.radii.md,
-                minWidth: 44,
-                minHeight: 44,
+                minWidth: scale(44),
+                minHeight: scale(44),
                 ...(fullWidth ? { width: '100%' } : {}),
                 ...t.shadows.md,
             },
             style,
         ],
-        [isDisabled, v.bg, v.border, t.spacing, t.radii.md, t.colors, padding, fullWidth, style],
+        [isDisabled, v.bg, v.border, t.spacing, t.radii.md, t.colors, padding, fullWidth, style, scale],
     );
 
     return (

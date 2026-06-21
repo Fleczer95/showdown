@@ -107,7 +107,7 @@ export default function LadderPlayScreen({
 
     const { play } = useSound();
     const haptics = useHaptics();
-    const { tabletColumn } = useResponsive();
+    const { tabletColumn, isTablet } = useResponsive();
 
     const [run, setRun] = useState<LadderRun>(
         () => challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
@@ -288,11 +288,11 @@ export default function LadderPlayScreen({
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center'>
                         <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16) }]}>
-                            <Text variant='overline' color={accent} weight='bold'>
+                            <Text variant='overline' color={accent} weight='bold' style={{ flexShrink: 1 }}>
                                 {`${t('game.the-ladder.active.question', { number: run.currentIndex + 1 })} / ${RUN_LENGTH}`}
                             </Text>
                         </View>
-                        <Button variant='ghost' size='sm' onPress={() => setShowLeaveConfirm(true)}>
+                        <Button variant='ghost' size={isTablet ? 'md' : 'sm'} style={{ flexShrink: 1 }} onPress={() => setShowLeaveConfirm(true)}>
                             {t('game.the-ladder.active.leave')}
                         </Button>
                     </Stack>
@@ -730,6 +730,7 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     counterPill: {
+        flexShrink: 1,
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 999,

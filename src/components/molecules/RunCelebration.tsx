@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Modal } from 'react-native';
-import Animated, { ZoomIn, FadeIn } from 'react-native-reanimated';
+import { View, StyleSheet, Modal, TextInput } from 'react-native';
+import Animated, { ZoomIn, FadeIn, useSharedValue, useAnimatedProps, withTiming, withDelay } from 'react-native-reanimated';
 import { Sparkles, ArrowUpCircle, Award, Trophy, Crown } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
@@ -57,39 +57,73 @@ function rewardReveal(id: string): RewardReveal | null {
     return null;
 }
 
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+
 /** Animated +XP that counts up from 0, kept in its own component so the per-frame
  * state updates don't re-render the rest of the celebration. */
 function CountUpStat({
     total,
     accent,
-    format,
+    prefix,
+    suffix,
+    separator,
 }: {
     total: number;
     accent: string;
-    format: (n: number) => string;
+    prefix: string;
+    suffix: string;
+    separator: string;
 }) {
-    const [shown, setShown] = useState(0);
+    const theme = useTheme();
+    const progress = useSharedValue(0);
 
     useEffect(() => {
         if (total <= 0) {
-            setShown(0);
+            progress.value = 0;
             return;
         }
-        const startAt = Date.now() + 150;
-        let raf = 0;
-        const tick = () => {
-            const p = Math.max(0, Math.min(1, (Date.now() - startAt) / 700));
-            setShown(Math.round(total * p));
-            if (p < 1) raf = requestAnimationFrame(tick);
-        };
-        raf = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(raf);
-    }, [total]);
+        progress.value = withDelay(150, withTiming(1, { duration: 700 }));
+    }, [total, progress]);
+
+    const animatedProps = useAnimatedProps(() => {
+        const val = Math.round(total * progress.value);
+        const str = val.toString();
+        let formatted = '';
+        for (let i = 0; i < str.length; i++) {
+            if (i > 0 && (str.length - i) % 3 === 0) {
+                formatted += separator;
+            }
+            formatted += str[i];
+        }
+        return {
+            text: prefix + formatted + suffix,
+        } as any;
+    });
+
+    const fontSize = theme.typography.sm;
+    const lineHeight = theme.typography.lineHeight.sm;
+    const fontFamily = theme.typography.fontFamily?.bold;
 
     return (
-        <Text variant='caption' weight='bold' color={accent}>
-            {format(shown)}
-        </Text>
+        <AnimatedTextInput
+            animatedProps={animatedProps}
+            defaultValue={prefix + '0' + suffix}
+            editable={false}
+            style={[
+                {
+                    fontSize,
+                    lineHeight,
+                    color: accent,
+                    fontWeight: '700',
+                    fontFamily,
+                    padding: 0,
+                    margin: 0,
+                    paddingVertical: 0,
+                    paddingHorizontal: 0,
+                    textAlign: 'center',
+                },
+            ]}
+        />
     );
 }
 
@@ -193,6 +227,9 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const leveledUpNow = diff.leveledUp && displayLevel === diff.level;
     const rewards = diff.newRewards.map(rewardReveal).filter((r): r is RewardReveal => r !== null);
 
+    const thousandSep = (10000).toLocaleString(locale).replace(/[0-9]/g, '')[0] || '';
+    const xpTemplate = t('progression.xpGained', { n: '$$$' }).split('$$$');
+
     // The header stat slot cycles between the XP gained and any bonus runs granted;
     // each slide counts up from 0.
     const statSlides: React.ReactNode[] = [
@@ -200,16 +237,21 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
             key='xp'
             total={diff.xpGained}
             accent={accent}
-            format={(n) => t('progression.xpGained', { n: n.toLocaleString(locale) })}
+            prefix={xpTemplate[0] || ''}
+            suffix={xpTemplate[1] || ''}
+            separator={thousandSep}
         />,
     ];
     if (diff.bonusRunsGranted > 0) {
+        const bonusTemplate = t('progression.bonusRuns', { n: '$$$' }).split('$$$');
         statSlides.push(
             <CountUpStat
                 key='bonus'
                 total={diff.bonusRunsGranted}
                 accent={accent}
-                format={(n) => t('progression.bonusRuns', { n: n.toLocaleString(locale) })}
+                prefix={bonusTemplate[0] || ''}
+                suffix={bonusTemplate[1] || ''}
+                separator={thousandSep}
             />,
         );
     }

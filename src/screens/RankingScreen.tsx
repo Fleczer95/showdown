@@ -104,9 +104,9 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
         >
             <View style={[styles.rankBadge, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
                 {rank === 1 ? (
-                    <Crown size={16} color={rankColor} />
+                    <Icon name={Crown} size={16} color={rankColor} />
                 ) : rank === 2 || rank === 3 ? (
-                    <Medal size={16} color={rankColor} />
+                    <Icon name={Medal} size={16} color={rankColor} />
                 ) : (
                     <Text variant="caption" weight="bold" color="textMuted">
                         {rank}

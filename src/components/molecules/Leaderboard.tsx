@@ -4,6 +4,7 @@ import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-rea
 import { Crown, Medal } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
 import Text from '../atoms/Text';
+import Icon from '../atoms/Icon';
 import Glyph from '../atoms/Glyph';
 import Divider from '../atoms/Divider';
 import Input from './Input';
@@ -102,9 +103,9 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                     >
                         <View style={[styles.rankBadge, isTop3 && { backgroundColor: hexToRgba(rankColor, 0.2) }]}>
                             {rank === 1 ? (
-                                <Crown size={16} color={rankColor} />
+                                <Icon name={Crown} size={16} color={rankColor} />
                             ) : rank === 2 || rank === 3 ? (
-                                <Medal size={16} color={rankColor} />
+                                <Icon name={Medal} size={16} color={rankColor} />
                             ) : (
                                 <Text variant="caption" weight="bold" color="textMuted">
                                     {rank}

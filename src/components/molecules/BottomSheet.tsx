@@ -95,7 +95,7 @@ function BottomSheet({
         });
 
     return (
-        <Modal visible={mounted} transparent animationType='none' statusBarTranslucent onRequestClose={requestClose}>
+        <Modal visible={mounted} transparent animationType='none' statusBarTranslucent navigationBarTranslucent onRequestClose={requestClose}>
             <GestureHandlerRootView style={styles.root}>
                 <Animated.View
                     style={[
@@ -128,7 +128,10 @@ function BottomSheet({
                                     borderTopLeftRadius: 32,
                                     borderTopRightRadius: 32,
                                     padding: t.spacing.xl,
-                                    paddingBottom: t.spacing.xxl + insets.bottom,
+                                    // Scrollable sheets let the ScrollView run to the bottom edge and
+                                    // carry the safe-area clearance in its content, so content can use
+                                    // the full bottom space instead of leaving a dead band below it.
+                                    paddingBottom: scrollable ? 0 : t.spacing.xxl + insets.bottom,
                                     // Cap + centre on tablet so content keeps a readable measure
                                     // instead of stretching edge-to-edge (no effect on phones).
                                     width: '100%',
@@ -162,6 +165,7 @@ function BottomSheet({
                             {scrollable ? (
                                 <ScrollView
                                     style={styles.scrollContent}
+                                    contentContainerStyle={{ paddingBottom: t.spacing.lg + insets.bottom }}
                                     showsVerticalScrollIndicator={false}
                                     bounces={true}
                                     keyboardShouldPersistTaps='handled'

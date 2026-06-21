@@ -96,8 +96,7 @@ export default function DropPlayScreen({
     const haptics = useHaptics();
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
-    const { tabletColumn, breakpoint } = useResponsive();
-    const isTablet = breakpoint !== 'compact';
+    const { tabletColumn, isTablet } = useResponsive();
 
     // Free bank plus any owned premium pack questions (reconstructed bilingual).
     const { purchasedItemIds } = useStore();

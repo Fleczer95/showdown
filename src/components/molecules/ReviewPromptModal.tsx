@@ -64,13 +64,7 @@ function ReviewPromptModal({ visible, onRate, onDismiss }: ReviewPromptModalProp
     const starSize = iconSize(36);
 
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType='none'
-            statusBarTranslucent
-            onRequestClose={onDismiss}
-        >
+        <Modal visible={visible} transparent animationType='none' statusBarTranslucent onRequestClose={onDismiss}>
             <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.backdrop}>
                 <RNPressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
 

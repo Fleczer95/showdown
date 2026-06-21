@@ -53,7 +53,18 @@
         "startLastRun": "Start Game · last run",
         "limit": {
             "title": "Out of runs for today",
-            "body": "· %{count} solo runs a day\n· Resets at midnight\n· +%{bonus} runs banked for every level you reach\n· Each premium pack or theme adds +1 a day",
+            "bullets": {
+                "dailyRuns": {
+                    "one": "· %{count} solo run a day",
+                    "other": "· %{count} solo runs a day"
+                },
+                "resets": "· Resets at midnight",
+                "levelBonus": {
+                    "one": "· +%{count} run banked for every level you reach",
+                    "other": "· +%{count} runs banked for every level you reach"
+                },
+                "premiumBonus": "· Each premium pack or theme adds +1 a day"
+            },
             "cta": "Open Store",
             "dismiss": "Got it"
         }
@@ -256,12 +267,10 @@
             "targetScore_placeholder": "25",
             "timer_placeholder": "60",
             "roundTimer": "Round Timer",
-            "seconds": "%{count} seconds",
             "winningScore": "Winning Score",
             "points": "%{count} points",
             "comingSoon": "Coming Soon",
             "comingSoonDesc": "We're working hard to bring you %{name}. Stay tuned for updates!",
-            "playersCount": "%{count} players",
             "pool": {
                 "title": "Question Pool",
                 "count": "%{seen} / %{total}",
@@ -372,7 +381,6 @@
     },
     "common": {
         "seconds_short": "s",
-        "players": "%{count} players",
         "continue": "Continue",
         "start": "Start Game",
         "pass": "PASS",
@@ -410,7 +418,10 @@
         "progress": {
             "ladder": "%{n} correct",
             "wheel": "%{n} solved",
-            "drop": "%{n} rounds"
+            "drop": {
+                "one": "%{n} round",
+                "other": "%{n} rounds"
+            }
         }
     },
     "ranking": {
@@ -553,7 +564,10 @@
                 "toPlace": "To place"
             },
             "active": {
-                "instruction": "Spread your whole bank across up to %{max} options (never all 4).",
+                "instruction": {
+                    "one": "Spread your whole bank across up to %{max} option (never all 4).",
+                    "other": "Spread your whole bank across up to %{max} options (never all 4)."
+                },
                 "placed": "Placed",
                 "lockIn": "Lock In",
                 "lockingIn": "Locking in…",
@@ -695,7 +709,10 @@
         "rewardSignature": "Signature",
         "earnedThemeHint": "Earned themes can't be bought — climb the Level Map to unlock them.",
         "levelUp": "Level %{n}!",
-        "bonusRuns": "+%{n} bonus runs",
+        "bonusRuns": {
+            "one": "+%{n} bonus run",
+            "other": "+%{n} bonus runs"
+        },
         "xpGained": "+%{n} XP",
         "newReward": "New theme unlocked!",
         "newSignature": "New signature unlocked!",

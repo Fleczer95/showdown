@@ -60,7 +60,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     // from the game registry (same source as the accent/route config).
     const formatProgress = (progress: number): string => {
         const game = games.find((g) => g.id === gameId);
-        return game ? t(game.progressLabelKey, { n: progress }) : '';
+        return game ? t(game.progressLabelKey, { count: progress, n: progress }) : '';
     };
 
     const handleSave = () => {

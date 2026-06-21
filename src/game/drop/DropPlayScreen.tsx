@@ -405,7 +405,7 @@ export default function DropPlayScreen({
 
                 {phase === 'allocating' && (
                     <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
-                        {translate('game.the-drop.active.instruction', { max: maxCover })}
+                        {translate('game.the-drop.active.instruction', { count: maxCover, max: maxCover })}
                     </Text>
                 )}
                 </Stack>

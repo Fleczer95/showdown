@@ -562,10 +562,12 @@ export function GameSetupScreen() {
             >
                 <Stack gap='md' align='stretch'>
                     <Text variant='body' color='textSecondary' align='left' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
-                        {t('offline.limit.body', {
-                            count: dailyAllowance(ownedIds),
-                            bonus: BONUS_RUNS_PER_LEVEL,
-                        })}
+                        {[
+                            t('offline.limit.bullets.dailyRuns', { count: dailyAllowance(ownedIds) }),
+                            t('offline.limit.bullets.resets'),
+                            t('offline.limit.bullets.levelBonus', { count: BONUS_RUNS_PER_LEVEL }),
+                            t('offline.limit.bullets.premiumBonus'),
+                        ].join('\n')}
                     </Text>
                     {canUpsell(ownedIds, isPremium) && (
                         <Button

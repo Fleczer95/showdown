@@ -53,7 +53,20 @@
         "startLastRun": "Zagraj · ostatnia gra",
         "limit": {
             "title": "Limit gier na dziś wyczerpany",
-            "body": "· %{count} gier solo dziennie\n· Odnawia się o północy\n· +%{bonus} gier za każdy zdobyty poziom\n· Każdy pakiet lub motyw premium dodaje +1 dziennie",
+            "bullets": {
+                "dailyRuns": {
+                    "one": "· %{count} gra solo dziennie",
+                    "few": "· %{count} gry solo dziennie",
+                    "many": "· %{count} gier solo dziennie"
+                },
+                "resets": "· Odnawia się o północy",
+                "levelBonus": {
+                    "one": "· +%{count} gra za każdy zdobyty poziom",
+                    "few": "· +%{count} gry za każdy zdobyty poziom",
+                    "many": "· +%{count} gier za każdy zdobyty poziom"
+                },
+                "premiumBonus": "· Każdy pakiet lub motyw premium dodaje +1 dziennie"
+            },
             "cta": "Otwórz sklep",
             "dismiss": "Rozumiem"
         }
@@ -259,12 +272,10 @@
             "targetScore_placeholder": "25",
             "timer_placeholder": "60",
             "roundTimer": "Czas Rundy",
-            "seconds": "%{count} sekund",
             "winningScore": "Cel Punktowy",
             "points": "Cel: %{count} pkt",
             "comingSoon": "Wkrótce",
             "comingSoonDesc": "Pracujemy nad tym, aby udostępnić Ci grę %{name}. Bądź na bieżąco!",
-            "playersCount": "%{count} graczy",
             "pool": {
                 "title": "Pula pytań",
                 "count": "%{seen} / %{total}",
@@ -375,7 +386,6 @@
     },
     "common": {
         "seconds_short": "s",
-        "players": "%{count} graczy",
         "continue": "Kontynuuj",
         "start": "Rozpocznij",
         "pass": "PAS",
@@ -411,9 +421,21 @@
         "speed": "Tempo",
         "bonus": "Bonus",
         "progress": {
-            "ladder": "%{n} poprawnych",
-            "wheel": "%{n} rozwiązane",
-            "drop": "%{n} rund"
+            "ladder": {
+                "one": "%{n} poprawna",
+                "few": "%{n} poprawne",
+                "many": "%{n} poprawnych"
+            },
+            "wheel": {
+                "one": "%{n} rozwiązane",
+                "few": "%{n} rozwiązane",
+                "many": "%{n} rozwiązanych"
+            },
+            "drop": {
+                "one": "%{n} runda",
+                "few": "%{n} rundy",
+                "many": "%{n} rund"
+            }
         }
     },
     "ranking": {
@@ -556,7 +578,11 @@
                 "toPlace": "Do obstawienia"
             },
             "active": {
-                "instruction": "Rozłóż cały bank na maksymalnie %{max} opcje (nigdy na wszystkie 4).",
+                "instruction": {
+                    "one": "Rozłóż cały bank na maksymalnie %{max} opcję (nigdy na wszystkie 4).",
+                    "few": "Rozłóż cały bank na maksymalnie %{max} opcje (nigdy na wszystkie 4).",
+                    "many": "Rozłóż cały bank na maksymalnie %{max} opcji (nigdy na wszystkie 4)."
+                },
                 "placed": "Obstawione",
                 "lockIn": "Zatwierdź",
                 "lockingIn": "Zatwierdzanie…",
@@ -701,7 +727,12 @@
         "rewardSignature": "Sygnatura",
         "earnedThemeHint": "Zdobytych motywów nie można kupić — odblokuj je, wspinając się po mapie poziomów.",
         "levelUp": "Poziom %{n}!",
-        "bonusRuns": "+%{n} dodatkowych gier",
+        "bonusRuns": {
+            "one": "+%{n} dodatkowa gra",
+            "few": "+%{n} dodatkowe gry",
+            "many": "+%{n} dodatkowych gier",
+            "other": "+%{n} dodatkowych gier"
+        },
         "xpGained": "+%{n} XP",
         "newReward": "Nowy motyw odblokowany!",
         "newSignature": "Nowa sygnatura odblokowana!",

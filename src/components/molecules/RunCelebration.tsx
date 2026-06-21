@@ -58,6 +58,16 @@ function rewardReveal(id: string): RewardReveal | null {
     return null;
 }
 
+/** Localized name for a freshly unlocked achievement id ("Contestant Bronze", "Quick Wit"). */
+function achievementName(id: string, t: (key: string) => string): string {
+    const tierMatch = id.match(/-(bronze|silver|gold)$/);
+    if (tierMatch) {
+        const family = id.slice(0, id.length - tierMatch[0].length);
+        return `${t(`progression.family.${family}`)} ${t(`progression.tier.${tierMatch[1]}`)}`;
+    }
+    return t(`progression.oneoff.${id}`);
+}
+
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 /** Animated +XP that counts up from 0, kept in its own component so the per-frame
@@ -254,7 +264,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
         />,
     ];
     if (diff.bonusRunsGranted > 0) {
-        const bonusTemplate = t('progression.bonusRuns', { n: '$$$' }).split('$$$');
+        const bonusTemplate = t('progression.bonusRuns', { count: diff.bonusRunsGranted, n: '$$$' }).split('$$$');
         statSlides.push(
             <CountUpStat
                 key='bonus'
@@ -341,14 +351,30 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
                     </Animated.View>
                 ))}
 
-                {diff.newAchievements.length > 0 ? (
-                    <Stack direction='horizontal' gap='xs' align='center'>
-                        <Icon name={Award} size={iconSize(16)} color={accent} />
-                        <Text variant='caption' weight='semibold'>
-                            {`${t('progression.newAchievement')} (${diff.newAchievements.length})`}
-                        </Text>
-                    </Stack>
-                ) : null}
+                {diff.newAchievements.map((id, i) => (
+                    <Animated.View
+                        key={id}
+                        entering={reduceMotion ? undefined : ZoomIn.duration(280).delay(900 + (rewards.length + i) * 120)}
+                        style={{
+                            borderRadius: theme.radii.md,
+                            backgroundColor: hexToRgba(accent, 0.12),
+                            marginTop: rewards.length === 0 && i === 0 ? theme.spacing.sm : 0,
+                            padding: theme.spacing.md,
+                        }}
+                    >
+                        <Stack direction='horizontal' gap='sm' align='center'>
+                            <Stack gap='xs' flex={1}>
+                                <Text variant='caption' weight='bold' color={accent}>
+                                    {t('progression.newAchievement')}
+                                </Text>
+                                <Text variant='body' weight='semibold'>
+                                    {achievementName(id, t)}
+                                </Text>
+                            </Stack>
+                            <Icon name={Award} size={iconSize(30)} color={accent} />
+                        </Stack>
+                    </Animated.View>
+                ))}
             </Stack>
         </View>
     );

@@ -598,7 +598,7 @@ function ResultsCard({
                                     </Stack>
                                     {game ? (
                                         <Text variant='caption' color='textMuted' numberOfLines={1}>
-                                            {t(game.progressLabelKey, { n: entry.progress })}
+                                            {t(game.progressLabelKey, { count: entry.progress, n: entry.progress })}
                                         </Text>
                                     ) : null}
                                 </View>

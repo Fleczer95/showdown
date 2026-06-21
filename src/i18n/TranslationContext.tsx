@@ -10,6 +10,17 @@ const i18n = new I18n({ en, pl });
 i18n.enableFallback = true;
 i18n.defaultLocale = 'en';
 
+// Polish has three plural forms (one/few/many) — i18n-js only ships the
+// English-style one/other rule, so register the CLDR cardinal rule for `pl`.
+i18n.pluralization.register('pl', (_i18n, count) => {
+    const n = Math.abs(count);
+    if (n === 1) return ['one'];
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) return ['few'];
+    return ['many'];
+});
+
 interface TranslationContextValue {
     t: (key: string, options?: Record<string, any>) => any;
     locale: Language;

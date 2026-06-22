@@ -90,8 +90,8 @@ async function appCheckHeaders(forceRefresh: boolean): Promise<Record<string, st
  */
 export async function fetchWithAppCheck(path: string, init: RequestInit = {}): Promise<Response> {
     const url = `${BASE_API_URL}${path}`;
-    let res = await fetch(url, { ...init, headers: await appCheckHeaders(false) });
-    if (res.status === 403) res = await fetch(url, { ...init, headers: await appCheckHeaders(true) });
+    let res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(false)) } });
+    if (res.status === 403) res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(true)) } });
     return res;
 }
 

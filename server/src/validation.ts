@@ -19,12 +19,25 @@ export function isValidId(v: unknown): v is string {
     return typeof v === 'string' && v.length > 0 && v.length <= 64;
 }
 
+function validateQuestion(q: unknown): boolean {
+    if (!isObject(q)) return false;
+    if (!hasOnly(q, ['id', 'alternates'])) return false;
+    if (!isValidId(q.id)) return false;
+    if ('alternates' in q) {
+        const alts = q.alternates;
+        if (!Array.isArray(alts) || alts.length > 5) return false;
+        if (!alts.every(isValidId)) return false;
+    }
+    return true;
+}
+
 export function validateChallenge(d: unknown): boolean {
     if (!isObject(d)) return false;
     if (!hasOnly(d, ['lang', 'game', 'questions', 'createdBy', 'expiresAt'])) return false;
     if (d.lang !== 'en' && d.lang !== 'pl') return false;
     if (!isString(d.game, 40)) return false;
     if (!Array.isArray(d.questions) || d.questions.length < 1 || d.questions.length > 50) return false;
+    if (!d.questions.every(validateQuestion)) return false;
     if (!isObject(d.createdBy)) return false;
     if (!isString(d.createdBy.uuid, 64)) return false;
     if (!isString(d.createdBy.nickname, 24)) return false;

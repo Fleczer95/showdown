@@ -194,7 +194,7 @@ export function RankingScreen() {
 
     const load = useCallback(async () => {
         setStatus('loading');
-        // A board barely moves minute-to-minute, so serve a day-fresh cached pull
+        // A board barely moves minute-to-minute, so serve an hour-fresh cached pull
         // when there is one — zero Firestore reads, and it works offline (ADR-0004).
         const cached = readCachedBoard(game, scope);
         if (cached) {

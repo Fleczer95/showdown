@@ -5,9 +5,9 @@ import { markSynced } from './local';
 import { BlockedError, OfflineError } from '../challenge/store';
 import { loadStats } from '../progression';
 
-// The error classes live in challenge/store, which imports firestore; stub it so
-// the module loads under jest (we never reach a real firestore call here).
-jest.mock('@react-native-firebase/firestore', () => ({ __esModule: true, default: () => ({}) }));
+// The error classes live in challenge/store, which imports the App Check SDK; stub
+// it so the module loads under jest (we never reach a real network call here).
+jest.mock('@react-native-firebase/app-check', () => ({ __esModule: true, default: () => ({}) }));
 
 // Firestore + local-best I/O are stubbed; we only assert the payload shape.
 jest.mock('./store', () => ({

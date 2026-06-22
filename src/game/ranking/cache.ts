@@ -2,12 +2,16 @@ import { createMMKV } from 'react-native-mmkv';
 import type { RankingScope } from './config';
 import type { RankingEntry } from './types';
 
-// A once-a-day read cache for the global boards (ADR-0004). The rankings view is
+// A short-lived read cache for the global boards (ADR-0004). The rankings view is
 // pure navigation — opening it, and toggling game/scope, each refetched the full
 // top-`DISPLAY_SIZE` board uncached. A board barely moves minute-to-minute, so we
-// keep the resolved board per (game, scope) and only hit Firestore when the cache
-// is cold or a day stale. A hit also means the board renders offline. The push
+// keep the resolved board per (game, scope) and only hit the network when the
+// cache is cold or stale. A hit also means the board renders offline. The push
 // flow invalidates a game's cache so a just-submitted score shows on next open.
+//
+// The TTL was 24h under Firestore (to survive its tight Spark quotas); on the
+// Cloudflare/D1 backend there is far more request headroom, so it is shorter for
+// fresher boards while still collapsing repeat opens/toggles.
 
 const store = createMMKV({ id: 'showdown-ranking-cache' });
 
@@ -20,7 +24,7 @@ export interface CachedBoard {
 }
 
 /** Boards are pulled at most once per this window; navigation in between is free. */
-export const BOARD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+export const BOARD_CACHE_TTL_MS = 60 * 60 * 1000;
 
 function key(game: string, scope: RankingScope): string {
     return `${game}|${scope}`;

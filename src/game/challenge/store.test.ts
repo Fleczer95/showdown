@@ -1,94 +1,128 @@
-// Firestore is mocked as a chainable stub; each leaf call (get/set) is a
-// jest.fn configured per test. Verifies the wrappers map results correctly and
-// funnel every failure mode — rejection and timeout — into OfflineError.
-const mockGet = jest.fn();
-const mockSet = jest.fn();
+// The store now talks to the Worker API over `fetch` with an App Check header.
+// We mock `global.fetch` and the App Check SDK, and verify the wrappers map
+// results correctly and funnel every failure mode (network reject, timeout, 403,
+// 409) into the right typed error.
+jest.mock('@react-native-firebase/app-check', () => ({
+    __esModule: true,
+    default: () => ({ getToken: jest.fn(async () => ({ token: 'tok' })) }),
+}));
 
-jest.mock('@react-native-firebase/firestore', () => {
-    // Self-referential chain: collection()/doc()/orderBy()/limit() return the
-    // same api, so any navigation depth lands on the same leaf fns. `doc()`
-    // carries a stable `id` so `createChallenge` can read back the ref id.
-    // Leaves are forwarded lazily: babel hoists this factory above the `const
-    // mock*` declarations, so they're undefined at factory-eval time but defined
-    // by the time a wrapper actually fires.
-    const api: Record<string, unknown> = { id: 'doc123' };
-    api.collection = () => api;
-    api.doc = () => api;
-    api.orderBy = () => api;
-    api.limit = () => api;
-    api.get = (...args: unknown[]) => mockGet(...args);
-    api.set = (...args: unknown[]) => mockSet(...args);
-    // `firestore` is a callable with a static `Timestamp`. Our stub Timestamp is
-    // just a millis carrier with the `toMillis()` the store reads back.
-    const Timestamp = { fromMillis: (ms: number) => ({ toMillis: () => ms }) };
-    return { __esModule: true, default: Object.assign(() => api, { Timestamp }) };
-});
+const mockCapture = jest.fn();
+jest.mock('../../utils/sentry/init', () => ({ SafeSentry: { captureException: (...a: unknown[]) => mockCapture(...a) } }));
 
-import { createChallenge, getChallenge, submitAttempt, getAttempts, OfflineError } from './store';
+import {
+    createChallenge,
+    getChallenge,
+    submitAttempt,
+    getAttempts,
+    getAttempt,
+    OfflineError,
+    BlockedError,
+    BASE_API_URL,
+} from './store';
 import { type ChallengeRecord, type Attempt } from './types';
 
 const record: ChallengeRecord = {
     lang: 'en',
     game: 'the-ladder',
-    questions: [],
+    questions: [{ id: 'q1' }],
     createdBy: { uuid: 'u1', nickname: 'A' },
-    expiresAt: 1,
+    expiresAt: 123,
 };
 const attempt: Attempt = { nickname: 'A', progress: 3, score: 100, timestamp: 5 };
 
-beforeEach(() => jest.clearAllMocks());
+const res = (status: number, body: unknown = {}): Response =>
+    ({ ok: status >= 200 && status < 300, status, json: async () => body }) as unknown as Response;
+
+const mockFetch = jest.fn();
+beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = mockFetch as unknown as typeof fetch;
+});
 
 describe('createChallenge', () => {
-    it('returns the document id and writes expiresAt as a Timestamp', async () => {
-        mockSet.mockResolvedValue(undefined);
-        await expect(createChallenge(record)).resolves.toBe('doc123');
-        const written = mockSet.mock.calls[0][0] as ChallengeRecord & { expiresAt: { toMillis: () => number } };
-        expect(written).toMatchObject({ ...record, expiresAt: expect.anything() });
-        expect(written.expiresAt.toMillis()).toBe(record.expiresAt);
+    it('POSTs the record + id to /challenges and returns the id', async () => {
+        mockFetch.mockResolvedValue(res(201, { id: 'given' }));
+        const id = await createChallenge(record, 'given');
+        expect(id).toBe('given');
+        const [url, init] = mockFetch.mock.calls[0];
+        expect(url).toBe(`${BASE_API_URL}/challenges`);
+        expect(init.method).toBe('POST');
+        expect(JSON.parse(init.body)).toMatchObject({ ...record, id: 'given' });
+        expect(init.headers['X-Firebase-AppCheck']).toBe('tok');
+    });
+
+    it('generates a v4 uuid when no id is passed', async () => {
+        mockFetch.mockResolvedValue(res(201));
+        const id = await createChallenge(record);
+        expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     });
 });
 
 describe('getChallenge', () => {
-    it('returns the record, converting the Timestamp expiresAt back to epoch-ms', async () => {
-        const stored = { ...record, expiresAt: { toMillis: () => record.expiresAt } };
-        mockGet.mockResolvedValue({ exists: true, data: () => stored });
-        await expect(getChallenge('doc123')).resolves.toEqual(record);
+    it('returns the parsed record on 200', async () => {
+        mockFetch.mockResolvedValue(res(200, record));
+        await expect(getChallenge('c1')).resolves.toEqual(record);
     });
 
-    it('returns null when the doc is missing/expired', async () => {
-        mockGet.mockResolvedValue({ exists: false });
-        await expect(getChallenge('gone')).resolves.toBeNull();
-    });
-});
-
-describe('submitAttempt', () => {
-    it('writes the attempt under the device uuid', async () => {
-        mockSet.mockResolvedValue(undefined);
-        await submitAttempt('doc123', 'uuid-x', attempt);
-        expect(mockSet).toHaveBeenCalledWith(attempt);
+    it('returns null on 404', async () => {
+        mockFetch.mockResolvedValue(res(404));
+        await expect(getChallenge('missing')).resolves.toBeNull();
     });
 });
 
-describe('getAttempts', () => {
-    it('maps every attempt doc to its data', async () => {
-        const a: Attempt = { ...attempt, nickname: 'B' };
-        mockGet.mockResolvedValue({ docs: [{ data: () => attempt }, { data: () => a }] });
-        await expect(getAttempts('doc123')).resolves.toEqual([attempt, a]);
+describe('attempts', () => {
+    it('submitAttempt POSTs to the attempt path', async () => {
+        mockFetch.mockResolvedValue(res(201));
+        await submitAttempt('c1', 'u1', attempt);
+        expect(mockFetch.mock.calls[0][0]).toBe(`${BASE_API_URL}/challenges/c1/attempts/u1`);
+        expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual(attempt);
+    });
+
+    it('getAttempts returns the list', async () => {
+        mockFetch.mockResolvedValue(res(200, [attempt]));
+        await expect(getAttempts('c1')).resolves.toEqual([attempt]);
+    });
+
+    it('getAttempt returns null on 404 and the attempt on 200', async () => {
+        mockFetch.mockResolvedValueOnce(res(404));
+        await expect(getAttempt('c1', 'u1')).resolves.toBeNull();
+        mockFetch.mockResolvedValueOnce(res(200, attempt));
+        await expect(getAttempt('c1', 'u1')).resolves.toEqual(attempt);
     });
 });
 
-describe('offline handling', () => {
-    it('wraps a rejected call in OfflineError', async () => {
-        mockGet.mockRejectedValue(new Error('network down'));
-        await expect(getChallenge('doc123')).rejects.toBeInstanceOf(OfflineError);
+describe('error mapping', () => {
+    it('maps a network rejection to OfflineError', async () => {
+        mockFetch.mockRejectedValue(new TypeError('Network request failed'));
+        await expect(getChallenge('c1')).rejects.toBeInstanceOf(OfflineError);
     });
 
-    it('times out a hung call as OfflineError', async () => {
+    it('maps a persistent 403 to BlockedError and reports it', async () => {
+        mockFetch.mockResolvedValue(res(403)); // original call + post-refresh retry both 403
+        await expect(getAttempts('c1')).rejects.toBeInstanceOf(BlockedError);
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(mockCapture).toHaveBeenCalled();
+    });
+
+    it('recovers when a 403 clears after a token refresh', async () => {
+        mockFetch.mockResolvedValueOnce(res(403)).mockResolvedValueOnce(res(200, [attempt]));
+        await expect(getAttempts('c1')).resolves.toEqual([attempt]);
+    });
+
+    it('maps a 409 conflict to BlockedError', async () => {
+        mockFetch.mockResolvedValue(res(409));
+        await expect(submitAttempt('c1', 'u1', attempt)).rejects.toBeInstanceOf(BlockedError);
+    });
+});
+
+describe('timeout', () => {
+    it('rejects with OfflineError when a request never settles', async () => {
         jest.useFakeTimers();
-        mockSet.mockReturnValue(new Promise(() => {}));
-        const pending = createChallenge(record);
+        mockFetch.mockReturnValue(new Promise(() => {})); // never resolves
+        const pending = getChallenge('c1');
         const assertion = expect(pending).rejects.toBeInstanceOf(OfflineError);
-        jest.advanceTimersByTime(10_000);
+        await jest.advanceTimersByTimeAsync(10_000);
         await assertion;
         jest.useRealTimers();
     });

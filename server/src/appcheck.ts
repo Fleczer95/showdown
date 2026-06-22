@@ -33,18 +33,30 @@ function decodeJsonSegment(b64url: string): Record<string, unknown> {
     return JSON.parse(DECODER.decode(base64UrlToBytes(b64url)));
 }
 
-// Google rotates these keys rarely. Two layers keep the cost off the hot path: a
-// per-isolate parsed cache (so a warm isolate doesn't re-parse the JWKS body every
-// request), backed by the Cloudflare edge cache (24h) for the origin fetch itself.
-let jwksCache: { keys: JWK[]; at: number } | null = null;
-const JWKS_TTL_MS = 60 * 60 * 1000;
+// Two layers keep the cost off the hot path: a per-isolate parsed cache (so a warm
+// isolate doesn't re-parse the JWKS body every request), backed by the Cloudflare
+// edge cache for the origin fetch. Both honour the JWKS endpoint's own
+// `Cache-Control` rather than a forced TTL — a hardcoded long TTL would mask a key
+// rotation and 403 valid tokens until it expired.
+let jwksCache: { keys: JWK[]; expiresAt: number } | null = null;
+const DEFAULT_JWKS_TTL_MS = 60 * 60 * 1000;
+
+/** `max-age` (ms) from a `Cache-Control` header, or null when absent/uncacheable. */
+function maxAgeMs(res: Response): number | null {
+    const cc = res.headers.get('Cache-Control');
+    if (!cc || /no-store|no-cache/.test(cc)) return null;
+    const m = /max-age=(\d+)/.exec(cc);
+    return m ? Number(m[1]) * 1000 : null;
+}
 
 async function fetchJwks(): Promise<JWK[]> {
-    if (jwksCache && Date.now() - jwksCache.at < JWKS_TTL_MS) return jwksCache.keys;
-    const res = await fetch(JWKS_URL, { cf: { cacheTtl: 86_400, cacheEverything: true } });
+    if (jwksCache && Date.now() < jwksCache.expiresAt) return jwksCache.keys;
+    // No `cf.cacheTtl` override — let Cloudflare's edge cache respect the endpoint's
+    // own freshness, so a rotated key isn't hidden behind a stale forced TTL.
+    const res = await fetch(JWKS_URL);
     if (!res.ok) throw new Error(`JWKS fetch failed: ${res.status}`);
     const data = (await res.json()) as { keys: JWK[] };
-    jwksCache = { keys: data.keys, at: Date.now() };
+    jwksCache = { keys: data.keys, expiresAt: Date.now() + (maxAgeMs(res) ?? DEFAULT_JWKS_TTL_MS) };
     return data.keys;
 }
 

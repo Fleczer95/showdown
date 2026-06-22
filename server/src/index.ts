@@ -25,6 +25,16 @@ function json(body: unknown, status = 200): Response {
     });
 }
 
+/** Parse a JSON request body, or null when it isn't valid JSON — a malformed body
+ *  is a 400 (client error), not a 500. */
+async function parseJsonBody(request: Request): Promise<Record<string, unknown> | null> {
+    try {
+        return (await request.json()) as Record<string, unknown>;
+    } catch {
+        return null;
+    }
+}
+
 /** Prune challenges past their TTL plus their attempts. Two explicit statements so
  *  we never depend on D1 enforcing the FK CASCADE. Kicked off (via `waitUntil`) when
  *  a challenge is added; it only touches already-expired rows, never the new one. */
@@ -55,7 +65,8 @@ export default {
 
             // POST /challenges
             if (method === 'POST' && seg.length === 1 && seg[0] === 'challenges') {
-                const body = (await request.json()) as Record<string, unknown>;
+                const body = await parseJsonBody(request);
+                if (!body) return json({ error: 'Invalid JSON' }, 400);
                 const { id } = body;
                 const record = {
                     lang: body.lang,
@@ -107,8 +118,8 @@ export default {
             if (method === 'POST' && seg.length === 4 && seg[0] === 'challenges' && seg[2] === 'attempts') {
                 const challengeId = seg[1];
                 const uuid = seg[3];
-                const body = (await request.json()) as Record<string, unknown>;
-                if (!validateAttempt(body)) return json({ error: 'Invalid attempt' }, 400);
+                const body = await parseJsonBody(request);
+                if (!body || !validateAttempt(body)) return json({ error: 'Invalid attempt' }, 400);
                 // No orphan attempts: the (unexpired) parent must exist.
                 const parent = await env.DB
                     .prepare('SELECT 1 AS ok FROM challenges WHERE id = ? AND expiresAt > ?')
@@ -157,8 +168,8 @@ export default {
                 const game = seg[1];
                 const period = seg[2];
                 const uuid = seg[4];
-                const body = (await request.json()) as Record<string, unknown>;
-                if (!isRankedGame(game) || !isWritablePeriod(period) || !validateRankingEntry(body)) {
+                const body = await parseJsonBody(request);
+                if (!body || !isRankedGame(game) || !isWritablePeriod(period) || !validateRankingEntry(body)) {
                     return json({ error: 'Invalid ranking entry' }, 400);
                 }
                 const signature = typeof body.signature === 'string' ? body.signature : null;
@@ -178,7 +189,7 @@ export default {
 
             // GET /rankings/:game/:period?limit=
             if (method === 'GET' && seg.length === 3 && seg[0] === 'rankings') {
-                const limit = Math.min(Number(url.searchParams.get('limit')) || 50, 100);
+                const limit = Math.max(1, Math.min(Number(url.searchParams.get('limit')) || 50, 100));
                 const { results } = await env.DB
                     .prepare(
                         'SELECT nickname, score, signature FROM rankings WHERE game = ? AND period = ? ORDER BY score DESC, uuid ASC LIMIT ?',

@@ -157,3 +157,5 @@ headroom; the in-app note changed from "about once a day" to "periodically".
 
 **Remaining:** build the app and run the end-to-end flow (create / play / rank) on the
 internal-testing track to confirm the real App Check token path.
+
+- **Note (2026-06-22):** A quota increase request for Google Play Integrity API (1M requests/day, 50 RPS) was submitted to Google via the official form. We are awaiting approval.

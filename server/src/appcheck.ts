@@ -16,6 +16,9 @@ interface JWK {
     e: string;
 }
 
+const DECODER = new TextDecoder();
+const ENCODER = new TextEncoder();
+
 function base64UrlToBytes(b64url: string): Uint8Array {
     const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
     const pad = b64.length % 4;
@@ -27,15 +30,21 @@ function base64UrlToBytes(b64url: string): Uint8Array {
 }
 
 function decodeJsonSegment(b64url: string): Record<string, unknown> {
-    return JSON.parse(new TextDecoder().decode(base64UrlToBytes(b64url)));
+    return JSON.parse(DECODER.decode(base64UrlToBytes(b64url)));
 }
 
-// Google rotates these keys rarely; the Cloudflare edge cache (24h) keeps this to
-// roughly one origin fetch per colo per day rather than one per request.
+// Google rotates these keys rarely. Two layers keep the cost off the hot path: a
+// per-isolate parsed cache (so a warm isolate doesn't re-parse the JWKS body every
+// request), backed by the Cloudflare edge cache (24h) for the origin fetch itself.
+let jwksCache: { keys: JWK[]; at: number } | null = null;
+const JWKS_TTL_MS = 60 * 60 * 1000;
+
 async function fetchJwks(): Promise<JWK[]> {
+    if (jwksCache && Date.now() - jwksCache.at < JWKS_TTL_MS) return jwksCache.keys;
     const res = await fetch(JWKS_URL, { cf: { cacheTtl: 86_400, cacheEverything: true } });
     if (!res.ok) throw new Error(`JWKS fetch failed: ${res.status}`);
     const data = (await res.json()) as { keys: JWK[] };
+    jwksCache = { keys: data.keys, at: Date.now() };
     return data.keys;
 }
 
@@ -75,7 +84,7 @@ export async function verifyAppCheckToken(token: string | null, projectNumber: s
             false,
             ['verify'],
         );
-        const signed = new TextEncoder().encode(`${rawHeader}.${rawPayload}`);
+        const signed = ENCODER.encode(`${rawHeader}.${rawPayload}`);
         const signature = base64UrlToBytes(rawSignature);
         return await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, signature, signed);
     } catch (err) {

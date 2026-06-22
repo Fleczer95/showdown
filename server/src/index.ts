@@ -26,7 +26,8 @@ function json(body: unknown, status = 200): Response {
 }
 
 /** Prune challenges past their TTL plus their attempts. Two explicit statements so
- *  we never depend on D1 enforcing the FK CASCADE. Runs when challenges are added. */
+ *  we never depend on D1 enforcing the FK CASCADE. Kicked off (via `waitUntil`) when
+ *  a challenge is added; it only touches already-expired rows, never the new one. */
 async function cleanupExpired(env: Env): Promise<void> {
     const now = Date.now();
     await env.DB.batch([
@@ -38,7 +39,7 @@ async function cleanupExpired(env: Env): Promise<void> {
 }
 
 export default {
-    async fetch(request: Request, env: Env): Promise<Response> {
+    async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
         const url = new URL(request.url);
         const method = request.method;
         const seg = url.pathname.split('/').filter(Boolean);
@@ -64,7 +65,7 @@ export default {
                     expiresAt: body.expiresAt,
                 };
                 if (!isValidId(id) || !validateChallenge(record)) return json({ error: 'Invalid challenge' }, 400);
-                await cleanupExpired(env);
+                ctx.waitUntil(cleanupExpired(env));
                 try {
                     await env.DB
                         .prepare(

@@ -1,5 +1,6 @@
 import appCheck from '@react-native-firebase/app-check';
 import type { Attempt, ChallengeRecord } from './types';
+import { generateUuid } from './deviceId';
 import { SafeSentry } from '../../utils/sentry/init';
 
 // The only network touchpoint for challenges (ADR-0003). The app talks to the
@@ -95,80 +96,56 @@ export async function fetchWithAppCheck(path: string, init: RequestInit = {}): P
 }
 
 /**
+ * `fetchWithAppCheck` + timeout + status mapping, resolving to the parsed JSON
+ * body. With `notFound`, a 404 resolves to `null` (a missing/expired doc is not an
+ * error on the read paths); any other non-OK status maps via `httpError`.
+ */
+export function request<T>(path: string, init?: RequestInit, notFound = false): Promise<T> {
+    return withTimeout(
+        (async () => {
+            const res = await fetchWithAppCheck(path, init);
+            if (notFound && res.status === 404) return null as T;
+            if (!res.ok) throw httpError(res.status);
+            return (await res.json()) as T;
+        })(),
+    );
+}
+
+/**
  * A fresh challenge id, generated client-side without a write, so the create flow
  * can reuse it across retries (a timed-out-but-committed create is recovered via
- * `getChallenge` instead of being created twice). A v4 UUID — matching the device
- * id scheme; reads are App Check-gated, so guessability is not a concern.
+ * `getChallenge` instead of being created twice). A v4 UUID — same scheme as the
+ * device id; reads are App Check-gated, so guessability is not a concern.
  */
 export function newChallengeId(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
+    return generateUuid();
 }
 
 /** Write a frozen challenge; returns the document id for the share URL. Pass a
  *  pre-generated `id` (see `newChallengeId`) to make a retry target the same doc. */
 export async function createChallenge(record: ChallengeRecord, id?: string): Promise<string> {
     const docId = id ?? newChallengeId();
-    return withTimeout(
-        (async () => {
-            const res = await fetchWithAppCheck('/challenges', {
-                method: 'POST',
-                body: JSON.stringify({ ...record, id: docId }),
-            });
-            if (!res.ok) throw httpError(res.status);
-            return docId;
-        })(),
-    );
+    await request('/challenges', { method: 'POST', body: JSON.stringify({ ...record, id: docId }) });
+    return docId;
 }
 
 /** Fetch a challenge by id. Returns `null` when missing or expired-out. */
-export async function getChallenge(id: string): Promise<ChallengeRecord | null> {
-    return withTimeout(
-        (async () => {
-            const res = await fetchWithAppCheck(`/challenges/${id}`);
-            if (res.status === 404) return null;
-            if (!res.ok) throw httpError(res.status);
-            return (await res.json()) as ChallengeRecord;
-        })(),
-    );
+export function getChallenge(id: string): Promise<ChallengeRecord | null> {
+    return request<ChallengeRecord | null>(`/challenges/${id}`, undefined, true);
 }
 
 /** Record this device's attempt. Create-only, one-per-UUID is enforced server-side. */
 export async function submitAttempt(id: string, uuid: string, attempt: Attempt): Promise<void> {
-    return withTimeout(
-        (async () => {
-            const res = await fetchWithAppCheck(`/challenges/${id}/attempts/${uuid}`, {
-                method: 'POST',
-                body: JSON.stringify(attempt),
-            });
-            if (!res.ok) throw httpError(res.status);
-        })(),
-    );
+    await request(`/challenges/${id}/attempts/${uuid}`, { method: 'POST', body: JSON.stringify(attempt) });
 }
 
 /** Read participants' attempts for the result reveal (server caps at 100, ordered
  *  by progress). `rankEntries` does the full sort. */
-export async function getAttempts(id: string): Promise<Attempt[]> {
-    return withTimeout(
-        (async () => {
-            const res = await fetchWithAppCheck(`/challenges/${id}/attempts`);
-            if (!res.ok) throw httpError(res.status);
-            return (await res.json()) as Attempt[];
-        })(),
-    );
+export function getAttempts(id: string): Promise<Attempt[]> {
+    return request<Attempt[]>(`/challenges/${id}/attempts`);
 }
 
 /** Read this device's own attempt (null if it hasn't played yet). */
-export async function getAttempt(id: string, uuid: string): Promise<Attempt | null> {
-    return withTimeout(
-        (async () => {
-            const res = await fetchWithAppCheck(`/challenges/${id}/attempts/${uuid}`);
-            if (res.status === 404) return null;
-            if (!res.ok) throw httpError(res.status);
-            return (await res.json()) as Attempt;
-        })(),
-    );
+export function getAttempt(id: string, uuid: string): Promise<Attempt | null> {
+    return request<Attempt | null>(`/challenges/${id}/attempts/${uuid}`, undefined, true);
 }

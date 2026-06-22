@@ -119,7 +119,17 @@ describe('error mapping', () => {
 describe('timeout', () => {
     it('rejects with OfflineError when a request never settles', async () => {
         jest.useFakeTimers();
-        mockFetch.mockReturnValue(new Promise(() => {})); // never resolves
+        mockFetch.mockImplementation((_url: string, init?: RequestInit) => {
+            return new Promise((_, reject) => {
+                if (init?.signal) {
+                    init.signal.addEventListener('abort', () => {
+                        const err = new Error('AbortError');
+                        err.name = 'AbortError';
+                        reject(err);
+                    });
+                }
+            });
+        });
         const pending = getChallenge('c1');
         const assertion = expect(pending).rejects.toBeInstanceOf(OfflineError);
         await jest.advanceTimersByTimeAsync(10_000);

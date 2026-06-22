@@ -54,7 +54,11 @@ export function httpError(status: number): OfflineError | BlockedError {
         return err;
     }
     if (status === 409) return new BlockedError();
-    return new OfflineError();
+
+    // Log any unexpected HTTP errors (500, 400, etc.) to Sentry
+    const err = new OfflineError();
+    SafeSentry.captureException(err, { tags: { area: 'challenge-store', status: status.toString() } });
+    return err;
 }
 
 /** Reject with `OfflineError` if `promise` doesn't settle within the timeout. A
@@ -100,15 +104,27 @@ export async function fetchWithAppCheck(path: string, init: RequestInit = {}): P
  * body. With `notFound`, a 404 resolves to `null` (a missing/expired doc is not an
  * error on the read paths); any other non-OK status maps via `httpError`.
  */
-export function request<T>(path: string, init?: RequestInit, notFound = false): Promise<T> {
-    return withTimeout(
-        (async () => {
-            const res = await fetchWithAppCheck(path, init);
-            if (notFound && res.status === 404) return null as T;
-            if (!res.ok) throw httpError(res.status);
-            return (await res.json()) as T;
-        })(),
-    );
+export async function request<T>(path: string, init: RequestInit = {}, notFound = false): Promise<T> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        const res = await fetchWithAppCheck(path, { ...init, signal: controller.signal });
+        clearTimeout(timer);
+        if (notFound && res.status === 404) return null as T;
+        if (!res.ok) throw httpError(res.status);
+        return (await res.json()) as T;
+    } catch (err: any) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new OfflineError();
+        if (err instanceof OfflineError || err instanceof BlockedError) throw err;
+        
+        // Log unexpected runtime errors (e.g., JSON SyntaxError), but ignore raw network exceptions (TypeError)
+        if (err.name !== 'TypeError') {
+            SafeSentry.captureException(err, { tags: { area: 'challenge-store', type: err.name } });
+        }
+        
+        throw new OfflineError(err);
+    }
 }
 
 /**

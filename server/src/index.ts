@@ -91,9 +91,12 @@ export default {
                             record.expiresAt,
                         )
                         .run();
-                } catch {
+                } catch (err: any) {
                     // Immutable after create: a duplicate id is a conflict, never an overwrite.
-                    return json({ error: 'Challenge already exists' }, 409);
+                    if (err.message && err.message.includes('UNIQUE constraint failed')) {
+                        return json({ error: 'Challenge already exists' }, 409);
+                    }
+                    throw err;
                 }
                 return json({ id }, 201);
             }
@@ -133,9 +136,12 @@ export default {
                         )
                         .bind(challengeId, uuid, body.nickname, body.progress, body.score, body.timestamp)
                         .run();
-                } catch {
+                } catch (err: any) {
                     // One attempt per device — a second is rejected, never overwritten.
-                    return json({ error: 'Attempt already exists' }, 409);
+                    if (err.message && err.message.includes('UNIQUE constraint failed')) {
+                        return json({ error: 'Attempt already exists' }, 409);
+                    }
+                    throw err;
                 }
                 return json({ ok: true }, 201);
             }

@@ -6,6 +6,7 @@ import { ALLTIME_PERIOD, monthBucketId, RANKED_GAMES, type RankedGame, type Rank
 import { qualifies } from './rank';
 import { recordBestIfHigher, markSynced, listPending } from './local';
 import { countEntries, lowestScore, submitEntry } from './store';
+import { invalidateGameCache } from './cache';
 import type { RankingEntry } from './types';
 
 // Orchestrates pushing a device's best challenge score to the global board
@@ -30,6 +31,9 @@ async function pushToBucket(game: string, period: string, score: number, nicknam
         const signature = signatureSlug(loadStats().lifetimeXp);
         if (signature) entry.signature = signature;
         await submitEntry(game, period, getDeviceId(), entry);
+        // Our own entry just changed the board; drop the day cache so the next
+        // rankings open pulls fresh and shows the new standing.
+        invalidateGameCache(game);
         return true;
     } catch (err) {
         // A `BlockedError` (permission-denied / App Check) is a terminal server

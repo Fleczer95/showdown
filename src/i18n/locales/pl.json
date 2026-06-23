@@ -441,6 +441,7 @@
         "pending": "Czeka na wysyłkę",
         "retry": "Ponów",
         "rolloverNote": "Ranking miesiąca przełącza się w pierwszych dniach miesiąca — nie martw się, jeśli Twojego wyniku jeszcze nie widać.",
+        "updatesNote": "Rankingi odświeżają się okresowo, więc świeżo zdobyty wynik może pojawić się tu z opóźnieniem.",
         "connectivityNote": "Bądź online podczas grania wyzwania, aby Twój wynik zapisał się w rankingu.",
         "offline": "Jesteś offline",
         "offlineDesc": "Połącz się z internetem, aby zobaczyć rankingi.",

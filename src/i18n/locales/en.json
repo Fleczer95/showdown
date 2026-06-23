@@ -441,6 +441,7 @@
         "pending": "Waiting to sync",
         "retry": "Retry",
         "rolloverNote": "The monthly board switches over in the first days of each month — don't worry if your latest score isn't showing yet.",
+        "updatesNote": "Rankings refresh periodically, so a freshly played score can take a moment to appear here.",
         "connectivityNote": "Stay online while playing a challenge so your ranking is saved.",
         "offline": "You're offline",
         "offlineDesc": "Connect to the internet to see the rankings.",

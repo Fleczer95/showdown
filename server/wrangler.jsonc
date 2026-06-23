@@ -1,0 +1,26 @@
+{
+  // Showdown backend — Cloudflare Worker fronting a D1 database for async
+  // challenges + global rankings (replaces Firestore; see ADR-0003 / ADR-0004 and
+  // docs/plans/2026-06-22-cloudflare-d1-migration-audit.md).
+  "name": "showdown-backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 }
+  },
+  // Not a secret — the App Check issuer/audience are public identifiers. Replace
+  // with your Firebase project NUMBER (Firebase console → Project settings).
+  "vars": {
+    "FIREBASE_PROJECT_NUMBER": "381435458877"
+  },
+  // Fill database_id from `wrangler d1 create showdown_db`.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "showdown_db",
+      "database_id": "87a53877-38b4-4e2c-83ac-77b2119a9270"
+    }
+  ]
+}

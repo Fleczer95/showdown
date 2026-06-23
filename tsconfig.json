@@ -7,5 +7,5 @@
         "lib": ["esnext"]
     },
     "include": ["**/*.ts", "**/*.tsx"],
-    "exclude": ["node_modules", "aso/screenshot-generator"]
+    "exclude": ["node_modules", "aso/screenshot-generator", "server"]
 }

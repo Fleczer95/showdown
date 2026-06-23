@@ -1,12 +1,13 @@
 import { pushRanking } from './push';
 import { submitEntry } from './store';
+import { invalidateGameCache } from './cache';
 import { markSynced } from './local';
 import { BlockedError, OfflineError } from '../challenge/store';
 import { loadStats } from '../progression';
 
-// The error classes live in challenge/store, which imports firestore; stub it so
-// the module loads under jest (we never reach a real firestore call here).
-jest.mock('@react-native-firebase/firestore', () => ({ __esModule: true, default: () => ({}) }));
+// The error classes live in challenge/store, which imports the App Check SDK; stub
+// it so the module loads under jest (we never reach a real network call here).
+jest.mock('@react-native-firebase/app-check', () => ({ __esModule: true, default: () => ({}) }));
 
 // Firestore + local-best I/O are stubbed; we only assert the payload shape.
 jest.mock('./store', () => ({
@@ -19,6 +20,7 @@ jest.mock('./local', () => ({
     markSynced: jest.fn(),
     listPending: jest.fn(() => []),
 }));
+jest.mock('./cache', () => ({ invalidateGameCache: jest.fn() }));
 jest.mock('../challenge/deviceId', () => ({ getDeviceId: () => 'device-1' }));
 jest.mock('../progression', () => {
     const actual = jest.requireActual('../progression');
@@ -43,6 +45,12 @@ describe('pushRanking — signature on the wire', () => {
         const entry = lastEntry();
         expect(entry).toEqual({ nickname: 'Ada', score: 500 });
         expect('signature' in entry).toBe(false);
+    });
+
+    it('invalidates the game day-cache once a score is written, so the new standing shows', async () => {
+        (loadStats as jest.Mock).mockReturnValue({ lifetimeXp: 0 });
+        await pushRanking('the-ladder', 500, 'Ada');
+        expect(invalidateGameCache).toHaveBeenCalledWith('the-ladder');
     });
 });
 

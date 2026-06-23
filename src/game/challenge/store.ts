@@ -1,18 +1,20 @@
-import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import appCheck from '@react-native-firebase/app-check';
 import type { Attempt, ChallengeRecord } from './types';
+import { generateUuid } from './deviceId';
 import { SafeSentry } from '../../utils/sentry/init';
 
-// The only Firestore touchpoint for challenges (ADR-0003). The app reads/writes
-// directly — there is no server. A challenge is one document at `c/{id}`;
-// participant results live in a `c/{id}/attempts/{uuid}` subcollection.
-//
-// A challenge is online at three gated moments — create, open, finish — and each
-// must reflect a confirmed round-trip, so every call is wrapped with a timeout
-// and surfaces a typed `OfflineError` the UI turns into a connect+retry screen.
-// Firestore's silent offline write queue is deliberately not relied upon.
+// The only network touchpoint for challenges (ADR-0003). The app talks to the
+// Showdown Worker API (Cloudflare + D1) over plain HTTPS — there is no Firestore
+// SDK here anymore. Every request carries a Firebase App Check token; the Worker
+// verifies it and rejects anything else. A challenge is online at three gated
+// moments — create, open, finish — and each must reflect a confirmed round-trip,
+// so every call is timeout-wrapped and surfaces a typed `OfflineError` /
+// `BlockedError` the UI turns into a connect+retry or a hard-error screen.
 
-const CHALLENGES = 'c';
-const ATTEMPTS = 'attempts';
+// The Showdown backend Worker (Cloudflare + D1). Not user-facing — only the app
+// calls it — so the workers.dev URL is fine for production. One constant to swap
+// if it is ever moved to a branded domain.
+export const BASE_API_URL = 'https://showdown-backend.arturjankowski95.workers.dev';
 
 /** Network round-trips that fail or hang resolve to this, gating the offline UI. */
 export class OfflineError extends Error {
@@ -24,10 +26,9 @@ export class OfflineError extends Error {
 }
 
 /**
- * The server actively rejected the request — security rules or, in practice, App
- * Check attestation (a failed Play Integrity / App Attest token surfaces as
- * `permission-denied`). The device is online and a retry won't help, so the UI must
- * NOT claim "you're offline" here; it shows a distinct error and we report it.
+ * The server actively rejected the request — App Check attestation failure (403)
+ * or a conflict (409, e.g. a duplicate attempt). The device is online and a retry
+ * won't help, so the UI must NOT claim "you're offline"; it shows a distinct error.
  */
 export class BlockedError extends Error {
     constructor(cause?: unknown) {
@@ -37,38 +38,32 @@ export class BlockedError extends Error {
     }
 }
 
-// Codes that mean a deliberate server-side rejection rather than a connectivity
-// failure. Kept narrow on purpose: anything else (including transient
-// `unavailable`/`deadline-exceeded`) stays an OfflineError so a real network blip
-// keeps its retry-friendly "offline" copy.
-const REJECTED_CODES = new Set(['firestore/permission-denied', 'firestore/unauthenticated']);
-
-/**
- * Turn a raw failure into one of our two typed errors. A rejection is reported to
- * Sentry (it's a misconfiguration we want to see); a plain offline state is expected
- * and not worth an event.
- */
-function classifyError(err: unknown): OfflineError | BlockedError {
-    if (err instanceof OfflineError || err instanceof BlockedError) return err;
-    const code = (err as { code?: unknown }).code;
-    if (typeof code === 'string' && REJECTED_CODES.has(code)) {
-        SafeSentry.captureException(err, { tags: { area: 'challenge-store' } });
-        return new BlockedError(err);
-    }
-    return new OfflineError(err);
-}
-
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /**
- * Cap on attempts pulled for the result reveal. Ordered by `progress` (the
- * primary ranking key — see `rankEntries`), so the fetched slice is exactly the
- * entries that can occupy the board; the rest can't outrank them. Bounds read
- * cost on a runaway challenge without ever dropping a winner.
+ * Map a non-OK HTTP status to one of our typed errors. 403 (App Check) and 409
+ * (conflict) are deliberate server rejections a retry can't fix → `BlockedError`;
+ * a 403 is reported to Sentry since it usually means a misconfiguration. Anything
+ * else (5xx, etc.) stays an `OfflineError` so a transient blip keeps retry-friendly
+ * copy.
  */
-const ATTEMPTS_QUERY_LIMIT = 100;
+export function httpError(status: number): OfflineError | BlockedError {
+    if (status === 403) {
+        const err = new BlockedError();
+        SafeSentry.captureException(err, { tags: { area: 'challenge-store', status: '403' } });
+        return err;
+    }
+    if (status === 409) return new BlockedError();
 
-/** Reject with `OfflineError` if `promise` doesn't settle within the timeout. */
+    // Log any unexpected HTTP errors (500, 400, etc.) to Sentry
+    const err = new OfflineError();
+    SafeSentry.captureException(err, { tags: { area: 'challenge-store', status: status.toString() } });
+    return err;
+}
+
+/** Reject with `OfflineError` if `promise` doesn't settle within the timeout. A
+ *  rejection already typed as Offline/Blocked passes through; anything else (a raw
+ *  `fetch` network failure) becomes `OfflineError`. */
 export function withTimeout<T>(promise: Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => reject(new OfflineError()), REQUEST_TIMEOUT_MS);
@@ -79,76 +74,94 @@ export function withTimeout<T>(promise: Promise<T>): Promise<T> {
             },
             (err) => {
                 clearTimeout(timer);
-                reject(classifyError(err));
+                if (err instanceof OfflineError || err instanceof BlockedError) reject(err);
+                else reject(new OfflineError(err));
             },
         );
     });
 }
 
+async function appCheckHeaders(forceRefresh: boolean): Promise<Record<string, string>> {
+    const { token } = await appCheck().getToken(forceRefresh);
+    if (!token) throw new Error('App Check token unavailable');
+    return { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': token };
+}
+
 /**
- * A fresh challenge document id, generated client-side without a write. The
- * create flow reuses this across retries so a write whose confirmation timed out
- * (but which Firestore still commits on reconnect) can be recovered via
- * `getChallenge` instead of being created a second time.
+ * `fetch` with the App Check header attached. A 403 may just mean the cached token
+ * expired, so we force-refresh once and retry before treating it as a real
+ * rejection. Returns the raw `Response`; callers map the status.
+ */
+export async function fetchWithAppCheck(path: string, init: RequestInit = {}): Promise<Response> {
+    const url = `${BASE_API_URL}${path}`;
+    let res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(false)) } });
+    if (res.status === 403) res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(true)) } });
+    return res;
+}
+
+/**
+ * `fetchWithAppCheck` + timeout + status mapping, resolving to the parsed JSON
+ * body. With `notFound`, a 404 resolves to `null` (a missing/expired doc is not an
+ * error on the read paths); any other non-OK status maps via `httpError`.
+ */
+export async function request<T>(path: string, init: RequestInit = {}, notFound = false): Promise<T> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        const res = await fetchWithAppCheck(path, { ...init, signal: controller.signal });
+        clearTimeout(timer);
+        if (notFound && res.status === 404) return null as T;
+        if (!res.ok) throw httpError(res.status);
+        return (await res.json()) as T;
+    } catch (err: any) {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') throw new OfflineError();
+        if (err instanceof OfflineError || err instanceof BlockedError) throw err;
+        
+        // Log unexpected runtime errors (e.g., JSON SyntaxError), but ignore raw network exceptions (TypeError)
+        if (err.name !== 'TypeError') {
+            SafeSentry.captureException(err, { tags: { area: 'challenge-store', type: err.name } });
+        }
+        
+        throw new OfflineError(err);
+    }
+}
+
+/**
+ * A fresh challenge id, generated client-side without a write, so the create flow
+ * can reuse it across retries (a timed-out-but-committed create is recovered via
+ * `getChallenge` instead of being created twice). A v4 UUID — same scheme as the
+ * device id; reads are App Check-gated, so guessability is not a concern.
  */
 export function newChallengeId(): string {
-    return firestore().collection(CHALLENGES).doc().id;
+    return generateUuid();
 }
 
-/**
- * Write a frozen challenge; returns the document id for the share URL. Pass a
- * pre-generated `id` (see `newChallengeId`) to make a retry target the same doc.
- * `expiresAt` is stored as a Firestore `Timestamp` (not the in-app epoch-ms
- * number) because the Firestore TTL policy only prunes docs by a Timestamp field.
- */
+/** Write a frozen challenge; returns the document id for the share URL. Pass a
+ *  pre-generated `id` (see `newChallengeId`) to make a retry target the same doc. */
 export async function createChallenge(record: ChallengeRecord, id?: string): Promise<string> {
-    const payload = { ...record, expiresAt: firestore.Timestamp.fromMillis(record.expiresAt) };
-    const ref = id ? firestore().collection(CHALLENGES).doc(id) : firestore().collection(CHALLENGES).doc();
-    await withTimeout(ref.set(payload));
-    return ref.id;
+    const docId = id ?? newChallengeId();
+    await request('/challenges', { method: 'POST', body: JSON.stringify({ ...record, id: docId }) });
+    return docId;
 }
 
-/** Fetch a challenge by id. Returns `null` when the doc is missing or expired-out. */
-export async function getChallenge(id: string): Promise<ChallengeRecord | null> {
-    const snapshot = await withTimeout(firestore().collection(CHALLENGES).doc(id).get());
-    if (!snapshot.exists) return null;
-    // `expiresAt` is a Timestamp on the wire (see createChallenge); convert back
-    // to epoch-ms so the rest of the app keeps working with plain numbers.
-    const data = snapshot.data() as Omit<ChallengeRecord, 'expiresAt'> & {
-        expiresAt: FirebaseFirestoreTypes.Timestamp;
-    };
-    return { ...data, expiresAt: data.expiresAt.toMillis() };
+/** Fetch a challenge by id. Returns `null` when missing or expired-out. */
+export function getChallenge(id: string): Promise<ChallengeRecord | null> {
+    return request<ChallengeRecord | null>(`/challenges/${id}`, undefined, true);
 }
 
-/**
- * Record this device's attempt. Create-only and one-per-UUID is enforced by
- * security rules; a duplicate write is rejected server-side rather than here.
- */
+/** Record this device's attempt. Create-only, one-per-UUID is enforced server-side. */
 export async function submitAttempt(id: string, uuid: string, attempt: Attempt): Promise<void> {
-    await withTimeout(firestore().collection(CHALLENGES).doc(id).collection(ATTEMPTS).doc(uuid).set(attempt));
+    await request(`/challenges/${id}/attempts/${uuid}`, { method: 'POST', body: JSON.stringify(attempt) });
 }
 
-/**
- * Read participants' attempts for ranking the result reveal, capped at
- * `ATTEMPTS_QUERY_LIMIT` highest-progress. A single-field `orderBy` needs no
- * composite index; `rankEntries` does the full progress→score→timestamp sort.
- */
-export async function getAttempts(id: string): Promise<Attempt[]> {
-    const snapshot = await withTimeout(
-        firestore()
-            .collection(CHALLENGES)
-            .doc(id)
-            .collection(ATTEMPTS)
-            .orderBy('progress', 'desc')
-            .limit(ATTEMPTS_QUERY_LIMIT)
-            .get(),
-    );
-    return snapshot.docs.map((doc) => doc.data() as Attempt);
+/** Read participants' attempts for the result reveal (server caps at 100, ordered
+ *  by progress). `rankEntries` does the full sort. */
+export function getAttempts(id: string): Promise<Attempt[]> {
+    return request<Attempt[]>(`/challenges/${id}/attempts`);
 }
 
-/** Read this device's own attempt (null if it hasn't played yet) — gates straight-to-results. */
-export async function getAttempt(id: string, uuid: string): Promise<Attempt | null> {
-    const snapshot = await withTimeout(firestore().collection(CHALLENGES).doc(id).collection(ATTEMPTS).doc(uuid).get());
-    if (!snapshot.exists) return null;
-    return snapshot.data() as Attempt;
+/** Read this device's own attempt (null if it hasn't played yet). */
+export function getAttempt(id: string, uuid: string): Promise<Attempt | null> {
+    return request<Attempt | null>(`/challenges/${id}/attempts/${uuid}`, undefined, true);
 }

@@ -110,10 +110,10 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
 
 
             <View style={[styles.name, { gap: scale(6) }]}>
-                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                 <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
                     {entry.nickname}
                 </Text>
+                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
             </View>
             <Text variant='body' weight='bold' style={styles.score} color={isTop3 ? 'text' : 'textSecondary'}>
                 {`${entry.score.toLocaleString(locale)} ${t('leaderboard.points')}`}

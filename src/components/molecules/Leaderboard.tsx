@@ -106,7 +106,6 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
 
                         <View style={[styles.nameCol, { gap: scale(2) }]}>
                             <View style={[styles.nameLine, { gap: scale(6) }]}>
-                                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                                 <Text
                                     variant='body'
                                     weight={highlighted ? 'bold' : 'semibold'}
@@ -115,6 +114,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                                 >
                                     {entry.nickname}
                                 </Text>
+                                {sig ? <Glyph emoji={sig} size={iconSize(16)} /> : null}
                             </View>
                             <Text variant='caption' color='textSecondary' numberOfLines={1}>
                                 {formatProgress(entry.progress)}

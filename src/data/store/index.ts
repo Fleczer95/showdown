@@ -23,6 +23,7 @@ import {
     Dog,
     Users,
     UserSearch,
+    Drama,
 } from 'lucide-react-native';
 
 export type StoreCategory = 'premium' | 'packs' | 'themes';
@@ -56,4 +57,5 @@ export const STORE_ICONS: Record<string, LucideIcon> = {
     dog: Dog,
     users: Users,
     userSearch: UserSearch,
+    drama: Drama,
 };

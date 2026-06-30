@@ -169,7 +169,9 @@ export default function StoreScreen() {
             {
                 gameId: 'themes',
                 title: t('screen.store.category.themes'),
-                data: forSale.filter((entry) => entry.kind === 'theme'),
+                // Cosmetics tab: themes plus the mascot skin bundle (catalog order
+                // keeps themes first, the mascot pack after).
+                data: forSale.filter((entry) => entry.kind === 'theme' || entry.kind === 'mascotSkin'),
             },
         ];
     }, [resolvedEntries, selectedCategory, t]);

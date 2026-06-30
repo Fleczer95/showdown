@@ -169,10 +169,40 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
   no prettier on locales). `screen.settings.labels.mascot` row already routed here from Phase 0.
 - Customizer renders the fox in `idle` pose only (pose switching was a PoC-harness concern, not a Phase 2 req).
 
-## Phase 3 — Store / billing integration (§5)
-- [ ] Buy path: locked purchasable swatch → shared billing engine (react-native-iap +
-      MMKVPurchaseAdapter) → bundle. Do NOT rebuild billing.
-- [ ] Standalone store screen entry for discovery.
+## Phase 3 — Store / billing integration (§5)  ⟵ AWAITING REVIEW (uncommitted)
+- [x] Registered `...mascotSkins` into `STORE_CATALOG` (`catalog.ts`); ownership now resolves via the
+      real catalog path (`resolveEntryState` + `purchasedItemIds`), matching the theme pattern.
+- [x] Buy path wired in `MascotScreen`: a tapped locked swatch OR locked preset routes through the
+      EXISTING `useStore().purchaseItem(skin.id)` flow (react-native-iap + `MMKVPurchaseAdapter`) to buy
+      `com.showdown.mascot_skinpack`. Billing NOT rebuilt — same hook/engine as theme & pack buys.
+- [x] Lock derivation REPLACED: Phase-2 `LOCKED_IDS = mascotSkins.flatMap(unlocks)` swapped for an
+      ownership-resolved `lockedIds` (`useMemo` over `purchasedItemIds` → `resolveEntryState`). On a
+      successful purchase `purchasedItemIds` flips reactively → lock badges clear, swatches equippable.
+- [x] i18n store copy added (en + pl): `screen.store.item.mascot_skinpack.{title,desc}` +
+      `screen.store.feature.mascot_skinpack_{1,2}` (16-space style, no prettier on locales).
+- [x] Surfaced in the standalone Store screen for discovery: mascot bundle shows in the cosmetics
+      (Themes) tab — `StoreScreen` section filter now includes `kind === 'mascotSkin'`; added `drama`
+      → `Drama` to `STORE_ICONS` so the card/detail icon resolves.
+- [x] Static checks: tsc clean, eslint clean, prettier clean (TS files I touched), i18n:check passes,
+      34/34 store tests pass.
+
+### Decisions / notes (flag for review)
+- **Testable in DEV without provisioning.** `USE_MOCK_IAP` is on under `__DEV__`, so tapping a locked
+  swatch runs the mock `PurchaseEngine.purchaseItem` (1.5s → marks owned). The buy path can be exercised
+  end-to-end on-device in a dev build right now. The REAL-store path needs the `com.showdown.mascot_skinpack`
+  IAP product provisioned in App Store Connect + Google Play first (separate step, not done).
+- **Locked swatches are now actionable** (the buy trigger), so `disabled` moved from `locked` →
+  `isProcessing` on both swatches and preset chips (prevents double-fire during the in-flight purchase;
+  `buyColor` also guards on `isProcessing`). Lock badge + dimming stay as the "needs purchase" affordance.
+- **No auto-equip after purchase** (kept minimal + robust): real IAP resolves `purchaseItem` before the
+  unlock lands in `onPurchaseSuccess`, so the freshly-bought color can't be equipped synchronously. The
+  reactive `purchasedItemIds` clears the locks; the user taps the now-unlocked swatch to equip. Mirrors
+  `StoreScreen.handlePurchase` (which also doesn't rely on immediate ownership).
+- **Store surfacing placement:** put the bundle in the existing Themes/cosmetics tab rather than adding a
+  new top-level store category (one-line section-filter change, no new category i18n). Catalog order keeps
+  themes first, the mascot pack after.
+- **Pre-existing:** `src/screens/store/StoreScreen.tsx` was already not prettier-clean before this phase
+  (verified via stash) — left as-is per surgical-changes rule; my 3-line edit conforms.
 
 ## Phase 4 — Progression deep-link, scroll-to-anchor (§5, §8 — pulled into v1)
 - [ ] Earned mascot elements in `src/game/progression/` (never sold).
@@ -220,3 +250,11 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
   `unlocks` array (no catalog ownership / no buy path — that's Phase 3). i18n `screen.mascot.*` added EN+PL
   (459/459). tsc/eslint/prettier clean. `poc/` folder now orphaned (Phase 6 deletes it). AWAITING USER REVIEW
   before commit. NEXT (after approval): commit, then Phase 3 (wire buy path through existing IAP plumbing).
+- 2026-06-30: Phase 3 BUILT (store/billing integration). `...mascotSkins` registered in `STORE_CATALOG`;
+  `MascotScreen` lock derivation swapped from bundle-`unlocks` to ownership-resolved (`resolveEntryState` +
+  `purchasedItemIds`); tapped locked swatch/preset routes through the EXISTING `useStore().purchaseItem`
+  flow to buy `com.showdown.mascot_skinpack` (billing NOT rebuilt); buy clears locks reactively. i18n
+  `screen.store.item/feature.mascot_skinpack*` added EN+PL; bundle surfaced in the Store cosmetics tab
+  (+`drama` icon). tsc/eslint/prettier clean, i18n:check passes, 34/34 store tests pass. Buy flow is
+  testable in a DEV build via mock IAP NOW; real-store needs the IAP product provisioned (separate step).
+  AWAITING USER REVIEW before commit. NEXT (after approval): commit, then Phase 4 (progression deep-link).

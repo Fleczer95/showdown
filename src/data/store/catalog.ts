@@ -1,16 +1,17 @@
 import { gamePacks } from './packs';
+import { mascotSkins } from './mascotSkins';
 import { resolveEntryState } from './resolver';
 import { themes } from './themes';
 import type { CatalogEntry } from './types';
 
 /**
- * Every purchasable entry across all games + themes, typed as the discriminated
- * union. Ordered games-first, then themes.
+ * Every purchasable entry across all games + themes + mascot skins, typed as the
+ * discriminated union. Ordered games-first, then themes, then mascot skins.
  *
  * ShowDown skeleton: game packs are added per-game during the content phase
- * (e.g. `...theLadderPacks`). Today only cosmetic themes ship.
+ * (e.g. `...theLadderPacks`).
  */
-export const STORE_CATALOG: readonly CatalogEntry[] = [...gamePacks, ...(themes ?? [])];
+export const STORE_CATALOG: readonly CatalogEntry[] = [...gamePacks, ...(themes ?? []), ...mascotSkins];
 
 const idToEntry = new Map<string, CatalogEntry>();
 const idToSku = new Map<string, string>();

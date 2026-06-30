@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable as RNPressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, Lock } from 'lucide-react-native';
@@ -22,19 +22,14 @@ import {
 } from '../game/mascot/look';
 import { getEquippedLook, setEquippedLook } from '../game/mascot/equippedLook';
 import { mascotSkins } from '../data/store/mascotSkins';
+import { useStore } from '../hooks/store/useStore';
+import { resolveEntryState } from '../data/store/resolver';
 
 const SLOTS: MascotSlot[] = ['fur', 'suit', 'accent', 'mic'];
 const MASCOT_SIZE = 240;
 
-/**
- * Swatches the player does not own yet. Derived from the skin bundle's `unlocks`
- * list (plan §5) — NOT from catalog ownership, since `mascotSkins` isn't wired
- * into `STORE_CATALOG` until Phase 3. Everything not in this set (the per-slot
- * defaults, later any earned colors excluded from `unlocks`) is free to equip.
- */
-const LOCKED_IDS = new Set(mascotSkins.flatMap((skin) => skin.unlocks));
-
-const isLocked = (colorId: string) => LOCKED_IDS.has(colorId);
+/** The bundle whose purchase unlocks a given color (one bundle in v1, plan §5). */
+const skinForColor = (colorId: string) => mascotSkins.find((skin) => skin.unlocks.includes(colorId));
 
 /**
  * Approximate tap zones over the placeholder fox, in the SVG's 200×220 viewBox.
@@ -62,14 +57,50 @@ export function MascotScreen() {
     const theme = useTheme();
     const { iconSize, scale } = useResponsive();
     const reduced = useReducedMotion();
+    const { purchasedItemIds, purchaseItem, isProcessing } = useStore();
 
     const [look, setLook] = useState<LookMap>(() => getEquippedLook());
     const [activeSlot, setActiveSlot] = useState<MascotSlot | null>(null);
     const sheetOpen = activeSlot !== null;
 
-    // Equip an owned color: live recolor + immediate persistence (plan §5).
+    /**
+     * Colors the player can't equip yet. Derived from real catalog ownership
+     * (plan §5): every bundle still resolving to `locked` contributes its
+     * `unlocks`. Buying the bundle flips `purchasedItemIds`, which recomputes
+     * this set and clears the lock badges reactively.
+     */
+    const lockedIds = useMemo(() => {
+        const owned = new Set(purchasedItemIds);
+        const locked = new Set<string>();
+        for (const skin of mascotSkins) {
+            if (resolveEntryState(skin, owned) === 'locked') {
+                for (const id of skin.unlocks) locked.add(id);
+            }
+        }
+        return locked;
+    }, [purchasedItemIds]);
+
+    const isLocked = useCallback((colorId: string) => lockedIds.has(colorId), [lockedIds]);
+
+    // Route a locked color through the shared billing engine to buy its bundle
+    // (plan §5). Reuses the same `purchaseItem` flow as theme/pack purchases; the
+    // unlock lands via `onPurchaseSuccess` → reactive `purchasedItemIds`.
+    const buyColor = useCallback(
+        (colorId: string) => {
+            if (isProcessing) return;
+            const skin = skinForColor(colorId);
+            if (skin) purchaseItem(skin.id);
+        },
+        [isProcessing, purchaseItem],
+    );
+
+    // Tapping an owned color equips it (live recolor + immediate persistence);
+    // tapping a locked one starts its bundle purchase instead (plan §5).
     const equipColor = (slot: MascotSlot, colorId: string) => {
-        if (isLocked(colorId)) return; // Phase 2 shows locked swatches but can't buy.
+        if (isLocked(colorId)) {
+            buyColor(colorId);
+            return;
+        }
         setLook((prev) => {
             const next = { ...prev, [slot]: colorId };
             setEquippedLook(next);
@@ -78,7 +109,11 @@ export function MascotScreen() {
     };
 
     const applyPreset = (preset: MascotPreset) => {
-        if (Object.values(preset.look).some(isLocked)) return;
+        const lockedColor = Object.values(preset.look).find(isLocked);
+        if (lockedColor) {
+            buyColor(lockedColor);
+            return;
+        }
         setLook({ ...preset.look });
         setEquippedLook(preset.look);
     };
@@ -108,7 +143,7 @@ export function MascotScreen() {
         if (!activeSlot) return [];
         // Unlocked first, then locked-with-badge (plan §5).
         return [...MASCOT_PALETTE[activeSlot]].sort((a, b) => Number(isLocked(a.id)) - Number(isLocked(b.id)));
-    }, [activeSlot]);
+    }, [activeSlot, isLocked]);
 
     return (
         <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
@@ -206,7 +241,7 @@ export function MascotScreen() {
                             <Pressable
                                 key={preset.id}
                                 onPress={() => applyPreset(preset)}
-                                disabled={locked}
+                                disabled={isProcessing}
                                 haptic='light'
                                 accessibilityRole='button'
                                 accessibilityLabel={t(`screen.mascot.presets.${preset.id}`)}
@@ -246,10 +281,10 @@ export function MascotScreen() {
                             <Pressable
                                 key={sw.id}
                                 onPress={() => activeSlot && equipColor(activeSlot, sw.id)}
-                                disabled={locked}
+                                disabled={isProcessing}
                                 haptic='light'
                                 accessibilityRole='button'
-                                accessibilityState={{ selected, disabled: locked }}
+                                accessibilityState={{ selected, disabled: isProcessing }}
                                 style={styles.swatchCell}
                             >
                                 <View

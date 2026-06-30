@@ -373,6 +373,10 @@
                 "ladder_lost-civilizations": {
                     "title": "Lost Civilizations",
                     "desc": "Uncover the secrets of the Maya, Sumerians, and more — 300 challenging new questions."
+                },
+                "mascot_skinpack": {
+                    "title": "Mascot Skins",
+                    "desc": "Recolor your fox host head to toe — fur, suit, accent, and mic — with a full palette of premium swatches."
                 }
             },
             "feature": {
@@ -393,7 +397,9 @@
                 "wheel_world-landmarks_1": "60 fresh puzzles featuring the world's most famous sites",
                 "wheel_world-landmarks_2": "Spans ancient wonders, modern marvels, and natural beauties",
                 "ladder_lost-civilizations_1": "300 deep-cut questions on archaeology and ancient mysteries",
-                "ladder_lost-civilizations_2": "Spans the Americas, Mesopotamia, Asia, and Africa"
+                "ladder_lost-civilizations_2": "Spans the Americas, Mesopotamia, Asia, and Africa",
+                "mascot_skinpack_1": "Premium colors for every slot — fur, suit, accent, and mic",
+                "mascot_skinpack_2": "One purchase unlocks the whole palette for the customizer"
             },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",

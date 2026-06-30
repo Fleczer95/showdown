@@ -373,6 +373,10 @@
                 "ladder_lost-civilizations": {
                     "title": "Zaginione cywilizacje",
                     "desc": "Odkryj tajemnice Majów, Sumerów i nie tylko — 300 nowych, wymagających pytań."
+                },
+                "mascot_skinpack": {
+                    "title": "Skórki maskotki",
+                    "desc": "Pokoloruj swojego lisa-prowadzącego od stóp do głów — futro, garnitur, dodatek i mikrofon — pełną paletą kolorów premium."
                 }
             },
             "feature": {
@@ -393,7 +397,9 @@
                 "wheel_world-landmarks_1": "60 świeżych łamigłówek z najsłynniejszymi miejscami na świecie",
                 "wheel_world-landmarks_2": "Obejmuje starożytne cuda, współczesne perły i piękno natury",
                 "ladder_lost-civilizations_1": "300 szczegółowych pytań o archeologii i starożytnych tajemnicach",
-                "ladder_lost-civilizations_2": "Obejmuje Ameryki, Mezopotamię, Azję i Afrykę"
+                "ladder_lost-civilizations_2": "Obejmuje Ameryki, Mezopotamię, Azję i Afrykę",
+                "mascot_skinpack_1": "Kolory premium do każdego elementu — futra, garnituru, dodatku i mikrofonu",
+                "mascot_skinpack_2": "Jeden zakup odblokowuje całą paletę w kreatorze"
             },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",

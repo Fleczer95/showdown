@@ -47,11 +47,34 @@ committing. Mark the phase done here + commit at the end of each session.
 > before committing.
 
 **Phase 4 — progression deep-link (scroll-to-anchor):**
-> Continue the Showdown mascot build, Phase 4. Read both mascot docs. Add earned mascot elements
-> in `src/game/progression/` (never sold); make a locked EARNED swatch navigate to the progression
-> map and highlight the target level. The `Progress` route already takes `{ focusRewardId }` —
-> check `ProgressScreen` for existing anchor/highlight wiring and extend it to scroll-to + highlight.
-> Save progress after each step; stop for review before committing.
+> Continue the Showdown mascot build, Phase 4. Read `docs/plans/2026-06-30-mascot-design.md` (spec) and
+> `docs/plans/2026-06-30-mascot-design.PROGRESS.md` (progress). Phase 3 is committed (`795241c`) on branch
+> `mascotte`. Build Phase 4 only — the progression deep-link for EARNED mascot colors (plan §5 + §8):
+>
+> SCOPED FACTS (already verified — don't re-derive):
+>   - The scroll-to-anchor ALREADY EXISTS. `ProgressScreen` reads `route.params?.focusRewardId`, maps it
+>     to a level via `LEVEL_MAP`, and `scrollRef.current?.scrollTo({ y })` (ProgressScreen.tsx ~L132-147).
+>     So this phase is mostly WIRING — `MascotScreen` navigates `('Progress', { focusRewardId })`, the same
+>     pattern `ThemeScreen` uses for earned themes. Confirm the target level also gets a visual HIGHLIGHT
+>     (not just scroll); if highlight is missing, add it.
+>   - There are currently ZERO earned colors. The placeholder palette in `src/game/mascot/look.ts` is 3
+>     colors/slot; defaults = slot[0]; ALL 8 non-defaults are in the purchasable bundle (`mascotSkins.unlocks`).
+>     So Phase 4 must INTRODUCE the earned element(s): a new colorId NOT in `mascotSkins.unlocks`, mapped to a
+>     `rewardId` + level in progression. ⛔ DECISION NEEDED FROM USER UP FRONT: which earned element (e.g. a
+>     gold mic), at which level / `rewardId`. ASK before building. (Palette is placeholder until §8 final art,
+>     so the specific color may be a stand-in — but wire the mechanism against a real `rewardId`.)
+>
+> STEPS:
+>   1. Add the earned mascot element(s) in `src/game/progression/` (NEVER sold; mirror
+>      `src/game/progression/themes.ts`). Keep them OUT of `mascotSkins.unlocks` so they don't read as buyable.
+>   2. In `MascotScreen`, split locked-swatch behavior: locked PURCHASABLE → existing Phase-3 buy path
+>      (`purchaseItem`); locked EARNED → `navigation.navigate('Progress', { focusRewardId })`.
+>   3. Resolve earned-unlock state from `useProgression().unlockedRewards` (like `ThemeScreen`); map each
+>      earned colorId → its `rewardId`/level. Earned-but-unlocked colors equip like any owned color.
+>   4. Ensure `ProgressScreen` scrolls to AND highlights the target level for the mascot `focusRewardId`.
+>
+> Save progress after each step; run `tsc --noEmit` + eslint + prettier + `npm run i18n:check`; stop for my
+> review before committing.
 
 **Phase 5 — placement (Home + Results):**
 > Continue the Showdown mascot build, Phase 5. Read both mascot docs. Build a self-contained

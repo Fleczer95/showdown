@@ -35,7 +35,7 @@ EOF
 $(cat <path-to-pack-file>)"
 ```
 
-(The `ask-gemini` skill, if available, is an acceptable alternative transport.)
+(The `ask-agy` skill, if available, is an acceptable alternative transport.)
 
 Handling the verdict:
 - **BLOCK on factual or IP findings** — fix them (re-author the offending items), then re-run stages 2–3.

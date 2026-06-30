@@ -1,13 +1,11 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
+import { StyleSheet } from 'react-native';
 import Stack from '../atoms/Stack';
-import Icon from '../atoms/Icon';
 import Card from './Card';
 import { useTheme } from '../../theme';
-import { hexToRgba, darken, readableOn, resolveAccent } from '../../theme/colorUtils';
+import { hexToRgba, readableOn, resolveAccent } from '../../theme/colorUtils';
 import { useResponsive } from '../../responsive/useResponsive';
-import { games, GAME_ICONS } from '../../data/games';
+import { games } from '../../data/games';
 
 interface GameOverCardProps {
     gameId: string;
@@ -16,18 +14,16 @@ interface GameOverCardProps {
 }
 
 /**
- * End-of-game result panel. Mirrors the home/setup visual language: an accent
- * gradient medallion of the game's icon, an accent-tinted border with a soft
- * colored glow, extra-rounded corners, and airy vertical rhythm.
+ * End-of-game result panel: an accent-tinted border with a soft colored glow,
+ * extra-rounded corners, and airy vertical rhythm. The mascot now anchors the
+ * header (see each game's Results screen), so the game-icon medallion was dropped.
  */
 function GameOverCard({ gameId, children }: GameOverCardProps) {
     const theme = useTheme();
-    const { scale, iconSize } = useResponsive();
+    const { scale } = useResponsive();
     const game = games.find((g) => g.id === gameId) ?? games[0];
     const accent = resolveAccent(theme, game.accent);
     const onAccent = readableOn(accent);
-    const GameIcon = GAME_ICONS[game.iconName];
-    const gradientId = `gameover-medallion-${game.id}`;
 
     return (
         <Card
@@ -48,23 +44,6 @@ function GameOverCard({ gameId, children }: GameOverCardProps) {
             ]}
         >
             <Stack gap='xl' align='stretch'>
-                <View style={[styles.medallion, { width: scale(88), height: scale(88), borderRadius: theme.radii.xl }]}>
-                    <View
-                        style={[StyleSheet.absoluteFill, { borderRadius: theme.radii.xl, overflow: 'hidden' }]}
-                        pointerEvents='none'
-                    >
-                        <Svg width='100%' height='100%'>
-                            <Defs>
-                                <SvgGradient id={gradientId} x1='0' y1='0' x2='1' y2='1'>
-                                    <Stop offset='0' stopColor={accent} />
-                                    <Stop offset='1' stopColor={darken(accent, 0.4)} />
-                                </SvgGradient>
-                            </Defs>
-                            <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${gradientId})`} />
-                        </Svg>
-                    </View>
-                    {GameIcon ? <Icon name={GameIcon} size={iconSize(44)} color={onAccent} /> : null}
-                </View>
                 {children({ accent, onAccent })}
             </Stack>
         </Card>
@@ -74,12 +53,6 @@ function GameOverCard({ gameId, children }: GameOverCardProps) {
 const styles = StyleSheet.create({
     card: {
         width: '100%',
-    },
-    medallion: {
-        alignSelf: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
     },
 });
 

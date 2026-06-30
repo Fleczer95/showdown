@@ -27,6 +27,16 @@ import { type LookMap, type MascotPose, resolveSlotColor } from './look';
 const SHADE = 'rgba(0,0,0,0.18)'; // shading overlay — NOT recolored (plan §2)
 const HILITE = 'rgba(255,255,255,0.22)'; // highlight overlay — NOT recolored
 
+/**
+ * The drawn fox occupies y∈[34,210] of the old 0–220 viewBox (big empty top/bottom
+ * margins). We frame it tightly so the rendered box ≈ the fox — positioning the
+ * mascot is then precise (no off-centre hang). Width stays 200 so the px-per-unit
+ * scale is uniform on both axes (the customizer's hit-zones rely on that; they
+ * only offset their `y` by `minY`). Phase 6 art keeps these bounds.
+ */
+export const MASCOT_VIEWBOX = { minY: 30, width: 200, height: 184 } as const;
+export const MASCOT_ASPECT = MASCOT_VIEWBOX.height / MASCOT_VIEWBOX.width; // height ÷ width
+
 export interface MascotProps {
     look: LookMap;
     pose: MascotPose;
@@ -86,8 +96,9 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
             case 'dismay':
                 opacity.value = withTiming(1, { duration: 120 });
                 scale.value = withTiming(0.97, { duration: 240 });
-                // Slump down + a quick disappointed head shake.
-                translateY.value = withTiming(10, { duration: 240, easing: Easing.in(Easing.quad) });
+                // A small slump + a quick disappointed head shake (kept subtle so the
+                // fox still reads as centred next to the result text).
+                translateY.value = withTiming(4, { duration: 240, easing: Easing.in(Easing.quad) });
                 rotate.value = withSequence(
                     withTiming(-7, { duration: 90 }),
                     withTiming(7, { duration: 90 }),
@@ -111,7 +122,11 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
 
     return (
         <Animated.View style={animatedStyle}>
-            <Svg width={size} height={size * 1.1} viewBox='0 0 200 220'>
+            <Svg
+                width={size}
+                height={size * MASCOT_ASPECT}
+                viewBox={`0 ${MASCOT_VIEWBOX.minY} ${MASCOT_VIEWBOX.width} ${MASCOT_VIEWBOX.height}`}
+            >
                 {/* ---- TAIL (fur) ---- */}
                 <Ellipse cx='44' cy='150' rx='26' ry='34' fill={fur} />
                 <Ellipse cx='40' cy='168' rx='16' ry='18' fill={HILITE} />

@@ -691,28 +691,33 @@ function GameOverView({
     const theme = useTheme();
 
     return (
-        <View style={styles.flex}>
         <ScrollView style={styles.flex} contentContainerStyle={[styles.center, { padding: theme.spacing.xl }]} keyboardShouldPersistTaps='handled'>
             <GameOverCard gameId={GAME_ID}>
                 {({ accent, onAccent }) => (
                     <>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='heading' weight='bold' align='center'>
-                                {won ? t('game.the-ladder.score.youWon') : t('game.the-ladder.score.gameOver')}
-                            </Text>
-                            <Text variant='body' color='textSecondary' align='center'>
-                                {t('game.the-ladder.score.reached', { number: rung })}
-                            </Text>
+                        {/* The Ladder classifies its own outcome: banked (won) cheers, busted draws a dismay (plan §3). */}
+                        <Stack direction='horizontal' gap='md' align='center'>
+                            <MascotOverlay inline pose={won ? 'cheer' : 'dismay'} size={150} />
+                            <Stack gap='md' align='center' flex={1}>
+                                <Stack gap='xs' align='center'>
+                                    <Text variant='heading' weight='bold' align='center'>
+                                        {won ? t('game.the-ladder.score.youWon') : t('game.the-ladder.score.gameOver')}
+                                    </Text>
+                                    <Text variant='body' color='textSecondary' align='center'>
+                                        {t('game.the-ladder.score.reached', { number: rung })}
+                                    </Text>
+                                </Stack>
+                                <Stack gap='xs' align='center'>
+                                    <Text variant='overline' weight='semibold' color='textMuted'>
+                                        {t('leaderboard.totalPoints')}
+                                    </Text>
+                                    <Text variant='display' weight='bold' align='center' color={accent}>
+                                        {breakdown.total.toLocaleString(locale)}
+                                    </Text>
+                                </Stack>
+                            </Stack>
                         </Stack>
-                        <Stack gap='xs' align='center'>
-                            <Text variant='overline' weight='semibold' color='textMuted'>
-                                {t('leaderboard.totalPoints')}
-                            </Text>
-                            <Text variant='display' weight='bold' align='center' color={accent}>
-                                {breakdown.total.toLocaleString(locale)}
-                            </Text>
-                            <ScoreBreakdownLine breakdown={breakdown} />
-                        </Stack>
+                        <ScoreBreakdownLine breakdown={breakdown} />
                         <RunCelebration result={runResult} accent={accent} />
                         <Leaderboard gameId={GAME_ID} pendingScore={breakdown.total} pendingProgress={progress} />
                         <Stack gap='sm' align='stretch'>
@@ -733,9 +738,6 @@ function GameOverView({
                 )}
             </GameOverCard>
         </ScrollView>
-        {/* The Ladder classifies its own outcome: banked (won) cheers, busted draws a dismay (plan §3). */}
-        <MascotOverlay pose={won ? 'cheer' : 'dismay'} size={140} anchor='bottom-right' offset={{ y: 8 }} />
-        </View>
     );
 }
 

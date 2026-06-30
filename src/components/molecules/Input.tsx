@@ -41,6 +41,8 @@ export interface InputProps {
     leftAccessory?: React.ReactNode;
     /** Right accessory element (e.g. password toggle) */
     rightAccessory?: React.ReactNode;
+    /** Override the focused border colour (e.g. a per-game accent). */
+    accentColor?: string;
 }
 
 function Input({
@@ -72,6 +74,7 @@ function Input({
     maxLength,
     returnKeyLabel,
     editable,
+    accentColor,
 }: InputProps) {
     const t = useTheme();
     const { scale } = useResponsive();
@@ -82,7 +85,7 @@ function Input({
     const borderColor = error
         ? t.components.input.error.border
         : focused
-          ? t.components.input.focused.border
+          ? (accentColor ?? t.components.input.focused.border)
           : v.border;
     const bgColor = disabled ? t.colors.surfaceVariant : v.bg;
 

@@ -280,12 +280,32 @@ hex #E5E4E2 stand-in) at **Level 35**.
       Home owns the intro→idle beat — a `useFocusEffect` sets pose `intro` then flips to `idle` after 650ms.
 - [x] Results: wheel/ladder/drop each classify their OWN outcome and pass the pose (games stay the authority):
       Wheel `game.status === 'over' ? cheer : dismay`; Ladder `won ? cheer : dismay` (banked vs busted);
-      Drop `won ? cheer : dismay` (won = `bank > 0`, the score threshold). Overlay mounted bottom-right inside
-      each game-over container (wheel/ladder wrapped their root ScrollView in a `View`; drop reused its existing
-      outer `View`).
+      Drop `won ? cheer : dismay` (won = `bank > 0`, the score threshold).
+- [x] Results layout (user requests, device-verified): the mascot is placed **inline** in the game-over card
+      header — a big fox (size 150) on the LEFT with the title + score column pushed to the RIGHT (was a
+      floating bottom-right overlay, then a small inline top-left). Used `MascotOverlay inline`: in-flow so it
+      scrolls with the card content, but still slides in (from the left, since the fox leads the row). Each
+      screen wraps its header in `<Stack direction='horizontal'>` with the title+score in a `flex={1}` column.
+      Per user feedback: REMOVED the centered game-icon medallion from `GameOverCard` (the fox now anchors the
+      header) and moved the `ScoreBreakdownLine` (Baza·Tempo·Bonus) OUT of the right column to a FULL-WIDTH
+      centered line below the two-column row. Verified on the iOS simulator (Drop + Ladder game-over).
+- [x] Inline vertical centering (user feedback): the fox hung low because (a) the drawn fox only occupies
+      y∈[34,210] of the old 0–220 viewBox — big empty top/bottom margins — and (b) the `dismay` pose slumped
+      `translateY +10`. FIX (user's suggestion to "trim the margins"): `Mascot` now frames tight —
+      `MASCOT_VIEWBOX = {minY:30, width:200, height:184}`, `height = size * MASCOT_ASPECT` — so the rendered box
+      ≈ the fox and `align='center'` centres it precisely. Width stays 200 so the px/unit scale is uniform on
+      both axes; the customizer's hit-zones just offset their `top` by `minY` (`(z.y - minY) * k`) and its stage
+      height uses `MASCOT_ASPECT` — taps stay aligned. The `dismay` slump was softened `10 → 4`. Removed the
+      earlier `-size*0.06` inline lift hack (the tight frame makes it unnecessary). Device-verified on Drop loss.
+- [x] Result palette cohesion (user feedback — "too many colours"): the leaderboard/save-score section now
+      uses the GAME ACCENT instead of the coral `primary` (matching the Play-Again button). `Leaderboard`
+      resolves the accent from `gameId` (`resolveAccent`) and applies it to the new-record box bg/border, the
+      "Świetny wynik!" label, the Save button (`backgroundColor`/`textColor`), the highlighted board row, and
+      the nickname `Input` focus border (added an optional `accentColor` prop to the shared `Input`). The score
+      number keeps its semantic win=success / loss=error colour. Verified on the Drop game-over.
 - [x] Tap-to-react (user request): tapping the fox plays a quick jump+squash bounce with a light haptic.
-      Container is `pointerEvents='box-none'` and only the fox box is a `Pressable`, so taps elsewhere still
-      pass through to the buttons underneath. Bounce respects reduced-motion (haptic only, no movement).
+      Overlay mode is `box-none` (taps pass through to buttons); inline mode is a normal in-flow Pressable.
+      Bounce respects reduced-motion (haptic only, no movement).
 - [x] Static checks: tsc clean, eslint 0 errors (2 PRE-EXISTING ladder warnings @L135, not mine), new
       `MascotOverlay.tsx` prettier-clean, i18n:check ✅ (no new keys — text quips stay deferred to §6).
 

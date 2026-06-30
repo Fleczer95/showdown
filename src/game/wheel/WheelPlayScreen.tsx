@@ -428,7 +428,6 @@ export default function WheelPlayScreen({
         // cheers, a busted-out run draws a dismay (plan §3).
         const mascotPose = game.status === 'over' ? 'cheer' : 'dismay';
         return (
-            <View style={styles.flex}>
             <ScrollView
                 style={styles.flex}
                 contentContainerStyle={[
@@ -444,18 +443,21 @@ export default function WheelPlayScreen({
                 <GameOverCard gameId={GAME_ID}>
                     {({ accent, onAccent }) => (
                         <>
-                            <Stack gap='xs' align='center'>
-                                <Text variant='display' weight='bold' align='center'>
-                                    {tr('game.the-wheel.score.gameOver')}
-                                </Text>
-                                <Text variant='overline' color='textSecondary'>
-                                    {tr('leaderboard.totalPoints')}
-                                </Text>
-                                <Text variant='display' weight='bold' color={accent}>
-                                    {breakdown.total.toLocaleString(locale)}
-                                </Text>
-                                <ScoreBreakdownLine breakdown={breakdown} />
+                            <Stack direction='horizontal' gap='md' align='center'>
+                                <MascotOverlay inline pose={mascotPose} size={150} />
+                                <Stack gap='xs' align='center' flex={1}>
+                                    <Text variant='display' weight='bold' align='center'>
+                                        {tr('game.the-wheel.score.gameOver')}
+                                    </Text>
+                                    <Text variant='overline' color='textSecondary'>
+                                        {tr('leaderboard.totalPoints')}
+                                    </Text>
+                                    <Text variant='display' weight='bold' color={accent}>
+                                        {breakdown.total.toLocaleString(locale)}
+                                    </Text>
+                                </Stack>
                             </Stack>
+                            <ScoreBreakdownLine breakdown={breakdown} />
                             <RunCelebration result={runResult} accent={accent} />
                             <Leaderboard
                                 gameId={GAME_ID}
@@ -480,8 +482,6 @@ export default function WheelPlayScreen({
                     )}
                 </GameOverCard>
             </ScrollView>
-            <MascotOverlay pose={mascotPose} size={140} anchor='bottom-right' offset={{ y: 8 }} />
-            </View>
         );
     }
 

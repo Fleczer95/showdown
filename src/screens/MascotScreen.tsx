@@ -11,7 +11,7 @@ import BottomSheet from '../components/molecules/BottomSheet';
 import { useTheme } from '../theme';
 import { useTranslation } from '../i18n';
 import { useResponsive } from '../responsive/useResponsive';
-import { Mascot } from '../game/mascot/Mascot';
+import { Mascot, MASCOT_ASPECT, MASCOT_VIEWBOX } from '../game/mascot/Mascot';
 import {
     MASCOT_PALETTE,
     MASCOT_PRESETS,
@@ -37,8 +37,10 @@ const skinForColor = (colorId: string) => mascotSkins.find((skin) => skin.unlock
 const REWARD_BY_COLOR = new Map(PROGRESSION_MASCOT_COLORS.map((c) => [c.colorId, c.id]));
 
 /**
- * Approximate tap zones over the placeholder fox, in the SVG's 200×220 viewBox.
- * A slot can have several rects (fur = head + tail, which are separate shapes).
+ * Approximate tap zones over the placeholder fox, in the fox's shape coordinates
+ * (the original 0–220 space; the rendered viewBox is framed tighter, so `top` is
+ * offset by `MASCOT_VIEWBOX.minY` below). A slot can have several rects (fur =
+ * head + tail, which are separate shapes).
  */
 const HIT_ZONES: { slot: MascotSlot; x: number; y: number; w: number; h: number }[] = [
     { slot: 'fur', x: 50, y: 30, w: 100, h: 96 }, // head + ears
@@ -200,7 +202,7 @@ export function MascotScreen() {
 
             {/* Live fox + transparent per-region tap zones. */}
             <View style={styles.stage}>
-                <Animated.View style={[{ width: MASCOT_SIZE, height: MASCOT_SIZE * 1.1 }, stageStyle]}>
+                <Animated.View style={[{ width: MASCOT_SIZE, height: MASCOT_SIZE * MASCOT_ASPECT }, stageStyle]}>
                     <Mascot look={look} pose='idle' size={MASCOT_SIZE} />
                     {/* Plain RN Pressable: it applies the absolute position+size to the
                         touchable itself. (HapticPressable would put the style on an inner
@@ -211,7 +213,15 @@ export function MascotScreen() {
                             onPress={() => setActiveSlot(z.slot)}
                             accessibilityRole='button'
                             accessibilityLabel={t(`screen.mascot.slots.${z.slot}`)}
-                            style={[styles.hitZone, { left: z.x * k, top: z.y * k, width: z.w * k, height: z.h * k }]}
+                            style={[
+                                styles.hitZone,
+                                {
+                                    left: z.x * k,
+                                    top: (z.y - MASCOT_VIEWBOX.minY) * k,
+                                    width: z.w * k,
+                                    height: z.h * k,
+                                },
+                            ]}
                         />
                     ))}
                 </Animated.View>

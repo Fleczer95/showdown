@@ -8,7 +8,7 @@ import RankBadge from '../atoms/RankBadge';
 import Input from './Input';
 import Button from './Button';
 import { useTheme } from '../../theme';
-import { hexToRgba } from '../../theme/colorUtils';
+import { hexToRgba, resolveAccent, readableOn } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { games } from '../../data/games';
 import {
@@ -41,6 +41,14 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
     const [nickname, setNickname] = useState<string>(() => getLastNickname());
     const [savedTimestamp, setSavedTimestamp] = useState<number | null>(null);
 
+    // Match the leaderboard's accents to the game's brand colour (like the
+    // game-over action buttons) so the result screen reads as one palette.
+    const accent = useMemo(() => {
+        const game = games.find((g) => g.id === gameId) ?? games[0];
+        return resolveAccent(theme, game.accent);
+    }, [gameId, theme]);
+    const onAccent = readableOn(accent);
+
     // Only offer to save a run that actually got somewhere — a zero-progress run
     // (busted immediately, missed question 1, solved nothing) never reaches the board.
     const canEnter =
@@ -50,6 +58,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
         savedTimestamp === null &&
         qualifies(board, pendingProgress, pendingScore);
     const trimmed = nickname.trim();
+    const isBestRecord = board.length === 0 || (pendingScore !== undefined && pendingScore > board[0].score);
 
     const formatScore = (score: number): string => `${score.toLocaleString(locale)} ${t('leaderboard.points')}`;
 
@@ -89,8 +98,8 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                                 paddingVertical: theme.spacing.md,
                                 paddingHorizontal: theme.spacing.md,
                                 gap: theme.spacing.md,
-                                backgroundColor: highlighted ? hexToRgba(theme.colors.primary, 0.15) : theme.colors.surface,
-                                borderColor: highlighted ? theme.colors.primary : theme.colors.border,
+                                backgroundColor: highlighted ? hexToRgba(accent, 0.15) : theme.colors.surface,
+                                borderColor: highlighted ? accent : theme.colors.border,
                                 borderRadius: theme.radii.lg,
                                 borderWidth: highlighted ? 1 : StyleSheet.hairlineWidth,
                                 shadowColor: theme.shadows.sm.shadowColor,
@@ -133,7 +142,7 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 );
             }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [board, savedTimestamp, theme, gameId, reduceMotion],
+        [board, savedTimestamp, theme, gameId, accent, reduceMotion],
     );
 
     return (
@@ -158,10 +167,10 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                 ) : null}
 
                 {canEnter ? (
-                    <Animated.View entering={FadeInDown.delay(200)} style={{ padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(theme.colors.primary, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(theme.colors.primary, 0.2), borderWidth: 1 }}>
+                    <Animated.View entering={FadeInDown.delay(200)} style={{ padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(accent, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(accent, 0.2), borderWidth: 1 }}>
                         <Stack gap='sm' align='stretch'>
-                            <Text variant="caption" weight="bold" color="primary" align="center">
-                                {t('leaderboard.newHighScore')}
+                            <Text variant="caption" weight="bold" color={accent} align="center">
+                                {isBestRecord ? t('leaderboard.newHighScore') : t('leaderboard.greatScore')}
                             </Text>
                             <Input
                                 value={nickname}
@@ -175,9 +184,17 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
                                 onSubmitEditing={handleSave}
                                 accessibilityLabel={t('leaderboard.nicknamePlaceholder')}
                                 textAlign='center'
+                                accentColor={accent}
                                 wrapperStyle={styles.inputWrapper}
                             />
-                            <Button variant='primary' fullWidth disabled={trimmed.length === 0} onPress={handleSave}>
+                            <Button
+                                variant='primary'
+                                fullWidth
+                                disabled={trimmed.length === 0}
+                                onPress={handleSave}
+                                style={{ backgroundColor: accent, borderColor: accent }}
+                                textColor={onAccent}
+                            >
                                 {t('leaderboard.save')}
                             </Button>
                         </Stack>

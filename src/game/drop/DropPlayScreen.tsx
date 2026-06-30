@@ -295,35 +295,41 @@ export default function DropPlayScreen({
                     <GameOverCard gameId={GAME_ID}>
                         {({ accent, onAccent }) => (
                             <>
-                                <Stack gap='xs' align='center'>
-                                    <Text variant='display' weight='bold' align='center'>
-                                        {translate('game.the-drop.over.title')}
-                                    </Text>
-                                    <Text
-                                        variant='caption'
-                                        weight='semibold'
-                                        align='center'
-                                        color={t.colors.textSecondary}
-                                    >
-                                        {won
-                                            ? translate('game.the-drop.over.survived')
-                                            : translate('game.the-drop.over.busted')}
-                                    </Text>
+                                {/* The Drop classifies by score: any banked cash cheers, a bust draws a dismay (plan §3). */}
+                                <Stack direction='horizontal' gap='md' align='center'>
+                                    <MascotOverlay inline pose={won ? 'cheer' : 'dismay'} size={150} />
+                                    <Stack gap='md' align='center' flex={1}>
+                                        <Stack gap='xs' align='center'>
+                                            <Text variant='display' weight='bold' align='center'>
+                                                {translate('game.the-drop.over.title')}
+                                            </Text>
+                                            <Text
+                                                variant='caption'
+                                                weight='semibold'
+                                                align='center'
+                                                color={t.colors.textSecondary}
+                                            >
+                                                {won
+                                                    ? translate('game.the-drop.over.survived')
+                                                    : translate('game.the-drop.over.busted')}
+                                            </Text>
+                                        </Stack>
+                                        <Stack gap='xs' align='center'>
+                                            <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                                                {translate('leaderboard.totalPoints')}
+                                            </Text>
+                                            <Text
+                                                variant='display'
+                                                weight='bold'
+                                                align='center'
+                                                color={won ? t.colors.success : t.colors.error}
+                                            >
+                                                {breakdown.total.toLocaleString(locale)}
+                                            </Text>
+                                        </Stack>
+                                    </Stack>
                                 </Stack>
-                                <Stack gap='xs' align='center'>
-                                    <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
-                                        {translate('leaderboard.totalPoints')}
-                                    </Text>
-                                    <Text
-                                        variant='display'
-                                        weight='bold'
-                                        align='center'
-                                        color={won ? t.colors.success : t.colors.error}
-                                    >
-                                        {breakdown.total.toLocaleString(locale)}
-                                    </Text>
-                                    <ScoreBreakdownLine breakdown={breakdown} />
-                                </Stack>
+                                <ScoreBreakdownLine breakdown={breakdown} />
                                 <RunCelebration result={runResult} accent={accent} />
                                 <Leaderboard
                                     gameId={GAME_ID}
@@ -348,8 +354,6 @@ export default function DropPlayScreen({
                         )}
                     </GameOverCard>
                 </ScrollView>
-                {/* The Drop classifies by score: any banked cash cheers, a bust draws a dismay (plan §3). */}
-                <MascotOverlay pose={won ? 'cheer' : 'dismay'} size={140} anchor='bottom-right' offset={{ y: 8 }} />
             </View>
         );
     }

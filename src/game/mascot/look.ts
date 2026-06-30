@@ -1,14 +1,15 @@
 /**
- * THROWAWAY PoC palette (plan §2 Sequencing Gate). Proves the data shape that
- * Phase 1 will harden: a "look" is a `{ slot: colorId }` map, ownership-agnostic,
- * recolored by overriding the `fill` of each named SVG region at runtime.
+ * Mascot look — the permanent data model (plan §5, §7). A "look" is a
+ * `{ slot: colorId }` map: ownership-agnostic, recolored at render time by
+ * overriding the `fill` of each named SVG region.
  *
- * Stable string color IDs (plan §7.1) — these are the IDs that will eventually
- * travel in the challenge payload, so even in the PoC we use strings, never
- * array indices. Unknown IDs fall back to the slot default (plan §7.3).
+ * Stable string color IDs (plan §7.1) — these IDs travel in the ADR-0003
+ * challenge payload, so they must NEVER be renumbered. Unknown IDs (an older
+ * app, or a color a recipient lacks) fall back to the slot default (plan §7.3),
+ * so the render path never crashes on a bad map.
  *
- * Delete this whole folder once the gate is verified on a real device and the
- * real Phase 1 data model lands.
+ * This file is the canonical palette. The throwaway PoC harness
+ * (`src/game/mascot/poc/`) and the real customizer both read from here.
  */
 
 /** The four recolorable regions. */
@@ -20,8 +21,19 @@ export type MascotPose = 'intro' | 'idle' | 'cheer' | 'dismay';
 /** A look = one colorId per slot. Serializes to the challenge payload in v2. */
 export type LookMap = Record<MascotSlot, string>;
 
-/** Placeholder palette: 3 colors per slot (plan §8 — generic until base art exists). */
-export const POC_PALETTE: Record<MascotSlot, { id: string; hex: string }[]> = {
+/** One selectable color. `id` is the stable, never-renumbered colorId (plan §7.1). */
+export interface MascotSwatch {
+    id: string;
+    hex: string;
+}
+
+/**
+ * Placeholder palette: 3 colors per slot (plan §8 — generic until the polished
+ * base art exists). The first swatch of every slot is the free default; the rest
+ * are sold as the single bundle (see `src/data/store/mascotSkins.ts`). IDs are
+ * carried over verbatim from the device-verified PoC — do not renumber (§7.1).
+ */
+export const MASCOT_PALETTE: Record<MascotSlot, MascotSwatch[]> = {
     fur: [
         { id: 'fur.orange', hex: '#F2780C' },
         { id: 'fur.rust', hex: '#C2410C' },
@@ -46,10 +58,10 @@ export const POC_PALETTE: Record<MascotSlot, { id: string; hex: string }[]> = {
 
 /** The default look — first color of every slot. The unknown-ID fallback target. */
 export const DEFAULT_LOOK: LookMap = {
-    fur: POC_PALETTE.fur[0].id,
-    suit: POC_PALETTE.suit[0].id,
-    accent: POC_PALETTE.accent[0].id,
-    mic: POC_PALETTE.mic[0].id,
+    fur: MASCOT_PALETTE.fur[0].id,
+    suit: MASCOT_PALETTE.suit[0].id,
+    accent: MASCOT_PALETTE.accent[0].id,
+    mic: MASCOT_PALETTE.mic[0].id,
 };
 
 /**
@@ -57,7 +69,7 @@ export const DEFAULT_LOOK: LookMap = {
  * back to the slot default — the render path never crashes on a bad map (§7.3).
  */
 export function resolveSlotColor(slot: MascotSlot, colorId: string): string {
-    const swatches = POC_PALETTE[slot];
+    const swatches = MASCOT_PALETTE[slot];
     const match = swatches.find((s) => s.id === colorId);
     return (match ?? swatches[0]).hex;
 }

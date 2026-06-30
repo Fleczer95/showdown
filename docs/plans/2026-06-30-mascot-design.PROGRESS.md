@@ -106,13 +106,33 @@ Mic-on-Home dev entry REMOVED. Mascot now has a permanent Settings row, mirrorin
     (pre-existing) — match the 16-space indent, do NOT run prettier --write on them.
   - `screens/HomeScreen.tsx` reverted (Mic import + dev IconButton removed).
 
-## Phase 1 — Data model & v2-locked invariants (§5, §7)
-- [ ] `MascotSkinDefinition` type + `src/data/store/mascotSkins.ts` catalog (single bundle SKU
-      `com.showdown.mascot_skinpack`, ~$2.99).
-- [ ] Stable string color IDs per slot (never renumber) — placeholder palette 3/slot for PoC.
-- [ ] Pure `renderMascot(lookMap, pose)` — ownership-agnostic, unknown-ID → slot default.
-- [ ] MMKV equipped-look key: `{ slot: colorId }` map (not single id).
-- [ ] Reserve `mascot?: { slot: colorId }` in `ChallengeRecord` (additive, no migration).
+## Phase 1 — Data model & v2-locked invariants (§5, §7)  ⟵ AWAITING REVIEW (uncommitted)
+- [x] `MascotSkinDefinition` type (`src/data/store/types.ts`, added to `CatalogEntry` union) +
+      `src/data/store/mascotSkins.ts` catalog (single bundle SKU `com.showdown.mascot_skinpack`,
+      $2.99 fallback). `unlocks` = every non-default palette colorId.
+- [x] Stable string color IDs per slot (never renumber) — promoted PoC palette verbatim into the
+      permanent `src/game/mascot/look.ts` (3/slot placeholder, §8).
+- [x] Pure `renderMascot(lookMap, pose)` — ownership-agnostic, unknown-ID → slot default.
+- [x] MMKV equipped-look key (`src/game/mascot/equippedLook.ts`): `{ slot: colorId }` map under
+      `mascotLook`, defaults fill missing slots.
+- [x] Reserve `mascot?: Record<string,string>` in `ChallengeRecord` (additive, no migration).
+- [x] Static checks: `tsc --noEmit` clean, eslint clean, prettier clean, 34/34 store tests pass.
+
+### Structural decision (flag for review)
+The renderer was PROMOTED OUT of throwaway `poc/` so permanent consumers (Phase 2 customizer,
+Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 6:
+  - `src/game/mascot/look.ts` — canonical palette/types/`resolveSlotColor` (was `poc/palette.ts`).
+  - `src/game/mascot/Mascot.tsx` — `Mascot` component + `renderMascot()` (was `poc/MascotPoc.tsx`),
+    SVG moved VERBATIM (device-verified art unchanged; still placeholder primitives until Phase 6).
+  - DELETED `poc/palette.ts` + `poc/MascotPoc.tsx`. `poc/MascotPocScreen.tsx` stays as the dev
+    harness (now imports `../look` + `../Mascot`); Phase 2 replaces it, Phase 6 deletes the folder.
+  - Phase 6 now just swaps the SVG shapes in `Mascot.tsx` + removes the leftover harness.
+
+### Deferred to Phase 3 (noted so it isn't missed)
+  - `mascotSkins` is NOT yet in `STORE_CATALOG` (catalog.ts) — keeps the unprovisioned SKU from
+    being queried before the buy path exists. Phase 3 adds `...mascotSkins` + the `screen.store.item.
+    mascot_skinpack.*` / `screen.store.feature.mascot_skinpack_*` i18n copy (en.json + pl.json).
+  - `mascot-skinpack` IAP product is NOT yet provisioned on either store (Phase 3).
 
 ## Phase 2 — Customizer UI (§5)
 - [ ] Full-screen live fox; tap region OR slot button opens bottom sheet.
@@ -158,3 +178,10 @@ Mic-on-Home dev entry REMOVED. Mascot now has a permanent Settings row, mirrorin
   permanent Settings → Appearance "Mascot" row (like Themes); route is now `Mascot`. Static
   checks clean. NEXT: Phase 1 (data model + v2 invariants), then Phase 2 customizer which
   replaces `MascotPocScreen` behind the `Mascot` route.
+- 2026-06-30: Phase 1 BUILT (data model + v2 invariants). 5 deliverables done; tsc/eslint/
+  prettier/store-tests all clean. Promoted the renderer + palette OUT of `poc/` into permanent
+  `src/game/mascot/{look.ts,Mascot.tsx,equippedLook.ts}` (see "Structural decision" above) so
+  Phase 2/5/v2 consumers don't depend on the soon-deleted poc folder. `mascotSkins` defined but
+  intentionally not yet in STORE_CATALOG (Phase 3). AWAITING USER REVIEW before commit. NEXT
+  (after approval): commit, then Phase 2 customizer (reuse `BottomSheet.tsx`, call `renderMascot`/
+  `Mascot` + `getEquippedLook`/`setEquippedLook`).

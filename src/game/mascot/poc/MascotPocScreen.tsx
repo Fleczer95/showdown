@@ -5,8 +5,8 @@ import Text from '../../../components/atoms/Text';
 import Stack from '../../../components/atoms/Stack';
 import Button from '../../../components/molecules/Button';
 import { useTheme } from '../../../theme';
-import { MascotPoc } from './MascotPoc';
-import { POC_PALETTE, DEFAULT_LOOK, type LookMap, type MascotPose, type MascotSlot } from './palette';
+import { Mascot } from '../Mascot';
+import { MASCOT_PALETTE, DEFAULT_LOOK, type LookMap, type MascotPose, type MascotSlot } from '../look';
 
 const POSES: MascotPose[] = ['intro', 'idle', 'cheer', 'dismay'];
 const SLOTS: MascotSlot[] = ['fur', 'suit', 'accent', 'mic'];
@@ -32,7 +32,7 @@ export function MascotPocScreen() {
                 </Text>
 
                 <View style={[styles.stage, { backgroundColor: theme.colors.surface, borderRadius: theme.radii.xl }]}>
-                    <MascotPoc look={look} pose={pose} size={220} />
+                    <Mascot look={look} pose={pose} size={220} />
                 </View>
 
                 {/* Pose switcher — re-tap to replay a one-shot pose. */}
@@ -66,7 +66,7 @@ export function MascotPocScreen() {
                             {slot.toUpperCase()}
                         </Text>
                         <View style={styles.row}>
-                            {POC_PALETTE[slot].map((sw) => {
+                            {MASCOT_PALETTE[slot].map((sw) => {
                                 const selected = look[slot] === sw.id;
                                 return (
                                     <Pressable

@@ -10,28 +10,30 @@ import Animated, {
     useReducedMotion,
 } from 'react-native-reanimated';
 import Svg, { Circle, Rect, Polygon, Ellipse, Line } from 'react-native-svg';
-import { type LookMap, type MascotPose, resolveSlotColor } from './palette';
+import { type LookMap, type MascotPose, resolveSlotColor } from './look';
 
 /**
- * THROWAWAY PoC mascot (plan §2). Primitive shapes only — orange blob fox, blue
- * rect suit, accent tie, gold mic — wired with the REAL named fills + Reanimated
- * pose transitions. The point is to prove fill-override + pose transitions
- * end-to-end on a real device before investing in art. Not the final fox.
+ * The mascot render path (plan §7.2): a pure, ownership-agnostic function of
+ * (look, pose). It draws ANY valid look map — ownership gates equipping your own
+ * mascot, never DISPLAYING one, so the v2 challenge screen calls the same render
+ * with the sender's map. Unknown colorIds fall back to the slot default (§7.3).
  *
- * Prototypes the Phase 1 signature `renderMascot(lookMap, pose)`: a pure function
- * of (look, pose) with no ownership awareness (plan §7.2).
+ * The shapes here are PLACEHOLDER primitives (orange blob fox, blue rect suit,
+ * accent tie, gold mic) carried over from the device-verified PoC. Phase 6 swaps
+ * them for the hand-cleaned multi-region SVG fox; the named-fill seam and this
+ * signature stay. The recolor seam = overriding each region's `fill` at runtime.
  */
 
 const SHADE = 'rgba(0,0,0,0.18)'; // shading overlay — NOT recolored (plan §2)
 const HILITE = 'rgba(255,255,255,0.22)'; // highlight overlay — NOT recolored
 
-export interface MascotPocProps {
+export interface MascotProps {
     look: LookMap;
     pose: MascotPose;
     size?: number;
 }
 
-export function MascotPoc({ look, pose, size = 240 }: MascotPocProps) {
+export function Mascot({ look, pose, size = 240 }: MascotProps) {
     const reduced = useReducedMotion();
 
     const translateY = useSharedValue(0);
@@ -157,10 +159,10 @@ export function MascotPoc({ look, pose, size = 240 }: MascotPocProps) {
 }
 
 /**
- * Phase-1-shaped alias. The real render path will be a pure `renderMascot(look,
- * pose)`; the PoC just renders the throwaway fox so the call site can already be
- * written against the final signature.
+ * The pure render entry point (plan §7.2). Phase 2's customizer, Phase 5's
+ * Home/Results placement, and the v2 challenge screen all call this — none of
+ * them need to know whether the look is owned.
  */
 export function renderMascot(look: LookMap, pose: MascotPose, size?: number) {
-    return <MascotPoc look={look} pose={pose} size={size} />;
+    return <Mascot look={look} pose={pose} size={size} />;
 }

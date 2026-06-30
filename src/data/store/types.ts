@@ -46,7 +46,18 @@ export interface ThemeDefinition extends StoreEntryBase {
 }
 
 /**
+ * A mascot skin = a single bundle (one SKU) that unlocks a set of recolor
+ * swatches for the mascot customizer (plan §5). Ownership is tracked per color,
+ * but every "bought" color comes from this one bundle. `unlocks` lists the stable
+ * colorIds (plan §7.1) it grants; earned colors come from progression, never here.
+ */
+export interface MascotSkinDefinition extends StoreEntryBase {
+    kind: 'mascotSkin';
+    unlocks: string[];
+}
+
+/**
  * The catalog is typed as this UNION, never as the base interface, so that
  * `if (e.kind === 'pack')` narrows access to `gameId`/`content`.
  */
-export type CatalogEntry = PackDefinition | ThemeDefinition;
+export type CatalogEntry = PackDefinition | ThemeDefinition | MascotSkinDefinition;

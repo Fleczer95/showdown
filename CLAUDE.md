@@ -91,17 +91,7 @@ Key file: `AuthKey_TYBAQ9XDGV.p8` (repo root, gitignored).
 Credentials and mass IAP creation script (using the new v3 Monetization API) are in the `google-play-iap` skill.
 Key file: `google-play-key.json` (repo root, gitignored).
 
-## Firestore Storage Hygiene
 
-We run on the Firestore **free (Spark) plan**, which has **no TTL** — nothing
-auto-deletes. `scripts/cleanup-expired-challenges.mjs` is the manual replacement
-and must be **run roughly monthly**. It sweeps: expired challenges + orphan
-attempts (ADR-0003), and rotates ranking buckets to the top-60 + deletes stale
-month buckets (ADR-0004). Needs a Firebase service-account key
-(`firebase-admin-key.json` at repo root, gitignored; Admin SDK bypasses rules and
-App Check). Always `--dry-run` first; real runs write a timestamped
-`firestore-backup-*.json` so a wrong sweep is reversible. Moderation:
-`--remove <game> <uuid>` pulls one device's ranking entries.
 
 ## AI Assistant Guidelines
 

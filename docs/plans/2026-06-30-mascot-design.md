@@ -81,8 +81,8 @@ fill-override and pose transitions end-to-end. Only then invest in real art.
 - Tapping a **region on the fox** *or* an explicit **slot button** (both — small
   regions like the mic are hard to hit, and buttons aid accessibility) slides up a
   **bottom sheet** of that slot's colors.
-- Selecting a color **recolors the fox live** behind the sheet; selection persists
-  immediately.
+- **When the sheet opens, the mascot scales down or translates upwards slightly** so the whole fox remains visible during recoloring.
+- Selecting a color **recolors the fox live**; selection persists immediately.
 - **Sheet ordering:** unlocked colors first, then locked (with lock/price badge).
 - Custom slide-up sheet built on `react-native-gesture-handler` + Reanimated
   (no bottom-sheet lib in deps).
@@ -97,10 +97,8 @@ fill-override and pose transitions end-to-end. Only then invest in real art.
 ### Locked-swatch behavior
 
 - Tapping a **purchasable** locked color → routes through the **shared billing
-  engine** to buy the bundle. (v1 — see deep-link note below.)
-- Tapping an **earned** locked color → **v1: shows "Reach level X" label, no
-  navigation.** Deep-link-to-level is **v2** (no scroll-to-level anchor exists yet —
-  see §8).
+  engine** to buy the bundle.
+- Tapping an **earned** locked color → **navigates to the progression map** and highlights the target level (the scroll-to-anchor feature is built in v1, see §8).
 
 ### Store integration — the seam
 
@@ -121,7 +119,7 @@ fill-override and pose transitions end-to-end. Only then invest in real art.
   with variation + selection. Ships with the between-rounds feature, not v1.
 - Patterns / costume swaps (pattern overlay path; the per-slot model already
   accommodates it).
-- Earned-element **deep-link to level** (needs the §8 anchor first).
+- *(Earned-element deep-link to level was pulled into v1)*
 
 ## 7. v2-enabling invariants — **locked in v1**
 
@@ -142,14 +140,8 @@ v2 becomes a rewrite. All are near-free if done up front.
    challenge payload schema even though v1 doesn't display it — makes v2 purely
    additive, no migration of existing links.
 
-## 8. Open items / TODO (not decisions — unspecified detail)
+## 8. Open items / TODO (Resolved Decisions)
 
-- **Performance budget.** Cap SVG path count per pose; shaded multi-path art × 4
-  poses can jank on low-end Android. Set a ceiling and test on a real low-end device.
-- **Exact v1 color list per slot.** Define which fur/suit/accent/mic colors are
-  free (default look), which are in the bundle, which are level-earned.
-- **Levels scroll-to-anchor.** No dedicated levels/map screen exists in
-  `src/screens/` (progression is data in `src/game/progression/map.ts`; selection
-  happens via `GameSetupScreen`/`ProgressScreen`). The earned-element deep-link has
-  no target today → kept in **v2**. Store deep-link, by contrast, already works
-  (`StoreScreen.tsx` `route.params` + `scrollToLocation`).
+- **Performance budget:** We will build the throwaway PoC first (as planned in the Sequencing Gate), measure rendering time on a low-end device, and then set the maximum path/node ceiling based on actual performance data before finalizing the art.
+- **Exact v1 color list per slot:** We will provide a generic placeholder palette for the PoC (e.g., 3 standard colors per slot) and define the actual final color list once we have the polished base art.
+- **Levels scroll-to-anchor (Pulled into v1):** Tapping an earned color will deep-link to the progression map. We will implement the necessary anchor-scrolling in `ProgressScreen` or `GameSetupScreen` so the target level is highlighted in v1.

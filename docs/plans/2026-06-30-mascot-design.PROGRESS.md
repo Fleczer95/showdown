@@ -24,12 +24,20 @@ committing. Mark the phase done here + commit at the end of each session.
 > `ChallengeRecord` payload. Save progress after each step; stop for my review before committing.
 
 **Phase 2 — customizer UI:**
-> Continue the Showdown mascot build, Phase 2. Read both mascot docs. Build the customizer
-> screen that replaces `MascotPocScreen` behind the `Mascot` route: full-screen live fox,
-> tap-region OR slot-button → bottom sheet of that slot's colors (REUSE
-> `src/components/molecules/BottomSheet.tsx`), mascot scales down/translates up when the sheet
-> opens, live recolor on select + immediate persistence, unlocked-first then locked-with-badge
-> ordering, plus a few preset looks. Save progress after each step; stop for review before committing.
+> Continue the Showdown mascot build, Phase 2. Read both mascot docs. Phase 1 is committed.
+> Build the customizer screen that replaces `MascotPocScreen` behind the `Mascot` route:
+> full-screen live fox via `renderMascot`/`Mascot` (`src/game/mascot/Mascot.tsx`), tap-region
+> OR slot-button → bottom sheet of that slot's colors (REUSE `src/components/molecules/BottomSheet.tsx`,
+> don't rebuild), mascot scales down/translates up when the sheet opens, live recolor on select +
+> immediate persistence via `getEquippedLook`/`setEquippedLook` (`src/game/mascot/equippedLook.ts`),
+> unlocked-first then locked-with-badge ordering, plus a few preset looks. Palette/types are in
+> `src/game/mascot/look.ts`. Save progress after each step; run tsc/eslint/prettier; stop for review
+> before committing.
+>
+> Phase-2 notes (from Phase 1): `mascotSkins` is NOT in `STORE_CATALOG` yet (Phase 3), so derive a
+> swatch's locked/unlocked state from the bundle's `unlocks` array (`src/data/store/mascotSkins.ts`)
+> + `DEFAULT_LOOK`, NOT from catalog ownership resolution. The buy path + i18n store copy are Phase 3 —
+> Phase 2 only SHOWS locked swatches with a badge, it does not make them purchasable.
 
 **Phase 3 — store / billing integration:**
 > Continue the Showdown mascot build, Phase 3. Read both mascot docs. Wire the buy path: a

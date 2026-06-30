@@ -19,6 +19,9 @@ export type RootStackParamList = {
     ChallengeHistory: undefined;
     /** Global ranking boards (ADR-0004). Optional `gameId` preselects a board. */
     Ranking: { gameId?: string } | undefined;
+    /** Mascot customizer (plan §5). Reached from Settings → Appearance. Currently shows the
+     * PoC harness; repointed to the real customizer in Phase 2. */
+    Mascot: undefined;
 } & Record<SetupRoute, { gameId: string }>;
 
 // Make `useNavigation()` / `Link` etc. globally aware of the param list.

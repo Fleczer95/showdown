@@ -89,6 +89,7 @@
             },
             "labels": {
                 "theme": "Theme",
+                "mascot": "Mascot",
                 "roundTimer": "Round timer",
                 "soundEffects": "Sound effects",
                 "hapticFeedback": "Haptic feedback",

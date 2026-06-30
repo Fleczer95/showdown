@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, ChevronRight, Palette, Volume2, Smartphone } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Palette, Volume2, Smartphone, Drama } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -98,6 +98,21 @@ export function SettingsScreen() {
                                 </Text>
                                 <ChevronRight size={scale(20)} color={theme.colors.textMuted} />
                             </Stack>
+                        </Pressable>
+                        <Pressable
+                            style={[styles.row, { paddingVertical: theme.spacing.sm }]}
+                            onPress={() => navigation.navigate('Mascot' as any)}
+                            haptic='light'
+                            accessibilityRole='button'
+                            accessibilityLabel={t('screen.settings.labels.mascot')}
+                        >
+                            <Stack direction='horizontal' gap='sm' align='center'>
+                                <Drama size={scale(20)} color={theme.colors.textSecondary} />
+                                <Text variant='body' weight='medium'>
+                                    {t('screen.settings.labels.mascot')}
+                                </Text>
+                            </Stack>
+                            <ChevronRight size={scale(20)} color={theme.colors.textMuted} />
                         </Pressable>
                     </Stack>
 

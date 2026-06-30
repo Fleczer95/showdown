@@ -73,3 +73,22 @@ export function resolveSlotColor(slot: MascotSlot, colorId: string): string {
     const match = swatches.find((s) => s.id === colorId);
     return (match ?? swatches[0]).hex;
 }
+
+/** A one-tap preset: a full look applied across all four slots (plan §5). */
+export interface MascotPreset {
+    /** Stable id, also the i18n label key suffix (`screen.mascot.presets.<id>`). */
+    id: string;
+    look: LookMap;
+}
+
+/**
+ * Preset shortcuts (plan §5). `classic` is the all-default look (always
+ * applicable); the rest combine non-default colors, so they read as locked in the
+ * customizer until the bundle is owned. Colors reference the stable palette IDs.
+ */
+export const MASCOT_PRESETS: MascotPreset[] = [
+    { id: 'classic', look: { ...DEFAULT_LOOK } },
+    { id: 'arctic', look: { fur: 'fur.arctic', suit: 'suit.royal', accent: 'accent.teal', mic: 'mic.silver' } },
+    { id: 'emerald', look: { fur: 'fur.orange', suit: 'suit.emerald', accent: 'accent.gold', mic: 'mic.gold' } },
+    { id: 'plum', look: { fur: 'fur.rust', suit: 'suit.plum', accent: 'accent.crimson', mic: 'mic.rose' } },
+];

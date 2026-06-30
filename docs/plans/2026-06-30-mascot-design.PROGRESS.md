@@ -142,12 +142,32 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
     mascot_skinpack.*` / `screen.store.feature.mascot_skinpack_*` i18n copy (en.json + pl.json).
   - `mascot-skinpack` IAP product is NOT yet provisioned on either store (Phase 3).
 
-## Phase 2 — Customizer UI (§5)
-- [ ] Full-screen live fox; tap region OR slot button opens bottom sheet.
-- [ ] Custom slide-up sheet on gesture-handler + reanimated (no lib).
-- [ ] Mascot scales down / translates up when sheet opens.
-- [ ] Live recolor on select; persist immediately; unlocked-first then locked w/ badge.
-- [ ] Preset looks shortcuts.
+## Phase 2 — Customizer UI (§5)  ⟵ AWAITING REVIEW (uncommitted)
+- [x] Full-screen live fox; tap region OR slot button opens bottom sheet.
+- [x] Slide-up sheet — REUSED existing `BottomSheet.tsx` (gesture-handler + reanimated), not rebuilt.
+- [x] Mascot scales down (0.78) / lifts up (`-scale(56)`) when sheet opens; spring, respects reduced-motion.
+- [x] Live recolor on select; persist immediately via `setEquippedLook`; unlocked-first then locked w/ lock badge.
+- [x] Preset shortcuts (`MASCOT_PRESETS` in `look.ts`): classic (all-default, applicable) + 3 that read as
+      locked until the bundle is owned.
+- [x] Static checks: tsc clean, eslint clean, prettier (TS only) clean, i18n en/pl 459/459 synced.
+
+### Decisions / notes (flag for review)
+- New screen `src/screens/MascotScreen.tsx` (sits with the other screens, not in `poc/`). `RootNavigator`
+  now points the `Mascot` route at it; the old `MascotPocScreen` import is gone, so the throwaway
+  `src/game/mascot/poc/` folder is now ORPHANED (no remaining importers) — Phase 6 still deletes it.
+- **Lock derivation (per Phase-1 note):** `LOCKED_IDS = new Set(mascotSkins.flatMap(s => s.unlocks))`,
+  NOT catalog ownership (mascotSkins isn't in STORE_CATALOG until Phase 3). Defaults are free; everything in
+  `unlocks` shows a lock badge and is non-selectable. NO buy path wired (Phase 3). When Phase 3 lands real
+  ownership resolution, swap this derivation for the resolved owned-set.
+- **Tap-on-fox zones** are approximate rects over the placeholder art (computed from the 200×220 viewBox via
+  `k = size/200`), layered inside the same lift/shrink transform as the fox. They are coupled to the current
+  primitive shapes — Phase 6 art swap must re-fit `HIT_ZONES` (slot buttons are the robust path regardless).
+  NOTE: the hit zones use the PLAIN RN `Pressable`, not `HapticPressable` — HapticPressable applies `style`
+  to an inner view, which collapses an absolutely-positioned overlay to a zero-size target (first device-test
+  bug: fox taps dead, buttons fine). Keep overlays on RN `Pressable`.
+- i18n: added `screen.mascot.{title,subtitle,slots.*,presets.*}` to en.json + pl.json (16-space-style nesting,
+  no prettier on locales). `screen.settings.labels.mascot` row already routed here from Phase 0.
+- Customizer renders the fox in `idle` pose only (pose switching was a PoC-harness concern, not a Phase 2 req).
 
 ## Phase 3 — Store / billing integration (§5)
 - [ ] Buy path: locked purchasable swatch → shared billing engine (react-native-iap +
@@ -193,3 +213,10 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
   intentionally not yet in STORE_CATALOG (Phase 3). AWAITING USER REVIEW before commit. NEXT
   (after approval): commit, then Phase 2 customizer (reuse `BottomSheet.tsx`, call `renderMascot`/
   `Mascot` + `getEquippedLook`/`setEquippedLook`).
+- 2026-06-30: Phase 2 BUILT (customizer UI). New `src/screens/MascotScreen.tsx` replaces `MascotPocScreen`
+  behind the `Mascot` route: full-screen idle fox + tap-region/slot-button → REUSED `BottomSheet` of that
+  slot's colors, fox lifts+shrinks on open, live recolor + immediate `setEquippedLook` persist, unlocked-first
+  then locked-with-badge, 4 presets (`MASCOT_PRESETS` added to `look.ts`). Lock state derived from the bundle
+  `unlocks` array (no catalog ownership / no buy path — that's Phase 3). i18n `screen.mascot.*` added EN+PL
+  (459/459). tsc/eslint/prettier clean. `poc/` folder now orphaned (Phase 6 deletes it). AWAITING USER REVIEW
+  before commit. NEXT (after approval): commit, then Phase 3 (wire buy path through existing IAP plumbing).

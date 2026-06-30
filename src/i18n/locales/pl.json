@@ -155,6 +155,23 @@
             },
             "store": "Przeglądaj sklep z motywami"
         },
+        "mascot": {
+            "title": "Maskotka",
+            "subtitle": "Dotknij lisa lub elementu, aby zmienić kolor.",
+            "slots": {
+                "fur": "Futro",
+                "suit": "Garnitur",
+                "accent": "Akcent",
+                "mic": "Mikrofon"
+            },
+            "presets": {
+                "title": "ZESTAWY",
+                "classic": "Klasyczny",
+                "arctic": "Arktyczny",
+                "emerald": "Szmaragdowy",
+                "plum": "Śliwkowy"
+            }
+        },
         "privacyPolicy": {
             "title": "Polityka Prywatności",
             "subtitle": "Zgodna z RODO, App Store i Google Play",

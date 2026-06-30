@@ -13,7 +13,7 @@ import { ProgressScreen } from '../screens/ProgressScreen';
 import { ChallengeScreen } from '../screens/ChallengeScreen';
 import { ChallengeHistoryScreen } from '../screens/ChallengeHistoryScreen';
 import { RankingScreen } from '../screens/RankingScreen';
-import { MascotPocScreen } from '../game/mascot/poc/MascotPocScreen'; // placeholder until Phase 2 customizer (plan §5)
+import { MascotScreen } from '../screens/MascotScreen';
 import { CHALLENGE_LINK_ORIGIN } from '../game/challenge/share';
 import type { RootStackParamList } from './types';
 
@@ -74,7 +74,7 @@ export function RootNavigator() {
                 <Stack.Screen name='Challenge' component={ChallengeScreen} />
                 <Stack.Screen name='ChallengeHistory' component={ChallengeHistoryScreen} />
                 <Stack.Screen name='Ranking' component={RankingScreen} />
-                <Stack.Screen name='Mascot' component={MascotPocScreen} />
+                <Stack.Screen name='Mascot' component={MascotScreen} />
                 <Stack.Screen name='privacyPolicy' component={DocumentScreen} />
                 <Stack.Screen name='termsOfUse' component={DocumentScreen} />
                 {games.map((game) => (

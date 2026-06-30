@@ -155,6 +155,23 @@
             },
             "store": "Browse Theme Store"
         },
+        "mascot": {
+            "title": "Mascot",
+            "subtitle": "Tap the fox or a slot to recolor it.",
+            "slots": {
+                "fur": "Fur",
+                "suit": "Suit",
+                "accent": "Accent",
+                "mic": "Mic"
+            },
+            "presets": {
+                "title": "PRESETS",
+                "classic": "Classic",
+                "arctic": "Arctic",
+                "emerald": "Emerald",
+                "plum": "Plum"
+            }
+        },
         "privacyPolicy": {
             "title": "Privacy Policy",
             "subtitle": "GDPR, App Store, and Google Play compliant",

@@ -66,6 +66,17 @@ committing. Mark the phase done here + commit at the end of each session.
 > shading overlays) across the 4 poses; apply the node ceiling from the Phase 0 perf read. Then
 > delete the throwaway `src/game/mascot/poc/` folder. Save progress after each step; stop for review.
 
+**Phase 7 — IAP provisioning (LAST — only after the final color list is confirmed):**
+> Continue the Showdown mascot build, Phase 7. Read both mascot docs. PREREQUISITE: the final per-slot
+> color list (plan §8) must be locked — do NOT provision before the palette is confirmed, since the
+> $2.99 bundle's value is "unlock all premium swatches" and the swatch set must be final. Provision the
+> single non-consumable IAP `com.showdown.mascot_skinpack` (~$2.99) on BOTH stores as DRAFTS for review:
+> App Store Connect via the `app-store-connect-api` skill (`AuthKey_TYBAQ9XDGV.p8`), Google Play via the
+> `google-play-iap` skill (`google-play-key.json`). Reuse the localized store copy already in
+> `screen.store.item.mascot_skinpack.*`. Mirror the prior theme/pack provisioning runs (see memory:
+> theme-iap-provisioning, ladder-ancient-history-provisioning). These are outward-facing store mutations
+> — create drafts only, STOP for review before submitting for App Review / activating.
+
 ## Codebase facts established (so next agent doesn't re-derive)
 - All native deps present: `react-native-svg` 15.12.1, `reanimated` ~4.1.1,
   `gesture-handler` ~2.28.0, `react-native-mmkv` 4.3.1, `react-native-iap` ^14.4.46,
@@ -217,6 +228,16 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
 ## Phase 6 — Real art (§2, after PoC perf budget set)
 - [ ] AI concept raster → hand-cleaned multi-region SVG, same fox across 4 poses.
 - [ ] Apply node ceiling from Phase 0 perf data.
+
+## Phase 7 — IAP provisioning (LAST; gated on the final color list — §5, §8)
+> Code-side commerce shipped in Phase 3; only the store-side product is missing. Do this LAST because
+> the bundle sells "unlock ALL premium swatches" — the swatch set must be frozen first (Phase 6 art +
+> §8 final palette). Until then the SKU stays unprovisioned and the buy path is dev-only (mock IAP).
+- [ ] Confirm final per-slot color list is locked (prerequisite).
+- [ ] App Store Connect: non-consumable `com.showdown.mascot_skinpack` (~$2.99) DRAFT (`app-store-connect-api` skill).
+- [ ] Google Play: managed product `com.showdown.mascot_skinpack` (~$2.99) DRAFT (`google-play-iap` skill).
+- [ ] Reuse `screen.store.item.mascot_skinpack.*` copy; mirror prior theme/pack provisioning runs.
+- [ ] Drafts only — STOP for review before submitting / activating (outward-facing store mutations).
 
 ## Deferred (not v1): jackpot pose, between-rounds host, text quips (EN/PL),
 ## patterns/costume overlays.

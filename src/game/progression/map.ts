@@ -51,7 +51,7 @@ export const LEVEL_MAP: readonly LevelNode[] = [
     { level: 32, xp: 419000 },
     { level: 33, xp: 482000 },
     { level: 34, xp: 552000 },
-    { level: 35, xp: 630000 },
+    { level: 35, xp: 630000, rewardId: 'mascot-mic-platinum' },
     { level: 36, xp: 717000 },
     { level: 37, xp: 814000 },
     { level: 38, xp: 922000 },

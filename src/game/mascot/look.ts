@@ -53,6 +53,8 @@ export const MASCOT_PALETTE: Record<MascotSlot, MascotSwatch[]> = {
         { id: 'mic.gold', hex: '#FBBF24' },
         { id: 'mic.silver', hex: '#CBD5E1' },
         { id: 'mic.rose', hex: '#FB7185' },
+        // Earned, never sold — unlocked via the Level Map (see progression/mascotColors.ts).
+        { id: 'mic.platinum', hex: '#E5E4E2' },
     ],
 };
 

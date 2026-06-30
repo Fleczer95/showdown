@@ -751,6 +751,7 @@
         "reserved": "More soon",
         "rewardTheme": "Theme",
         "rewardSignature": "Signature",
+        "rewardMascot": "Mascot",
         "earnedThemeHint": "Earned themes can't be bought — climb the Level Map to unlock them.",
         "levelUp": "Level %{n}!",
         "bonusRuns": {
@@ -817,6 +818,9 @@
         "themes": {
             "champion": "Champion",
             "legend": "Legend"
+        },
+        "mascotColors": {
+            "platinumMic": "Platinum Mic"
         },
         "signatures": {
             "sprout": "Sprout",

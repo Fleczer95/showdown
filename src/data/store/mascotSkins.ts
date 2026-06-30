@@ -1,4 +1,5 @@
 import { MASCOT_PALETTE, DEFAULT_LOOK } from '../../game/mascot/look';
+import { EARNED_MASCOT_COLOR_IDS } from '../../game/progression/mascotColors';
 import type { MascotSkinDefinition } from './types';
 
 /**
@@ -20,7 +21,7 @@ const DEFAULT_IDS = new Set(Object.values(DEFAULT_LOOK));
 const BUNDLED_COLOR_IDS = Object.values(MASCOT_PALETTE)
     .flat()
     .map((swatch) => swatch.id)
-    .filter((id) => !DEFAULT_IDS.has(id));
+    .filter((id) => !DEFAULT_IDS.has(id) && !EARNED_MASCOT_COLOR_IDS.has(id));
 
 export const mascotSkins: MascotSkinDefinition[] = [
     {

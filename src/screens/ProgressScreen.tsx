@@ -51,6 +51,7 @@ import {
     ACHIEVEMENT_FAMILIES,
     ONE_OFF_IDS,
     SIGNATURES,
+    PROGRESSION_MASCOT_COLORS,
     familyProgress,
 } from '../game/progression';
 
@@ -167,7 +168,10 @@ export function ProgressScreen() {
 
             {/* Level summary + tabs (fixed above the scrollable section) */}
             <View
-                style={[{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg }, tabletColumn]}
+                style={[
+                    { paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.md, gap: theme.spacing.lg },
+                    tabletColumn,
+                ]}
             >
                 <Card variant='elevated' padding='lg'>
                     <Stack gap='sm'>
@@ -221,10 +225,15 @@ export function ProgressScreen() {
                         const sig = node.rewardId?.startsWith('signature-')
                             ? SIGNATURES.find((s) => s.id === node.rewardId)
                             : undefined;
+                        const mascotColor = node.rewardId?.startsWith('mascot-')
+                            ? PROGRESSION_MASCOT_COLORS.find((c) => c.id === node.rewardId)
+                            : undefined;
                         const rewardName = node.rewardId
                             ? sig
                                 ? t(sig.titleKey)
-                                : t(`progression.themes.${node.rewardId.replace('theme-', '')}`)
+                                : mascotColor
+                                  ? t(mascotColor.titleKey)
+                                  : t(`progression.themes.${node.rewardId.replace('theme-', '')}`)
                             : null;
                         const isFocus = node.level === focusLevel;
                         const card = (
@@ -266,7 +275,9 @@ export function ProgressScreen() {
                                                 <Text variant='caption' color='textMuted'>
                                                     {sig
                                                         ? `${t('progression.rewardSignature')}: ${rewardName}`
-                                                        : `${t('progression.rewardTheme')}: ${rewardName} ✦`}
+                                                        : mascotColor
+                                                          ? `${t('progression.rewardMascot')}: ${rewardName}`
+                                                          : `${t('progression.rewardTheme')}: ${rewardName} ✦`}
                                                 </Text>
                                             </Stack>
                                         ) : node.reserved ? (
@@ -424,7 +435,11 @@ export function ProgressScreen() {
                                                 {earned ? (
                                                     <Glyph emoji={s.emoji} size={iconSize(26)} />
                                                 ) : (
-                                                    <Icon name={Lock} size={iconSize(22)} color={theme.colors.textMuted} />
+                                                    <Icon
+                                                        name={Lock}
+                                                        size={iconSize(22)}
+                                                        color={theme.colors.textMuted}
+                                                    />
                                                 )}
                                                 <Text
                                                     variant='caption'
@@ -478,8 +493,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    tierPip: {
-    },
+    tierPip: {},
 });
 
 export default ProgressScreen;

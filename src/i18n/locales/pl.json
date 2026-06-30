@@ -751,6 +751,7 @@
         "reserved": "Wkrótce więcej",
         "rewardTheme": "Motyw",
         "rewardSignature": "Sygnatura",
+        "rewardMascot": "Maskotka",
         "earnedThemeHint": "Zdobytych motywów nie można kupić — odblokuj je, wspinając się po mapie poziomów.",
         "levelUp": "Poziom %{n}!",
         "bonusRuns": {
@@ -817,6 +818,9 @@
         "themes": {
             "champion": "Mistrz",
             "legend": "Legenda"
+        },
+        "mascotColors": {
+            "platinumMic": "Platynowy mikrofon"
         },
         "signatures": {
             "sprout": "Kiełek",

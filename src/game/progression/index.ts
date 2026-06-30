@@ -11,3 +11,4 @@ export * from './achievements';
 export * from './recordRun';
 export * from './themes';
 export * from './signatures';
+export * from './mascotColors';

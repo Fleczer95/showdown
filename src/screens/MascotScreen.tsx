@@ -24,12 +24,17 @@ import { getEquippedLook, setEquippedLook } from '../game/mascot/equippedLook';
 import { mascotSkins } from '../data/store/mascotSkins';
 import { useStore } from '../hooks/store/useStore';
 import { resolveEntryState } from '../data/store/resolver';
+import { useProgression } from '../hooks/useProgression';
+import { PROGRESSION_MASCOT_COLORS } from '../game/progression/mascotColors';
 
 const SLOTS: MascotSlot[] = ['fur', 'suit', 'accent', 'mic'];
 const MASCOT_SIZE = 240;
 
 /** The bundle whose purchase unlocks a given color (one bundle in v1, plan §5). */
 const skinForColor = (colorId: string) => mascotSkins.find((skin) => skin.unlocks.includes(colorId));
+
+/** Earned colorId → its Level Map reward id. Earned colors are unlocked by progression, never bought. */
+const REWARD_BY_COLOR = new Map(PROGRESSION_MASCOT_COLORS.map((c) => [c.colorId, c.id]));
 
 /**
  * Approximate tap zones over the placeholder fox, in the SVG's 200×220 viewBox.
@@ -58,6 +63,7 @@ export function MascotScreen() {
     const { iconSize, scale } = useResponsive();
     const reduced = useReducedMotion();
     const { purchasedItemIds, purchaseItem, isProcessing } = useStore();
+    const { unlockedRewards } = useProgression();
 
     const [look, setLook] = useState<LookMap>(() => getEquippedLook());
     const [activeSlot, setActiveSlot] = useState<MascotSlot | null>(null);
@@ -80,7 +86,15 @@ export function MascotScreen() {
         return locked;
     }, [purchasedItemIds]);
 
-    const isLocked = useCallback((colorId: string) => lockedIds.has(colorId), [lockedIds]);
+    const isLocked = useCallback(
+        (colorId: string) => {
+            const reward = REWARD_BY_COLOR.get(colorId);
+            // Earned colors unlock by climbing the Level Map, not by buying the bundle.
+            if (reward) return !unlockedRewards.has(reward);
+            return lockedIds.has(colorId);
+        },
+        [lockedIds, unlockedRewards],
+    );
 
     // Route a locked color through the shared billing engine to buy its bundle
     // (plan §5). Reuses the same `purchaseItem` flow as theme/pack purchases; the
@@ -94,11 +108,27 @@ export function MascotScreen() {
         [isProcessing, purchaseItem],
     );
 
+    // A locked color splits two ways (plan §5): an EARNED color deep-links to the
+    // Level Map (and highlights the unlocking level); a PURCHASABLE color routes
+    // through the billing engine to buy the bundle.
+    const handleLocked = useCallback(
+        (colorId: string) => {
+            const reward = REWARD_BY_COLOR.get(colorId);
+            if (reward) {
+                setActiveSlot(null); // close the sheet so it isn't left open on return
+                navigation.navigate('Progress' as any, { focusRewardId: reward });
+                return;
+            }
+            buyColor(colorId);
+        },
+        [navigation, buyColor],
+    );
+
     // Tapping an owned color equips it (live recolor + immediate persistence);
-    // tapping a locked one starts its bundle purchase instead (plan §5).
+    // tapping a locked one buys its bundle or deep-links to progression (plan §5).
     const equipColor = (slot: MascotSlot, colorId: string) => {
         if (isLocked(colorId)) {
-            buyColor(colorId);
+            handleLocked(colorId);
             return;
         }
         setLook((prev) => {
@@ -111,7 +141,7 @@ export function MascotScreen() {
     const applyPreset = (preset: MascotPreset) => {
         const lockedColor = Object.values(preset.look).find(isLocked);
         if (lockedColor) {
-            buyColor(lockedColor);
+            handleLocked(lockedColor);
             return;
         }
         setLook({ ...preset.look });

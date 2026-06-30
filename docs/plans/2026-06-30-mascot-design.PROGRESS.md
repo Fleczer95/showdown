@@ -238,10 +238,38 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
 - **Pre-existing:** `src/screens/store/StoreScreen.tsx` was already not prettier-clean before this phase
   (verified via stash) — left as-is per surgical-changes rule; my 3-line edit conforms.
 
-## Phase 4 — Progression deep-link, scroll-to-anchor (§5, §8 — pulled into v1)
-- [ ] Earned mascot elements in `src/game/progression/` (never sold).
-- [ ] Locked earned swatch → navigate to progression map, highlight target level.
-- [ ] Anchor-scroll + highlight in `ProgressScreen`/`GameSetupScreen`.
+## Phase 4 — Progression deep-link, scroll-to-anchor (§5, §8 — pulled into v1)  ⟵ AWAITING REVIEW (uncommitted)
+USER DECISION (2026-06-30): earned element = **Platinum mic** (`mic.platinum`, reward `mascot-mic-platinum`,
+hex #E5E4E2 stand-in) at **Level 35**.
+- [x] Earned mascot elements in `src/game/progression/` (never sold). New `mascotColors.ts` mirrors `themes.ts`/
+      `signatures.ts`: `PROGRESSION_MASCOT_COLORS` binds rewardId→{slot,colorId,titleKey}; `EARNED_MASCOT_COLOR_IDS`
+      set. Exported from `progression/index.ts`. New swatch `mic.platinum` appended to `MASCOT_PALETTE.mic` in
+      `look.ts`. `LEVEL_MAP` L35 now carries `rewardId: 'mascot-mic-platinum'` (was rewardless). `mascotSkins.ts`
+      `BUNDLED_COLOR_IDS` now ALSO filters out `EARNED_MASCOT_COLOR_IDS` so the earned color is NOT in the bundle's
+      `unlocks` (reads as earned, not buyable).
+- [x] Locked earned swatch → navigate to progression map, highlight target level. `MascotScreen` lock derivation
+      now splits: earned color locked iff `!unlockedRewards.has(reward)` (via `useProgression`), purchasable color
+      locked via the bundle path. New `handleLocked()` dispatch: earned → `navigation.navigate('Progress',
+      { focusRewardId })` (ThemeScreen pattern, `as any`), purchasable → existing `buyColor`. `equipColor` +
+      `applyPreset` both route through it. Earned-but-unlocked colors equip like any owned color.
+- [x] Anchor-scroll + highlight in `ProgressScreen`. Scroll + `FocusGlow` halo ALREADY worked for any rewardId
+      (gated on `node.level === focusLevel`, derived from `LEVEL_MAP` — no change needed). Added the mascot reward
+      TYPE so the node labels correctly: `mascot-*` → `PROGRESSION_MASCOT_COLORS` lookup → `progression.rewardMascot`
+      label + color titleKey (previously any non-signature rewardId mislabeled as `progression.themes.*`).
+- [x] i18n EN+PL: `progression.rewardMascot` + `progression.mascotColors.platinumMic` (16-space style, no prettier
+      on locales). tsc clean, eslint clean, prettier clean (TS), i18n:check ✅, 34/34 store tests pass.
+
+### Decisions / notes (flag for review)
+- **Earned color is a 4th mic swatch.** `mic` slot now has 4 colors (gold=default, silver+rose=bundle,
+  platinum=earned); other slots still 3. Hex #E5E4E2 is a stand-in until §8 final art — the rewardId/level/colorId
+  are permanent (§7.1), only the hex changes at art time.
+- **`mascotSkins.ts` import direction:** now imports `EARNED_MASCOT_COLOR_IDS` from `game/progression/mascotColors`
+  (not the index, to keep the surface small / avoid pulling the whole progression barrel). No cycle (progression
+  never imports data/store).
+- **`ProgressScreen` was prettier-clean at HEAD** (unlike StoreScreen) — confirmed `prettier --write` touched ONLY
+  my 26-line edit region, so I let it format my additions (clean-up-own-mess, not the leave-dirty precedent).
+- **No new earned PRESET.** The existing 4 presets don't reference `mic.platinum`, so a preset's locked color is
+  always purchasable → `handleLocked` still routes presets to buy. Mechanism is preset-agnostic if one is added later.
 
 ## Phase 5 — Placement (§4)
 - [ ] Self-contained overlay component, slid in via Reanimated transform.
@@ -302,3 +330,12 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
   (+`drama` icon). tsc/eslint/prettier clean, i18n:check passes, 34/34 store tests pass. Buy flow is
   testable in a DEV build via mock IAP NOW; real-store needs the IAP product provisioned (separate step).
   AWAITING USER REVIEW before commit. NEXT (after approval): commit, then Phase 4 (progression deep-link).
+- 2026-06-30: Phase 4 BUILT (progression deep-link for earned mascot colors). USER DECISION: Platinum mic
+  (`mic.platinum`, reward `mascot-mic-platinum`) at Level 35. New `progression/mascotColors.ts` (mirrors
+  themes/signatures, never sold); `mic.platinum` swatch added to palette; L35 node now grants the reward;
+  `mascotSkins` bundle excludes earned colorIds. `MascotScreen` splits locked-swatch behavior — earned →
+  `navigate('Progress', { focusRewardId })`, purchasable → existing buy path — and resolves earned state from
+  `useProgression().unlockedRewards`. `ProgressScreen` scroll+`FocusGlow` highlight already worked for any
+  rewardId; added the `mascot-*` reward type for correct node labeling (`progression.rewardMascot`). i18n EN+PL
+  added. tsc/eslint/prettier clean, i18n:check ✅, 34/34 store tests pass. AWAITING USER REVIEW before commit.
+  NEXT (after approval): commit, then Phase 5 (placement — Home + Results overlay).

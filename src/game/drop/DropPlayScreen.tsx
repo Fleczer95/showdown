@@ -27,6 +27,7 @@ import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import type { GameRunResult } from '../progression';
+import { MascotOverlay } from '../mascot/MascotOverlay';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
 import AccentTab from '../../components/atoms/AccentTab';
@@ -347,6 +348,8 @@ export default function DropPlayScreen({
                         )}
                     </GameOverCard>
                 </ScrollView>
+                {/* The Drop classifies by score: any banked cash cheers, a bust draws a dismay (plan §3). */}
+                <MascotOverlay pose={won ? 'cheer' : 'dismay'} size={140} anchor='bottom-right' offset={{ y: 8 }} />
             </View>
         );
     }

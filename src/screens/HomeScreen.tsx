@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Settings, ArrowRight, ShoppingBag, Swords } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import { useResponsive } from '../responsive/useResponsive';
@@ -18,6 +18,8 @@ import { games, GAME_ICONS, type Game } from '../data/games';
 import { useProgression } from '../hooks/useProgression';
 import Pressable from '../components/atoms/HapticPressable';
 import SegmentedProgress from '../components/molecules/SegmentedProgress';
+import { MascotOverlay } from '../game/mascot/MascotOverlay';
+import type { MascotPose } from '../game/mascot/look';
 
 /**
  * Accent-forward game card: a dark elevated card whose per-game color shows up
@@ -180,6 +182,16 @@ export function HomeScreen() {
     const theme = useTheme();
     const { tabletColumn, iconSize } = useResponsive();
 
+    // The host mascot makes its entrance on focus, then settles into idle.
+    const [mascotPose, setMascotPose] = useState<MascotPose>('intro');
+    useFocusEffect(
+        useCallback(() => {
+            setMascotPose('intro');
+            const id = setTimeout(() => setMascotPose('idle'), 650);
+            return () => clearTimeout(id);
+        }, []),
+    );
+
     const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
 
     // Themed container style
@@ -254,6 +266,9 @@ export function HomeScreen() {
                     </Button>
                 </View>
             </View>
+
+            {/* Host mascot: showcases the equipped look from the bottom-right corner. */}
+            <MascotOverlay pose={mascotPose} size={120} anchor='bottom-right' offset={{ x: -4, y: 64 }} />
         </SafeContainer>
     );
 }

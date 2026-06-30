@@ -30,6 +30,7 @@ import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import AccentTab from '../../components/atoms/AccentTab';
 import type { GameRunResult } from '../progression';
+import { MascotOverlay } from '../mascot/MascotOverlay';
 import { springEnter } from '../transitions';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
@@ -423,15 +424,19 @@ export default function WheelPlayScreen({
             cleanPuzzles: cleanPuzzles.current,
             bankruptRecovered: bankruptRecovered.current,
         };
+        // The Wheel classifies its own outcome for the host: a solved/banked run
+        // cheers, a busted-out run draws a dismay (plan §3).
+        const mascotPose = game.status === 'over' ? 'cheer' : 'dismay';
         return (
+            <View style={styles.flex}>
             <ScrollView
                 style={styles.flex}
                 contentContainerStyle={[
-                    styles.gameOver, 
-                    { 
+                    styles.gameOver,
+                    {
                         paddingHorizontal: t.spacing.xl,
                         paddingTop: t.spacing.xl,
-                        paddingBottom: Math.max(insets.bottom, t.spacing.xl) + t.spacing.xxl 
+                        paddingBottom: Math.max(insets.bottom, t.spacing.xl) + t.spacing.xxl
                     }
                 ]}
                 keyboardShouldPersistTaps='handled'
@@ -475,6 +480,8 @@ export default function WheelPlayScreen({
                     )}
                 </GameOverCard>
             </ScrollView>
+            <MascotOverlay pose={mascotPose} size={140} anchor='bottom-right' offset={{ y: 8 }} />
+            </View>
         );
     }
 

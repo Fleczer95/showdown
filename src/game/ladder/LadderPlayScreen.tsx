@@ -23,6 +23,7 @@ import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import { isQuickWit, type GameRunResult } from '../progression';
+import { MascotOverlay } from '../mascot/MascotOverlay';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
@@ -690,6 +691,7 @@ function GameOverView({
     const theme = useTheme();
 
     return (
+        <View style={styles.flex}>
         <ScrollView style={styles.flex} contentContainerStyle={[styles.center, { padding: theme.spacing.xl }]} keyboardShouldPersistTaps='handled'>
             <GameOverCard gameId={GAME_ID}>
                 {({ accent, onAccent }) => (
@@ -731,6 +733,9 @@ function GameOverView({
                 )}
             </GameOverCard>
         </ScrollView>
+        {/* The Ladder classifies its own outcome: banked (won) cheers, busted draws a dismay (plan §3). */}
+        <MascotOverlay pose={won ? 'cheer' : 'dismay'} size={140} anchor='bottom-right' offset={{ y: 8 }} />
+        </View>
     );
 }
 

@@ -271,10 +271,39 @@ hex #E5E4E2 stand-in) at **Level 35**.
 - **No new earned PRESET.** The existing 4 presets don't reference `mic.platinum`, so a preset's locked color is
   always purchasable → `handleLocked` still routes presets to buy. Mechanism is preset-agnostic if one is added later.
 
-## Phase 5 — Placement (§4)
-- [ ] Self-contained overlay component, slid in via Reanimated transform.
-- [ ] Home screen: intro/idle, shows equipped skin.
-- [ ] Results screens: each game classifies outcome → `cheer|dismay`, tells mascot.
+## Phase 5 — Placement (§4)  ⟵ AWAITING REVIEW (uncommitted)
+- [x] Self-contained overlay component `src/game/mascot/MascotOverlay.tsx`: absolutely-positioned,
+      `pointerEvents='none'`, reads `getEquippedLook()` and renders `Mascot` via a `pose` prop. Slides in
+      from the anchored edge via a Reanimated `translateX` spring; re-reads the look + replays the slide on
+      `useFocusEffect` (so a freshly-equipped look shows on return). Respects `useReducedMotion` (no slide).
+- [x] Home: `<MascotOverlay>` mounted in `HomeScreen` (bottom-right, size 120, lifted above the footer).
+      Home owns the intro→idle beat — a `useFocusEffect` sets pose `intro` then flips to `idle` after 650ms.
+- [x] Results: wheel/ladder/drop each classify their OWN outcome and pass the pose (games stay the authority):
+      Wheel `game.status === 'over' ? cheer : dismay`; Ladder `won ? cheer : dismay` (banked vs busted);
+      Drop `won ? cheer : dismay` (won = `bank > 0`, the score threshold). Overlay mounted bottom-right inside
+      each game-over container (wheel/ladder wrapped their root ScrollView in a `View`; drop reused its existing
+      outer `View`).
+- [x] Tap-to-react (user request): tapping the fox plays a quick jump+squash bounce with a light haptic.
+      Container is `pointerEvents='box-none'` and only the fox box is a `Pressable`, so taps elsewhere still
+      pass through to the buttons underneath. Bounce respects reduced-motion (haptic only, no movement).
+- [x] Static checks: tsc clean, eslint 0 errors (2 PRE-EXISTING ladder warnings @L135, not mine), new
+      `MascotOverlay.tsx` prettier-clean, i18n:check ✅ (no new keys — text quips stay deferred to §6).
+
+### Decisions / notes (flag for review)
+- **Scope = 3 live games.** Grid/Poll routes were retired with the solo pivot (`data/games.ts`, `playScreens.ts`),
+  so only the-wheel/the-ladder/the-drop have reachable Results. The spec's Grid (score threshold) / Poll
+  (closeness-to-crowd) classifiers have no screen to live on; Drop already embodies the "by score threshold" rule.
+- **Container slide-in vs. Mascot pose.** The overlay container provides the placement entrance (edge slide);
+  the `Mascot` pose layers personality on top (intro rise/fade, idle breathe, cheer pop, dismay slump). On Home
+  the two compose into a diagonal "host arrives" entrance; on Results the slide + cheer/dismay reads as the host
+  sliding in to react. Both honor reduced-motion independently.
+- **No catalog/persistence rebuild.** Reuses `getEquippedLook` (Phase 1) and `Mascot`/`renderMascot` verbatim —
+  no new look state. Art is still placeholder primitives (Phase 6 swaps the SVG; overlay/poses unaffected).
+- **Prettier on the 3 play screens + HomeScreen left as-is:** all 4 were ALREADY prettier-dirty at HEAD (same
+  pre-existing condition as StoreScreen in Phase 3). Did NOT `prettier --write` them (would balloon the diff with
+  unrelated reformatting); only the NEW `MascotOverlay.tsx` was formatted. The wheel/ladder wrapper `<View>` keeps
+  the inner ScrollView at its original indent to stay surgical in the already-dirty files.
+- **No persistent in-play host, no text quips** — both deferred per §4/§6; this phase is Home + Results only.
 
 ## Phase 6 — Real art (§2, after PoC perf budget set)
 - [ ] AI concept raster → hand-cleaned multi-region SVG, same fox across 4 poses.
@@ -339,3 +368,10 @@ hex #E5E4E2 stand-in) at **Level 35**.
   rewardId; added the `mascot-*` reward type for correct node labeling (`progression.rewardMascot`). i18n EN+PL
   added. tsc/eslint/prettier clean, i18n:check ✅, 34/34 store tests pass. AWAITING USER REVIEW before commit.
   NEXT (after approval): commit, then Phase 5 (placement — Home + Results overlay).
+- 2026-06-30: Phase 5 BUILT (placement). New self-contained `src/game/mascot/MascotOverlay.tsx` (absolute,
+  pointerEvents-none, reads `getEquippedLook`, renders `Mascot` by `pose`, Reanimated edge slide-in on focus,
+  reduced-motion aware). Mounted on Home (intro→idle via `useFocusEffect`) and on all 3 live Results screens
+  (wheel/ladder/drop) where each game classifies its own outcome → cheer|dismay. Grid/Poll are retired (no
+  reachable Results). No in-play host, no text quips (deferred). tsc clean, eslint 0 errors (2 pre-existing
+  warnings), new file prettier-clean, i18n:check ✅. AWAITING USER REVIEW before commit. NEXT (after approval):
+  commit, then Phase 6 (real art — swap placeholder primitives for the multi-region SVG fox).

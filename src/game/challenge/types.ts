@@ -45,12 +45,12 @@ export interface ChallengeRecord {
     /** Epoch ms; Firestore TTL deletes the doc at this time. */
     expiresAt: number;
     /**
-     * Reserved for v2 (plan §7.4): the creator's equipped mascot look, a
-     * `{ slot: colorId }` map. v1 never writes or reads it — the field is added
-     * now so showing the sender's mascot becomes purely additive, with no
-     * migration of existing links. Unknown colorIds fall back to slot defaults.
+     * The creator's equipped mascot look (plan §7.4): a thin `{ slot: colorId }`
+     * map of identifiers only — the opponent's device re-renders it locally, so
+     * it shows even colors that device doesn't own (unknown colorIds fall back to
+     * slot defaults).
      */
-    mascot?: Record<string, string>;
+    mascot: Record<string, string>;
 }
 
 /**

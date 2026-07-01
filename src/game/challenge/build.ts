@@ -35,6 +35,8 @@ export interface BuildChallengeArgs {
     createdBy: ChallengeCreator;
     /** Authoring language — the fallback locale when a player's isn't 'en'/'pl'. */
     lang: ChallengeLocale;
+    /** Creator's equipped mascot look, shown to the opponent through the challenge (§7.4). */
+    mascot: Record<string, string>;
     rng?: () => number;
     now?: () => number;
 }
@@ -49,6 +51,7 @@ export function buildChallenge(args: BuildChallengeArgs): ChallengeRecord {
         questions: freezeQuestions(args.gameId, args.history, args.ownedIds, rng),
         createdBy: args.createdBy,
         expiresAt: nowMs + CHALLENGE_TTL_DAYS * MS_PER_DAY,
+        mascot: args.mascot,
     };
 }
 

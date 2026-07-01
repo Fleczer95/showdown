@@ -20,6 +20,7 @@ function build(gameId: string) {
         ownedIds: new Set<string>(),
         createdBy: { uuid: 'u1', nickname: 'Ada' },
         lang: 'en',
+        mascot: { fur: 'fur.orange', suit: 'suit.royal', accent: 'accent.crimson', mic: 'mic.gold' },
         // Fixed rng + clock keep the build deterministic and the clock assertable.
         rng: () => 0.42,
         now: () => NOW,

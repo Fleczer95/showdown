@@ -24,6 +24,7 @@ import { gameSessionMachine } from '../game/machines/gameSessionMachine';
 import { playScreens } from '../game/playScreens';
 import { useStore } from '../hooks/store/useStore';
 import { buildChallenge } from '../game/challenge/build';
+import { getEquippedLook } from '../game/mascot/equippedLook';
 import { createChallenge, getChallenge, newChallengeId, BlockedError } from '../game/challenge/store';
 import { countCreatedToday } from '../game/challenge/log';
 import { dailyCap, canUpsell } from '../game/challenge/limit';
@@ -242,6 +243,7 @@ export function GameSetupScreen() {
                     ownedIds: new Set(purchasedItemIds),
                     createdBy: { uuid: getDeviceId(), nickname: nick },
                     lang: locale === 'pl' ? 'pl' : 'en',
+                    mascot: getEquippedLook(),
                 });
                 id = newChallengeId();
                 pendingChallengeId.current = id;

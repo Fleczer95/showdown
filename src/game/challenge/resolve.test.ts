@@ -25,6 +25,7 @@ function record(gameId: string): ChallengeRecord {
         ownedIds: new Set<string>(),
         createdBy: { uuid: 'u1', nickname: 'Ada' },
         lang: 'en',
+        mascot: { fur: 'fur.orange', suit: 'suit.royal', accent: 'accent.crimson', mic: 'mic.gold' },
         rng: () => 0.42,
         now: () => NOW,
     });

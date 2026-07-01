@@ -1,21 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, StyleSheet, View, type ViewStyle } from 'react-native';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { Swords, Trophy, Hourglass, Crown, type LucideIcon } from 'lucide-react-native';
+import { Swords, Crown } from 'lucide-react-native';
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
 import SafeContainer from '../responsive/SafeContainer';
 import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
-import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import Button from '../components/molecules/Button';
 import Input from '../components/molecules/Input';
 import { useTheme } from '../theme';
-import { resolveAccent, readableOn, hexToRgba, darken } from '../theme/colorUtils';
+import { resolveAccent, readableOn, hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
 import { games } from '../data/games';
 import { useStore } from '../hooks/store/useStore';
@@ -35,6 +33,8 @@ import {
 } from '../game/challenge/resolve';
 import type { ChallengeResult } from '../game/challenge/ChallengeHandoff';
 import type { ChallengeRecord } from '../game/challenge/types';
+import { Mascot } from '../game/mascot/Mascot';
+import type { LookMap } from '../game/mascot/look';
 import LadderPlayScreen from '../game/ladder/LadderPlayScreen';
 import DropPlayScreen from '../game/drop/DropPlayScreen';
 import WheelPlayScreen from '../game/wheel/WheelPlayScreen';
@@ -324,61 +324,6 @@ function accentCardStyle(accent: string): ViewStyle {
     };
 }
 
-/**
- * The gradient medallion used across the app's hero cards (see GameSetupScreen):
- * a rounded-square with an accent→darker gradient fill, accent glow, and a
- * centered icon. Used here to give the challenge intro/results a hero focal point.
- */
-function Medallion({
-    icon,
-    accent,
-    gradientId,
-    size = 88,
-}: {
-    icon: LucideIcon;
-    accent: string;
-    gradientId: string;
-    size?: number;
-}) {
-    const theme = useTheme();
-    const onAccent = readableOn(accent);
-    return (
-        <View
-            style={[
-                styles.medallion,
-                {
-                    width: size,
-                    height: size,
-                    borderRadius: theme.radii.xl,
-                    borderWidth: 1,
-                    borderColor: hexToRgba(accent, 0.5),
-                    shadowColor: accent,
-                    shadowOpacity: 0.45,
-                    shadowRadius: 16,
-                    shadowOffset: { width: 0, height: 6 },
-                    elevation: 8,
-                },
-            ]}
-        >
-            <View
-                style={[StyleSheet.absoluteFill, { borderRadius: theme.radii.xl, overflow: 'hidden' }]}
-                pointerEvents='none'
-            >
-                <Svg width='100%' height='100%'>
-                    <Defs>
-                        <SvgGradient id={gradientId} x1='0' y1='0' x2='1' y2='1'>
-                            <Stop offset='0' stopColor={accent} />
-                            <Stop offset='1' stopColor={darken(accent, 0.4)} />
-                        </SvgGradient>
-                    </Defs>
-                    <Rect x='0' y='0' width='100%' height='100%' fill={`url(#${gradientId})`} />
-                </Svg>
-            </View>
-            <Icon name={icon} size={Math.round(size * 0.46)} color={onAccent} />
-        </View>
-    );
-}
-
 function IntroCard({
     record,
     isCreator,
@@ -403,17 +348,25 @@ function IntroCard({
     const { iconSize } = useResponsive();
     const accent = challengeAccent(theme, record.game);
     const onAccent = readableOn(accent);
+    // The `heading` token ships a loose 1.54 line-height; tighten it so the
+    // opponent's name wraps cleanly beside the mascot. Derived so it still scales.
+    const headingLineHeight = Math.round(theme.typography.xxl * 1.15);
 
     return (
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
             <Card variant='elevated' padding='lg' gap='lg' style={accentCardStyle(accent)}>
-                <Stack gap='md' align='center'>
-                    <Medallion icon={Swords} accent={accent} gradientId='challenge-intro' />
-                    <Stack gap='xs' align='center'>
-                        <Text variant='overline' color='textSecondary' weight='bold'>
+                <Stack direction='horizontal' gap='md' align='center'>
+                    {/* The challenger's equipped look, rendered from its slot→colorId
+                        identifiers. Ownership-agnostic: shows even colors this device
+                        doesn't own, with unknown ids falling back to slot defaults. */}
+                    <Stack flex={1} align='center'>
+                        <Mascot look={record.mascot as LookMap} pose='idle' size={120} />
+                    </Stack>
+                    <Stack gap='xs' align='center' flex={1}>
+                        <Text variant='overline' color='textSecondary' weight='bold' align='center'>
                             {t(`game.${record.game}.name`)}
                         </Text>
-                        <Text variant='heading' weight='bold' align='center'>
+                        <Text variant='heading' weight='bold' align='center' style={{ lineHeight: headingLineHeight }}>
                             {isCreator
                                 ? t('challenge.vsTitleCreator')
                                 : t('challenge.vsTitle', { name: record.createdBy.nickname })}
@@ -539,17 +492,24 @@ function ResultsCard({
             : youWon
               ? t('challenge.youWin')
               : t('challenge.won', { name: winner.nickname });
+    // Tighten the loose `heading` line-height so a wrapped winner name reads clean
+    // beside the mascot (same treatment as the intro). Derived so it still scales.
+    const headingLineHeight = Math.round(theme.typography.xxl * 1.15);
 
     return (
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
             <Card variant='elevated' padding='lg' gap='lg' style={accentCardStyle(accent)}>
-                <Stack gap='md' align='center'>
-                    <Medallion icon={waiting ? Hourglass : Trophy} accent={accent} gradientId='challenge-results' />
-                    <Stack gap='xs' align='center'>
-                        <Text variant='overline' color='textSecondary' weight='bold'>
+                <Stack direction='horizontal' gap='md' align='center'>
+                    {/* The challenger's mascot stays present through to the result,
+                        rendered from its slot→colorId identifiers (ownership-agnostic). */}
+                    <Stack flex={1} align='center'>
+                        <Mascot look={record.mascot as LookMap} pose='idle' size={120} />
+                    </Stack>
+                    <Stack gap='xs' align='center' flex={1}>
+                        <Text variant='overline' color='textSecondary' weight='bold' align='center'>
                             {t(`game.${record.game}.name`)}
                         </Text>
-                        <Text variant='heading' weight='bold' align='center'>
+                        <Text variant='heading' weight='bold' align='center' style={{ lineHeight: headingLineHeight }}>
                             {headline}
                         </Text>
                         {waiting ? (
@@ -636,10 +596,6 @@ const styles = StyleSheet.create({
     },
     card: {
         width: '100%',
-    },
-    medallion: {
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     input: {
         paddingHorizontal: 0,

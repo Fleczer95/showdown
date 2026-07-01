@@ -28,6 +28,7 @@ const record: ChallengeRecord = {
     questions: [{ id: 'q1' }],
     createdBy: { uuid: 'u1', nickname: 'A' },
     expiresAt: 123,
+    mascot: { fur: 'fur.orange', suit: 'suit.royal', accent: 'accent.crimson', mic: 'mic.gold' },
 };
 const attempt: Attempt = { nickname: 'A', progress: 3, score: 100, timestamp: 5 };
 

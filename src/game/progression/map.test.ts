@@ -88,6 +88,7 @@ describe('unlockedRewards', () => {
             'signature-fire',
             'signature-gem',
             'theme-legend',
+            'mascot-mic-platinum',
             'signature-star',
             'signature-crown',
         ]);

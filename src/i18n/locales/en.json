@@ -315,7 +315,8 @@
             "category": {
                 "premium": "Premium",
                 "packs": "Packs",
-                "themes": "Themes"
+                "themes": "Themes",
+                "mascots": "Costumes"
             },
             "premium": {
                 "title": "Showdown Premium",
@@ -378,9 +379,17 @@
                     "title": "Lost Civilizations",
                     "desc": "Uncover the secrets of the Maya, Sumerians, and more — 300 challenging new questions."
                 },
-                "mascot_skinpack": {
-                    "title": "Mascot Skins",
-                    "desc": "Recolor your fox host head to toe — fur, suit, accent, and mic — with a full palette of premium swatches."
+                "mascot_arctic": {
+                    "title": "Arctic Costume",
+                    "desc": "Recolor your fox host in a cool arctic theme with silver and teal accents."
+                },
+                "mascot_emerald": {
+                    "title": "Emerald Costume",
+                    "desc": "Recolor your fox host in a sharp emerald suit with gold accents."
+                },
+                "mascot_plum": {
+                    "title": "Plum Costume",
+                    "desc": "Recolor your fox host in a stylish plum suit with crimson accents and a rose gold mic."
                 }
             },
             "feature": {
@@ -402,8 +411,12 @@
                 "wheel_world-landmarks_2": "Spans ancient wonders, modern marvels, and natural beauties",
                 "ladder_lost-civilizations_1": "300 deep-cut questions on archaeology and ancient mysteries",
                 "ladder_lost-civilizations_2": "Spans the Americas, Mesopotamia, Asia, and Africa",
-                "mascot_skinpack_1": "Premium colors for every slot — fur, suit, accent, and mic",
-                "mascot_skinpack_2": "One purchase unlocks the whole palette for the customizer"
+                "mascot_arctic_1": "Premium arctic colors — fur, suit, accent, and mic",
+                "mascot_arctic_2": "Unlocks the Arctic preset in the customizer",
+                "mascot_emerald_1": "Premium emerald colors — suit and accent",
+                "mascot_emerald_2": "Unlocks the Emerald preset in the customizer",
+                "mascot_plum_1": "Premium plum colors — fur, suit, accent, and mic",
+                "mascot_plum_2": "Unlocks the Plum preset in the customizer"
             },
             "unlocked": "Unlocked",
             "buy": "Buy %{price}",

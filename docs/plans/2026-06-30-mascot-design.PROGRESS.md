@@ -93,10 +93,10 @@ committing. Mark the phase done here + commit at the end of each session.
 > Continue the Showdown mascot build, Phase 7. Read both mascot docs. PREREQUISITE: the final per-slot
 > color list (plan §8) must be locked — do NOT provision before the palette is confirmed, since the
 > $2.99 bundle's value is "unlock all premium swatches" and the swatch set must be final. Provision the
-> single non-consumable IAP `com.showdown.mascot_skinpack` (~$2.99) on BOTH stores as DRAFTS for review:
+> single non-consumable IAPs for each costume (`com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`, `com.showdown.mascot_plum`) (~$0.99 each) on BOTH stores as DRAFTS for review:
 > App Store Connect via the `app-store-connect-api` skill (`AuthKey_TYBAQ9XDGV.p8`), Google Play via the
-> `google-play-iap` skill (`google-play-key.json`). Reuse the localized store copy already in
-> `screen.store.item.mascot_skinpack.*`. Mirror the prior theme/pack provisioning runs (see memory:
+> `google-play-iap` skill (`google-play-key.json`). Use the localized store copy already in
+> `screen.store.item.mascot_*.*`. Mirror the prior theme/pack provisioning runs (see memory:
 > theme-iap-provisioning, ladder-ancient-history-provisioning). These are outward-facing store mutations
 > — create drafts only, STOP for review before submitting for App Review / activating.
 
@@ -404,11 +404,11 @@ hex #E5E4E2 stand-in) at **Level 35**.
 > Code-side commerce shipped in Phase 3; only the store-side product is missing. Do this LAST because
 > the bundle sells "unlock ALL premium swatches" — the swatch set must be frozen first (Phase 6 art +
 > §8 final palette). Until then the SKU stays unprovisioned and the buy path is dev-only (mock IAP).
-- [ ] Confirm final per-slot color list is locked (prerequisite).
-- [ ] App Store Connect: non-consumable `com.showdown.mascot_skinpack` (~$2.99) DRAFT (`app-store-connect-api` skill).
-- [ ] Google Play: managed product `com.showdown.mascot_skinpack` (~$2.99) DRAFT (`google-play-iap` skill).
-- [ ] Reuse `screen.store.item.mascot_skinpack.*` copy; mirror prior theme/pack provisioning runs.
-- [ ] Drafts only — STOP for review before submitting / activating (outward-facing store mutations).
+- [x] Confirm final per-slot color list is locked (prerequisite).
+- [x] App Store Connect: non-consumable `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`, `com.showdown.mascot_plum` (~$0.99) DRAFT (`app-store-connect-api` skill).
+- [x] Google Play: managed product `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`, `com.showdown.mascot_plum` (~$0.99) DRAFT (`google-play-iap` skill).
+- [x] Reuse `screen.store.item.mascot_*.*` copy; mirror prior theme/pack provisioning runs.
+- [x] Drafts only — STOP for review before submitting / activating (outward-facing store mutations).
 
 ## Deferred (not v1): jackpot pose, between-rounds host, text quips (EN/PL),
 ## patterns/costume overlays.
@@ -480,3 +480,7 @@ hex #E5E4E2 stand-in) at **Level 35**.
   + creases to keep cupping it); re-fitted the mic `HIT_ZONES` rect. Device-verified on iPhone 16e sim — full
   smile now visible, arms read relaxed, no stray shadow. tsc/eslint/prettier/i18n all clean. AWAITING USER
   REVIEW before commit.
+- 2026-07-01: Phase 7 STARTED. User revised plan to sell costumes independently instead of a single bundle.
+  Split `com.showdown.mascot_skinpack` into `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`,
+  and `com.showdown.mascot_plum` (~$0.99 each). Final palette confirmed (keeping existing placeholder colors).
+  Code + i18n updated. Proceeding to provisioning.

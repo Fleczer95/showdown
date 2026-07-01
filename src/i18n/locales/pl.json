@@ -315,7 +315,8 @@
             "category": {
                 "premium": "Premium",
                 "packs": "Pakiety",
-                "themes": "Motywy"
+                "themes": "Motywy",
+                "mascots": "Stroje"
             },
             "premium": {
                 "title": "Showdown Premium",
@@ -378,9 +379,17 @@
                     "title": "Zaginione cywilizacje",
                     "desc": "Odkryj tajemnice Majów, Sumerów i nie tylko — 300 nowych, wymagających pytań."
                 },
-                "mascot_skinpack": {
-                    "title": "Skórki maskotki",
-                    "desc": "Pokoloruj swojego lisa-prowadzącego od stóp do głów — futro, garnitur, dodatek i mikrofon — pełną paletą kolorów premium."
+                "mascot_arctic": {
+                    "title": "Strój Arktyczny",
+                    "desc": "Pokoloruj swojego lisa-prowadzącego w chłodnym arktycznym motywie ze srebrnymi i turkusowymi akcentami."
+                },
+                "mascot_emerald": {
+                    "title": "Strój Szmaragdowy",
+                    "desc": "Pokoloruj swojego lisa-prowadzącego w elegancki szmaragdowy garnitur ze złotymi akcentami."
+                },
+                "mascot_plum": {
+                    "title": "Strój Śliwkowy",
+                    "desc": "Pokoloruj swojego lisa-prowadzącego w stylowy śliwkowy garnitur z karmazynowymi akcentami i różowym mikrofonem."
                 }
             },
             "feature": {
@@ -402,8 +411,12 @@
                 "wheel_world-landmarks_2": "Obejmuje starożytne cuda, współczesne perły i piękno natury",
                 "ladder_lost-civilizations_1": "300 szczegółowych pytań o archeologii i starożytnych tajemnicach",
                 "ladder_lost-civilizations_2": "Obejmuje Ameryki, Mezopotamię, Azję i Afrykę",
-                "mascot_skinpack_1": "Kolory premium do każdego elementu — futra, garnituru, dodatku i mikrofonu",
-                "mascot_skinpack_2": "Jeden zakup odblokowuje całą paletę w kreatorze"
+                "mascot_arctic_1": "Arktyczne kolory premium — futro, garnitur, dodatek i mikrofon",
+                "mascot_arctic_2": "Odblokowuje zestaw Arktyczny w kreatorze",
+                "mascot_emerald_1": "Szmaragdowe kolory premium — garnitur i dodatek",
+                "mascot_emerald_2": "Odblokowuje zestaw Szmaragdowy w kreatorze",
+                "mascot_plum_1": "Śliwkowe kolory premium — futro, garnitur, dodatek i mikrofon",
+                "mascot_plum_2": "Odblokowuje zestaw Śliwkowy w kreatorze"
             },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",

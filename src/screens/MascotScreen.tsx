@@ -301,7 +301,7 @@ export function MascotScreen() {
                                 ]}
                             >
                                 {locked ? <Lock size={iconSize(14)} color={isActive ? theme.colors.onPrimary : theme.colors.textMuted} /> : null}
-                                <Text variant='sm' weight='semibold' color={isActive ? theme.colors.onPrimary : theme.colors.text}>
+                                <Text variant='caption' weight='semibold' color={isActive ? theme.colors.onPrimary : theme.colors.text}>
                                     {t(`screen.mascot.presets.${preset.id}`)}
                                 </Text>
                             </Pressable>

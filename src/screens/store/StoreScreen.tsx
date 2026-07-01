@@ -130,6 +130,8 @@ export default function StoreScreen() {
             setSelectedCategory('themes');
         } else if (route.params?.gameId === 'premium') {
             setSelectedCategory('premium');
+        } else if (route.params?.gameId === 'mascots') {
+            setSelectedCategory('mascots');
         } else if (route.params?.gameId) {
             setSelectedCategory('packs');
         }
@@ -165,13 +167,21 @@ export default function StoreScreen() {
             }));
         }
 
+        if (selectedCategory === 'mascots') {
+            return [
+                {
+                    gameId: 'mascots',
+                    title: t('screen.store.category.mascots'),
+                    data: forSale.filter((entry) => entry.kind === 'mascotSkin'),
+                },
+            ];
+        }
+
         return [
             {
                 gameId: 'themes',
                 title: t('screen.store.category.themes'),
-                // Cosmetics tab: themes plus the mascot skin bundle (catalog order
-                // keeps themes first, the mascot pack after).
-                data: forSale.filter((entry) => entry.kind === 'theme' || entry.kind === 'mascotSkin'),
+                data: forSale.filter((entry) => entry.kind === 'theme'),
             },
         ];
     }, [resolvedEntries, selectedCategory, t]);

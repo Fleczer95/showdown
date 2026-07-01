@@ -1,43 +1,58 @@
-import { MASCOT_PALETTE, DEFAULT_LOOK } from '../../game/mascot/look';
-import { EARNED_MASCOT_COLOR_IDS } from '../../game/progression/mascotColors';
 import type { MascotSkinDefinition } from './types';
 
 /**
- * Mascot skin catalog. A SINGLE bundle SKU (`com.showdown.mascot_skinpack`,
- * ~$2.99) unlocks every non-default recolor swatch at once — avoids cheapening
- * individual recolors and keeps the store clean (plan §5). Earned mascot elements
- * (e.g. a gold mic via level progression) live in `src/game/progression/` and are
- * NEVER sold, so they are absent from this catalog.
- *
- * NOT YET wired into `STORE_CATALOG` — Phase 3 registers it there when the buy
- * path + standalone-store surfacing land (so the unprovisioned SKU isn't queried
- * before the commerce path exists). The `screen.store.*` i18n copy is added then.
- *
- * `unlocks` is derived from the placeholder palette: every swatch that isn't the
- * free slot default. Once real art designates earned colors, exclude those here.
+ * Mascot skin catalog. We sell each costume preset (Arctic, Emerald, Plum) as
+ * an independent SKU (plan §5).
+ * Earned mascot elements (e.g. a gold mic via level progression) live in
+ * `src/game/progression/` and are NEVER sold, so they are absent from this catalog.
  */
-const DEFAULT_IDS = new Set(Object.values(DEFAULT_LOOK));
-
-const BUNDLED_COLOR_IDS = Object.values(MASCOT_PALETTE)
-    .flat()
-    .map((swatch) => swatch.id)
-    .filter((id) => !DEFAULT_IDS.has(id) && !EARNED_MASCOT_COLOR_IDS.has(id));
-
 export const mascotSkins: MascotSkinDefinition[] = [
     {
-        id: 'mascot-skinpack',
+        id: 'mascot-arctic',
         kind: 'mascotSkin',
         status: 'live',
         tier: 'premium',
-        sku: 'com.showdown.mascot_skinpack',
+        sku: 'com.showdown.mascot_arctic',
         presentation: {
-            titleKey: 'screen.store.item.mascot_skinpack.title',
-            descriptionKey: 'screen.store.item.mascot_skinpack.desc',
+            titleKey: 'screen.store.item.mascot_arctic.title',
+            descriptionKey: 'screen.store.item.mascot_arctic.desc',
             iconName: 'drama',
-            accentColor: '#F2780C',
-            featuresKey: ['screen.store.feature.mascot_skinpack_1', 'screen.store.feature.mascot_skinpack_2'],
-            fallbackPrice: '$2.99',
+            accentColor: '#E2E8F0',
+            featuresKey: ['screen.store.feature.mascot_arctic_1', 'screen.store.feature.mascot_arctic_2'],
+            fallbackPrice: '$0.99',
         },
-        unlocks: BUNDLED_COLOR_IDS,
+        unlocks: ['fur.arctic', 'accent.teal', 'mic.silver'],
+    },
+    {
+        id: 'mascot-emerald',
+        kind: 'mascotSkin',
+        status: 'live',
+        tier: 'premium',
+        sku: 'com.showdown.mascot_emerald',
+        presentation: {
+            titleKey: 'screen.store.item.mascot_emerald.title',
+            descriptionKey: 'screen.store.item.mascot_emerald.desc',
+            iconName: 'drama',
+            accentColor: '#047857',
+            featuresKey: ['screen.store.feature.mascot_emerald_1', 'screen.store.feature.mascot_emerald_2'],
+            fallbackPrice: '$0.99',
+        },
+        unlocks: ['suit.emerald', 'accent.gold'],
+    },
+    {
+        id: 'mascot-plum',
+        kind: 'mascotSkin',
+        status: 'live',
+        tier: 'premium',
+        sku: 'com.showdown.mascot_plum',
+        presentation: {
+            titleKey: 'screen.store.item.mascot_plum.title',
+            descriptionKey: 'screen.store.item.mascot_plum.desc',
+            iconName: 'drama',
+            accentColor: '#7E22CE',
+            featuresKey: ['screen.store.feature.mascot_plum_1', 'screen.store.feature.mascot_plum_2'],
+            fallbackPrice: '$0.99',
+        },
+        unlocks: ['fur.rust', 'suit.plum', 'mic.rose'],
     },
 ];

@@ -26,12 +26,13 @@ import {
     Drama,
 } from 'lucide-react-native';
 
-export type StoreCategory = 'premium' | 'packs' | 'themes';
+export type StoreCategory = 'premium' | 'packs' | 'themes' | 'mascots';
 
 export const STORE_CATEGORIES = [
-    { id: 'premium', titleKey: 'store.category.premium', icon: Crown },
-    { id: 'packs', titleKey: 'store.category.packs', icon: BookOpen },
-    { id: 'themes', titleKey: 'store.category.themes', icon: Palette },
+    { id: 'premium', titleKey: 'screen.store.category.premium', icon: Crown },
+    { id: 'packs', titleKey: 'screen.store.category.packs', icon: BookOpen },
+    { id: 'themes', titleKey: 'screen.store.category.themes', icon: Palette },
+    { id: 'mascots', titleKey: 'screen.store.category.mascots', icon: Drama },
 ] as const;
 
 export const STORE_ICONS: Record<string, LucideIcon> = {

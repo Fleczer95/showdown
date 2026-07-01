@@ -484,3 +484,7 @@ hex #E5E4E2 stand-in) at **Level 35**.
   Split `com.showdown.mascot_skinpack` into `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`,
   and `com.showdown.mascot_plum` (~$0.99 each). Final palette confirmed (keeping existing placeholder colors).
   Code + i18n updated. Proceeding to provisioning.
+- 2026-07-01: Phase 7 COMPLETED. IAPs provisioned in both stores (App Store Connect and Google Play) as drafts.
+  User tested the flow on-device. Based on user feedback: updated MascotScreen to navigate to the Store's
+  Mascots tab and auto-open the selected costume's modal instead of silent purchase. Temporarily added and
+  subsequently removed a DEV ONLY "Clear Mock Purchases" button in Settings to aid testing. Mascot build is now complete!

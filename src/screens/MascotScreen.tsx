@@ -99,17 +99,9 @@ export function MascotScreen() {
         [lockedIds, unlockedRewards],
     );
 
-    // Route a locked color through the shared billing engine to buy its bundle
     // (plan §5). Reuses the same `purchaseItem` flow as theme/pack purchases; the
     // unlock lands via `onPurchaseSuccess` → reactive `purchasedItemIds`.
-    const buyColor = useCallback(
-        (colorId: string) => {
-            if (isProcessing) return;
-            const skin = skinForColor(colorId);
-            if (skin) purchaseItem(skin.id);
-        },
-        [isProcessing, purchaseItem],
-    );
+    // (Deprecated: we now navigate to the Store screen directly)
 
     // A locked color splits two ways (plan §5): an EARNED color deep-links to the
     // Level Map (and highlights the unlocking level); a PURCHASABLE color routes
@@ -122,9 +114,13 @@ export function MascotScreen() {
                 navigation.navigate('Progress' as any, { focusRewardId: reward });
                 return;
             }
-            buyColor(colorId);
+            const skin = skinForColor(colorId);
+            if (skin) {
+                setActiveSlot(null);
+                navigation.navigate('Store' as any, { gameId: 'mascots', itemId: skin.id });
+            }
         },
-        [navigation, buyColor],
+        [navigation],
     );
 
     // Tapping an owned color equips it (live recolor + immediate persistence);

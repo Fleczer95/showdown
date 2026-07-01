@@ -191,16 +191,25 @@ export default function StoreScreen() {
         const sectionIndex = sections.findIndex((section) => section.gameId === route.params?.gameId);
         if (sectionIndex === -1) return;
 
+        let itemIndex = 0;
+        if (route.params?.itemId) {
+            const foundIndex = sections[sectionIndex].data.findIndex(entry => entry.id === route.params?.itemId);
+            if (foundIndex !== -1) {
+                itemIndex = foundIndex;
+                setDetailItem(sections[sectionIndex].data[foundIndex]);
+            }
+        }
+
         const timer = setTimeout(() => {
             sectionListRef.current?.scrollToLocation({
                 sectionIndex,
-                itemIndex: 0,
+                itemIndex,
                 animated: true,
                 viewOffset: Platform.OS === 'ios' ? 0 : 20,
             });
         }, 300);
         return () => clearTimeout(timer);
-    }, [route.params?.gameId, sections]);
+    }, [route.params?.gameId, route.params?.itemId, sections]);
 
     const handlePurchase = async () => {
         if (!detailItem) return;

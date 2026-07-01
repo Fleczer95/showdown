@@ -14,6 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Mascot } from './Mascot';
 import { getEquippedLook } from './equippedLook';
 import { type LookMap, type MascotPose } from './look';
+import type { MascotExpression } from './reactions/expressions';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useTheme } from '../../theme';
 import Text from '../../components/atoms/Text';
@@ -50,6 +51,10 @@ export interface MascotOverlayProps {
     /** In-flow placement (scrolls with content; still slides in, from the left). */
     inline?: boolean;
     message?: string | null;
+    expression?: MascotExpression;
+    /** When set with a non-null message, fire `onAutoHide` after this many ms. */
+    autoHideMs?: number;
+    onAutoHide?: () => void;
     onMessagePress?: () => void;
     onMascotPress?: () => void;
     onSettled?: () => void;
@@ -62,6 +67,9 @@ export function MascotOverlay({
     offset,
     inline = false,
     message,
+    expression,
+    autoHideMs,
+    onAutoHide,
     onMessagePress,
     onMascotPress,
     onSettled,
@@ -149,9 +157,16 @@ export function MascotOverlay({
         ],
     }));
 
+    // Auto-hide a spoken bubble after a timeout (the director drops the rest).
+    useEffect(() => {
+        if (!message || !autoHideMs) return;
+        const id = setTimeout(() => onAutoHide?.(), autoHideMs);
+        return () => clearTimeout(id);
+    }, [message, autoHideMs, onAutoHide]);
+
     const mascot = (
         <Pressable onPress={onTap} accessibilityRole='image' accessibilityLabel='Mascot'>
-            <Mascot look={look} pose={pose} size={size} />
+            <Mascot look={look} pose={pose} size={size} expression={expression} />
         </Pressable>
     );
 

@@ -18,11 +18,9 @@ import { games, GAME_ICONS, type Game } from '../data/games';
 import { useProgression } from '../hooks/useProgression';
 import Pressable from '../components/atoms/HapticPressable';
 import SegmentedProgress from '../components/molecules/SegmentedProgress';
-import { MascotOverlay } from '../game/mascot/MascotOverlay';
-import type { MascotPose } from '../game/mascot/look';
+import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
 import { canUpsell } from '../game/challenge/limit';
 import { remainingOfflineRuns } from '../game/offline/limit';
-import { homeMascotMessageMemory, selectHomeMascotMessage, type HomeMascotMessage } from '../game/mascot/homeMessages';
 import { useStore } from '../hooks/store/useStore';
 
 /**
@@ -189,51 +187,19 @@ export function HomeScreen() {
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
     const { streak } = useProgression();
 
-    // The host mascot makes its entrance on focus, then settles into idle.
-    const [mascotPose, setMascotPose] = useState<MascotPose>('intro');
-    const [mascotMessage, setMascotMessage] = useState<HomeMascotMessage | null>(null);
+    // Tell the mascot director we've landed on Home (greeting + idle drip live in
+    // the app-root host now); nudge the offline-limit upsell when it applies.
+    const emitMascot = useMascotEmit();
     useFocusEffect(
         useCallback(() => {
-            setMascotPose('intro');
-            setMascotMessage(null);
-            const id = setTimeout(() => setMascotPose('idle'), 650);
-            return () => clearTimeout(id);
-        }, []),
+            emitMascot('home-focus', { streak });
+            if (remainingOfflineRuns(ownedIds, isPremium) === 0 && canUpsell(ownedIds, isPremium)) {
+                emitMascot('offline-limit', {});
+            }
+        }, [emitMascot, streak, ownedIds, isPremium]),
     );
 
-    const resolveMascotMessage = useCallback((includeSeen = false) => {
-        return selectHomeMascotMessage(
-            {
-                streak,
-                offlineRunsLeft: remainingOfflineRuns(ownedIds, isPremium),
-                canUpsell: canUpsell(ownedIds, isPremium),
-            },
-            homeMascotMessageMemory,
-            { includeSeen },
-        );
-    }, [streak, ownedIds, isPremium]);
-
-    const showMascotMessage = useCallback(() => {
-        const next = resolveMascotMessage(false);
-        setMascotMessage(next);
-        if (next) homeMascotMessageMemory.markSeen(next.id);
-    }, [resolveMascotMessage]);
-
-    const showMascotMessageFromTap = useCallback(() => {
-        const next = resolveMascotMessage(true);
-        setMascotMessage(next);
-    }, [resolveMascotMessage]);
-
     const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
-
-    const handleMascotMessagePress = useCallback(() => {
-        if (mascotMessage?.action === 'store') {
-            navigation.navigate('Store');
-        } else if (mascotMessage?.action === 'progress') {
-            navigation.navigate('Progress');
-        }
-        setMascotMessage(null);
-    }, [mascotMessage, navigation]);
 
     // Themed container style
     const contentContainerStyle = [
@@ -307,18 +273,6 @@ export function HomeScreen() {
                     </Button>
                 </View>
             </View>
-
-            {/* Host mascot: showcases the equipped look from the bottom-right corner. */}
-            <MascotOverlay
-                pose={mascotPose}
-                size={120}
-                anchor='bottom-right'
-                offset={{ x: -4, y: 64 }}
-                message={mascotMessage ? t(mascotMessage.textKey, { n: streak }) : null}
-                onMessagePress={mascotMessage ? handleMascotMessagePress : undefined}
-                onMascotPress={showMascotMessageFromTap}
-                onSettled={showMascotMessage}
-            />
         </SafeContainer>
     );
 }

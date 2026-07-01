@@ -149,14 +149,7 @@
             "store": "Store",
             "challenges": "Challenges",
             "recentlyPlayed": "Recently Played",
-            "allGames": "All Games",
-            "mascotCloud": {
-                "welcome": "Welcome in. Pick a game and I’ll keep score.",
-                "streak3": "Three-day streak. Keep it warm.",
-                "streak7": "Seven days in a row. That belongs on the progress map.",
-                "streak30": "Thirty-day streak. That’s a champion rhythm.",
-                "offlineLimit": "You used today’s solo runs. The Store can raise your daily limit."
-            }
+            "allGames": "All Games"
         },
         "settings": {
             "title": "Settings",

@@ -1,4 +1,74 @@
 {
+    "mascot": {
+        "runWon": {
+            "1": "That's a win. Textbook.",
+            "2": "You made that look easy.",
+            "3": "Champion stuff.",
+            "4": "Take a bow."
+        },
+        "runLost": {
+            "1": "Ah — so close.",
+            "2": "That one stung. Rematch?",
+            "3": "We'll get it next time.",
+            "4": "Brutal. Shake it off."
+        },
+        "greeting": {
+            "1": "Welcome in. I'll keep score.",
+            "2": "Back for more? Good.",
+            "3": "Ready when you are.",
+            "4": "Let's make it count."
+        },
+        "idle": {
+            "1": "Take your time.",
+            "2": "I'm not going anywhere.",
+            "3": "Pick a game, any game.",
+            "4": "The Wheel's feeling lucky today.",
+            "5": "Still here."
+        },
+        "streak": {
+            "1": "On a roll.",
+            "tier1": "Three straight!",
+            "tier2": "Five! You're on fire.",
+            "tier3": "Ten in a row — unstoppable."
+        },
+        "levelUp": {
+            "1": "Level up! Look at you.",
+            "2": "New level. Earned it.",
+            "3": "Onwards and upwards."
+        },
+        "challengeWin": {
+            "1": "You beat their score. Savage.",
+            "2": "Bragging rights: yours.",
+            "3": "That's how it's done."
+        },
+        "challengeIn": {
+            "1": "A challenge landed. Someone's brave.",
+            "2": "New challenge for you."
+        },
+        "challengeOut": {
+            "1": "Challenge sent. Now we wait.",
+            "2": "Let's see if they can match that."
+        },
+        "offlineLimit": {
+            "1": "That's today's free runs. The Store lifts the cap.",
+            "2": "Out of solo runs for today."
+        },
+        "unlock": {
+            "1": "Unlocked. Nice pickup.",
+            "2": "New content — go try it."
+        },
+        "lookEquipped": {
+            "1": "Sharp look.",
+            "2": "Suits me, doesn't it?",
+            "3": "Dressed to host."
+        },
+        "clutch": {
+            "1": "Down to the wire!"
+        },
+        "allIn": {
+            "1": "All in — and it paid off!"
+        }
+    },
     "challenge": {
         "create": "Challenge a friend",
         "creating": "Creating…",

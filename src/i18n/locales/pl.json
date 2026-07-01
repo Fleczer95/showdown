@@ -1,4 +1,74 @@
 {
+    "mascot": {
+        "runWon": {
+            "1": "Wygrana. Podręcznikowa.",
+            "2": "Poszło ci jak z płatka.",
+            "3": "Mistrzowski poziom.",
+            "4": "Ukłoń się publiczności."
+        },
+        "runLost": {
+            "1": "Ech — o włos.",
+            "2": "Zabolało. Rewanż?",
+            "3": "Następnym razem się uda.",
+            "4": "Bezlitośnie. Otrząśnij się."
+        },
+        "greeting": {
+            "1": "Witaj. Ja liczę punkty.",
+            "2": "Wracasz po więcej? Dobrze.",
+            "3": "Jestem gotowy, kiedy ty.",
+            "4": "Zróbmy z tego coś dobrego."
+        },
+        "idle": {
+            "1": "Nie spiesz się.",
+            "2": "Nigdzie się nie wybieram.",
+            "3": "Wybierz grę, dowolną.",
+            "4": "Koło dziś czuje szczęście.",
+            "5": "Wciąż tu jestem."
+        },
+        "streak": {
+            "1": "Idzie ci.",
+            "tier1": "Trzy z rzędu!",
+            "tier2": "Pięć! Rozpędzasz się.",
+            "tier3": "Dziesięć z rzędu — nie do zatrzymania."
+        },
+        "levelUp": {
+            "1": "Nowy poziom! No proszę.",
+            "2": "Kolejny poziom. Zasłużony.",
+            "3": "Naprzód i w górę."
+        },
+        "challengeWin": {
+            "1": "Pobiłeś ich wynik. Bezlitośnie.",
+            "2": "Prawo do przechwałek: twoje.",
+            "3": "Tak się to robi."
+        },
+        "challengeIn": {
+            "1": "Wpadło wyzwanie. Ktoś jest odważny.",
+            "2": "Nowe wyzwanie dla ciebie."
+        },
+        "challengeOut": {
+            "1": "Wyzwanie wysłane. Teraz czekamy.",
+            "2": "Zobaczmy, czy dorównają."
+        },
+        "offlineLimit": {
+            "1": "To dzisiejsze darmowe rundy. Sklep podnosi limit.",
+            "2": "Koniec solowych rund na dziś."
+        },
+        "unlock": {
+            "1": "Odblokowane. Niezły nabytek.",
+            "2": "Nowa zawartość — wypróbuj ją."
+        },
+        "lookEquipped": {
+            "1": "Elegancki wygląd.",
+            "2": "Pasuje mi, prawda?",
+            "3": "Ubrany, by prowadzić."
+        },
+        "clutch": {
+            "1": "Na ostatnią chwilę!"
+        },
+        "allIn": {
+            "1": "Va banque — i się opłaciło!"
+        }
+    },
     "challenge": {
         "create": "Wyzwij znajomego",
         "creating": "Tworzenie…",

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -20,6 +20,10 @@ import Pressable from '../components/atoms/HapticPressable';
 import SegmentedProgress from '../components/molecules/SegmentedProgress';
 import { MascotOverlay } from '../game/mascot/MascotOverlay';
 import type { MascotPose } from '../game/mascot/look';
+import { canUpsell } from '../game/challenge/limit';
+import { remainingOfflineRuns } from '../game/offline/limit';
+import { homeMascotMessageMemory, selectHomeMascotMessage, type HomeMascotMessage } from '../game/mascot/homeMessages';
+import { useStore } from '../hooks/store/useStore';
 
 /**
  * Accent-forward game card: a dark elevated card whose per-game color shows up
@@ -181,18 +185,55 @@ export function HomeScreen() {
     const { t } = useTranslation();
     const theme = useTheme();
     const { tabletColumn, iconSize } = useResponsive();
+    const { purchasedItemIds, isPremium } = useStore();
+    const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
+    const { streak } = useProgression();
 
     // The host mascot makes its entrance on focus, then settles into idle.
     const [mascotPose, setMascotPose] = useState<MascotPose>('intro');
+    const [mascotMessage, setMascotMessage] = useState<HomeMascotMessage | null>(null);
     useFocusEffect(
         useCallback(() => {
             setMascotPose('intro');
+            setMascotMessage(null);
             const id = setTimeout(() => setMascotPose('idle'), 650);
             return () => clearTimeout(id);
         }, []),
     );
 
+    const resolveMascotMessage = useCallback((includeSeen = false) => {
+        return selectHomeMascotMessage(
+            {
+                streak,
+                offlineRunsLeft: remainingOfflineRuns(ownedIds, isPremium),
+                canUpsell: canUpsell(ownedIds, isPremium),
+            },
+            homeMascotMessageMemory,
+            { includeSeen },
+        );
+    }, [streak, ownedIds, isPremium]);
+
+    const showMascotMessage = useCallback(() => {
+        const next = resolveMascotMessage(false);
+        setMascotMessage(next);
+        if (next) homeMascotMessageMemory.markSeen(next.id);
+    }, [resolveMascotMessage]);
+
+    const showMascotMessageFromTap = useCallback(() => {
+        const next = resolveMascotMessage(true);
+        setMascotMessage(next);
+    }, [resolveMascotMessage]);
+
     const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
+
+    const handleMascotMessagePress = useCallback(() => {
+        if (mascotMessage?.action === 'store') {
+            navigation.navigate('Store');
+        } else if (mascotMessage?.action === 'progress') {
+            navigation.navigate('Progress');
+        }
+        setMascotMessage(null);
+    }, [mascotMessage, navigation]);
 
     // Themed container style
     const contentContainerStyle = [
@@ -268,7 +309,16 @@ export function HomeScreen() {
             </View>
 
             {/* Host mascot: showcases the equipped look from the bottom-right corner. */}
-            <MascotOverlay pose={mascotPose} size={120} anchor='bottom-right' offset={{ x: -4, y: 64 }} />
+            <MascotOverlay
+                pose={mascotPose}
+                size={120}
+                anchor='bottom-right'
+                offset={{ x: -4, y: 64 }}
+                message={mascotMessage ? t(mascotMessage.textKey, { n: streak }) : null}
+                onMessagePress={mascotMessage ? handleMascotMessagePress : undefined}
+                onMascotPress={showMascotMessageFromTap}
+                onSettled={showMascotMessage}
+            />
         </SafeContainer>
     );
 }

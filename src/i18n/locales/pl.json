@@ -79,7 +79,14 @@
             "store": "Sklep",
             "challenges": "Wyzwania",
             "recentlyPlayed": "Ostatnio grane",
-            "allGames": "Wszystkie gry"
+            "allGames": "Wszystkie gry",
+            "mascotCloud": {
+                "welcome": "Witaj. Wybierz grę, a ja policzę wynik.",
+                "streak3": "Seria trzech dni. Podtrzymaj ją.",
+                "streak7": "Siedem dni z rzędu. To warto zobaczyć na mapie postępu.",
+                "streak30": "Seria trzydziestu dni. Mistrzowski rytm.",
+                "offlineLimit": "Dzisiejsze gry solo są wykorzystane. Sklep może podnieść Twój limit."
+            }
         },
         "settings": {
             "title": "Ustawienia",

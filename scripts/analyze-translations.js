@@ -184,20 +184,83 @@ function analyze() {
     console.log('🌍 LOCALE SYNC CHECK');
     console.log('='.repeat(50));
 
+    const pluralSuffixes = ['zero', 'one', 'two', 'few', 'many', 'other'];
+    const requiredPlurals = {
+        en: ['one', 'other'],
+        pl: ['one', 'few', 'many', 'other']
+    };
+
+    const getPluralGroups = (keys) => {
+        const groups = new Set();
+        keys.forEach(k => {
+            if (k.endsWith('.other') && keys.includes(k.replace(/\.other$/, '.one'))) {
+                groups.add(k.replace(/\.other$/, ''));
+            }
+        });
+        return groups;
+    };
+
+    const basePluralGroups = getPluralGroups(baseKeys);
+
     translationFiles.forEach((file) => {
         if (file.locale === baseLocale) return;
 
-        const currentKeys = new Set(keysByLocale[file.locale]);
-        const missing = baseKeys.filter((k) => !currentKeys.has(k));
-        const extra = keysByLocale[file.locale].filter((k) => !baseKeySet.has(k));
+        const currentKeys = keysByLocale[file.locale];
+        const currentKeySet = new Set(currentKeys);
+        
+        const missing = [];
+        const extra = [];
+        const localeReqPlurals = requiredPlurals[file.locale] || ['one', 'other'];
+
+        // Check for missing keys based on base keys
+        baseKeys.forEach(k => {
+            const lastDot = k.lastIndexOf('.');
+            const group = lastDot !== -1 ? k.substring(0, lastDot) : '';
+            const suffix = lastDot !== -1 ? k.substring(lastDot + 1) : '';
+            const isPluralBase = basePluralGroups.has(group) && pluralSuffixes.includes(suffix);
+            
+            if (isPluralBase) {
+                return; // Handled in group check
+            }
+            
+            if (!currentKeySet.has(k)) {
+                missing.push(k);
+            }
+        });
+
+        // Check plural groups
+        basePluralGroups.forEach(group => {
+            localeReqPlurals.forEach(suffix => {
+                const reqKey = `${group}.${suffix}`;
+                if (!currentKeySet.has(reqKey)) {
+                    missing.push(`${reqKey} (required plural)`);
+                }
+            });
+        });
+
+        // Check for extra keys
+        currentKeys.forEach(k => {
+            const lastDot = k.lastIndexOf('.');
+            const group = lastDot !== -1 ? k.substring(0, lastDot) : '';
+            const suffix = lastDot !== -1 ? k.substring(lastDot + 1) : '';
+            
+            if (basePluralGroups.has(group) && pluralSuffixes.includes(suffix)) {
+                return; // Valid plural extension
+            }
+            
+            if (!baseKeySet.has(k)) {
+                extra.push(k);
+            }
+        });
 
         console.log(`\n[${file.locale.toUpperCase()}]`);
         if (missing.length > 0) {
             console.log(`❌ Missing (${missing.length}):`);
-            missing.slice(0, 10).forEach((k) => console.log(`   - ${k}`));
-            if (missing.length > 10) console.log(`   ... and ${missing.length - 10} more`);
+            missing.slice(0, 15).forEach((k) => console.log(`   - ${k}`));
+            if (missing.length > 15) console.log(`   ... and ${missing.length - 15} more`);
+            process.exitCode = 1;
         } else {
-            console.log('✅ All base keys present.');
+            console.log('✅ All base keys and required plural forms present.');
         }
 
         if (extra.length > 0) {

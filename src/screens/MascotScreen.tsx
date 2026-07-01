@@ -37,17 +37,18 @@ const skinForColor = (colorId: string) => mascotSkins.find((skin) => skin.unlock
 const REWARD_BY_COLOR = new Map(PROGRESSION_MASCOT_COLORS.map((c) => [c.colorId, c.id]));
 
 /**
- * Approximate tap zones over the placeholder fox, in the fox's shape coordinates
- * (the original 0–220 space; the rendered viewBox is framed tighter, so `top` is
+ * Approximate tap zones over the Phase 6 fox, in the fox's shape coordinates
+ * (the 0–200 viewBox space; the rendered viewBox is framed tighter, so `top` is
  * offset by `MASCOT_VIEWBOX.minY` below). A slot can have several rects (fur =
- * head + tail, which are separate shapes).
+ * head + tail, which are separate shapes). Order matters: later rects render on
+ * top, so overlaps resolve to the last match (accent tie + mic win over the body).
  */
 const HIT_ZONES: { slot: MascotSlot; x: number; y: number; w: number; h: number }[] = [
-    { slot: 'fur', x: 50, y: 30, w: 100, h: 96 }, // head + ears
-    { slot: 'fur', x: 16, y: 114, w: 56, h: 74 }, // tail
-    { slot: 'suit', x: 62, y: 126, w: 76, h: 84 },
-    { slot: 'accent', x: 88, y: 120, w: 24, h: 64 },
-    { slot: 'mic', x: 132, y: 122, w: 36, h: 80 },
+    { slot: 'fur', x: 44, y: 34, w: 114, h: 94 }, // ears + head + cheeks
+    { slot: 'fur', x: 16, y: 108, w: 56, h: 78 }, // tail
+    { slot: 'suit', x: 44, y: 130, w: 112, h: 82 }, // jacket body + lapels + sleeve
+    { slot: 'accent', x: 86, y: 138, w: 28, h: 64 }, // tie
+    { slot: 'mic', x: 110, y: 135, w: 42, h: 50 }, // grille head + paw grip
 ];
 
 /**
@@ -277,6 +278,7 @@ export function MascotScreen() {
                 <View style={[styles.presetRow, { gap: theme.spacing.sm }]}>
                     {MASCOT_PRESETS.map((preset) => {
                         const locked = Object.values(preset.look).some(isLocked);
+                        const isActive = Object.entries(preset.look).every(([k, v]) => look[k as keyof typeof look] === v);
                         return (
                             <Pressable
                                 key={preset.id}
@@ -288,18 +290,18 @@ export function MascotScreen() {
                                 style={[
                                     styles.presetChip,
                                     {
-                                        backgroundColor: theme.colors.surface,
-                                        borderColor: theme.colors.border,
+                                        backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceVariant,
                                         borderRadius: theme.radii.full,
-                                        paddingVertical: theme.spacing.xs,
-                                        paddingHorizontal: theme.spacing.md,
-                                        gap: theme.spacing.xs,
+                                        paddingVertical: theme.spacing.sm,
+                                        paddingHorizontal: theme.spacing.lg,
+                                        gap: theme.spacing.sm,
                                         opacity: locked ? 0.55 : 1,
+                                        ...theme.shadows.sm,
                                     },
                                 ]}
                             >
-                                {locked ? <Lock size={iconSize(13)} color={theme.colors.textMuted} /> : null}
-                                <Text variant='caption' weight='semibold'>
+                                {locked ? <Lock size={iconSize(14)} color={isActive ? theme.colors.onPrimary : theme.colors.textMuted} /> : null}
+                                <Text variant='sm' weight='semibold' color={isActive ? theme.colors.onPrimary : theme.colors.text}>
                                     {t(`screen.mascot.presets.${preset.id}`)}
                                 </Text>
                             </Pressable>
@@ -401,7 +403,6 @@ const styles = StyleSheet.create({
     presetChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: StyleSheet.hairlineWidth,
     },
     swatchGrid: {
         flexDirection: 'row',

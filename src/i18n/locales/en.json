@@ -56,11 +56,15 @@
             "bullets": {
                 "dailyRuns": {
                     "one": "· %{count} solo run a day",
+                    "few": "· %{count} solo runs a day",
+                    "many": "· %{count} solo runs a day",
                     "other": "· %{count} solo runs a day"
                 },
                 "resets": "· Resets at midnight",
                 "levelBonus": {
                     "one": "· +%{count} run banked for every level you reach",
+                    "few": "· +%{count} runs banked for every level you reach",
+                    "many": "· +%{count} runs banked for every level you reach",
                     "other": "· +%{count} runs banked for every level you reach"
                 },
                 "premiumBonus": "· Each premium pack or theme adds +1 a day"
@@ -440,6 +444,7 @@
         "save": "Save score",
         "saved": "Saved!",
         "newHighScore": "New High Score!",
+        "greatScore": "Great score!",
         "points": "pts",
         "totalPoints": "Total points",
         "base": "Base",
@@ -450,6 +455,8 @@
             "wheel": "%{n} solved",
             "drop": {
                 "one": "%{n} round",
+                "few": "%{n} rounds",
+                "many": "%{n} rounds",
                 "other": "%{n} rounds"
             }
         }
@@ -597,6 +604,8 @@
             "active": {
                 "instruction": {
                     "one": "Spread your whole bank across up to %{max} option (never all 4).",
+                    "few": "Spread your whole bank across up to %{max} options (never all 4).",
+                    "many": "Spread your whole bank across up to %{max} options (never all 4).",
                     "other": "Spread your whole bank across up to %{max} options (never all 4)."
                 },
                 "placed": "Placed",
@@ -756,6 +765,8 @@
         "levelUp": "Level %{n}!",
         "bonusRuns": {
             "one": "+%{n} bonus run",
+            "few": "+%{n} bonus runs",
+            "many": "+%{n} bonus runs",
             "other": "+%{n} bonus runs"
         },
         "xpGained": "+%{n} XP",

@@ -8,8 +8,8 @@
  * app, or a color a recipient lacks) fall back to the slot default (plan §7.3),
  * so the render path never crashes on a bad map.
  *
- * This file is the canonical palette. The throwaway PoC harness
- * (`src/game/mascot/poc/`) and the real customizer both read from here.
+ * This file is the canonical palette. The customizer and the render path
+ * (`Mascot.tsx`) both read from here.
  */
 
 /** The four recolorable regions. */

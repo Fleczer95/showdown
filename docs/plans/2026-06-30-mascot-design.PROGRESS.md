@@ -325,9 +325,57 @@ hex #E5E4E2 stand-in) at **Level 35**.
   the inner ScrollView at its original indent to stay surgical in the already-dirty files.
 - **No persistent in-play host, no text quips** — both deferred per §4/§6; this phase is Home + Results only.
 
-## Phase 6 — Real art (§2, after PoC perf budget set)
-- [ ] AI concept raster → hand-cleaned multi-region SVG, same fox across 4 poses.
-- [ ] Apply node ceiling from Phase 0 perf data.
+## Phase 6 — Real art (§2, after PoC perf budget set)  ⟵ AWAITING REVIEW (uncommitted)
+- [x] Hand-authored multi-region SVG fox host replaces the placeholder primitives in `Mascot.tsx`.
+      Same 4 named base regions recolored from the look map (the seam intact): `fur` (head/ears/tail/paw),
+      `suit` (jacket/lapels/raised sleeve), `accent` (necktie), `mic` (grille head). SHADE/HILITE overlays
+      (inner-ear shade, muzzle/tail-tip/chest highlights, lapel + tie + body shading, mic specular) drawn ON
+      TOP, never recolored (§2). Fixed dark facial features (eyes/nose/grin) + neutral mic stick read on any
+      palette. Drawn to the SAME bounds — `MASCOT_VIEWBOX` unchanged (`{minY:30,width:200,height:184}`); fox
+      spans x∈[18,184], y∈[34,213], centered.
+- [x] **Single-shape + transforms** (NOT per-pose shape variants). Phase 0 device-verified this path smooth;
+      the 4 poses (intro/idle/cheer/dismay) stay driven purely by the existing Reanimated transform/opacity
+      block — recolor seam stays trivially correct, no per-pose region duplication. Animation code untouched.
+- [x] Node ceiling applied: new `MASCOT_NODE_CEILING = 40` exported + documented. Art draws **30** nodes
+      (Phase 0 ran ~24 smooth on device; 40 leaves headroom for jackpot/patterns before a re-measure).
+- [x] `HIT_ZONES` in `MascotScreen.tsx` re-fitted to the new region positions (ears+head, tail, jacket, tie,
+      mic+grip). Slot buttons remain the robust fallback. Tap-on-fox still needs a device pass to confirm.
+- [x] Deleted the orphaned `src/game/mascot/poc/` folder (`git rm`; only `MascotPocScreen.tsx` remained — no
+      importers since Phase 2). Fixed the lingering `poc/` doc reference in `look.ts`.
+- [x] Static checks: tsc --noEmit clean, eslint clean (mascot/screen files), prettier clean (touched TS),
+      i18n:check ✅ (no key changes — text quips stay deferred §6).
+
+### Decisions / notes (flag for review)
+- **Pure hand-authored vector, no AI raster step.** The §2 pipeline says "AI generates a concept raster, then
+  hand-clean to SVG." No raster generator is wired into this environment, so the deliverable was authored
+  directly as clean react-native-svg `Path`/`Polygon`/`Ellipse` geometry — which IS the "hand-cleaned
+  multi-region SVG" §2 actually asks for. The art is a first, coherent pass (geometrically sound fox host);
+  **needs a device look** to judge aesthetics — expect to iterate on proportions/expression from your review.
+- **Same single shape set across all 4 poses** — see above. If you later want pose-specific shapes (e.g. a
+  wide-open cheer mouth), that's an additive change: keep the same 4 named regions per variant.
+- **VIEWBOX unchanged**, so every Phase 5 placement (Home overlay, the 3 Results headers, customizer) stays
+  centered with no caller changes. Re-verify those 5 render sites + tap-on-fox on the next device build.
+- **§8 palette unlock:** with the polished art in place, the final per-slot color list can now be locked off
+  it — once you confirm the palette, Phase 7 (IAP provisioning) is unblocked.
+- **Tail-tip (device-verified on sim):** first pass put a translucent-white (`HILITE`) disc mid-tail — it
+  spilled past the silhouette onto the dark bg and read as a grey ghost. Fixed: the cream tail tip is now a
+  **solid** fill (`#F8E6CE`, never ghosts) shaped to sit **inside** the curl's end — the classic white-tipped
+  fox tail. (Translucent overlays still suit soft form highlights like muzzle/chest; a hard marking needs a
+  solid bounded shape.) Plus a tiny `SHADE` notch where the tail tucks behind the body for depth.
+- **Suit shading (device-verified on sim):** the lower-left body shade was a big hard-edged `SHADE` polygon —
+  read as a darker panel, not shading. Replaced with a slim sliver down the jacket's left edge.
+- **Tail tip — caps the curl + curved separation (user feedback ×2):** first the cream tip was too small and
+  "near the end"; now it caps the whole END of the curl. Then the inner cut read as a straight line; replaced
+  with a soft curve so the cream→fur boundary looks furry, not sliced.
+- **Friendlier face (user feedback "too evil"):** the down-angled `Line` brows formed a stern V — swapped for
+  soft raised arched brows (`Path` arcs). Eyes rounded + enlarged (rx8→9) with a second sparkle catchlight each
+  → warm, not mean.
+- **Mic = retro ball microphone (user feedback "lollipop"):** the plain grille ellipse now has a dark collar
+  joint + three `SHADE` grille mesh lines (one horizontal, two vertical arcs) + form shadow + specular — reads
+  as a microphone. Node count rose 30→36 (still under the 40 ceiling; comment updated). All device-verified.
+- **Mouth (user feedback "black curly mouth"):** the W-shaped grin that curled up at the ends was replaced
+  with a simple short philtrum + a single gentle smile arc. Cleaner/friendlier. Device-verified on the default
+  look (orange fur / blue suit / gold mic) — the gold mic shows the ball-mic read best.
 
 ## Phase 7 — IAP provisioning (LAST; gated on the final color list — §5, §8)
 > Code-side commerce shipped in Phase 3; only the store-side product is missing. Do this LAST because
@@ -395,3 +443,11 @@ hex #E5E4E2 stand-in) at **Level 35**.
   reachable Results). No in-play host, no text quips (deferred). tsc clean, eslint 0 errors (2 pre-existing
   warnings), new file prettier-clean, i18n:check ✅. AWAITING USER REVIEW before commit. NEXT (after approval):
   commit, then Phase 6 (real art — swap placeholder primitives for the multi-region SVG fox).
+- 2026-06-30: Phase 6 BUILT (real art). Hand-authored multi-region SVG fox host replaces the placeholder
+  primitives in `Mascot.tsx` — same 4 recolorable regions (fur/suit/accent/mic) + SHADE/HILITE overlays
+  (§2 seam intact), same `MASCOT_VIEWBOX` bounds, single-shape + existing transforms (no per-pose variants).
+  New `MASCOT_NODE_CEILING = 40`; art draws 30 nodes (Phase 0 ~24 smooth). `HIT_ZONES` re-fitted in
+  `MascotScreen`. Deleted orphaned `poc/` folder + fixed its `look.ts` doc ref. tsc/eslint/prettier/i18n all
+  clean. NEEDS DEVICE LOOK to judge aesthetics + confirm tap-on-fox (re-verify Home, 3 Results, customizer).
+  AWAITING USER REVIEW before commit. With polished art in place, the §8 final palette can be locked →
+  unblocks Phase 7 (IAP provisioning).

@@ -56,11 +56,15 @@
             "bullets": {
                 "dailyRuns": {
                     "one": "· %{count} gra solo dziennie",
+                    "few": "· %{count} gry solo dziennie",
+                    "many": "· %{count} gier solo dziennie",
                     "other": "· %{count} gier solo dziennie"
                 },
                 "resets": "· Odnawia się o północy",
                 "levelBonus": {
                     "one": "· +%{count} gra za każdy zdobyty poziom",
+                    "few": "· +%{count} gry za każdy zdobyty poziom",
+                    "many": "· +%{count} gier za każdy zdobyty poziom",
                     "other": "· +%{count} gier za każdy zdobyty poziom"
                 },
                 "premiumBonus": "· Każdy pakiet lub motyw premium dodaje +1 dziennie"
@@ -440,6 +444,7 @@
         "save": "Zapisz wynik",
         "saved": "Zapisano!",
         "newHighScore": "Nowy rekord!",
+        "greatScore": "Świetny wynik!",
         "points": "pkt",
         "totalPoints": "Łączne punkty",
         "base": "Baza",
@@ -450,6 +455,8 @@
             "wheel": "%{n} rozwiązanych",
             "drop": {
                 "one": "%{n} runda",
+                "few": "%{n} rundy",
+                "many": "%{n} rund",
                 "other": "%{n} rund"
             }
         }
@@ -597,6 +604,8 @@
             "active": {
                 "instruction": {
                     "one": "Rozłóż cały bank na maksymalnie %{max} opcję (nigdy na wszystkie 4).",
+                    "few": "Rozłóż cały bank na maksymalnie %{max} opcje (nigdy na wszystkie 4).",
+                    "many": "Rozłóż cały bank na maksymalnie %{max} opcji (nigdy na wszystkie 4).",
                     "other": "Rozłóż cały bank na maksymalnie %{max} opcji (nigdy na wszystkie 4)."
                 },
                 "placed": "Obstawione",
@@ -756,6 +765,8 @@
         "levelUp": "Poziom %{n}!",
         "bonusRuns": {
             "one": "+%{n} dodatkowa gra",
+            "few": "+%{n} dodatkowe gry",
+            "many": "+%{n} dodatkowych gier",
             "other": "+%{n} dodatkowych gier"
         },
         "xpGained": "+%{n} XP",

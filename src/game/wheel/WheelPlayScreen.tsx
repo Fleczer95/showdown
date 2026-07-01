@@ -24,13 +24,13 @@ import { Delete } from 'lucide-react-native';
 import Leaderboard from '../../components/molecules/Leaderboard';
 import WheelGraphic from './WheelGraphic';
 import GameOverCard from '../../components/molecules/GameOverCard';
+import GameOverHeader from '../GameOverHeader';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import AccentTab from '../../components/atoms/AccentTab';
 import type { GameRunResult } from '../progression';
-import { MascotOverlay } from '../mascot/MascotOverlay';
 import { springEnter } from '../transitions';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
@@ -443,20 +443,17 @@ export default function WheelPlayScreen({
                 <GameOverCard gameId={GAME_ID}>
                     {({ accent, onAccent }) => (
                         <>
-                            <Stack direction='horizontal' gap='md' align='center'>
-                                <MascotOverlay inline pose={mascotPose} size={150} />
-                                <Stack gap='xs' align='center' flex={1}>
-                                    <Text variant='display' weight='bold' align='center'>
-                                        {tr('game.the-wheel.score.gameOver')}
-                                    </Text>
-                                    <Text variant='overline' color='textSecondary'>
-                                        {tr('leaderboard.totalPoints')}
-                                    </Text>
-                                    <Text variant='display' weight='bold' color={accent}>
-                                        {breakdown.total.toLocaleString(locale)}
-                                    </Text>
-                                </Stack>
-                            </Stack>
+                            <GameOverHeader pose={mascotPose}>
+                                <Text variant='display' weight='bold' align='center'>
+                                    {tr('game.the-wheel.score.gameOver')}
+                                </Text>
+                                <Text variant='overline' color='textSecondary'>
+                                    {tr('leaderboard.totalPoints')}
+                                </Text>
+                                <Text variant='display' weight='bold' color={accent}>
+                                    {breakdown.total.toLocaleString(locale)}
+                                </Text>
+                            </GameOverHeader>
                             <ScoreBreakdownLine breakdown={breakdown} />
                             <RunCelebration result={runResult} accent={accent} />
                             <Leaderboard

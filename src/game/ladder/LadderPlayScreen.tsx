@@ -19,11 +19,11 @@ import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
 import Leaderboard from '../../components/molecules/Leaderboard';
 import GameOverCard from '../../components/molecules/GameOverCard';
+import GameOverHeader from '../GameOverHeader';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import { isQuickWit, type GameRunResult } from '../progression';
-import { MascotOverlay } from '../mascot/MascotOverlay';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
@@ -696,27 +696,24 @@ function GameOverView({
                 {({ accent, onAccent }) => (
                     <>
                         {/* The Ladder classifies its own outcome: banked (won) cheers, busted draws a dismay (plan §3). */}
-                        <Stack direction='horizontal' gap='md' align='center'>
-                            <MascotOverlay inline pose={won ? 'cheer' : 'dismay'} size={150} />
-                            <Stack gap='md' align='center' flex={1}>
-                                <Stack gap='xs' align='center'>
-                                    <Text variant='heading' weight='bold' align='center'>
-                                        {won ? t('game.the-ladder.score.youWon') : t('game.the-ladder.score.gameOver')}
-                                    </Text>
-                                    <Text variant='body' color='textSecondary' align='center'>
-                                        {t('game.the-ladder.score.reached', { number: rung })}
-                                    </Text>
-                                </Stack>
-                                <Stack gap='xs' align='center'>
-                                    <Text variant='overline' weight='semibold' color='textMuted'>
-                                        {t('leaderboard.totalPoints')}
-                                    </Text>
-                                    <Text variant='display' weight='bold' align='center' color={accent}>
-                                        {breakdown.total.toLocaleString(locale)}
-                                    </Text>
-                                </Stack>
+                        <GameOverHeader pose={won ? 'cheer' : 'dismay'}>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='heading' weight='bold' align='center'>
+                                    {won ? t('game.the-ladder.score.youWon') : t('game.the-ladder.score.gameOver')}
+                                </Text>
+                                <Text variant='body' color='textSecondary' align='center'>
+                                    {t('game.the-ladder.score.reached', { number: rung })}
+                                </Text>
                             </Stack>
-                        </Stack>
+                            <Stack gap='xs' align='center'>
+                                <Text variant='overline' weight='semibold' color='textMuted'>
+                                    {t('leaderboard.totalPoints')}
+                                </Text>
+                                <Text variant='display' weight='bold' align='center' color={accent}>
+                                    {breakdown.total.toLocaleString(locale)}
+                                </Text>
+                            </Stack>
+                        </GameOverHeader>
                         <ScoreBreakdownLine breakdown={breakdown} />
                         <RunCelebration result={runResult} accent={accent} />
                         <Leaderboard gameId={GAME_ID} pendingScore={breakdown.total} pendingProgress={progress} />

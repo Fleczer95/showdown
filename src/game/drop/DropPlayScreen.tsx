@@ -22,12 +22,12 @@ import Button from '../../components/molecules/Button';
 import Card from '../../components/molecules/Card';
 import Leaderboard from '../../components/molecules/Leaderboard';
 import GameOverCard from '../../components/molecules/GameOverCard';
+import GameOverHeader from '../GameOverHeader';
 import ScoreBreakdownLine from '../../components/molecules/ScoreBreakdownLine';
 import RunCelebration from '../../components/molecules/RunCelebration';
 import LeaveConfirmModal from '../../components/molecules/LeaveConfirmModal';
 import ProgressBar from '../../components/molecules/ProgressBar';
 import type { GameRunResult } from '../progression';
-import { MascotOverlay } from '../mascot/MascotOverlay';
 import Icon from '../../components/atoms/Icon';
 import IndexBadge, { type IndexBadgeState } from '../../components/atoms/IndexBadge';
 import AccentTab from '../../components/atoms/AccentTab';
@@ -296,39 +296,36 @@ export default function DropPlayScreen({
                         {({ accent, onAccent }) => (
                             <>
                                 {/* The Drop classifies by score: any banked cash cheers, a bust draws a dismay (plan §3). */}
-                                <Stack direction='horizontal' gap='md' align='center'>
-                                    <MascotOverlay inline pose={won ? 'cheer' : 'dismay'} size={150} />
-                                    <Stack gap='md' align='center' flex={1}>
-                                        <Stack gap='xs' align='center'>
-                                            <Text variant='display' weight='bold' align='center'>
-                                                {translate('game.the-drop.over.title')}
-                                            </Text>
-                                            <Text
-                                                variant='caption'
-                                                weight='semibold'
-                                                align='center'
-                                                color={t.colors.textSecondary}
-                                            >
-                                                {won
-                                                    ? translate('game.the-drop.over.survived')
-                                                    : translate('game.the-drop.over.busted')}
-                                            </Text>
-                                        </Stack>
-                                        <Stack gap='xs' align='center'>
-                                            <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
-                                                {translate('leaderboard.totalPoints')}
-                                            </Text>
-                                            <Text
-                                                variant='display'
-                                                weight='bold'
-                                                align='center'
-                                                color={won ? t.colors.success : t.colors.error}
-                                            >
-                                                {breakdown.total.toLocaleString(locale)}
-                                            </Text>
-                                        </Stack>
+                                <GameOverHeader pose={won ? 'cheer' : 'dismay'}>
+                                    <Stack gap='xs' align='center'>
+                                        <Text variant='display' weight='bold' align='center'>
+                                            {translate('game.the-drop.over.title')}
+                                        </Text>
+                                        <Text
+                                            variant='caption'
+                                            weight='semibold'
+                                            align='center'
+                                            color={t.colors.textSecondary}
+                                        >
+                                            {won
+                                                ? translate('game.the-drop.over.survived')
+                                                : translate('game.the-drop.over.busted')}
+                                        </Text>
                                     </Stack>
-                                </Stack>
+                                    <Stack gap='xs' align='center'>
+                                        <Text variant='overline' weight='semibold' color={t.colors.textMuted}>
+                                            {translate('leaderboard.totalPoints')}
+                                        </Text>
+                                        <Text
+                                            variant='display'
+                                            weight='bold'
+                                            align='center'
+                                            color={won ? t.colors.success : t.colors.error}
+                                        >
+                                            {breakdown.total.toLocaleString(locale)}
+                                        </Text>
+                                    </Stack>
+                                </GameOverHeader>
                                 <ScoreBreakdownLine breakdown={breakdown} />
                                 <RunCelebration result={runResult} accent={accent} />
                                 <Leaderboard

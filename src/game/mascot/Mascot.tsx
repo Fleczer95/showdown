@@ -115,9 +115,13 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
             case 'dismay':
                 opacity.value = withTiming(1, { duration: 120 });
                 scale.value = withTiming(0.97, { duration: 240 });
-                // A small slump + a quick disappointed head shake (kept subtle so the
-                // fox still reads as centred next to the result text).
-                translateY.value = withTiming(4, { duration: 240, easing: Easing.in(Easing.quad) });
+                // A quick disappointed slump-and-recover: dip down, then settle back
+                // to 0 so the fox stays vertically centred next to the result text
+                // (a resting offset made it read low against a centred layout).
+                translateY.value = withSequence(
+                    withTiming(6, { duration: 220, easing: Easing.in(Easing.quad) }),
+                    withSpring(0, { damping: 11, stiffness: 150 }),
+                );
                 rotate.value = withSequence(
                     withTiming(-7, { duration: 90 }),
                     withTiming(7, { duration: 90 }),

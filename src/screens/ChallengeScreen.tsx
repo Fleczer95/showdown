@@ -348,9 +348,6 @@ function IntroCard({
     const { iconSize } = useResponsive();
     const accent = challengeAccent(theme, record.game);
     const onAccent = readableOn(accent);
-    // The `heading` token ships a loose 1.54 line-height; tighten it so the
-    // opponent's name wraps cleanly beside the mascot. Derived so it still scales.
-    const headingLineHeight = Math.round(theme.typography.xxl * 1.15);
 
     return (
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
@@ -366,7 +363,7 @@ function IntroCard({
                         <Text variant='overline' color='textSecondary' weight='bold' align='center'>
                             {t(`game.${record.game}.name`)}
                         </Text>
-                        <Text variant='heading' weight='bold' align='center' style={{ lineHeight: headingLineHeight }}>
+                        <Text variant='heading' weight='bold' align='center'>
                             {isCreator
                                 ? t('challenge.vsTitleCreator')
                                 : t('challenge.vsTitle', { name: record.createdBy.nickname })}
@@ -492,9 +489,6 @@ function ResultsCard({
             : youWon
               ? t('challenge.youWin')
               : t('challenge.won', { name: winner.nickname });
-    // Tighten the loose `heading` line-height so a wrapped winner name reads clean
-    // beside the mascot (same treatment as the intro). Derived so it still scales.
-    const headingLineHeight = Math.round(theme.typography.xxl * 1.15);
 
     return (
         <Animated.View style={styles.card} entering={reduceMotion ? undefined : springEnter()}>
@@ -509,7 +503,7 @@ function ResultsCard({
                         <Text variant='overline' color='textSecondary' weight='bold' align='center'>
                             {t(`game.${record.game}.name`)}
                         </Text>
-                        <Text variant='heading' weight='bold' align='center' style={{ lineHeight: headingLineHeight }}>
+                        <Text variant='heading' weight='bold' align='center'>
                             {headline}
                         </Text>
                         {waiting ? (

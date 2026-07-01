@@ -45,7 +45,7 @@ const lineHeight: ThemeTypography['lineHeight'] = {
     md: 22,
     lg: 26,
     xl: 32,
-    xxl: 40,
+    xxl: 30,
     display: 52,
 };
 

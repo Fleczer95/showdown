@@ -19,7 +19,9 @@ export function MascotHost() {
     const { utterance, expression } = state;
 
     const message = chatter && utterance?.textKey ? t(utterance.textKey, utterance.ctx) : null;
-    const visible = surface === 'home' || utterance != null;
+    // The game surface owns its own fox (the inline results header). The app-root
+    // host stays fully offstage there so a round never has two foxes.
+    const visible = surface !== 'game' && (surface === 'home' || utterance != null);
 
     // Off-Home, any reaction (spoken or expression-only) auto-clears so the fox
     // returns offstage. On Home the fox stays; spoken bubbles still time out, and

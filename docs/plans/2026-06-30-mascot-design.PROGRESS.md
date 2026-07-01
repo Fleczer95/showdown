@@ -373,9 +373,32 @@ hex #E5E4E2 stand-in) at **Level 35**.
 - **Mic = retro ball microphone (user feedback "lollipop"):** the plain grille ellipse now has a dark collar
   joint + three `SHADE` grille mesh lines (one horizontal, two vertical arcs) + form shadow + specular — reads
   as a microphone. Node count rose 30→36 (still under the 40 ceiling; comment updated). All device-verified.
+- **Mic repositioned (user feedback "wizard holding an orb"):** the microphone was moved to point directly
+  at the mouth (angled down-right to the paw) instead of straight up to the side, maintaining a clear
+  separation from the right eye. The paw was slightly adjusted to cover the sleeve seamlessly, and the grille
+  mesh lines were tilted 45 degrees to match the new axis. `HIT_ZONES` in `MascotScreen` re-fitted.
+- **Ears rounded (user feedback):** the sharp, straight `Polygon` fox ears were replaced with `Path` elements
+  using quadratic and cubic bezier curves (`Q`, `C`) for a softer, more rounded, friendly appearance.
 - **Mouth (user feedback "black curly mouth"):** the W-shaped grin that curled up at the ends was replaced
   with a simple short philtrum + a single gentle smile arc. Cleaner/friendlier. Device-verified on the default
   look (orange fur / blue suit / gold mic) — the gold mic shows the ball-mic read best.
+- **Arm/hand/mic redesign (user feedback over several passes, device-verified via a grill-me interview):**
+  Iterated through: curved SHADE strokes (still read as shadow) → bordered two-hand "A" arms (`OUTLINE`
+  border added) → arms still read as thin outlined "cord/noodles" because same-colour-on-same-colour only
+  shows the border. Grilled the direction and locked a **one-handed host pose**:
+  1. **New `OUTLINE` (`rgba(0,0,0,0.32)`) border on the suit** — the jacket SILHOUETTE + the ARM only (NOT
+     the lapels: the lapel triangle edges read as stray diagonal lines on the chest, so they stay
+     borderless). A NOT-recolored overlay (darkens any resolved suit colour, same seam rule as SHADE/HILITE).
+  2. **One-handed pose** (user decision): ONE chunky right arm (solid `suit` + `OUTLINE` border) from the
+     shoulder down to a single paw that grips the mic. Left shoulder is plain (balanced by the tail). No
+     cross-body arm → the tie stays fully visible.
+  3. **Tonal separation is what makes it read as a limb:** a `HILITE` overlay down the raised forearm makes
+     it a LIGHTER tone than the flat jacket, so its whole body reads as a rounded arm in front of the torso,
+     not just an outline. (The border alone was insufficient on same-colour geometry.)
+  4. **Mic held low at collar** (user decision), right of the tie: ball `(126,150) r15`, so the full smile
+     is clear above it and the tie is clear to its left. Removed the second forearm + second paw + its
+     crease. `HIT_ZONES` mic rect re-fitted to `{x:110,y:135,w:42,h:50}`. Node count still under the 52
+     ceiling. tsc/eslint/prettier all clean.
 
 ## Phase 7 — IAP provisioning (LAST; gated on the final color list — §5, §8)
 > Code-side commerce shipped in Phase 3; only the store-side product is missing. Do this LAST because
@@ -451,3 +474,9 @@ hex #E5E4E2 stand-in) at **Level 35**.
   clean. NEEDS DEVICE LOOK to judge aesthetics + confirm tap-on-fox (re-verify Home, 3 Results, customizer).
   AWAITING USER REVIEW before commit. With polished art in place, the §8 final palette can be locked →
   unblocks Phase 7 (IAP provisioning).
+- 2026-07-01: Phase 6 REFINEMENT (arms/hands/mic, user feedback ×4). Curved the two stiff straight forearms
+  into bent-elbow `C` paths; re-seated the arms shoulder→paw (inside the jacket silhouette); removed the stray
+  left-edge jacket-shadow sliver; nudged the mic assembly +10 right/+5 down so it clears the smile (paws +9/+3
+  + creases to keep cupping it); re-fitted the mic `HIT_ZONES` rect. Device-verified on iPhone 16e sim — full
+  smile now visible, arms read relaxed, no stray shadow. tsc/eslint/prettier/i18n all clean. AWAITING USER
+  REVIEW before commit.

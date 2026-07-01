@@ -9,7 +9,7 @@ import Animated, {
     Easing,
     useReducedMotion,
 } from 'react-native-reanimated';
-import Svg, { Path, Circle, Polygon, Ellipse, Line } from 'react-native-svg';
+import Svg, { Defs, Pattern, Path, Circle, Polygon, Ellipse, Line } from 'react-native-svg';
 import { type LookMap, type MascotPose, resolveSlotColor } from './look';
 
 /**
@@ -33,6 +33,10 @@ import { type LookMap, type MascotPose, resolveSlotColor } from './look';
 
 const SHADE = 'rgba(0,0,0,0.18)'; // shading overlay — NOT recolored (plan §2)
 const HILITE = 'rgba(255,255,255,0.22)'; // highlight overlay — NOT recolored
+// Suit outline — a darker border on the jacket + same-colored sleeves so the raised
+// arms read as distinct limbs, not a flat shadow. Semi-transparent black → darkens
+// ANY resolved suit colour, so it is NEVER recolored (same seam rule as SHADE/HILITE).
+const OUTLINE = 'rgba(0,0,0,0.32)';
 
 /**
  * The drawn fox occupies y∈[34,210] of the old 0–220 viewBox (big empty top/bottom
@@ -46,11 +50,11 @@ export const MASCOT_ASPECT = MASCOT_VIEWBOX.height / MASCOT_VIEWBOX.width; // he
 
 /**
  * Node ceiling (plan §8). Phase 0 verified ~24 drawn SVG nodes animated smoothly
- * on a real device. The Phase 6 fox draws 36 nodes; the ceiling is set at 40 to
- * leave headroom for a future jackpot pose / patterns without re-measuring. Keep
- * additions under this — beyond it, re-measure on a low-end device before shipping.
+ * on a real device. The Phase 6 fox (two-handed mic pose) draws ~39 nodes; the
+ * ceiling is 52 — these are cheap static shapes (only the outer group is animated
+ * by transform), so the headroom is safe. Beyond it, re-measure on a low-end device.
  */
-export const MASCOT_NODE_CEILING = 40;
+export const MASCOT_NODE_CEILING = 52;
 
 export interface MascotProps {
     look: LookMap;
@@ -135,6 +139,10 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
     const accent = resolveSlotColor('accent', look.accent);
     const mic = resolveSlotColor('mic', look.mic);
 
+    // Unique per-instance id so the grille pattern never collides across multiple
+    // mounted mascots (Home overlay + a Results screen, etc.).
+    const grilleId = 'micGrille' + React.useId().replace(/:/g, '');
+
     return (
         <Animated.View style={animatedStyle}>
             <Svg
@@ -154,19 +162,17 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
                 {/* darker base where the tail tucks behind the body — gives the curl depth */}
                 <Path d='M52,168 C58,176 64,180 68,178 L60,182 C54,180 50,174 52,168 Z' fill={SHADE} />
 
-                {/* ---- SUIT body (suit) — tailored jacket ---- */}
+                {/* ---- SUIT body (suit) — tailored jacket, with a darker OUTLINE border so the
+                    same-colored raised arms below read as distinct limbs ---- */}
                 <Path
                     d='M82,130 C64,134 52,146 48,166 L44,206 Q44,213 54,213 L146,213 Q156,213 156,206 L152,166 C148,146 136,134 118,130 Z'
                     fill={suit}
+                    stroke={OUTLINE}
+                    strokeWidth='2'
                 />
-                {/* slim shadow down the jacket's left edge (a thin sliver, not a panel) */}
-                <Path d='M52,150 C49,158 46,170 44,206 Q44,213 54,213 L58,168 C56,160 54,154 52,150 Z' fill={SHADE} />
-                {/* right sleeve (suit), raised to hold the mic */}
-                <Path
-                    d='M150,168 C158,160 161,150 158,140 C156,128 150,120 142,122 C136,124 136,134 138,144 C140,156 144,166 150,168 Z'
-                    fill={suit}
-                />
-                {/* lapels (suit) — open V over the chest */}
+                {/* arms + hands are drawn together with the mic below, so they sit in front of the tie */}
+                {/* lapels (suit) — open V over the chest (no OUTLINE border: the triangle edges
+                    read as stray diagonal lines; the silhouette + arm borders are enough) */}
                 <Polygon points='82,130 60,150 90,182 98,140' fill={suit} />
                 <Polygon points='118,130 140,150 110,182 102,140' fill={suit} />
                 {/* lapel inner shadow */}
@@ -178,19 +184,24 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
                 <Path d='M100,138 L108,146 L106,156 L112,194 L100,202 L88,194 L94,156 L92,146 Z' fill={accent} />
                 <Polygon points='100,156 112,194 100,202' fill={SHADE} />
 
-                {/* ---- EARS (fur) ---- */}
-                <Polygon points='52,34 42,82 84,66' fill={fur} />
-                <Polygon points='148,34 158,82 116,66' fill={fur} />
-                <Polygon points='54,46 50,76 76,64' fill={SHADE} />
-                <Polygon points='146,46 150,76 124,64' fill={SHADE} />
+                {/* ---- EARS (fur) — full rounded-triangular fox ears (convex sides, soft tip);
+                    both bottom corners tuck inside the head so there's no protruding flap/notch ---- */}
+                <Path d='M60,74 C51,58 48,42 54,34 C58,30 63,32 66,42 C70,54 78,62 86,66 Z' fill={fur} />
+                <Path d='M140,74 C149,58 152,42 146,34 C142,30 137,32 134,42 C130,54 122,62 114,66 Z' fill={fur} />
+                {/* inner ear (rounded triangle inset) */}
+                <Path d='M60,66 C54,54 55,44 60,40 C64,48 72,58 80,64 Z' fill={SHADE} />
+                <Path d='M140,66 C146,54 145,44 140,40 C136,48 128,58 120,64 Z' fill={SHADE} />
 
-                {/* ---- HEAD (fur) — rounded face with cheek flares + pointed muzzle ---- */}
+                {/* ---- HEAD (fur) — fox: wide cheek ruffs tapering to a narrow pointed snout ---- */}
                 <Path
-                    d='M100,54 C84,52 64,58 56,76 C46,96 48,108 58,118 C70,130 84,132 100,138 C116,132 130,130 142,118 C152,108 154,96 144,76 C136,58 116,52 100,54 Z'
+                    d='M100,50 C82,48 60,54 54,74 C48,90 48,102 56,110 C66,126 80,136 100,144 C120,136 134,126 144,110 C152,102 152,90 146,74 C140,54 118,48 100,50 Z'
                     fill={fur}
                 />
-                {/* muzzle highlight */}
-                <Ellipse cx='100' cy='114' rx='30' ry='20' fill={HILITE} />
+                {/* muzzle/snout highlight — a narrow teardrop that juts down (fox snout) */}
+                <Path
+                    d='M100,102 C87,102 81,113 85,125 C89,135 96,141 100,141 C104,141 111,135 115,125 C119,113 113,102 100,102 Z'
+                    fill={HILITE}
+                />
                 {/* soft raised brows — friendly arch, not a stern down-angled V */}
                 <Path d='M70,73 Q80,67 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
                 <Path d='M130,73 Q120,67 110,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
@@ -201,41 +212,65 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
                 <Circle cx='123' cy='87' r='3.2' fill='#FFFFFF' />
                 <Circle cx='77' cy='94' r='1.6' fill='#FFFFFF' />
                 <Circle cx='117' cy='94' r='1.6' fill='#FFFFFF' />
-                {/* nose */}
+                {/* nose — on the front of the snout */}
                 <Path
-                    d='M100,116 C92,116 88,110 92,106 C95,103 100,104 100,104 C100,104 105,103 108,106 C112,110 108,116 100,116 Z'
+                    d='M100,124 C92,124 88,118 92,114 C95,111 100,112 100,112 C100,112 105,111 108,114 C112,118 108,124 100,124 Z'
                     fill='#1F2937'
                 />
                 {/* simple soft smile — short philtrum + a single gentle upward curve */}
                 <Path
-                    d='M100,117 L100,124 M85,127 Q100,138 115,127'
+                    d='M100,124 L100,130 M88,132 Q100,140 112,132'
                     stroke='#1F2937'
                     strokeWidth='3'
                     strokeLinecap='round'
                     fill='none'
                 />
 
-                {/* paw gripping the mic (fur) */}
+                {/* ---- MIC (mic) — retro ball mic held low at collar height in the right paw ---- */}
+                <Defs>
+                    {/* grille holes as a tiled dot pattern → reads on ANY mic colour, few nodes */}
+                    <Pattern id={grilleId} patternUnits='userSpaceOnUse' width='2.9' height='2.9'>
+                        <Circle cx='1.45' cy='1.45' r='0.7' fill='rgba(0,0,0,0.34)' />
+                    </Pattern>
+                </Defs>
+                {/* right arm — ONE chunky suit sleeve from the shoulder down to the paw that grips
+                    the mic. Solid suit fill + the jacket OUTLINE border so it reads as a real raised
+                    limb, not a shadow. Drawn behind the mic + hand; stays right of the tie. */}
                 <Path
-                    d='M140,124 C138,114 146,108 154,110 C162,112 164,120 160,126 C156,132 144,132 140,124 Z'
+                    d='M120,162 C130,162 142,166 149,174 C153,179 151,187 145,187 C136,186 126,180 119,176 C114,173 114,164 120,162 Z'
+                    fill={suit}
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                />
+                {/* HILITE down the raised forearm → a lighter tone than the flat jacket so it reads
+                    as a rounded limb in FRONT of the body, not just an outline/cord */}
+                <Path
+                    d='M122,165 C131,165 141,169 147,176 C150,180 148,185 143,185 C135,184 127,179 121,175 C117,172 117,166 122,165 Z'
+                    fill={HILITE}
+                />
+                {/* handle (neutral) — slim rounded stub, mostly hidden behind the paw */}
+                <Line x1='124' y1='164' x2='123' y2='181' stroke='#374151' strokeWidth='5' strokeLinecap='round' />
+                {/* grille ball (base colour + rim) — low at the collar, right of the tie, clear of the smile */}
+                <Circle cx='126' cy='150' r='15' fill={mic} stroke='rgba(0,0,0,0.22)' strokeWidth='1.5' />
+                {/* form shadow lower-right for roundness (under the holes) */}
+                <Circle cx='130' cy='154' r='12' fill={SHADE} opacity={0.22} />
+                {/* perforated grille — lots of little holes */}
+                <Circle cx='126' cy='150' r='15' fill={`url(#${grilleId})`} />
+                {/* specular highlight */}
+                <Circle cx='119' cy='143' r='4.5' fill={HILITE} />
+                {/* right paw (fur) gripping the mic handle just below the ball */}
+                <Path
+                    d='M114,170 C112,162 120,157 127,161 C133,164 133,173 128,177 C122,181 116,177 114,170 Z'
                     fill={fur}
                 />
-
-                {/* ---- MIC (mic) — retro ball microphone ---- */}
-                {/* handle (neutral, not recolored) */}
-                <Line x1='150' y1='124' x2='163' y2='101' stroke='#374151' strokeWidth='7' strokeLinecap='round' />
-                {/* collar where the grille meets the handle */}
-                <Circle cx='165' cy='99' r='5.5' fill='#4B5563' />
-                {/* grille ball */}
-                <Ellipse cx='169' cy='86' rx='15' ry='15' fill={mic} />
-                {/* form shadow on the lower-right of the ball */}
-                <Ellipse cx='172' cy='89' rx='12' ry='12' fill={SHADE} opacity={0.3} />
-                {/* grille mesh lines */}
-                <Path d='M157,84 Q169,80 181,84' stroke={SHADE} strokeWidth='1.6' strokeLinecap='round' fill='none' />
-                <Path d='M163,73 Q160,86 165,98' stroke={SHADE} strokeWidth='1.6' strokeLinecap='round' fill='none' />
-                <Path d='M176,73 Q179,86 173,98' stroke={SHADE} strokeWidth='1.6' strokeLinecap='round' fill='none' />
-                {/* specular highlight */}
-                <Circle cx='162' cy='80' r='4' fill={HILITE} />
+                {/* finger creases so the paw reads as a gripping hand */}
+                <Path
+                    d='M120,163 L119,172 M125,164 L124,173'
+                    stroke={SHADE}
+                    strokeWidth='1.6'
+                    strokeLinecap='round'
+                    fill='none'
+                />
             </Svg>
         </Animated.View>
     );

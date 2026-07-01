@@ -51,6 +51,16 @@ describe('reactionDirector', () => {
         expect(d.getState().utterance?.textKey).toBeUndefined();
     });
 
+    it('clearUtterance returns the face to neutral (no stranded expression)', () => {
+        const d = makeDirector();
+        d.setScope({ surface: 'home', navSeq: 1 });
+        d.emit('home-focus', {});
+        expect(d.getState().expression).toBe('happy');
+        d.clearUtterance();
+        expect(d.getState().utterance).toBeNull();
+        expect(d.getState().expression).toBe('neutral');
+    });
+
     it('onBackground clears everything to neutral', () => {
         const now = { t: 5000 };
         const d = makeDirector(now);

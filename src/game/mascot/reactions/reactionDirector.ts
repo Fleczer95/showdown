@@ -180,11 +180,12 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
             lastPriority = -Infinity;
             emitState();
         },
-        // The host calls this when a spoken bubble auto-hides or is dismissed:
-        // drop the text but keep the current face.
+        // The host calls this when a reaction auto-hides or is dismissed: drop the
+        // text AND return the face to its resting (neutral) expression, so an
+        // expression-only reaction on the always-visible Home fox never strands.
         clearUtterance() {
-            if (state.utterance) {
-                state = { ...state, utterance: null };
+            if (state.utterance || state.expression !== 'neutral') {
+                state = { utterance: null, expression: 'neutral' };
                 emitState();
             }
         },

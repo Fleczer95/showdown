@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, Pattern, Path, Circle, Polygon, Ellipse, Line } from 'react-native-svg';
 import { type LookMap, type MascotPose, resolveSlotColor } from './look';
+import type { MascotExpression } from './reactions/expressions';
 
 /**
  * The mascot render path (plan §7.2): a pure, ownership-agnostic function of
@@ -37,6 +38,94 @@ const HILITE = 'rgba(255,255,255,0.22)'; // highlight overlay — NOT recolored
 // arms read as distinct limbs, not a flat shadow. Semi-transparent black → darkens
 // ANY resolved suit colour, so it is NEVER recolored (same seam rule as SHADE/HILITE).
 const OUTLINE = 'rgba(0,0,0,0.32)';
+const FEATURE = '#1F2937'; // fixed dark facial features — read on any palette (plan §7.2)
+
+/**
+ * The mascot's face is a function of `expression` (the reaction engine's "alive"
+ * signal). Only brows/eyes/mouth vary; the nose is constant. `neutral` is the
+ * original friendly face verbatim. Features use the fixed dark FEATURE color, so
+ * every expression reads on any skin (they are never recolored). Node count stays
+ * well under MASCOT_NODE_CEILING (52).
+ */
+function renderFace(expression: MascotExpression) {
+    // Nose — constant across every expression, on the front of the snout.
+    const nose = (
+        <Path
+            d='M100,124 C92,124 88,118 92,114 C95,111 100,112 100,112 C100,112 105,111 108,114 C112,118 108,124 100,124 Z'
+            fill={FEATURE}
+        />
+    );
+    // Eyes shared base: sparkle circles read warm; some expressions resize the eye.
+    const sparkles = (
+        <>
+            <Circle cx='83' cy='87' r='3.2' fill='#FFFFFF' />
+            <Circle cx='123' cy='87' r='3.2' fill='#FFFFFF' />
+            <Circle cx='77' cy='94' r='1.6' fill='#FFFFFF' />
+            <Circle cx='117' cy='94' r='1.6' fill='#FFFFFF' />
+        </>
+    );
+    const eyes = (rx: number, ry: number) => (
+        <>
+            <Ellipse cx='80' cy='91' rx={rx} ry={ry} fill={FEATURE} />
+            <Ellipse cx='120' cy='91' rx={rx} ry={ry} fill={FEATURE} />
+            {sparkles}
+        </>
+    );
+
+    switch (expression) {
+        case 'happy':
+            return (
+                <>
+                    <Path d='M70,73 Q80,67 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path d='M130,73 Q120,67 110,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    {eyes(9, 10)}
+                    {nose}
+                    <Path d='M100,124 L100,130 M84,131 Q100,147 116,131' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                </>
+            );
+        case 'worried':
+            return (
+                <>
+                    <Path d='M70,75 Q80,70 90,69' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path d='M130,75 Q120,70 110,69' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    {eyes(9, 10)}
+                    {nose}
+                    <Path d='M100,124 L100,130 M88,137 Q100,131 112,137' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                </>
+            );
+        case 'smug':
+            return (
+                <>
+                    <Path d='M70,73 Q80,68 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path d='M130,67 Q120,63 110,69' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    {eyes(9, 8)}
+                    {nose}
+                    <Path d='M100,124 L100,130 M87,134 Q100,139 115,128' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                </>
+            );
+        case 'surprised':
+            return (
+                <>
+                    <Path d='M70,66 Q80,63 90,66' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path d='M130,66 Q120,63 110,66' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    {eyes(10, 12)}
+                    {nose}
+                    <Ellipse cx='100' cy='135' rx='5' ry='6' fill={FEATURE} />
+                </>
+            );
+        case 'neutral':
+        default:
+            return (
+                <>
+                    <Path d='M70,73 Q80,67 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path d='M130,73 Q120,67 110,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    {eyes(9, 10)}
+                    {nose}
+                    <Path d='M100,124 L100,130 M88,132 Q100,140 112,132' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                </>
+            );
+    }
+}
 
 /**
  * The drawn fox occupies y∈[34,210] of the old 0–220 viewBox (big empty top/bottom
@@ -60,9 +149,10 @@ export interface MascotProps {
     look: LookMap;
     pose: MascotPose;
     size?: number;
+    expression?: MascotExpression;
 }
 
-export function Mascot({ look, pose, size = 240 }: MascotProps) {
+export function Mascot({ look, pose, size = 240, expression = 'neutral' }: MascotProps) {
     const reduced = useReducedMotion();
 
     const translateY = useSharedValue(0);
@@ -208,29 +298,8 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
                     d='M100,102 C87,102 81,113 85,125 C89,135 96,141 100,141 C104,141 111,135 115,125 C119,113 113,102 100,102 Z'
                     fill={HILITE}
                 />
-                {/* soft raised brows — friendly arch, not a stern down-angled V */}
-                <Path d='M70,73 Q80,67 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                <Path d='M130,73 Q120,67 110,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                {/* big round eyes with a bright sparkle — reads warm */}
-                <Ellipse cx='80' cy='91' rx='9' ry='10' fill='#1F2937' />
-                <Ellipse cx='120' cy='91' rx='9' ry='10' fill='#1F2937' />
-                <Circle cx='83' cy='87' r='3.2' fill='#FFFFFF' />
-                <Circle cx='123' cy='87' r='3.2' fill='#FFFFFF' />
-                <Circle cx='77' cy='94' r='1.6' fill='#FFFFFF' />
-                <Circle cx='117' cy='94' r='1.6' fill='#FFFFFF' />
-                {/* nose — on the front of the snout */}
-                <Path
-                    d='M100,124 C92,124 88,118 92,114 C95,111 100,112 100,112 C100,112 105,111 108,114 C112,118 108,124 100,124 Z'
-                    fill='#1F2937'
-                />
-                {/* simple soft smile — short philtrum + a single gentle upward curve */}
-                <Path
-                    d='M100,124 L100,130 M88,132 Q100,140 112,132'
-                    stroke='#1F2937'
-                    strokeWidth='3'
-                    strokeLinecap='round'
-                    fill='none'
-                />
+                {/* facial features — expression-driven (brows/eyes/mouth), fixed dark, never recolored */}
+                {renderFace(expression)}
 
                 {/* ---- MIC (mic) — retro ball mic held low at collar height in the right paw ---- */}
                 <Defs>
@@ -288,6 +357,6 @@ export function Mascot({ look, pose, size = 240 }: MascotProps) {
  * Home/Results placement, and the v2 challenge screen all call this — none of
  * them need to know whether the look is owned.
  */
-export function renderMascot(look: LookMap, pose: MascotPose, size?: number) {
-    return <Mascot look={look} pose={pose} size={size} />;
+export function renderMascot(look: LookMap, pose: MascotPose, size?: number, expression?: MascotExpression) {
+    return <Mascot look={look} pose={pose} size={size} expression={expression} />;
 }

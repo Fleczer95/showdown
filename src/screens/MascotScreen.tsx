@@ -21,6 +21,7 @@ import {
     resolveSlotColor,
 } from '../game/mascot/look';
 import { getEquippedLook, setEquippedLook } from '../game/mascot/equippedLook';
+import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
 import { mascotSkins } from '../data/store/mascotSkins';
 import { useStore } from '../hooks/store/useStore';
 import { resolveEntryState } from '../data/store/resolver';
@@ -67,6 +68,7 @@ export function MascotScreen() {
     const reduced = useReducedMotion();
     const { purchasedItemIds, purchaseItem, isProcessing } = useStore();
     const { unlockedRewards } = useProgression();
+    const emitMascot = useMascotEmit();
 
     const [look, setLook] = useState<LookMap>(() => getEquippedLook());
     const [activeSlot, setActiveSlot] = useState<MascotSlot | null>(null);
@@ -145,6 +147,7 @@ export function MascotScreen() {
         }
         setLook({ ...preset.look });
         setEquippedLook(preset.look);
+        emitMascot('look-equipped');
     };
 
     // Lift + shrink the fox while the sheet covers the lower screen (plan §5).

@@ -35,7 +35,7 @@ const TABLE: Record<EventName, BucketDef> = {
     'offline-limit': { id: 'offline-limit', priority: 68, spoken: true, expression: 'worried', surfaces: ['home'] },
     unlock: { id: 'unlock', priority: 60, spoken: true, expression: 'happy', surfaces: ['store', 'home'] },
     'look-equipped': { id: 'look-equipped', priority: 58, spoken: true, expression: 'smug', surfaces: ['mascot', 'store'] },
-    'challenge-sent': { id: 'challenge-out', priority: 50, spoken: true, expression: 'happy', surfaces: ['challenge'] },
+    'challenge-sent': { id: 'challenge-out', priority: 50, spoken: true, expression: 'happy', surfaces: ['challenge', 'other'] },
     'streak-milestone': { id: 'streak', priority: 40, spoken: false, expression: 'happy', surfaces: ['home', 'game'], escalates: true },
     clutch: { id: 'clutch', priority: 38, spoken: false, expression: 'surprised', surfaces: ['game'] },
     'all-in-survived': { id: 'all-in', priority: 36, spoken: false, expression: 'surprised', surfaces: ['game'] },

@@ -21,6 +21,7 @@ import { useTranslation } from '../../i18n/TranslationContext';
 import { STORE_CATEGORIES, STORE_ICONS, type StoreCategory } from '../../data/store';
 import type { CatalogEntry, PackDefinition } from '../../data/store/types';
 import { useStore } from '../../hooks/store/useStore';
+import { useMascotEmit } from '../../game/mascot/reactions/useMascotDirector';
 import { useResolvedStoreEntries } from '../../hooks/store/useStoreCatalog';
 import type { RootStackParamList } from '../../navigation/types';
 import { ThemePreview } from './ThemePreview';
@@ -109,8 +110,19 @@ export default function StoreScreen() {
     const { scale, iconSize, tabletColumn } = useResponsive();
     const insets = useSafeAreaInsets();
     const reduceMotion = useReducedMotion();
-    const { purchaseItem, restorePurchases, isProcessing, priceBySku } = useStore();
+    const { purchaseItem, restorePurchases, isProcessing, priceBySku, purchasedItemIds } = useStore();
     const resolvedEntries = useResolvedStoreEntries();
+    const emitMascot = useMascotEmit();
+    const prevOwnedCount = useRef<number | null>(null);
+
+    // The fox cheers a fresh unlock — when ownership grows, not on first mount.
+    useEffect(() => {
+        const n = purchasedItemIds.length;
+        if (prevOwnedCount.current !== null && n > prevOwnedCount.current) {
+            emitMascot('unlock');
+        }
+        prevOwnedCount.current = n;
+    }, [purchasedItemIds, emitMascot]);
     const sectionListRef = useRef<SectionList<CatalogEntry>>(null);
     const tabsScrollRef = useRef<ScrollView>(null);
     const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>({});

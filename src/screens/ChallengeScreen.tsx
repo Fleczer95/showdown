@@ -35,6 +35,7 @@ import type { ChallengeResult } from '../game/challenge/ChallengeHandoff';
 import type { ChallengeRecord } from '../game/challenge/types';
 import { Mascot } from '../game/mascot/Mascot';
 import type { LookMap } from '../game/mascot/look';
+import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
 import LadderPlayScreen from '../game/ladder/LadderPlayScreen';
 import DropPlayScreen from '../game/drop/DropPlayScreen';
 import WheelPlayScreen from '../game/wheel/WheelPlayScreen';
@@ -70,6 +71,7 @@ export function ChallengeScreen() {
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
+    const emitMascot = useMascotEmit();
 
     const [phase, setPhase] = useState<Phase>('loading');
     const [record, setRecord] = useState<ChallengeRecord | null>(null);
@@ -82,6 +84,12 @@ export function ChallengeScreen() {
     // injected play element (memoised below) never rebuilds mid-run when these change.
     const nicknameRef = useRef(nickname);
     const pendingResult = useRef<ChallengeResult | null>(null);
+
+    // Once the frozen record loads, the fox reacts: the creator just sent it,
+    // a recipient opening the link just received it.
+    useEffect(() => {
+        if (record) emitMascot(route.params.created ? 'challenge-sent' : 'challenge-received');
+    }, [emitMascot, record, route.params.created]);
 
     const exit = useCallback(() => navigation.navigate('Home'), [navigation]);
 
@@ -465,6 +473,7 @@ function ResultsCard({
     const theme = useTheme();
     const reduceMotion = useReducedMotion();
     const { iconSize, scale } = useResponsive();
+    const emitMascot = useMascotEmit();
     const game = games.find((g) => g.id === record.game);
     const accent = challengeAccent(theme, record.game);
     const onAccent = readableOn(accent);
@@ -480,6 +489,9 @@ function ResultsCard({
         !!winner && e.progress === winner.progress && e.score === winner.score;
     const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
     const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
+    useEffect(() => {
+        if (youWon) emitMascot('challenge-beaten');
+    }, [emitMascot, youWon]);
     const headline = waiting
         ? t('challenge.waiting')
         : !winner

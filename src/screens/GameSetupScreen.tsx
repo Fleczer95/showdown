@@ -252,7 +252,7 @@ export function GameSetupScreen() {
             pendingChallengeId.current = null;
             SafeAnalytics.logEvent({ name: 'challenge_created', params: { game: game.id } });
             await shareChallenge(id);
-            navigation.navigate('Challenge', { challengeId: id, created: true });
+            navigation.navigate('Challenge', { challengeId: id });
         } catch (err) {
             const blocked = err instanceof BlockedError;
             Alert.alert(

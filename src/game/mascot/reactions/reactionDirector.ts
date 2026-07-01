@@ -1,6 +1,6 @@
 import { resolveBucket, type BucketId } from './buckets';
 import { pickLine } from './reactionSelection';
-import type { EventContext, EventName, MascotScope } from './events';
+import type { EventContext, EventName, MascotScope, Surface } from './events';
 import type { MascotExpression } from './expressions';
 
 export interface DirectorConfig {
@@ -11,7 +11,13 @@ export interface DirectorConfig {
     idleGapMs: number;
     now: () => number;
     rand: () => number;
+    /** Live surface lookup — avoids racing the async scope update at emit time. */
+    getSurface?: () => Surface;
 }
+
+// Arrival/ambient Home events are meant to fire ON navigation to Home, so they
+// are exempt from the post-navigation quiet window (which guards reactive events).
+const AMBIENT: ReadonlySet<EventName> = new Set(['home-focus', 'app-open', 'idle']);
 
 export interface Utterance {
     bucketId: BucketId;
@@ -64,15 +70,19 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
         return blockers.timerRunning || blockers.transitioning || blockers.modalOpen || blockers.purchasePending;
     }
 
+    function currentSurface(): Surface {
+        return config.getSurface ? config.getSurface() : scope.surface;
+    }
+
     function surfaceAllowed(name: EventName): boolean {
         const b = resolveBucket(name);
-        return b.surfaces === 'all' || b.surfaces.includes(scope.surface);
+        return b.surfaces === 'all' || b.surfaces.includes(currentSurface());
     }
 
     function emit(name: EventName, ctx: EventContext = {}) {
         const now = config.now();
         if (anyBlocker()) return;
-        if (now - lastNavAt < config.navQuietMs) return;
+        if (!AMBIENT.has(name) && now - lastNavAt < config.navQuietMs) return;
         if (!surfaceAllowed(name)) return;
 
         const bucket = resolveBucket(name);
@@ -121,7 +131,7 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
 
     function tick() {
         if (!idleOn) return;
-        if (scope.surface !== 'home' || anyBlocker()) return;
+        if (currentSurface() !== 'home' || anyBlocker()) return;
         const now = config.now();
         if (now < idlePhaseUntil) return;
         if (idlePhase === 'gap') {

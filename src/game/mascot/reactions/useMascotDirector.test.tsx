@@ -9,9 +9,12 @@ describe('surfaceForRoute', () => {
         expect(surfaceForRoute('Mascot')).toBe('mascot');
     });
 
-    it('maps play/game routes to the game surface', () => {
+    it('maps play/game/setup routes to the game surface', () => {
         expect(surfaceForRoute('ladder-play')).toBe('game');
         expect(surfaceForRoute('WheelPlay')).toBe('game');
+        expect(surfaceForRoute('ladderSetup')).toBe('game');
+        expect(surfaceForRoute('dropSetup')).toBe('game');
+        expect(surfaceForRoute('wheelSetup')).toBe('game');
     });
 
     it('falls back to other', () => {

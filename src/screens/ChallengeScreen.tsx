@@ -85,11 +85,12 @@ export function ChallengeScreen() {
     const nicknameRef = useRef(nickname);
     const pendingResult = useRef<ChallengeResult | null>(null);
 
-    // Once the frozen record loads, the fox reacts: the creator just sent it,
-    // a recipient opening the link just received it.
+    // Once the frozen record loads, the fox reacts by the player's true role:
+    // this device created it (sent) vs. opened someone else's (received). Reading
+    // the record — not a nav flag — keeps history reopens correct too.
     useEffect(() => {
-        if (record) emitMascot(route.params.created ? 'challenge-sent' : 'challenge-received');
-    }, [emitMascot, record, route.params.created]);
+        if (record) emitMascot(record.createdBy.uuid === deviceId ? 'challenge-sent' : 'challenge-received');
+    }, [emitMascot, record, deviceId]);
 
     const exit = useCallback(() => navigation.navigate('Home'), [navigation]);
 

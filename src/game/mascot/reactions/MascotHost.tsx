@@ -23,17 +23,15 @@ export function MascotHost() {
     // host stays fully offstage there so a round never has two foxes.
     const visible = surface !== 'game' && (surface === 'home' || utterance != null);
 
-    // Off-Home, any reaction (spoken or expression-only) auto-clears so the fox
-    // returns offstage. On Home the fox stays; spoken bubbles still time out, and
-    // the idle drip self-manages its own show/hide via the director's tick.
+    // Every reaction auto-clears so nothing gets stranded on screen — spoken
+    // bubbles after a dwell, expression-only peeks sooner. The idle drip is the
+    // sole exception: the director's tick owns its show/hide cadence.
     useEffect(() => {
-        if (!utterance) return;
-        const spoken = utterance.textKey != null;
-        if (surface === 'home' && !spoken) return; // ambient Home expression: leave it
-        const ms = spoken ? BUBBLE_MS : PEEK_MS;
+        if (!utterance || utterance.bucketId === 'idle') return;
+        const ms = utterance.textKey != null ? BUBBLE_MS : PEEK_MS;
         const id = setTimeout(onAutoHide, ms);
         return () => clearTimeout(id);
-    }, [utterance, surface, onAutoHide]);
+    }, [utterance, onAutoHide]);
 
     if (!visible) return null;
 

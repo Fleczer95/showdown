@@ -36,7 +36,13 @@ export function MascotDirectorProvider({
     children: React.ReactNode;
 }) {
     const directorRef = useRef<ReactionDirector | null>(null);
-    if (!directorRef.current) directorRef.current = createReactionDirector();
+    if (!directorRef.current) {
+        directorRef.current = createReactionDirector({
+            // Resolve the surface live at emit time so a screen's emit is never
+            // dropped by a not-yet-applied scope update.
+            getSurface: () => surfaceForRoute(navigationRef.getCurrentRoute?.()?.name ?? ''),
+        });
+    }
     const director = directorRef.current;
     const navSeqRef = useRef(0);
 

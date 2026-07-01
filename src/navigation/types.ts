@@ -14,7 +14,7 @@ export type RootStackParamList = {
     privacyPolicy: undefined;
     termsOfUse: undefined;
     /** Async challenge opened from a shared link (`/c/:challengeId`) or after creating one. */
-    Challenge: { challengeId: string; created?: boolean };
+    Challenge: { challengeId: string };
     /** List of challenges this device created or opened — resume unplayed, revisit results. */
     ChallengeHistory: undefined;
     /** Global ranking boards (ADR-0004). Optional `gameId` preselects a board. */

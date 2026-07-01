@@ -61,14 +61,34 @@ describe('reactionDirector', () => {
         expect(d.getState().expression).toBe('neutral');
     });
 
-    it('onNavigate within navQuiet suppresses the next emit', () => {
+    it('onNavigate within navQuiet suppresses a reactive emit', () => {
+        const now = { t: 0 };
+        const d = makeDirector(now);
+        d.setScope({ surface: 'game', navSeq: 1 });
+        d.onNavigate(); // records nav at t=0
+        now.t = 200; // < navQuietMs (500)
+        d.emit('run-won', {});
+        expect(d.getState().utterance).toBeNull();
+    });
+
+    it('lets an ambient greeting bypass nav quiet', () => {
         const now = { t: 0 };
         const d = makeDirector(now);
         d.setScope({ surface: 'home', navSeq: 1 });
         d.onNavigate(); // records nav at t=0
-        now.t = 200; // < navQuietMs (500)
+        now.t = 100; // < navQuietMs
         d.emit('home-focus', {});
+        expect(d.getState().utterance?.bucketId).toBe('greeting');
+    });
+
+    it('resolves the surface live via getSurface', () => {
+        let surf: 'other' | 'game' = 'other';
+        const d = createReactionDirector({ getSurface: () => surf, cooldownMs: 0, navQuietMs: 0, now: () => 0 });
+        d.emit('run-won', {}); // surface 'other' → dropped
         expect(d.getState().utterance).toBeNull();
+        surf = 'game';
+        d.emit('run-won', {}); // surface 'game' → accepted
+        expect(d.getState().utterance?.bucketId).toBe('run-won');
     });
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, ChevronRight, Palette, Volume2, Smartphone, Drama } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Palette, Volume2, Smartphone, Drama, MessageCircle } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
@@ -152,6 +152,19 @@ export function SettingsScreen() {
                             <Switch
                                 value={settings.hapticFeedback}
                                 onValueChange={settings.setHapticFeedback}
+                            />
+                        </View>
+
+                        <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
+                            <Stack direction='horizontal' gap='sm' align='center'>
+                                <MessageCircle size={scale(20)} color={theme.colors.textSecondary} />
+                                <Text variant='body' weight='medium'>
+                                    {t('screen.settings.labels.mascotChatter')}
+                                </Text>
+                            </Stack>
+                            <Switch
+                                value={settings.mascotChatter}
+                                onValueChange={settings.setMascotChatter}
                             />
                         </View>
                     </Stack>

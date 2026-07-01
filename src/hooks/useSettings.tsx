@@ -22,6 +22,7 @@ interface SettingsState {
     gameTimers: Record<string, number>; // Game-specific timers
     soundEffects: boolean;
     hapticFeedback: boolean;
+    mascotChatter: boolean;
     language: string;
     lastPlayedGameId?: string;
 }
@@ -31,6 +32,7 @@ interface SettingsContextValue extends SettingsState {
     setGameTimer: (gameId: string, v: number) => void;
     setSoundEffects: (v: boolean) => void;
     setHapticFeedback: (v: boolean) => void;
+    setMascotChatter: (v: boolean) => void;
     setLanguage: (v: string) => void;
     setLastPlayedGameId: (v: string) => void;
 }
@@ -45,6 +47,7 @@ const defaults: SettingsState = {
     },
     soundEffects: true,
     hapticFeedback: true,
+    mascotChatter: true,
     language: getDeviceLanguage(),
 };
 
@@ -57,6 +60,7 @@ function load(): SettingsState {
         gameTimers,
         soundEffects: storage.getBoolean('soundEffects') ?? defaults.soundEffects,
         hapticFeedback: storage.getBoolean('hapticFeedback') ?? defaults.hapticFeedback,
+        mascotChatter: storage.getBoolean('mascotChatter') ?? defaults.mascotChatter,
         language: storage.getString('language') ?? defaults.language,
         lastPlayedGameId: storage.getString('lastPlayedGameId'),
     };
@@ -68,6 +72,7 @@ const SettingsContext = createContext<SettingsContextValue>({
     setGameTimer: () => {},
     setSoundEffects: () => {},
     setHapticFeedback: () => {},
+    setMascotChatter: () => {},
     setLanguage: () => {},
     setLastPlayedGameId: () => {},
 });
@@ -98,6 +103,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         storage.set('hapticFeedback', v);
     }, []);
 
+    const setMascotChatter = useCallback((v: boolean) => {
+        setState((s) => ({ ...s, mascotChatter: v }));
+        storage.set('mascotChatter', v);
+    }, []);
+
     const setLanguage = useCallback((v: string) => {
         setState((s) => ({ ...s, language: v }));
         storage.set('language', v);
@@ -114,6 +124,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setGameTimer,
         setSoundEffects,
         setHapticFeedback,
+        setMascotChatter,
         setLanguage,
         setLastPlayedGameId,
     };

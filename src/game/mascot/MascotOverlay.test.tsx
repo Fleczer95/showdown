@@ -2,15 +2,6 @@ import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { MascotOverlay } from './MascotOverlay';
 
-// The overlay reads the equipped look on focus; outside a navigator, treat
-// focus as a plain mount effect.
-jest.mock('@react-navigation/native', () => ({
-    useFocusEffect: (cb: () => void | (() => void)) => {
-        const React = require('react');
-        React.useEffect(() => cb(), []);
-    },
-}));
-
 jest.useFakeTimers();
 
 describe('MascotOverlay auto-hide', () => {

@@ -10,7 +10,6 @@ import Animated, {
     useReducedMotion,
     runOnJS,
 } from 'react-native-reanimated';
-import { useFocusEffect } from '@react-navigation/native';
 import { Mascot } from './Mascot';
 import { getEquippedLook } from './equippedLook';
 import { type LookMap, type MascotPose } from './look';
@@ -55,6 +54,8 @@ export interface MascotOverlayProps {
     /** When set with a non-null message, fire `onAutoHide` after this many ms. */
     autoHideMs?: number;
     onAutoHide?: () => void;
+    /** Change this to re-read the equipped look and replay the slide-in entrance. */
+    replayKey?: string | number;
     onMessagePress?: () => void;
     onMascotPress?: () => void;
     onSettled?: () => void;
@@ -70,6 +71,7 @@ export function MascotOverlay({
     expression,
     autoHideMs,
     onAutoHide,
+    replayKey,
     onMessagePress,
     onMascotPress,
     onSettled,
@@ -111,22 +113,23 @@ export function MascotOverlay({
         };
     }, []);
 
-    // Re-read the equipped look (and, for the overlay, replay the slide-in) every
-    // time the screen gains focus — so returning from the customizer shows the new look.
-    useFocusEffect(
-        useCallback(() => {
-            setLook(getEquippedLook());
-            if (reduced) {
-                slide.value = 0;
-                onSettled?.();
-                return;
-            }
-            slide.value = hidden;
-            slide.value = withSpring(0, { damping: 14, stiffness: 120 }, (finished) => {
-                if (finished && onSettled) runOnJS(onSettled)();
-            });
-        }, [reduced, hidden, slide, onSettled]),
-    );
+    // Re-read the equipped look and replay the slide-in on mount and whenever
+    // `replayKey` changes (a new reaction, or returning to the customizer). This
+    // is navigation-agnostic, so the same overlay works inline in a screen AND as
+    // the app-root host that lives outside any screen's focus context.
+    useEffect(() => {
+        setLook(getEquippedLook());
+        if (reduced) {
+            slide.value = 0;
+            onSettled?.();
+            return;
+        }
+        slide.value = hidden;
+        slide.value = withSpring(0, { damping: 14, stiffness: 120 }, (finished) => {
+            if (finished && onSettled) runOnJS(onSettled)();
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reduced, hidden, slide, replayKey]);
 
     const animStyle = useAnimatedStyle(() => ({
         transform: [

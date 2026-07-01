@@ -5,11 +5,13 @@ import type { NavigationContainerRefWithCurrent } from '@react-navigation/native
 import { createReactionDirector, type DirectorState, type ReactionDirector } from './reactionDirector';
 import type { EventContext, EventName } from './events';
 import { surfaceForRoute } from './emit';
+import type { Surface } from './events';
 import { useSettings } from '../../../hooks/useSettings';
 
 interface MascotContextValue {
     emit: (name: EventName, ctx?: EventContext) => void;
     state: DirectorState;
+    surface: Surface;
     chatter: boolean;
     reduced: boolean;
     onAutoHide: () => void;
@@ -41,18 +43,25 @@ export function MascotDirectorProvider({
     const { mascotChatter } = useSettings();
     const reduced = useReducedMotion();
     const [state, setState] = useState<DirectorState>(director.getState());
+    const [surface, setSurface] = useState<Surface>('other');
 
-    useEffect(() => director.subscribe(setState), [director]);
+    useEffect(() => {
+        const unsub = director.subscribe(setState);
+        return () => {
+            unsub();
+        };
+    }, [director]);
 
     // Navigation route → surface (+ nav-quiet + idle start/stop).
     useEffect(() => {
         function sync() {
             const route = navigationRef.getCurrentRoute?.();
-            const surface = surfaceForRoute(route?.name ?? '');
+            const nextSurface = surfaceForRoute(route?.name ?? '');
             navSeqRef.current += 1;
             director.onNavigate();
-            director.setScope({ surface, navSeq: navSeqRef.current, roundId: route?.key });
-            if (surface === 'home') director.startIdle();
+            director.setScope({ surface: nextSurface, navSeq: navSeqRef.current, roundId: route?.key });
+            setSurface(nextSurface);
+            if (nextSurface === 'home') director.startIdle();
             else director.stopIdle();
         }
         const unsub = navigationRef.addListener?.('state', sync);
@@ -80,11 +89,12 @@ export function MascotDirectorProvider({
         () => ({
             emit: director.emit,
             state,
+            surface,
             chatter: mascotChatter,
             reduced,
             onAutoHide: director.clearUtterance,
         }),
-        [director, state, mascotChatter, reduced],
+        [director, state, surface, mascotChatter, reduced],
     );
 
     return <MascotContext.Provider value={value}>{children}</MascotContext.Provider>;
@@ -100,6 +110,7 @@ export function useMascotState(): MascotContextValue {
         useContext(MascotContext) ?? {
             emit: () => {},
             state: NEUTRAL,
+            surface: 'other',
             chatter: true,
             reduced: false,
             onAutoHide: () => {},

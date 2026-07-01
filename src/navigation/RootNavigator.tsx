@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { NavigationContainer, DefaultTheme, type Theme as NavTheme } from '@react-navigation/native';
+import {
+    NavigationContainer,
+    DefaultTheme,
+    useNavigationContainerRef,
+    type Theme as NavTheme,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme';
 import { games } from '../data/games';
@@ -15,6 +20,8 @@ import { ChallengeHistoryScreen } from '../screens/ChallengeHistoryScreen';
 import { RankingScreen } from '../screens/RankingScreen';
 import { MascotScreen } from '../screens/MascotScreen';
 import { CHALLENGE_LINK_ORIGIN } from '../game/challenge/share';
+import { MascotDirectorProvider } from '../game/mascot/reactions/useMascotDirector';
+import { MascotHost } from '../game/mascot/reactions/MascotHost';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,6 +46,7 @@ const linking = {
  */
 export function RootNavigator() {
     const theme = useTheme();
+    const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
     const navTheme = useMemo<NavTheme>(
         () => ({
@@ -58,7 +66,8 @@ export function RootNavigator() {
     );
 
     return (
-        <NavigationContainer theme={navTheme} linking={linking}>
+        <NavigationContainer ref={navigationRef} theme={navTheme} linking={linking}>
+            <MascotDirectorProvider navigationRef={navigationRef}>
             <Stack.Navigator
                 initialRouteName='Home'
                 screenOptions={{
@@ -86,6 +95,8 @@ export function RootNavigator() {
                     />
                 ))}
             </Stack.Navigator>
+            <MascotHost />
+            </MascotDirectorProvider>
         </NavigationContainer>
     );
 }

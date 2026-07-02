@@ -38,8 +38,11 @@ export function MascotHost() {
     const pose: MascotPose =
         utterance?.bucketId === 'run-won' ? 'cheer' : utterance?.bucketId === 'run-lost' ? 'dismay' : 'idle';
 
-    // Replay the slide-in entrance whenever the fox appears / a new reaction lands.
-    const replayKey = utterance ? `${utterance.bucketId}:${expression}` : `home:${expression}`;
+    // Replay the slide-in only when the fox actually (re)appears. On Home it is a
+    // resident: it slides in once on arrival (the key is constant), then stays put
+    // while idle lines and expressions change — no re-entrance every few seconds.
+    // Off-Home each guest peek is a fresh mount, so a constant key is enough there.
+    const replayKey = surface === 'home' ? 'home' : (utterance?.bucketId ?? 'guest');
 
     return (
         <MascotOverlay

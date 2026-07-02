@@ -67,3 +67,6 @@ assets/archived_icons/
 **/.maestro/
 *.maestro
 .claude/handoffs/
+
+# Agent tooling venv (store provisioning scripts)
+.venv-agents/

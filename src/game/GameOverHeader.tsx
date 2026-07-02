@@ -44,6 +44,7 @@ function GameOverHeader({ pose, children }: GameOverHeaderProps) {
             <Stack align='center' justify='center' style={styles.column}>
                 <MascotOverlay
                     inline
+                    anchor='bottom-left'
                     pose={pose}
                     size={MASCOT_SIZE}
                     expression={expression}

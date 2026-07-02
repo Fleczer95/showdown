@@ -6,9 +6,10 @@ import appCheck from '@react-native-firebase/app-check';
 // Identity is a device UUID with no auth, so without this anyone with curl can spam
 // requests; the server validates each payload's shape but not the volume.
 //
-// In a debug build the `debug` provider is used; its token is printed to the native
-// console (Xcode / Logcat) on first launch and must be registered under App Check ->
-// Manage debug tokens in the Firebase console for that build to attest.
+// Always the real hardware providers (App Attest / Play Integrity), so every
+// physical-device build — TestFlight, Play internal test, and production — attests
+// like prod. The tradeoff: App Check can't attest on the iOS Simulator or Android
+// emulator (no attestation hardware), so challenge/ranking requests fail there.
 //
 // Init must run before the first attested request. The earliest is user-initiated
 // (creating/opening a challenge), so firing this at startup leaves ample lead time.
@@ -16,8 +17,8 @@ export const initAppCheck = async (): Promise<void> => {
     try {
         const provider = appCheck().newReactNativeFirebaseAppCheckProvider();
         provider.configure({
-            android: { provider: __DEV__ ? 'debug' : 'playIntegrity' },
-            apple: { provider: __DEV__ ? 'debug' : 'appAttestWithDeviceCheckFallback' },
+            android: { provider: 'playIntegrity' },
+            apple: { provider: 'appAttestWithDeviceCheckFallback' },
         });
         await appCheck().initializeAppCheck({ provider, isTokenAutoRefreshEnabled: true });
     } catch {

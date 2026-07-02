@@ -3,12 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Fredoka_700Bold } from '@expo-google-fonts/fredoka';
-import {
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useThemeActions, isSubscriberTheme } from './src/theme';
@@ -19,6 +14,8 @@ import { initSentry, Sentry } from './src/utils/sentry/init';
 import { initFirebase } from './src/utils/firebase/init';
 import { initAppCheck } from './src/utils/firebase/appCheck';
 import { retryPending } from './src/game/ranking/push';
+import { syncGameServices } from './src/services/gameServices';
+import { loadStats } from './src/game/progression';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -30,8 +27,14 @@ initSentry();
 // Retry any ranking pushes that failed offline (ADR-0004), once App Check has a
 // chance to attest — it's cheap (no-op when nothing is pending) and never blocks.
 // `.catch` keeps it fire-and-forget if attestation rejects (no unhandled rejection).
-void initAppCheck().then(() => retryPending(), () => {});
+void initAppCheck().then(
+    () => retryPending(),
+    () => {},
+);
 initFirebase();
+// Replay earned achievements/best scores to Game Center / Play Games once per
+// launch — idempotent, digest-throttled, and a no-op when signed out.
+void syncGameServices(loadStats());
 
 function PremiumThemeGate() {
     const { themeId, setTheme } = useThemeActions();

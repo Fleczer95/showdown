@@ -73,6 +73,16 @@ class GameServicesModule : Module() {
                 .addOnFailureListener { promise.reject(UiUnavailableException(it)) }
         }
 
+        AsyncFunction("showLeaderboards") { promise: Promise ->
+            PlayGames.getLeaderboardsClient(activity)
+                .allLeaderboardsIntent
+                .addOnSuccessListener { intent ->
+                    activity.startActivityForResult(intent, RC_LEADERBOARD_UI)
+                    promise.resolve(null)
+                }
+                .addOnFailureListener { promise.reject(UiUnavailableException(it)) }
+        }
+
         AsyncFunction("showLeaderboard") { leaderboardId: String, promise: Promise ->
             PlayGames.getLeaderboardsClient(activity)
                 .getLeaderboardIntent(leaderboardId)

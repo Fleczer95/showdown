@@ -10,6 +10,7 @@ interface GameServicesNativeModule {
     unlockAchievement(id: string): Promise<void>;
     submitScore(leaderboardId: string, score: number): Promise<void>;
     showAchievements(): Promise<void>;
+    showLeaderboards(): Promise<void>;
     showLeaderboard(leaderboardId: string): Promise<void>;
 }
 
@@ -54,6 +55,14 @@ export async function submitScore(leaderboardId: string, score: number): Promise
 export async function showAchievements(): Promise<void> {
     try {
         await native?.showAchievements();
+    } catch {
+        // Games UI unavailable (e.g. not signed in) — nothing to show.
+    }
+}
+
+export async function showLeaderboards(): Promise<void> {
+    try {
+        await native?.showLeaderboards();
     } catch {
         // Games UI unavailable (e.g. not signed in) — nothing to show.
     }

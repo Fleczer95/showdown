@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -26,6 +26,7 @@ import {
     Brush,
     Zap,
     RotateCcw,
+    BarChart3,
     type LucideIcon,
 } from 'lucide-react-native';
 import type { RootStackParamList } from '../navigation/types';
@@ -45,6 +46,7 @@ import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { useProgression } from '../hooks/useProgression';
+import { gameServicesAvailable, openAchievementsUi, openLeaderboardsUi } from '../services/gameServices';
 import {
     LEVEL_MAP,
     ACHIEVEMENTS,
@@ -321,6 +323,36 @@ export function ProgressScreen() {
                             </Text>
                         </Stack>
 
+                        {gameServicesAvailable && (
+                            <>
+                                <Text variant='caption' weight='bold' color='textMuted'>
+                                    {Platform.OS === 'ios' ? 'Game Center' : 'Google Play Games'}
+                                </Text>
+                                <Stack direction='horizontal' gap='sm'>
+                                    <Pressable style={styles.serviceButton} onPress={() => void openAchievementsUi()}>
+                                        <Card variant='outlined' padding='md'>
+                                            <Stack direction='horizontal' gap='xs' align='center' justify='center'>
+                                                <Icon name={Trophy} size={iconSize(16)} color={accent} />
+                                                <Text variant='caption' weight='semibold'>
+                                                    {t('progression.gameServices.achievements')}
+                                                </Text>
+                                            </Stack>
+                                        </Card>
+                                    </Pressable>
+                                    <Pressable style={styles.serviceButton} onPress={() => void openLeaderboardsUi()}>
+                                        <Card variant='outlined' padding='md'>
+                                            <Stack direction='horizontal' gap='xs' align='center' justify='center'>
+                                                <Icon name={BarChart3} size={iconSize(16)} color={accent} />
+                                                <Text variant='caption' weight='semibold'>
+                                                    {t('progression.gameServices.leaderboards')}
+                                                </Text>
+                                            </Stack>
+                                        </Card>
+                                    </Pressable>
+                                </Stack>
+                            </>
+                        )}
+
                         <Text variant='caption' weight='bold' color='textMuted'>
                             {t('progression.challenges')}
                         </Text>
@@ -488,6 +520,9 @@ const styles = StyleSheet.create({
     },
     badge: {
         width: '31%',
+    },
+    serviceButton: {
+        flex: 1,
     },
     badgeCard: {
         alignItems: 'center',

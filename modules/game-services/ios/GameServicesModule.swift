@@ -83,6 +83,17 @@ public class GameServicesModule: Module {
             }
         }
 
+        AsyncFunction("showLeaderboards") { (promise: Promise) in
+            DispatchQueue.main.async { [weak self] in
+                guard let self, GKLocalPlayer.local.isAuthenticated, let root = self.currentViewController else {
+                    return promise.resolve()
+                }
+                let sheet = GKGameCenterViewController(state: .leaderboards)
+                sheet.gameCenterDelegate = self.dismissDelegate
+                root.present(sheet, animated: true) { promise.resolve() }
+            }
+        }
+
         AsyncFunction("showLeaderboard") { (leaderboardId: String, promise: Promise) in
             DispatchQueue.main.async { [weak self] in
                 guard let self, GKLocalPlayer.local.isAuthenticated, let root = self.currentViewController else {

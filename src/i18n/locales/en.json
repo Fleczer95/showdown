@@ -381,10 +381,7 @@
                 {
                     "title": "5. Purposes of Processing",
                     "content": "We use the collected data for:",
-                    "listItems": [
-                        "Diagnosing technical issues",
-                        "Improving app performance"
-                    ]
+                    "listItems": ["Diagnosing technical issues", "Improving app performance"]
                 },
                 {
                     "title": "6. Legal Basis",
@@ -401,10 +398,7 @@
                 {
                     "title": "9. User Rights",
                     "content": "You have the right to:",
-                    "listItems": [
-                        "Access, rectification, restriction, deletion",
-                        "Contact us at: contact@showdown.app"
-                    ]
+                    "listItems": ["Access, rectification, restriction, deletion", "Contact us at: contact@showdown.app"]
                 }
             ],
             "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -851,10 +845,7 @@
             {
                 "title": "5. Purposes of Processing",
                 "content": "We use the collected data for:",
-                "listItems": [
-                    "Diagnosing technical issues",
-                    "Improving app performance"
-                ]
+                "listItems": ["Diagnosing technical issues", "Improving app performance"]
             },
             {
                 "title": "6. Legal Basis",
@@ -871,10 +862,7 @@
             {
                 "title": "9. User Rights",
                 "content": "You have the right to:",
-                "listItems": [
-                    "Access, rectification, restriction, deletion",
-                    "Contact us at: {{email}}"
-                ]
+                "listItems": ["Access, rectification, restriction, deletion", "Contact us at: {{email}}"]
             }
         ],
         "lastUpdated": "Last updated: {{lastUpdated}}"
@@ -939,6 +927,10 @@
         "maxLevel": "Top level reached",
         "mapTitle": "Level Map",
         "achievementsTitle": "Achievements",
+        "gameServices": {
+            "achievements": "Achievements",
+            "leaderboards": "Leaderboards"
+        },
         "achievementsCount": "%{n} of %{m}",
         "reserved": "More soon",
         "rewardTheme": "Theme",

@@ -7,13 +7,13 @@ import { STORE_CATALOG } from '../../data/store/catalog';
 // same accepted threat model as attempt-dedup.
 //
 // One GLOBAL counter (challenges created today, all games) is checked against a
-// cap that grows by one for every premium item owned — theme or pack, it makes
-// no difference. Every catalog-derived number stays dynamic so new premium
-// entries lift the cap for free; only the two policy constants below are literals.
+// cap that grows by one for every premium item owned. Every catalog-derived
+// number stays dynamic so new premium entries lift the cap for free; only the
+// two policy constants below are literals.
 
 /** Free baseline: challenges any device can create per day across all games. */
 export const BASE_DAILY_CAP = 3;
-/** Extra daily challenges granted per owned premium item (theme or pack). */
+/** Extra daily challenges granted per owned premium item. */
 export const BONUS_PER_PREMIUM_ITEM = 1;
 /**
  * Extra daily challenges the Premium subscription adds on top of the normal
@@ -29,7 +29,7 @@ function premiumItemIds(): string[] {
     return STORE_CATALOG.filter((e) => e.tier === 'premium' && e.status === 'live').map((e) => e.id);
 }
 
-/** How many premium items (themes or packs) the player owns. */
+/** How many premium items the player owns. */
 export function premiumItemsOwned(ownedIds: ReadonlySet<string>): number {
     return premiumItemIds().filter((id) => ownedIds.has(id)).length;
 }

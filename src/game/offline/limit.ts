@@ -6,8 +6,8 @@ import { localDate } from '../progression/recordRun';
 // of the challenge-creation limit. Honour-based and client-side: solo play is
 // offline so nothing on the Firestore free tier is at stake; the cap is a
 // retention/monetization lever and makes levelling tangible. One GLOBAL counter
-// across all four games. The daily allowance grows by one per owned premium item
-// (theme or pack), reusing the challenge limit's premium math. Reaching a new
+// across all four games. The daily allowance grows by one per owned premium
+// item, reusing the challenge limit's premium math. Reaching a new
 // level banks one-time BONUS runs, spent only after the daily allowance is gone.
 
 /** Free baseline: solo runs any device can start per local day, all games. */

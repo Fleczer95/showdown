@@ -33,7 +33,7 @@ describe('dailyCap', () => {
         expect(dailyCap(new Set())).toBe(BASE_DAILY_CAP);
     });
 
-    it('adds one per owned premium item, theme or pack', () => {
+    it('adds one per owned premium item', () => {
         expect(dailyCap(new Set(['theme-a']))).toBe(BASE_DAILY_CAP + 1);
         expect(dailyCap(new Set(['theme-a', 'pack-a']))).toBe(BASE_DAILY_CAP + 2);
     });

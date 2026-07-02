@@ -58,6 +58,8 @@ export interface MascotOverlayProps {
     replayKey?: string | number;
     onMessagePress?: () => void;
     onMascotPress?: () => void;
+    /** A quick second tap on the fox (single tap still just bounces). */
+    onDoubleTap?: () => void;
     onSettled?: () => void;
 }
 
@@ -74,6 +76,7 @@ export function MascotOverlay({
     replayKey,
     onMessagePress,
     onMascotPress,
+    onDoubleTap,
     onSettled,
 }: MascotOverlayProps) {
     const theme = useTheme();
@@ -81,6 +84,7 @@ export function MascotOverlay({
     const haptics = useHaptics();
     const [look, setLook] = useState<LookMap>(getEquippedLook);
     const tapMessageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastTapAt = useRef(0);
 
     // Off-edge resting point for the slide-in: inline leads from the left; the
     // overlay slides from whichever screen edge it anchors to.
@@ -92,7 +96,16 @@ export function MascotOverlay({
 
     const onTap = useCallback(() => {
         haptics.light();
+        // A quick second tap opens the customizer; a lone tap just bounces.
+        const now = Date.now();
+        const isDouble = now - lastTapAt.current < 300;
+        lastTapAt.current = now;
         if (tapMessageTimer.current) clearTimeout(tapMessageTimer.current);
+        tapMessageTimer.current = null;
+        if (isDouble && onDoubleTap) {
+            onDoubleTap();
+            return;
+        }
         if (reduced) {
             onMascotPress?.();
             return;
@@ -105,7 +118,7 @@ export function MascotOverlay({
             onMascotPress?.();
             tapMessageTimer.current = null;
         }, 280);
-    }, [haptics, reduced, bounce, onMascotPress]);
+    }, [haptics, reduced, bounce, onMascotPress, onDoubleTap]);
 
     useEffect(() => {
         return () => {

@@ -4,6 +4,7 @@ export type EventName =
     | 'app-open'
     | 'home-focus'
     | 'idle'
+    | 'tip'
     | 'run-won'
     | 'run-lost'
     | 'streak-milestone'

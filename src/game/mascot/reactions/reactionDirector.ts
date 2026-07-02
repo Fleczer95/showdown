@@ -17,7 +17,11 @@ export interface DirectorConfig {
 
 // Arrival/ambient Home events are meant to fire ON navigation to Home, so they
 // are exempt from the post-navigation quiet window (which guards reactive events).
-const AMBIENT: ReadonlySet<EventName> = new Set(['home-focus', 'app-open', 'idle']);
+const AMBIENT: ReadonlySet<EventName> = new Set(['home-focus', 'app-open', 'idle', 'tip']);
+
+// Buckets the idle drip owns: it (not the auto-hide timer) controls their
+// show/hide cadence, and navigating away clears whichever is showing.
+export const DRIP_BUCKETS: ReadonlySet<BucketId> = new Set(['idle', 'tip']);
 
 export interface Utterance {
     bucketId: BucketId;
@@ -42,8 +46,8 @@ const DEFAULTS: DirectorConfig = {
     cooldownMs: 6000,
     navQuietMs: 600,
     recentSize: 3,
-    idleShowMs: 4000,
-    idleGapMs: 6000,
+    idleShowMs: 5000,
+    idleGapMs: 10000,
     now: () => Date.now(),
     rand: Math.random,
 };
@@ -63,6 +67,7 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
     let idleOn = false;
     let idlePhase: 'show' | 'gap' = 'gap';
     let idlePhaseUntil = 0;
+    let dripCount = 0; // alternates the drip between idle banter and a tip
 
     const emitState = () => subs.forEach((f) => f(state));
 
@@ -117,7 +122,7 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
 
     function stopIdle() {
         idleOn = false;
-        if (state.utterance?.bucketId === 'idle') {
+        if (state.utterance && DRIP_BUCKETS.has(state.utterance.bucketId)) {
             state = { ...state, utterance: null };
             emitState();
         }
@@ -135,11 +140,13 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
         const now = config.now();
         if (now < idlePhaseUntil) return;
         if (idlePhase === 'gap') {
-            emit('idle', {});
+            // Alternate idle banter and a tip so the drip both keeps company and teaches.
+            emit(dripCount % 2 === 0 ? 'idle' : 'tip', {});
+            dripCount += 1;
             idlePhase = 'show';
             idlePhaseUntil = now + config.idleShowMs;
         } else {
-            if (state.utterance?.bucketId === 'idle') {
+            if (state.utterance && DRIP_BUCKETS.has(state.utterance.bucketId)) {
                 state = { ...state, utterance: null };
                 emitState();
             }

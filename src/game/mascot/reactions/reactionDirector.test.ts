@@ -103,19 +103,19 @@ describe('reactionDirector', () => {
 });
 
 describe('idle drip', () => {
-    it('drips idle lines one at a time and hides between', () => {
+    it('drips one line at a time, hides between, and alternates idle banter with a tip', () => {
         const now = { t: 0 };
         const d = createReactionDirector({ now: () => now.t, idleShowMs: 3000, idleGapMs: 2000, cooldownMs: 0, navQuietMs: 0 });
         d.setScope({ surface: 'home', navSeq: 1 });
         d.startIdle();
-        d.tick(); // first line shows
+        d.tick(); // first line shows -> idle
         expect(d.getState().utterance?.bucketId).toBe('idle');
         now.t = 3001;
         d.tick(); // past show window -> hidden
         expect(d.getState().utterance).toBeNull();
         now.t = 5002;
-        d.tick(); // past gap -> next line
-        expect(d.getState().utterance?.bucketId).toBe('idle');
+        d.tick(); // past gap -> next line, now a tip
+        expect(d.getState().utterance?.bucketId).toBe('tip');
     });
 
     it('navigation cancels the drip', () => {

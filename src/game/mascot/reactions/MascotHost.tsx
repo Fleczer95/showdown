@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../../../i18n';
 import { MascotOverlay } from '../MascotOverlay';
 import type { MascotPose } from '../look';
+import { DRIP_BUCKETS } from './reactionDirector';
 import { useMascotState } from './useMascotDirector';
 
 const BUBBLE_MS = 4000; // spoken bubble dwell before auto-hide
@@ -18,7 +19,7 @@ const BOTTOM_GAP = 64; // clearance above the safe area (matches the old in-scre
 export function MascotHost() {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
-    const { state, surface, chatter, onAutoHide } = useMascotState();
+    const { state, surface, chatter, onAutoHide, openCustomizer } = useMascotState();
     const { utterance, expression } = state;
 
     const message = chatter && utterance?.textKey ? t(utterance.textKey, utterance.ctx) : null;
@@ -30,7 +31,7 @@ export function MascotHost() {
     // bubbles after a dwell, expression-only peeks sooner. The idle drip is the
     // sole exception: the director's tick owns its show/hide cadence.
     useEffect(() => {
-        if (!utterance || utterance.bucketId === 'idle') return;
+        if (!utterance || DRIP_BUCKETS.has(utterance.bucketId)) return;
         const ms = utterance.textKey != null ? BUBBLE_MS : PEEK_MS;
         const id = setTimeout(onAutoHide, ms);
         return () => clearTimeout(id);
@@ -54,6 +55,7 @@ export function MascotHost() {
             message={message}
             replayKey={replayKey}
             onMessagePress={onAutoHide}
+            onDoubleTap={openCustomizer}
             anchor='bottom-right'
             size={120}
             // The host lives at the app root (no safe-area container), so add the

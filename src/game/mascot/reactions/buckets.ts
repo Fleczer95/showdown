@@ -15,7 +15,8 @@ export type BucketId =
     | 'clutch'
     | 'all-in'
     | 'greeting'
-    | 'idle';
+    | 'idle'
+    | 'tip';
 
 export interface BucketDef {
     id: BucketId;
@@ -42,6 +43,9 @@ const TABLE: Record<EventName, BucketDef> = {
     'home-focus': { id: 'greeting', priority: 20, spoken: true, expression: 'happy', surfaces: ['home'] },
     'app-open': { id: 'greeting', priority: 20, spoken: true, expression: 'happy', surfaces: ['home'] },
     idle: { id: 'idle', priority: 5, spoken: true, expression: 'neutral', surfaces: ['home'] },
+    // Tips share the idle drip's cadence/surface — the drip alternates idle banter
+    // and a helpful tip. Neutral face so nothing strands when the drip hides it.
+    tip: { id: 'tip', priority: 5, spoken: true, expression: 'neutral', surfaces: ['home'] },
 };
 
 export function resolveBucket(name: EventName): BucketDef {

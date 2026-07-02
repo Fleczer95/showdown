@@ -63,6 +63,19 @@
             "15": "The studio is quiet... too quiet.",
             "16": "I'm practicing my smile."
         },
+        "tip": {
+            "1": "Psst — double-tap me to switch my look.",
+            "2": "The Climb: 15 questions, one slip ends the run.",
+            "3": "The Grid: wager big on the clues you trust.",
+            "4": "Letter Wheel: spin, guess letters, solve the word.",
+            "5": "The Drop: split your bank onto answers you trust.",
+            "6": "Play once a day to keep your streak alive.",
+            "7": "Share a result to challenge a friend.",
+            "8": "New looks and packs wait in the Store.",
+            "9": "The Climb: tough question? Spend a lifeline.",
+            "10": "Every pack, theme, or look you own adds a daily play.",
+            "11": "Premium unlocks unlimited daily plays."
+        },
         "streak": {
             "1": "On a roll.",
             "2": "Momentum's building.",

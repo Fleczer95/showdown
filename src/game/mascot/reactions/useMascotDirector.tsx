@@ -15,6 +15,8 @@ interface MascotContextValue {
     chatter: boolean;
     reduced: boolean;
     onAutoHide: () => void;
+    /** Double-tapping the Home fox jumps to its look customizer. */
+    openCustomizer: () => void;
 }
 
 const NEUTRAL: DirectorState = { utterance: null, expression: 'neutral' };
@@ -99,8 +101,9 @@ export function MascotDirectorProvider({
             chatter: mascotChatter,
             reduced,
             onAutoHide: director.clearUtterance,
+            openCustomizer: () => navigationRef.navigate('Mascot' as never),
         }),
-        [director, state, surface, mascotChatter, reduced],
+        [director, state, surface, mascotChatter, reduced, navigationRef],
     );
 
     return <MascotContext.Provider value={value}>{children}</MascotContext.Provider>;
@@ -120,6 +123,7 @@ export function useMascotState(): MascotContextValue {
             chatter: true,
             reduced: false,
             onAutoHide: () => {},
+            openCustomizer: () => {},
         }
     );
 }

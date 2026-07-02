@@ -30,6 +30,7 @@ export const LINES: Record<BucketId, LinePool> = {
     'all-in': { keys: range('allIn', 1, 6) },
     greeting: { keys: range('greeting', 1, 13) },
     idle: { keys: range('idle', 1, 16) },
+    tip: { keys: range('tip', 1, 11) },
 };
 
 export function poolFor(id: BucketId): LinePool {

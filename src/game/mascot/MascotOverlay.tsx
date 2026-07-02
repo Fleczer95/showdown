@@ -41,6 +41,9 @@ import PressableButton from '../../components/atoms/HapticPressable';
 
 type Anchor = 'bottom-right' | 'bottom-left';
 
+/** How long the slide-in bounce takes to settle before the bubble is revealed. */
+const ENTRANCE_SETTLE_MS = 650;
+
 export interface MascotOverlayProps {
     pose: MascotPose;
     size?: number;
@@ -83,6 +86,10 @@ export function MascotOverlay({
     const reduced = useReducedMotion();
     const haptics = useHaptics();
     const [look, setLook] = useState<LookMap>(getEquippedLook);
+    // Gates the speech bubble: it stays hidden until the fox's slide-in has
+    // settled, so the line appears once the entrance bounce finishes rather than
+    // over it.
+    const [entered, setEntered] = useState(false);
     const tapMessageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastTapAt = useRef(0);
 
@@ -92,7 +99,7 @@ export function MascotOverlay({
     const slide = useSharedValue(reduced ? 0 : hidden);
     // A 0→1→0 tap pulse: drives a little jump + squash when the fox is tapped.
     const bounce = useSharedValue(0);
-    const bubbleReveal = useSharedValue(message ? 1 : 0);
+    const bubbleReveal = useSharedValue(0);
 
     const onTap = useCallback(() => {
         haptics.light();
@@ -134,13 +141,18 @@ export function MascotOverlay({
         setLook(getEquippedLook());
         if (reduced) {
             slide.value = 0;
+            setEntered(true);
             onSettled?.();
             return;
         }
+        setEntered(false);
         slide.value = hidden;
         slide.value = withSpring(0, { damping: 14, stiffness: 120 }, (finished) => {
             if (finished && onSettled) runOnJS(onSettled)();
         });
+        // Reveal the bubble once the slide-in has visually settled.
+        const settle = setTimeout(() => setEntered(true), ENTRANCE_SETTLE_MS);
+        return () => clearTimeout(settle);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reduced, hidden, slide, replayKey]);
 
@@ -153,7 +165,8 @@ export function MascotOverlay({
     }));
 
     useEffect(() => {
-        if (!message) {
+        // Hold the bubble back until the entrance has settled (`entered`).
+        if (!message || !entered) {
             bubbleReveal.value = reduced ? 0 : withTiming(0, { duration: 120 });
             return;
         }
@@ -163,7 +176,7 @@ export function MascotOverlay({
         }
         bubbleReveal.value = 0;
         bubbleReveal.value = withSpring(1, { damping: 10, stiffness: 170 });
-    }, [message, reduced, bubbleReveal]);
+    }, [message, reduced, bubbleReveal, entered]);
 
     const bubbleAnimStyle = useAnimatedStyle(() => ({
         opacity: bubbleReveal.value,

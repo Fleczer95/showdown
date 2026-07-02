@@ -18,6 +18,9 @@
       "associatedDomains": [
         "applinks:showdown.lebene.pl"
       ],
+      "entitlements": {
+        "com.apple.developer.game-center": true
+      },
       "infoPlist": {
         "CFBundleName": "ShowDown"
       },

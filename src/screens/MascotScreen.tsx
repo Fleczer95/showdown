@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable as RNPressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft, Lock } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, useReducedMotion } from 'react-native-reanimated';
 import SafeContainer from '../responsive/SafeContainer';
@@ -25,6 +26,9 @@ import {
     mascotSwatchesForSlot,
     type MascotLookAction,
 } from '../game/mascot/lookPolicy';
+import type { RootStackParamList } from '../navigation/types';
+
+type MascotNavigation = NativeStackNavigationProp<RootStackParamList, 'Mascot'>;
 
 const SLOTS: MascotSlot[] = ['fur', 'suit', 'accent', 'mic'];
 const MASCOT_SIZE = 240;
@@ -53,7 +57,7 @@ const HIT_ZONES: { slot: MascotSlot; x: number; y: number; w: number; h: number 
  * route.
  */
 export function MascotScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<MascotNavigation>();
     const { t } = useTranslation();
     const theme = useTheme();
     const { iconSize, scale } = useResponsive();
@@ -84,7 +88,7 @@ export function MascotScreen() {
                     return;
                 case MascotLookActionType.OpenStore:
                     setActiveSlot(null);
-                    navigation.navigate('Store' as any, { gameId: 'mascots', itemId: action.itemId });
+                    navigation.push('Store', { gameId: 'mascots', itemId: action.itemId, returnTo: 'Mascot' });
                     return;
                 case MascotLookActionType.OpenProgress:
                     setActiveSlot(null);

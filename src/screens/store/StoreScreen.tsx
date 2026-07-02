@@ -47,7 +47,11 @@ function StoreItemCard({
     const accent = entry.presentation.accentColor;
 
     return (
-        <Pressable onPress={() => onPress(entry)} haptic='light' style={[styles.cardPressable, { marginBottom: theme.spacing.md }]}>
+        <Pressable
+            onPress={() => onPress(entry)}
+            haptic='light'
+            style={[styles.cardPressable, { marginBottom: theme.spacing.md }]}
+        >
             <View
                 pointerEvents='none'
                 style={[
@@ -67,7 +71,7 @@ function StoreItemCard({
                     backgroundColor={theme.colors.surface}
                     borderRadius={theme.radii.lg}
                     padding={theme.spacing.md}
-                    containerStyle={{ 
+                    containerStyle={{
                         marginRight: theme.spacing.md,
                         borderColor: accent + '40',
                         borderWidth: 2,
@@ -84,12 +88,12 @@ function StoreItemCard({
                 <View
                     style={[
                         styles.badge,
-                        { 
+                        {
                             marginLeft: theme.spacing.md,
                             paddingHorizontal: scale(10),
                             paddingVertical: scale(6),
                             borderRadius: scale(10),
-                            backgroundColor: unlocked ? theme.colors.success + '15' : accent + '18' 
+                            backgroundColor: unlocked ? theme.colors.success + '15' : accent + '18',
                         },
                     ]}
                 >
@@ -131,6 +135,14 @@ export default function StoreScreen() {
     const [detailItem, setDetailItem] = useState<CatalogEntry | null>(null);
     const [isRestoring, setIsRestoring] = useState(false);
     const [restoreMessageVisible, setRestoreMessageVisible] = useState(false);
+
+    const handleBack = () => {
+        if (route.params?.returnTo === 'Mascot' && !navigation.canGoBack()) {
+            navigation.navigate('Mascot');
+            return;
+        }
+        navigation.goBack();
+    };
 
     const ownedById = useMemo(
         () => new Map(resolvedEntries.map((resolved) => [resolved.entry.id, resolved.isPlayable])),
@@ -205,10 +217,12 @@ export default function StoreScreen() {
 
         let itemIndex = 0;
         if (route.params?.itemId) {
-            const foundIndex = sections[sectionIndex].data.findIndex(entry => entry.id === route.params?.itemId);
+            const foundIndex = sections[sectionIndex].data.findIndex((entry) => entry.id === route.params?.itemId);
             if (foundIndex !== -1) {
                 itemIndex = foundIndex;
-                setDetailItem(sections[sectionIndex].data[foundIndex]);
+                if (route.params?.returnTo !== 'Mascot') {
+                    setDetailItem(sections[sectionIndex].data[foundIndex]);
+                }
             }
         }
 
@@ -221,7 +235,7 @@ export default function StoreScreen() {
             });
         }, 300);
         return () => clearTimeout(timer);
-    }, [route.params?.gameId, route.params?.itemId, sections]);
+    }, [route.params?.gameId, route.params?.itemId, route.params?.returnTo, sections]);
 
     const handlePurchase = async () => {
         if (!detailItem) return;
@@ -255,7 +269,7 @@ export default function StoreScreen() {
                 >
                     <IconButton
                         icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
-                        onPress={() => navigation.goBack()}
+                        onPress={handleBack}
                         accessibilityLabel={t('screen.store.back')}
                         size='md'
                     />
@@ -318,7 +332,13 @@ export default function StoreScreen() {
                                             },
                                         ]}
                                     >
-                                        <View pointerEvents='none' style={[styles.tabContent, { justifyContent: 'center', gap: theme.spacing.sm }]}>
+                                        <View
+                                            pointerEvents='none'
+                                            style={[
+                                                styles.tabContent,
+                                                { justifyContent: 'center', gap: theme.spacing.sm },
+                                            ]}
+                                        >
                                             <CategoryIcon
                                                 size={iconSize(18)}
                                                 color={active ? theme.colors.primary : theme.colors.textSecondary}
@@ -343,50 +363,57 @@ export default function StoreScreen() {
                     entering={reduceMotion ? undefined : FadeIn.duration(220)}
                     style={styles.contentArea}
                 >
-                {selectedCategory === 'premium' ? (
-                    <PremiumPlans tabletColumn={tabletColumn} />
-                ) : (
-                <SectionList
-                    ref={sectionListRef}
-                    sections={sections}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <StoreItemCard
-                            entry={item}
-                            unlocked={ownedById.get(item.id) ?? false}
-                            price={resolvePrice(item)}
-                            onPress={setDetailItem}
+                    {selectedCategory === 'premium' ? (
+                        <PremiumPlans tabletColumn={tabletColumn} />
+                    ) : (
+                        <SectionList
+                            ref={sectionListRef}
+                            sections={sections}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <StoreItemCard
+                                    entry={item}
+                                    unlocked={ownedById.get(item.id) ?? false}
+                                    price={resolvePrice(item)}
+                                    onPress={setDetailItem}
+                                />
+                            )}
+                            renderSectionHeader={({ section }) =>
+                                selectedCategory === 'packs' ? (
+                                    <Text
+                                        variant='caption'
+                                        weight='bold'
+                                        color={theme.colors.textMuted}
+                                        style={[
+                                            styles.sectionHeader,
+                                            { paddingTop: theme.spacing.md, paddingBottom: theme.spacing.sm },
+                                        ]}
+                                    >
+                                        {section.title.toUpperCase()}
+                                    </Text>
+                                ) : null
+                            }
+                            ListEmptyComponent={
+                                <View style={[styles.empty, { padding: theme.spacing.xl }]}>
+                                    <Text variant='body' color={theme.colors.textSecondary} align='center'>
+                                        {t('screen.store.empty')}
+                                    </Text>
+                                </View>
+                            }
+                            contentContainerStyle={[
+                                styles.listContent,
+                                tabletColumn,
+                                {
+                                    paddingTop: theme.spacing.sm,
+                                    paddingHorizontal: theme.spacing.xl,
+                                    paddingBottom: theme.spacing.xxl + insets.bottom,
+                                },
+                            ]}
+                            stickySectionHeadersEnabled={false}
+                            showsVerticalScrollIndicator={false}
+                            onScrollToIndexFailed={() => undefined}
                         />
                     )}
-                    renderSectionHeader={({ section }) =>
-                        selectedCategory === 'packs' ? (
-                            <Text
-                                variant='caption'
-                                weight='bold'
-                                color={theme.colors.textMuted}
-                                style={[styles.sectionHeader, { paddingTop: theme.spacing.md, paddingBottom: theme.spacing.sm }]}
-                            >
-                                {section.title.toUpperCase()}
-                            </Text>
-                        ) : null
-                    }
-                    ListEmptyComponent={
-                        <View style={[styles.empty, { padding: theme.spacing.xl }]}>
-                            <Text variant='body' color={theme.colors.textSecondary} align='center'>
-                                {t('screen.store.empty')}
-                            </Text>
-                        </View>
-                    }
-                    contentContainerStyle={[
-                        styles.listContent,
-                        tabletColumn,
-                        { paddingTop: theme.spacing.sm, paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxl + insets.bottom },
-                    ]}
-                    stickySectionHeadersEnabled={false}
-                    showsVerticalScrollIndicator={false}
-                    onScrollToIndexFailed={() => undefined}
-                />
-                )}
                 </Animated.View>
 
                 {restoreMessageVisible && (
@@ -413,7 +440,12 @@ export default function StoreScreen() {
 
             <BottomSheet scrollable visible={!!detailItem} onClose={() => !isProcessing && setDetailItem(null)}>
                 {detailItem && (
-                    <View style={[styles.detailContainer, { paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.sm }]}>
+                    <View
+                        style={[
+                            styles.detailContainer,
+                            { paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.sm },
+                        ]}
+                    >
                         <View style={[styles.detailHeader, { gap: theme.spacing.lg }]}>
                             <View
                                 style={[
@@ -474,11 +506,11 @@ export default function StoreScreen() {
                                         <View
                                             style={[
                                                 styles.featureIconContainer,
-                                                { 
+                                                {
                                                     backgroundColor: detailItem.presentation.accentColor + '1A',
                                                     width: scale(24),
                                                     height: scale(24),
-                                                    borderRadius: scale(12)
+                                                    borderRadius: scale(12),
                                                 },
                                             ]}
                                         >
@@ -576,8 +608,7 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
     },
-    categoriesContainer: {
-    },
+    categoriesContainer: {},
     tabs: {
         flexGrow: 1,
         justifyContent: 'center',
@@ -589,10 +620,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    listContent: {
-    },
-    cardPressable: {
-    },
+    listContent: {},
+    cardPressable: {},
     card: {
         borderWidth: 1,
         flexDirection: 'row',
@@ -601,8 +630,7 @@ const styles = StyleSheet.create({
     cardContent: {
         flex: 1,
     },
-    badge: {
-    },
+    badge: {},
     sectionHeader: {
         letterSpacing: 1.2,
     },

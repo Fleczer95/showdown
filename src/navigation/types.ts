@@ -9,7 +9,7 @@ export type RootStackParamList = {
     Home: undefined;
     Settings: undefined;
     Theme: undefined;
-    Store: { gameId?: string; itemId?: string } | undefined;
+    Store: { gameId?: string; itemId?: string; returnTo?: 'Mascot' } | undefined;
     Progress: { focusRewardId?: string } | undefined;
     privacyPolicy: undefined;
     termsOfUse: undefined;

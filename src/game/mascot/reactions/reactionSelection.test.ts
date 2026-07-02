@@ -1,4 +1,5 @@
 import { pickLine } from './reactionSelection';
+import { poolFor } from './lines';
 
 describe('pickLine', () => {
     it('never repeats a recent key when alternatives exist', () => {
@@ -9,7 +10,7 @@ describe('pickLine', () => {
     });
 
     it('falls back to full pool when everything is recent', () => {
-        const recent = ['mascot.clutch.1'];
+        const recent = [...poolFor('clutch').keys];
         const key = pickLine('clutch', { recent, rand: () => 0 });
         expect(key).toBe('mascot.clutch.1');
     });

@@ -4,29 +4,72 @@
             "1": "That's a win. Textbook.",
             "2": "You made that look easy.",
             "3": "Champion stuff.",
-            "4": "Take a bow."
+            "4": "Take a bow.",
+            "5": "Nailed it.",
+            "6": "Flawless finish.",
+            "7": "Scoreboard approves.",
+            "8": "The crowd goes wild.",
+            "9": "Now that's showbusiness.",
+            "10": "You're a natural.",
+            "11": "A masterclass.",
+            "12": "That scoreboard purrs.",
+            "13": "Did you even break a sweat?"
         },
         "runLost": {
             "1": "Ah — so close.",
             "2": "That one stung. Rematch?",
             "3": "We'll get it next time.",
-            "4": "Brutal. Shake it off."
+            "4": "Brutal. Shake it off.",
+            "5": "Missed by a whisker.",
+            "6": "Cruel luck. Not your fault.",
+            "7": "Dust yourself off.",
+            "8": "Don't sweat it.",
+            "9": "Good run. Rough landing.",
+            "10": "The board won this round.",
+            "11": "Close enough to haunt me.",
+            "12": "Just a minor setback, star.",
+            "13": "Reset the lights. Again?"
         },
         "greeting": {
             "1": "Welcome in. I'll keep score.",
             "2": "Back for more? Good.",
             "3": "Ready when you are.",
-            "4": "Let's make it count."
+            "4": "Let's make it count.",
+            "5": "Step right up.",
+            "6": "Showtime.",
+            "7": "The stage is yours.",
+            "8": "Lights on. You're up.",
+            "9": "I saved you a podium.",
+            "10": "Cue the theme music.",
+            "11": "House lights down. Your call.",
+            "12": "I warmed up the applause.",
+            "13": "Glad you could make it."
         },
         "idle": {
             "1": "Take your time.",
             "2": "I'm not going anywhere.",
             "3": "Pick a game, any game.",
             "4": "The Wheel's feeling lucky today.",
-            "5": "Still here."
+            "5": "Still here.",
+            "6": "I've got all day.",
+            "7": "Whenever you're ready.",
+            "8": "Something catch your eye?",
+            "9": "I can wait dramatically.",
+            "10": "Tiny pause. Big suspense.",
+            "11": "Your move, star player.",
+            "12": "Thinking hard?",
+            "13": "The suspense is doing push-ups.",
+            "14": "Still deciding? Respect.",
+            "15": "The studio is quiet... too quiet.",
+            "16": "I'm practicing my smile."
         },
         "streak": {
             "1": "On a roll.",
+            "2": "Momentum's building.",
+            "3": "Hot streak.",
+            "4": "The streak has teeth.",
+            "5": "Wins are lining up.",
+            "6": "That's a heater.",
             "tier1": "Three straight!",
             "tier2": "Five! You're on fire.",
             "tier3": "Ten in a row — unstoppable."
@@ -34,39 +77,82 @@
         "levelUp": {
             "1": "Level up! Look at you.",
             "2": "New level. Earned it.",
-            "3": "Onwards and upwards."
+            "3": "Onwards and upwards.",
+            "4": "New tier, same swagger.",
+            "5": "Moving on up.",
+            "6": "Elite status.",
+            "7": "Rank up. Tail high.",
+            "8": "Bigger stage. Same grin."
         },
         "challengeWin": {
             "1": "You beat their score. Savage.",
             "2": "Bragging rights: yours.",
-            "3": "That's how it's done."
+            "3": "That's how it's done.",
+            "4": "Mic drop.",
+            "5": "Friend dethroned. Politely.",
+            "6": "Crushed them.",
+            "7": "Their crown slipped. Oops.",
+            "8": "Score settled. Brilliantly."
         },
         "challengeIn": {
             "1": "A challenge landed. Someone's brave.",
-            "2": "New challenge for you."
+            "2": "New challenge for you.",
+            "3": "Gauntlet thrown.",
+            "4": "Someone rang the bell.",
+            "5": "A score wants trouble.",
+            "6": "Someone wants the spotlight.",
+            "7": "They want a piece of the champ."
         },
         "challengeOut": {
             "1": "Challenge sent. Now we wait.",
-            "2": "Let's see if they can match that."
+            "2": "Let's see if they can match that.",
+            "3": "Ball's in their court.",
+            "4": "Sent. Let them sweat.",
+            "5": "They're shaking.",
+            "6": "Your score is on tour.",
+            "7": "Let the games begin."
         },
         "offlineLimit": {
             "1": "That's today's free runs. The Store lifts the cap.",
-            "2": "Out of solo runs for today."
+            "2": "Out of solo runs for today.",
+            "3": "Free runs are up. Check the Store?",
+            "4": "Tank's empty till tomorrow — or the Store.",
+            "5": "Show's over today. Store's still open."
         },
         "unlock": {
             "1": "Unlocked. Nice pickup.",
-            "2": "New content — go try it."
+            "2": "New content — go try it.",
+            "3": "Fresh off the shelf.",
+            "4": "Yours to keep.",
+            "5": "Fresh pack. Fresh trouble.",
+            "6": "New pack in the spotlight.",
+            "7": "A fine addition to the set."
         },
         "lookEquipped": {
             "1": "Sharp look.",
             "2": "Suits me, doesn't it?",
-            "3": "Dressed to host."
+            "3": "Dressed to host.",
+            "4": "Yes, I do wear it well.",
+            "5": "Tailored to perfection.",
+            "6": "How do I look? Rhetorical.",
+            "7": "Red carpet ready.",
+            "8": "Camera loves this fit."
         },
         "clutch": {
-            "1": "Down to the wire!"
+            "1": "Down to the wire!",
+            "2": "Right on the buzzer!",
+            "3": "Last second heroics!",
+            "4": "Not even sweating.",
+            "5": "Saved at the edge!",
+            "6": "Cutting it terribly close, eh?"
         },
         "allIn": {
-            "1": "All in — and it paid off!"
+            "1": "All in — and it paid off!",
+            "2": "All the chips. All yours.",
+            "3": "No guts, no glory. Glory!",
+            "4": "Fortune favors the bold.",
+            "5": "You shoved. The stage paid.",
+            "6": "You play dangerously. I like it."
         }
     },
     "challenge": {

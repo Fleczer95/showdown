@@ -4,29 +4,72 @@
             "1": "Wygrana. Podręcznikowa.",
             "2": "Poszło ci jak z płatka.",
             "3": "Mistrzowski poziom.",
-            "4": "Ukłoń się publiczności."
+            "4": "Ukłoń się publiczności.",
+            "5": "W punkt.",
+            "6": "Perfekcja.",
+            "7": "Tablica bije brawo.",
+            "8": "Publiczność szaleje.",
+            "9": "To się nazywa show.",
+            "10": "Masz to we krwi.",
+            "11": "Klasa sama w sobie.",
+            "12": "Tablica aż mruczy z zachwytu.",
+            "13": "Bez kropli potu, co?"
         },
         "runLost": {
             "1": "Ech — o włos.",
             "2": "Zabolało. Rewanż?",
             "3": "Następnym razem się uda.",
-            "4": "Bezlitośnie. Otrząśnij się."
+            "4": "Bezlitośnie. Otrząśnij się.",
+            "5": "O włos. Serio.",
+            "6": "Pech. Nie twoja wina.",
+            "7": "Głowa do góry.",
+            "8": "Zdarza się najlepszym.",
+            "9": "Dobry bieg. Twarde lądowanie.",
+            "10": "Tym razem plansza wygrała.",
+            "11": "Tak blisko, że aż boli.",
+            "12": "Małe potknięcie, gwiazdo.",
+            "13": "Gasimy światła? Nie, gramy dalej."
         },
         "greeting": {
             "1": "Witaj. Ja liczę punkty.",
             "2": "Wracasz po więcej? Dobrze.",
             "3": "Jestem gotowy, kiedy ty.",
-            "4": "Zróbmy z tego coś dobrego."
+            "4": "Zróbmy z tego coś dobrego.",
+            "5": "Śmiało, zapraszam.",
+            "6": "Czas na show.",
+            "7": "Scena jest twoja.",
+            "8": "Światła gotowe. Twoja kolej.",
+            "9": "Trzymałem ci podium.",
+            "10": "Niech gra czołówka.",
+            "11": "Światła w dół. Ty wybierasz.",
+            "12": "Rozgrzałem już oklaski.",
+            "13": "Miło, że jesteś."
         },
         "idle": {
             "1": "Nie spiesz się.",
             "2": "Nigdzie się nie wybieram.",
             "3": "Wybierz grę, dowolną.",
             "4": "Koło dziś czuje szczęście.",
-            "5": "Wciąż tu jestem."
+            "5": "Wciąż tu jestem.",
+            "6": "Nigdzie się nie spieszę.",
+            "7": "Kiedy tylko zechcesz.",
+            "8": "Coś wpadło ci w oko?",
+            "9": "Umiem czekać z klasą.",
+            "10": "Mała pauza. Duże napięcie.",
+            "11": "Twój ruch, gwiazdo.",
+            "12": "Głębokie przemyślenia?",
+            "13": "Napięcie robi rozgrzewkę.",
+            "14": "Wciąż wybierasz? Szanuję.",
+            "15": "W studiu jest cicho... za cicho.",
+            "16": "Ćwiczę mój uśmiech do kamery."
         },
         "streak": {
             "1": "Idzie ci.",
+            "2": "Rozpęd rośnie.",
+            "3": "Świetna passa.",
+            "4": "Ta seria ma pazur.",
+            "5": "Wygrane ustawiają się w kolejce.",
+            "6": "Ale seria. Gorąco tu.",
             "tier1": "Trzy z rzędu!",
             "tier2": "Pięć! Rozpędzasz się.",
             "tier3": "Dziesięć z rzędu — nie do zatrzymania."
@@ -34,39 +77,82 @@
         "levelUp": {
             "1": "Nowy poziom! No proszę.",
             "2": "Kolejny poziom. Zasłużony.",
-            "3": "Naprzód i w górę."
+            "3": "Naprzód i w górę.",
+            "4": "Nowy poziom, ten sam styl.",
+            "5": "Pniemy się w górę.",
+            "6": "Wyższa liga.",
+            "7": "Awans. Ogon wysoko.",
+            "8": "Większa scena. Ten sam uśmiech."
         },
         "challengeWin": {
-            "1": "Pobiłeś ich wynik. Bezlitośnie.",
+            "1": "Ich wynik pobity. Bez litości.",
             "2": "Prawo do przechwałek: twoje.",
-            "3": "Tak się to robi."
+            "3": "Tak się to robi.",
+            "4": "Mikrofon na podłogę.",
+            "5": "Znajomy zdetronizowany. Z klasą.",
+            "6": "Nie mieli szans.",
+            "7": "Korona im spadła. Ups.",
+            "8": "Porachunki wyrównane. Z klasą."
         },
         "challengeIn": {
             "1": "Wpadło wyzwanie. Ktoś jest odważny.",
-            "2": "Nowe wyzwanie dla ciebie."
+            "2": "Nowe wyzwanie dla ciebie.",
+            "3": "Rękawica rzucona.",
+            "4": "Ktoś zadzwonił gongiem.",
+            "5": "Wynik szuka kłopotów.",
+            "6": "Ktoś chce wejść w światło reflektorów.",
+            "7": "Ktoś tu chce pobić mistrza."
         },
         "challengeOut": {
             "1": "Wyzwanie wysłane. Teraz czekamy.",
-            "2": "Zobaczmy, czy dorównają."
+            "2": "Zobaczmy, czy dorównają.",
+            "3": "Piłka po ich stronie.",
+            "4": "Wysłane. Niech się spocą.",
+            "5": "Już się boją.",
+            "6": "Twój wynik ruszył w trasę.",
+            "7": "Niech rozpocznie się gra."
         },
         "offlineLimit": {
             "1": "To dzisiejsze darmowe rundy. Sklep podnosi limit.",
-            "2": "Koniec solowych rund na dziś."
+            "2": "Koniec solowych rund na dziś.",
+            "3": "Darmowe gry zużyte. Może Sklep?",
+            "4": "Bak pusty do jutra — albo Sklep.",
+            "5": "Dziś to tyle. Ale sklep wciąż otwarty."
         },
         "unlock": {
             "1": "Odblokowane. Niezły nabytek.",
-            "2": "Nowa zawartość — wypróbuj ją."
+            "2": "Nowa zawartość — wypróbuj ją.",
+            "3": "Prosto z półki.",
+            "4": "Zostaje z tobą.",
+            "5": "Nowa paczka. Nowe emocje.",
+            "6": "Nowy pakiet w świetle reflektorów.",
+            "7": "Świetny dodatek do naszego studia."
         },
         "lookEquipped": {
             "1": "Elegancki wygląd.",
             "2": "Pasuje mi, prawda?",
-            "3": "Ubrany, by prowadzić."
+            "3": "Ubrany, by prowadzić.",
+            "4": "Tak, leży idealnie.",
+            "5": "Uszyte na miarę.",
+            "6": "Jak wyglądam? Pytanie retoryczne.",
+            "7": "Gotowy na czerwony dywan.",
+            "8": "Kamera kocha ten styl."
         },
         "clutch": {
-            "1": "Na ostatnią chwilę!"
+            "1": "Na ostatnią chwilę!",
+            "2": "Tuż przed gongiem!",
+            "3": "Rzutem na taśmę!",
+            "4": "Nawet się nie spociłem.",
+            "5": "Uratowane na krawędzi!",
+            "6": "O mały włos, co?"
         },
         "allIn": {
-            "1": "Va banque — i się opłaciło!"
+            "1": "Va banque — i się opłaciło!",
+            "2": "Cała stawka. Cała twoja.",
+            "3": "Kto nie ryzykuje... i wygrywa!",
+            "4": "Do odważnych świat należy.",
+            "5": "Postawione wszystko. Scena zapłaciła.",
+            "6": "Grasz ryzykownie. Podoba mi się to."
         }
     },
     "challenge": {

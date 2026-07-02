@@ -31,11 +31,12 @@ export function MascotHost() {
     // bubbles after a dwell, expression-only peeks sooner. The idle drip is the
     // sole exception: the director's tick owns its show/hide cadence.
     useEffect(() => {
+        if (!visible) return;
         if (!utterance || DRIP_BUCKETS.has(utterance.bucketId)) return;
         const ms = utterance.textKey != null ? BUBBLE_MS : PEEK_MS;
         const id = setTimeout(onAutoHide, ms);
         return () => clearTimeout(id);
-    }, [utterance, onAutoHide]);
+    }, [visible, utterance, onAutoHide]);
 
     if (!visible) return null;
 

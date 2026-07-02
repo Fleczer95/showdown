@@ -32,7 +32,7 @@ export interface ChallengeRecordValidationOptions {
 }
 
 const CHALLENGE_GAMES: readonly ChallengeGameId[] = ['the-ladder', 'the-drop', 'the-wheel'];
-const MASCOT_SLOTS: readonly MascotSlot[] = ['fur', 'suit', 'accent', 'mic'];
+export const MASCOT_SLOTS: readonly MascotSlot[] = ['fur', 'suit', 'accent', 'mic'];
 
 type JsonObject = Record<string, unknown>;
 

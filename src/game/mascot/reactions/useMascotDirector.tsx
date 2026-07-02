@@ -3,13 +3,11 @@ import { AppState } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { createReactionDirector, type DirectorState, type ReactionDirector } from './reactionDirector';
-import type { EventContext, EventName } from './events';
+import type { EventContext, EventName, Surface } from './events';
 import { surfaceForRoute } from './emit';
-import type { Surface } from './events';
 import { useSettings } from '../../../hooks/useSettings';
 
 interface MascotContextValue {
-    emit: (name: EventName, ctx?: EventContext) => void;
     state: DirectorState;
     surface: Surface;
     chatter: boolean;
@@ -21,7 +19,8 @@ interface MascotContextValue {
 
 const NEUTRAL: DirectorState = { utterance: null, expression: 'neutral' };
 
-const MascotContext = createContext<MascotContextValue | null>(null);
+const MascotEmitContext = createContext<((name: EventName, ctx?: EventContext) => void) | null>(null);
+const MascotStateContext = createContext<MascotContextValue | null>(null);
 
 /**
  * Owns the single reaction director for the app's lifetime and wires the
@@ -52,6 +51,7 @@ export function MascotDirectorProvider({
     const reduced = useReducedMotion();
     const [state, setState] = useState<DirectorState>(director.getState());
     const [surface, setSurface] = useState<Surface>('other');
+    const [appActive, setAppActive] = useState(() => AppState.currentState === 'active');
 
     useEffect(() => {
         const unsub = director.subscribe(setState);
@@ -82,20 +82,23 @@ export function MascotDirectorProvider({
     // App background → drop pending reactions (no stale lines on resume).
     useEffect(() => {
         const sub = AppState.addEventListener('change', (s) => {
-            if (s !== 'active') director.onBackground();
+            const active = s === 'active';
+            setAppActive(active);
+            if (!active) director.onBackground();
         });
         return () => sub.remove();
     }, [director]);
 
     // Idle drip clock.
     useEffect(() => {
+        if (!appActive || surface !== 'home') return;
         const id = setInterval(() => director.tick(), 1000);
         return () => clearInterval(id);
-    }, [director]);
+    }, [appActive, director, surface]);
 
-    const value = useMemo<MascotContextValue>(
+    const emitValue = useMemo(() => director.emit, [director]);
+    const stateValue = useMemo<MascotContextValue>(
         () => ({
-            emit: director.emit,
             state,
             surface,
             chatter: mascotChatter,
@@ -106,18 +109,20 @@ export function MascotDirectorProvider({
         [director, state, surface, mascotChatter, reduced, navigationRef],
     );
 
-    return <MascotContext.Provider value={value}>{children}</MascotContext.Provider>;
+    return (
+        <MascotEmitContext.Provider value={emitValue}>
+            <MascotStateContext.Provider value={stateValue}>{children}</MascotStateContext.Provider>
+        </MascotEmitContext.Provider>
+    );
 }
 
 export function useMascotEmit(): (name: EventName, ctx?: EventContext) => void {
-    const ctx = useContext(MascotContext);
-    return ctx ? ctx.emit : () => {};
+    return useContext(MascotEmitContext) ?? (() => {});
 }
 
 export function useMascotState(): MascotContextValue {
     return (
-        useContext(MascotContext) ?? {
-            emit: () => {},
+        useContext(MascotStateContext) ?? {
             state: NEUTRAL,
             surface: 'other',
             chatter: true,

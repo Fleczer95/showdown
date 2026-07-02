@@ -1,3 +1,5 @@
+import { MASCOT_SLOTS, type MascotSlot as ChallengeMascotSlot } from '../../../shared/challenge/contract';
+
 /**
  * Mascot look — the permanent data model (plan §5, §7). A "look" is a
  * `{ slot: colorId }` map: ownership-agnostic, recolored at render time by
@@ -13,7 +15,8 @@
  */
 
 /** The four recolorable regions. */
-export type MascotSlot = 'fur' | 'suit' | 'accent' | 'mic';
+export type MascotSlot = ChallengeMascotSlot;
+export { MASCOT_SLOTS };
 
 /** The four reaction poses (plan §3). `jackpot` is deferred. */
 export type MascotPose = 'intro' | 'idle' | 'cheer' | 'dismay';

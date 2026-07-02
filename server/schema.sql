@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS challenges (
     questions TEXT NOT NULL,   -- JSON-stringified ChallengeQuestion[]
     createdBy TEXT NOT NULL,   -- JSON-stringified { uuid, nickname }
     expiresAt INTEGER NOT NULL, -- epoch ms
-    mascot    TEXT NOT NULL    -- JSON-stringified { fur, suit, accent, mic }
+    mascot    TEXT NOT NULL DEFAULT '{"fur":"fur.orange","suit":"suit.royal","accent":"accent.crimson","mic":"mic.gold"}' -- JSON-stringified { fur, suit, accent, mic }
 );
 CREATE INDEX IF NOT EXISTS idx_challenges_expires ON challenges(expiresAt);
 

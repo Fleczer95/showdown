@@ -1,5 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
-import { DEFAULT_LOOK, type LookMap, type MascotSlot } from './look';
+import { DEFAULT_LOOK, MASCOT_SLOTS, type LookMap } from './look';
 
 // The mascot look this device has equipped (plan §5): a `{ slot: colorId }` map,
 // NOT a single skin id, so each slot recolors independently. Same `showdown`
@@ -15,8 +15,12 @@ export function getEquippedLook(): LookMap {
     const raw = store.getString(KEY);
     if (!raw) return { ...DEFAULT_LOOK };
     try {
-        const parsed = JSON.parse(raw) as Partial<Record<MascotSlot, string>>;
-        return { ...DEFAULT_LOOK, ...parsed };
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        const look = { ...DEFAULT_LOOK };
+        for (const slot of MASCOT_SLOTS) {
+            if (typeof parsed[slot] === 'string' && parsed[slot].length > 0) look[slot] = parsed[slot];
+        }
+        return look;
     } catch {
         return { ...DEFAULT_LOOK };
     }

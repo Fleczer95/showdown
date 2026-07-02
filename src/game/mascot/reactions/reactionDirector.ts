@@ -17,7 +17,7 @@ export interface DirectorConfig {
 
 // Arrival/ambient Home events are meant to fire ON navigation to Home, so they
 // are exempt from the post-navigation quiet window (which guards reactive events).
-const AMBIENT: ReadonlySet<EventName> = new Set(['home-focus', 'app-open', 'idle', 'tip']);
+const AMBIENT: ReadonlySet<EventName> = new Set(['home-focus', 'app-open', 'idle', 'tip', 'offline-limit']);
 
 // Buckets the idle drip owns: it (not the auto-hide timer) controls their
 // show/hide cadence, and navigating away clears whichever is showing.
@@ -175,6 +175,7 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
         onNavigate() {
             stopIdle();
             lastNavAt = config.now();
+            lastPriority = -Infinity;
             scope = { ...scope, navSeq: scope.navSeq + 1 };
             if (state.utterance) {
                 state = { ...state, utterance: null };

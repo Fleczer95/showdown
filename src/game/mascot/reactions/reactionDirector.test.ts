@@ -91,6 +91,30 @@ describe('reactionDirector', () => {
         expect(d.getState().utterance?.bucketId).toBe('greeting');
     });
 
+    it('lets offline-limit bypass nav quiet on Home focus', () => {
+        const now = { t: 0 };
+        const d = makeDirector(now);
+        d.setScope({ surface: 'home', navSeq: 1 });
+        d.onNavigate();
+        now.t = 100; // < navQuietMs
+        d.emit('offline-limit', {});
+        expect(d.getState().utterance?.bucketId).toBe('offline-limit');
+    });
+
+    it('onNavigate clears the previous priority gate for the next screen', () => {
+        const now = { t: 1000 };
+        const d = makeDirector(now);
+        d.setScope({ surface: 'home', navSeq: 1 });
+        d.emit('level-up', {});
+        expect(d.getState().utterance?.bucketId).toBe('level-up');
+
+        d.onNavigate();
+        d.setScope({ surface: 'home', navSeq: 2 });
+        now.t = 5200; // past navQuiet, still within cooldown
+        d.emit('offline-limit', {});
+        expect(d.getState().utterance?.bucketId).toBe('offline-limit');
+    });
+
     it('resolves the surface live via getSurface', () => {
         let surf: 'other' | 'game' = 'other';
         const d = createReactionDirector({ getSurface: () => surf, cooldownMs: 0, navQuietMs: 0, now: () => 0 });
@@ -105,7 +129,13 @@ describe('reactionDirector', () => {
 describe('idle drip', () => {
     it('drips one line at a time, hides between, and alternates idle banter with a tip', () => {
         const now = { t: 0 };
-        const d = createReactionDirector({ now: () => now.t, idleShowMs: 3000, idleGapMs: 2000, cooldownMs: 0, navQuietMs: 0 });
+        const d = createReactionDirector({
+            now: () => now.t,
+            idleShowMs: 3000,
+            idleGapMs: 2000,
+            cooldownMs: 0,
+            navQuietMs: 0,
+        });
         d.setScope({ surface: 'home', navSeq: 1 });
         d.startIdle();
         d.tick(); // first line shows -> idle

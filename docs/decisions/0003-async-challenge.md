@@ -121,3 +121,37 @@ via a static Universal/App Link domain. No bespoke application server.
 - Operationally there is **no application server to run or maintain** — only
   Firestore (managed) and a handful of static files on existing hosting.
 - ADR-0001's "Async Challenge is post-MVP" is superseded: it is now in the MVP.
+
+## Amendment (2026-07-02): Worker/D1 and canonical Challenge Record contract
+
+The implementation now uses a Cloudflare Worker backed by D1 instead of direct
+Firestore writes. This is an infrastructure change, not a change to the
+[[Async Challenge]] experience: the app still creates an immutable online
+Challenge Record, participants still submit one attempt per device UUID, and
+the link domain remains the Universal/App Link entry point.
+
+The canonical Challenge Record is the shared app/Worker contract:
+
+```jsonc
+{
+    "lang": "pl",
+    "game": "the-ladder",
+    "questions": [{ "id": "ladder-001", "alternates": ["ladder-002"] }],
+    "createdBy": { "uuid": "device-uuid", "nickname": "Ada" },
+    "expiresAt": 1783000000000,
+    "mascot": { "fur": "fur.orange", "suit": "suit.royal", "accent": "accent.crimson", "mic": "mic.gold" },
+}
+```
+
+Changes from the original record sketch:
+
+- Questions are **id-only**, not embedded all-locale payloads. All free and pack
+  content ships on-device, so each device resolves ids locally in its own
+  language. Missing ids mean the app must update.
+- `mascot` is required. A challenge carries the creator's look as stable
+  `{ slot: colorId }` strings so the opponent sees the sender presentation.
+  Unknown color ids fall back during rendering; the contract only requires the
+  four slots.
+- No `schemaVersion` or `minAppVersion` field is carried for now. The shared
+  runtime contract validates the current shape, and content-version gaps are
+  handled by missing-id detection.

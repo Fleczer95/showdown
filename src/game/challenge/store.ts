@@ -1,5 +1,5 @@
 import appCheck from '@react-native-firebase/app-check';
-import type { Attempt, ChallengeRecord } from './types';
+import { parseChallengeRecord, serializeChallengeRecord, type Attempt, type ChallengeRecord } from './types';
 import { generateUuid } from './deviceId';
 import { SafeSentry } from '../../utils/sentry/init';
 
@@ -95,7 +95,8 @@ async function appCheckHeaders(forceRefresh: boolean): Promise<Record<string, st
 export async function fetchWithAppCheck(path: string, init: RequestInit = {}): Promise<Response> {
     const url = `${BASE_API_URL}${path}`;
     let res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(false)) } });
-    if (res.status === 403) res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(true)) } });
+    if (res.status === 403)
+        res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(true)) } });
     return res;
 }
 
@@ -117,12 +118,12 @@ export async function request<T>(path: string, init: RequestInit = {}, notFound 
         clearTimeout(timer);
         if (err.name === 'AbortError') throw new OfflineError();
         if (err instanceof OfflineError || err instanceof BlockedError) throw err;
-        
+
         // Log unexpected runtime errors (e.g., JSON SyntaxError), but ignore raw network exceptions (TypeError)
         if (err.name !== 'TypeError') {
             SafeSentry.captureException(err, { tags: { area: 'challenge-store', type: err.name } });
         }
-        
+
         throw new OfflineError(err);
     }
 }
@@ -141,13 +142,20 @@ export function newChallengeId(): string {
  *  pre-generated `id` (see `newChallengeId`) to make a retry target the same doc. */
 export async function createChallenge(record: ChallengeRecord, id?: string): Promise<string> {
     const docId = id ?? newChallengeId();
-    await request('/challenges', { method: 'POST', body: JSON.stringify({ ...record, id: docId }) });
+    await request('/challenges', {
+        method: 'POST',
+        body: JSON.stringify({ ...serializeChallengeRecord(record), id: docId }),
+    });
     return docId;
 }
 
 /** Fetch a challenge by id. Returns `null` when missing or expired-out. */
-export function getChallenge(id: string): Promise<ChallengeRecord | null> {
-    return request<ChallengeRecord | null>(`/challenges/${id}`, undefined, true);
+export async function getChallenge(id: string): Promise<ChallengeRecord | null> {
+    const record = await request<unknown | null>(`/challenges/${id}`, undefined, true);
+    if (record === null) return null;
+    const parsed = parseChallengeRecord(record);
+    if (!parsed) throw new BlockedError();
+    return parsed;
 }
 
 /** Record this device's attempt. Create-only, one-per-UUID is enforced server-side. */

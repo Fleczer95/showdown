@@ -60,6 +60,12 @@ The social/competitive layer that replaces local multiplayer: a player shares a
 result via URL/deep link so a friend can attempt to beat that score. (Design
 doc: "shared deep links that challenge a specific score.")
 
+### Challenge Record
+The immutable online record behind an [[Async Challenge]]. It freezes the game,
+the ordered question ids, the creator's identity, expiry time, and the creator's
+mascot look. It is the shared contract both devices use to play the same
+challenge and show the same creator presentation.
+
 ### Rung
 The 1-based position a player has reached on [[The Ladder]]. Reaching rung 15
 is a win.

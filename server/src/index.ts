@@ -74,14 +74,14 @@ export default {
                     questions: body.questions,
                     createdBy: body.createdBy,
                     expiresAt: body.expiresAt,
+                    mascot: body.mascot,
                 };
                 if (!isValidId(id) || !validateChallenge(record)) return json({ error: 'Invalid challenge' }, 400);
                 ctx.waitUntil(cleanupExpired(env));
                 try {
-                    await env.DB
-                        .prepare(
-                            'INSERT INTO challenges (id, lang, game, questions, createdBy, expiresAt) VALUES (?, ?, ?, ?, ?, ?)',
-                        )
+                    await env.DB.prepare(
+                        'INSERT INTO challenges (id, lang, game, questions, createdBy, expiresAt, mascot) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    )
                         .bind(
                             id,
                             record.lang,
@@ -89,6 +89,7 @@ export default {
                             JSON.stringify(record.questions),
                             JSON.stringify(record.createdBy),
                             record.expiresAt,
+                            JSON.stringify(record.mascot),
                         )
                         .run();
                 } catch (err: any) {
@@ -103,10 +104,18 @@ export default {
 
             // GET /challenges/:id
             if (method === 'GET' && seg.length === 2 && seg[0] === 'challenges') {
-                const row = await env.DB
-                    .prepare('SELECT lang, game, questions, createdBy, expiresAt FROM challenges WHERE id = ? AND expiresAt > ?')
+                const row = await env.DB.prepare(
+                    'SELECT lang, game, questions, createdBy, expiresAt, mascot FROM challenges WHERE id = ? AND expiresAt > ?',
+                )
                     .bind(seg[1], Date.now())
-                    .first<{ lang: string; game: string; questions: string; createdBy: string; expiresAt: number }>();
+                    .first<{
+                        lang: string;
+                        game: string;
+                        questions: string;
+                        createdBy: string;
+                        expiresAt: number;
+                        mascot: string;
+                    }>();
                 if (!row) return json({ error: 'Not found' }, 404);
                 return json({
                     lang: row.lang,
@@ -114,6 +123,7 @@ export default {
                     questions: JSON.parse(row.questions),
                     createdBy: JSON.parse(row.createdBy),
                     expiresAt: row.expiresAt,
+                    mascot: JSON.parse(row.mascot),
                 });
             }
 

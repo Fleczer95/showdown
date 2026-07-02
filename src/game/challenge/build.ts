@@ -17,6 +17,7 @@ import {
     CHALLENGE_TTL_DAYS,
     type ChallengeCreator,
     type ChallengeLocale,
+    type ChallengeMascotLook,
     type ChallengeQuestion,
     type ChallengeRecord,
 } from './types';
@@ -36,7 +37,7 @@ export interface BuildChallengeArgs {
     /** Authoring language — the fallback locale when a player's isn't 'en'/'pl'. */
     lang: ChallengeLocale;
     /** Creator's equipped mascot look, shown to the opponent through the challenge (§7.4). */
-    mascot: Record<string, string>;
+    mascot: ChallengeMascotLook;
     rng?: () => number;
     now?: () => number;
 }

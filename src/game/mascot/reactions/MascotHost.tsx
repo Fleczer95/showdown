@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../../../i18n';
 import { MascotOverlay } from '../MascotOverlay';
 import type { MascotPose } from '../look';
@@ -6,6 +7,7 @@ import { useMascotState } from './useMascotDirector';
 
 const BUBBLE_MS = 4000; // spoken bubble dwell before auto-hide
 const PEEK_MS = 1600; // expression-only mid-run peek before the fox slips away
+const BOTTOM_GAP = 64; // clearance above the safe area (matches the old in-screen placement)
 
 /**
  * The single app-root mascot. It is a RESIDENT on Home (always present: greetings,
@@ -15,6 +17,7 @@ const PEEK_MS = 1600; // expression-only mid-run peek before the fox slips away
  */
 export function MascotHost() {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const { state, surface, chatter, onAutoHide } = useMascotState();
     const { utterance, expression } = state;
 
@@ -53,7 +56,10 @@ export function MascotHost() {
             onMessagePress={onAutoHide}
             anchor='bottom-right'
             size={120}
-            offset={{ x: -4, y: 64 }}
+            // The host lives at the app root (no safe-area container), so add the
+            // bottom inset back — restoring the fox to the empty space above Home's
+            // footer button rather than dropping it onto the button.
+            offset={{ x: -4, y: BOTTOM_GAP + insets.bottom }}
         />
     );
 }

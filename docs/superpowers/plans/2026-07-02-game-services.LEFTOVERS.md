@@ -1,4 +1,14 @@
-# Game Services — co zostało do zrobienia ręcznie
+# Game Services — WSZYSTKO UKOŃCZONE ✅
+
+> **Finał 2026-07-03:** wszystkie kroki wykonane. Ekran zgody OAuth ✓, dwa klienty
+> OAuth (Play Signing + Upload) podpięte jako dane logowania ✓, szczegóły gry
+> uzupełnione (opis EN/PL, kategoria Quizy, ikona 512 i grafika 1024×500 ze strony
+> sklepu) ✓, 31 unikalnych ikon osiągnięć wgranych przez konsolę ✓ (Google wymaga
+> ikony przy publikacji i odrzuca duplikaty — To the Top=„TOP", Survivor=„SV"),
+> projekt gier **OPUBLIKOWANY** („Brak zmian do opublikowania").
+>
+> Jedyna pozostałość: dev-buildy z innej maszyny wymagają SHA-1 jej debug.keystore
+> jako trzeciego klienta OAuth. Poniższa treść zachowana historycznie.
 
 > **Aktualizacja 2026-07-03 (sesja z użytkownikiem):** kroki 1 i 2 UKOŃCZONE ✅
 > — ekran zgody OAuth utworzony, dwa klienty OAuth (Play Signing

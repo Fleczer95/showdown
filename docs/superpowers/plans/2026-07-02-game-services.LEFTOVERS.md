@@ -1,5 +1,13 @@
 # Game Services — co zostało do zrobienia ręcznie
 
+> **Aktualizacja 2026-07-03 (sesja z użytkownikiem):** kroki 1 i 2 UKOŃCZONE ✅
+> — ekran zgody OAuth utworzony, dwa klienty OAuth (Play Signing
+> `57:BF:…:32:73` + Upload `37:74:…:5C:ED`) utworzone i podpięte jako dane
+> logowania w Play Console (checklista 4/6). Został tylko krok 3 (publikacja,
+> wymaga opisu + ikony 512px + grafiki w szczegółach gry — do zrobienia po
+> testach; testerzy działają bez publikacji) oraz opcjonalne ikony osiągnięć.
+> Dev-buildy z innej maszyny: dodać SHA-1 jej debug.keystore jako trzeci klient OAuth.
+
 Stan po autonomicznej sesji 2026-07-03. Kod i provisioning sklepowy są ukończone
 (szczegóły: `2026-07-02-game-services.md` + `.agents/game-services/SKILL.md`).
 Poniższe trzy kroki wymagały decyzji właściciela konta (classifier zablokował

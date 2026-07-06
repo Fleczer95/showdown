@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { use } from "react";
 
+// 13-inch iPad App Store screenshot canvas (portrait).
 const W = 2064;
 const H = 2752;
 
@@ -16,6 +17,10 @@ const THEME = {
   text: "#ffffff",
 };
 
+// CSS-drawn iPad frame (portrait, width/height aspect 770/1000).
+const MK_W = 770;
+const MK_H = 1000;
+
 function IPad({
   src,
   alt,
@@ -26,7 +31,7 @@ function IPad({
   style?: React.CSSProperties;
 }) {
   return (
-    <div style={{ position: "relative", aspectRatio: "770/1000", ...style }}>
+    <div style={{ position: "relative", aspectRatio: `${MK_W}/${MK_H}`, ...style }}>
       <div
         style={{
           width: "100%",
@@ -109,147 +114,63 @@ type LocaleSlides = Record<string, SlideConfig>;
 
 const SLIDES: Record<string, LocaleSlides> = {
   en: {
-    "01_home": {
-      label: "7 GAMES IN ONE",
-      head: ["7 Games", "One iPad", "No Wi-Fi"],
+    home: {
+      label: "CHALLENGE YOUR FRIENDS",
+      head: ["3 Game Shows", "One Phone", "Beat Your Friends"],
       variant: "hero",
       accent: THEME.accent,
-      imageFile: "01_home_en.png",
+      imageFile: "home.png",
     },
-    "02_setup": {
-      label: "ZERO SETUP",
-      head: ["Two Taps", "And You Are", "Playing"],
+    ladder: {
+      label: "THE LADDER",
+      head: ["Climb The", "15-Question", "Trivia Ladder"],
       variant: "centered",
       accent: THEME.accent,
-      imageFile: "02_setup_en.png",
+      imageFile: "ladder.png",
     },
-    "03_icebreaker": {
-      label: "ICEBREAKER",
-      head: ["Deep Questions", "That Actually", "Connect"],
-      variant: "centered",
-      accent: THEME.accentGreen,
-      imageFile: "03_icebreaker_en.png",
-    },
-    "04_would_you_rather": {
-      label: "WOULD YOU RATHER",
-      head: ["Hilarious", "Dilemmas", "Instant Debates"],
+    drop: {
+      label: "THE DROP",
+      head: ["Risk Your", "Million On", "Every Answer"],
       variant: "centered",
       accent: THEME.accentWarm,
-      imageFile: "04_would_you_rather_en.png",
+      imageFile: "drop.png",
     },
-    "05_forbidden_words": {
-      label: "FORBIDDEN WORDS",
-      head: ["Describe It", "Without The", "Banned Words"],
-      variant: "centered",
-      accent: THEME.accent,
-      imageFile: "05_forbidden_words_en.png",
-    },
-    "06_letter_game": {
-      label: "LETTER GAME",
-      head: ["One Letter", "One Category", "Think Fast"],
-      variant: "centered",
-      accent: THEME.accentWarm,
-      imageFile: "06_letter_game_en.png",
-    },
-    "07_5_seconds": {
-      label: "5 SECONDS",
-      head: ["Name 3 Things", "In Just", "5 Seconds"],
-      variant: "centered",
-      accent: THEME.accentWarm,
-      imageFile: "07_5_seconds_en.png",
-    },
-    "08_spy_reveal": {
-      label: "SPY",
-      head: ["Find The Spy", "Before They", "Find You"],
+    wheel: {
+      label: "THE WHEEL",
+      head: ["Spin, Guess", "And Solve", "The Puzzle"],
       variant: "centered",
       accent: THEME.accentCool,
-      imageFile: "08_spy_reveal_en.png",
-    },
-    "09_who_am_i": {
-      label: "WHO AM I?",
-      head: ["Ask Yes Or No", "Until You", "Guess Who"],
-      variant: "centered",
-      accent: THEME.accentCool,
-      imageFile: "09_who_am_i_en.png",
-    },
-    "10_results": {
-      label: "GAME NIGHT",
-      head: ["Pass The iPad", "Keep The", "Party Going"],
-      variant: "centered",
-      accent: THEME.accentWarm,
-      imageFile: "10_results_en.png",
+      imageFile: "wheel.png",
     },
   },
   pl: {
-    "01_home": {
-      label: "7 GIER W JEDNYM",
-      head: ["7 Gier", "Jeden iPad", "Bez Wi-Fi"],
+    home: {
+      label: "RZUĆ WYZWANIE ZNAJOMYM",
+      head: ["3 Teleturnieje", "Jeden Telefon", "Pokonaj Znajomych"],
       variant: "hero",
       accent: THEME.accent,
-      imageFile: "01_home_pl.png",
+      imageFile: "home.png",
     },
-    "02_setup": {
-      label: "ZERO SETUPU",
-      head: ["Dwa Tapnięcia", "I Już", "Gracie"],
+    ladder: {
+      label: "DRABINA",
+      head: ["Wespnij Się", "Po Drabinie", "15 Pytań"],
       variant: "centered",
       accent: THEME.accent,
-      imageFile: "02_setup_pl.png",
+      imageFile: "ladder.png",
     },
-    "03_icebreaker": {
-      label: "LODOŁAMACZ",
-      head: ["Głębokie Pytania", "Które Naprawdę", "Łączą"],
-      variant: "centered",
-      accent: THEME.accentGreen,
-      imageFile: "03_icebreaker_pl.png",
-    },
-    "04_would_you_rather": {
-      label: "CO WOLISZ",
-      head: ["Zabawne", "Dylematy", "Burzliwe Spory"],
+    drop: {
+      label: "ZRZUT",
+      head: ["Zaryzykuj", "Milion Przy", "Każdej Odpowiedzi"],
       variant: "centered",
       accent: THEME.accentWarm,
-      imageFile: "04_would_you_rather_pl.png",
+      imageFile: "drop.png",
     },
-    "05_forbidden_words": {
-      label: "ZAKAZANE SŁOWA",
-      head: ["Opisz Hasło", "Bez Słów", "Zakazanych"],
-      variant: "centered",
-      accent: THEME.accent,
-      imageFile: "05_forbidden_words_pl.png",
-    },
-    "06_letter_game": {
-      label: "GRA NA LITERĘ",
-      head: ["Jedna Litera", "Jedna Kategoria", "Myśl Szybko"],
-      variant: "centered",
-      accent: THEME.accentWarm,
-      imageFile: "06_letter_game_pl.png",
-    },
-    "07_5_seconds": {
-      label: "5 SEKUND",
-      head: ["Wymień 3 Rzeczy", "W Zaledwie", "5 Sekund"],
-      variant: "centered",
-      accent: THEME.accentWarm,
-      imageFile: "07_5_seconds_pl.png",
-    },
-    "08_spy_reveal": {
-      label: "SZPIEG",
-      head: ["Znajdź Szpiega", "Zanim On", "Znajdzie Ciebie"],
+    wheel: {
+      label: "KOŁO",
+      head: ["Kręć i Zgaduj", "Rozwiąż", "Hasło"],
       variant: "centered",
       accent: THEME.accentCool,
-      imageFile: "08_spy_reveal_pl.png",
-    },
-    "09_who_am_i": {
-      label: "KIM JESTEM",
-      head: ["Pytaj Tak Lub Nie", "Aż", "Zgadniesz"],
-      variant: "centered",
-      accent: THEME.accentCool,
-      imageFile: "09_who_am_i_pl.png",
-    },
-    "10_results": {
-      label: "WIECZÓR GIER",
-      head: ["Podaj iPada", "I Graj", "Dalej"],
-      variant: "centered",
-      accent: THEME.accentWarm,
-      imageFile: "10_results_pl.png",
+      imageFile: "wheel.png",
     },
   },
 };
@@ -266,19 +187,17 @@ const confetti = [
   { x: 50, y: 4, s: 0.011, c: "#7c5cff", r: false, rot: 0 },
 ];
 
-// iPad is much wider relative to height than iPhone, so we constrain by height.
-// Target: device fills ~78% of canvas height, centered horizontally, sitting near bottom.
+// The iPad frame is height-constrained and centered horizontally,
+// sitting near the bottom of the canvas below the caption.
 function getDeviceStyle(variant: LayoutVariant): React.CSSProperties {
   const baseShadow = `drop-shadow(0 ${W * 0.025}px ${W * 0.04}px rgba(0,0,0,0.55))`;
-  // CSS iPad frame uses aspectRatio 770/1000 (width/height).
   const targetHeightFrac = variant === "hero" ? 0.74 : 0.7;
-  const targetHeight = H * targetHeightFrac;
-  const deviceWidth = targetHeight * (770 / 1000);
+  const deviceWidth = H * targetHeightFrac * (MK_W / MK_H);
 
   return {
     position: "absolute",
     left: "50%",
-    bottom: variant === "hero" ? H * -0.03 : H * 0.01,
+    bottom: variant === "hero" ? H * -0.03 : H * 0.015,
     width: deviceWidth,
     transform: "translateX(-50%)",
     filter: baseShadow,
@@ -291,9 +210,9 @@ export default function RawIPadSlide({
   params: Promise<{ locale: string; slide: string }>;
 }) {
   const { locale, slide } = use(params);
-  const cfg = SLIDES[locale]?.[slide] ?? SLIDES.en["01_home"];
+  const cfg = SLIDES[locale]?.[slide] ?? SLIDES.en.home;
   const deviceStyle = getDeviceStyle(cfg.variant);
-  const src = `/screenshots-ipad/${locale}/${cfg.imageFile}`;
+  const src = `/screenshots/${locale}/${cfg.imageFile}`;
 
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -311,7 +230,7 @@ export default function RawIPadSlide({
     };
   }, [src]);
 
-  const captionTop = cfg.variant === "hero" ? H * 0.06 : H * 0.05;
+  const captionTop = cfg.variant === "hero" ? H * 0.05 : H * 0.045;
 
   return (
     <div style={{ background: "#000", minHeight: "100vh", padding: 0, margin: 0 }}>
@@ -396,11 +315,11 @@ export default function RawIPadSlide({
         >
           <div
             style={{
-              fontSize: W * 0.022,
+              fontSize: W * 0.021,
               fontWeight: 700,
-              letterSpacing: W * 0.003,
+              letterSpacing: W * 0.0028,
               color: cfg.accent ?? THEME.accent,
-              marginBottom: W * 0.018,
+              marginBottom: W * 0.016,
               textTransform: "uppercase",
             }}
           >
@@ -408,7 +327,7 @@ export default function RawIPadSlide({
           </div>
           <div
             style={{
-              fontSize: W * 0.062,
+              fontSize: W * 0.058,
               fontWeight: 800,
               lineHeight: 1.0,
               letterSpacing: -W * 0.0015,

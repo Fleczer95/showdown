@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Headless capture of iPad App Store screenshots.
+// Headless capture of 13-inch iPad App Store screenshots (2064x2752).
 // Assumes `yarn dev` is already running on http://localhost:3000.
 // Drives system Chrome via puppeteer-core; no chromium download.
 
@@ -9,8 +9,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "..", "..");
-const OUT_BASE = resolve(ROOT, "screenshots", "processed", "app-store", "ipad");
+const ROOT = resolve(__dirname, ".."); // screenshot-generator dir
+const OUT_BASE = resolve(ROOT, "out", "app-store", "ipad-13");
 
 const CHROME =
   process.env.CHROME_PATH ||
@@ -21,18 +21,7 @@ const W = 2064;
 const H = 2752;
 
 const LOCALES = ["en", "pl"];
-const SLIDES = [
-  "01_home",
-  "02_setup",
-  "03_icebreaker",
-  "04_would_you_rather",
-  "05_forbidden_words",
-  "06_letter_game",
-  "07_5_seconds",
-  "08_spy_reveal",
-  "09_who_am_i",
-  "10_results",
-];
+const SLIDES = ["home", "ladder", "drop", "wheel"];
 
 async function main() {
   const browser = await puppeteer.launch({
@@ -55,14 +44,14 @@ async function main() {
       const outDir = resolve(OUT_BASE, locale);
       await mkdir(outDir, { recursive: true });
 
-      for (const slide of SLIDES) {
+      for (let i = 0; i < SLIDES.length; i++) {
+        const slide = SLIDES[i];
         const url = `${BASE_URL}/raw-ipad/${locale}/${slide}`;
-        process.stdout.write(`→ ${locale}/${slide} ... `);
+        process.stdout.write(`-> ${locale}/${slide} ... `);
         await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
         await page.waitForSelector('#capture-root[data-ready="1"]', {
           timeout: 30000,
         });
-        // Extra settle for fonts / paint.
         await new Promise((r) => setTimeout(r, 500));
 
         const el = await page.$("#capture-root");
@@ -70,9 +59,10 @@ async function main() {
           console.log("MISS (no #capture-root)");
           continue;
         }
-        const file = resolve(outDir, `${slide}_${locale}.png`);
+        const name = `${String(i + 1).padStart(2, "0")}-${slide}_${locale}.png`;
+        const file = resolve(outDir, name);
         await el.screenshot({ path: file, type: "png", omitBackground: false });
-        console.log(`saved ${file}`);
+        console.log(`saved ${name}`);
       }
     }
   } finally {

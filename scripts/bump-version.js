@@ -25,6 +25,7 @@ const APP_JSON_PATH = path.join(ROOT_DIR, 'app.json');
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 const IOS_INFO_PLIST_PATH = path.join(ROOT_DIR, 'ios/ShowDown/Info.plist');
 const IOS_PBXPROJ_PATH = path.join(ROOT_DIR, 'ios/ShowDown.xcodeproj/project.pbxproj');
+const ANDROID_BUILD_GRADLE_PATH = path.join(ROOT_DIR, 'android/app/build.gradle');
 
 /**
  * Parse semver version string
@@ -107,6 +108,16 @@ function updatePbxproj(filePath, versionStr, buildNumber) {
 }
 
 /**
+ * Update android/app/build.gradle versionCode and versionName
+ */
+function updateBuildGradle(filePath, versionStr, versionCode) {
+    let content = fs.readFileSync(filePath, 'utf-8');
+    content = content.replace(/versionCode\s+\d+/, `versionCode ${versionCode}`);
+    content = content.replace(/versionName\s+"[^"]*"/, `versionName "${versionStr}"`);
+    fs.writeFileSync(filePath, content, 'utf-8');
+}
+
+/**
  * Read and parse JSON file
  */
 function readJSON(filePath) {
@@ -154,10 +165,18 @@ function main() {
     const currentIosVersion = iosPlistVersionMatch?.[1] ?? '?';
     const currentIosBuild = iosPlistBuildMatch?.[1] ?? '?';
 
+    const gradleContent = fs.readFileSync(ANDROID_BUILD_GRADLE_PATH, 'utf-8');
+    const gradleVersionNameMatch = gradleContent.match(/versionName\s+"([^"]*)"/);
+    const gradleVersionCodeMatch = gradleContent.match(/versionCode\s+(\d+)/);
+    const currentGradleVersion = gradleVersionNameMatch?.[1] ?? '?';
+    const currentGradleCode = gradleVersionCodeMatch?.[1] ?? '?';
+
     console.log('Current versions:');
     console.log(`  app.json version:        ${currentAppVersion}`);
     console.log(`  package.json version:    ${currentPackageVersion}`);
     console.log(`  Android versionCode:     ${currentVersionCode}`);
+    console.log(`  gradle versionName:      ${currentGradleVersion}`);
+    console.log(`  gradle versionCode:      ${currentGradleCode}`);
     console.log(`  iOS version (plist):     ${currentIosVersion}`);
     console.log(`  iOS build (plist):       ${currentIosBuild}\n`);
 
@@ -171,6 +190,8 @@ function main() {
     console.log(`  app.json version:        ${newVersionStr}`);
     console.log(`  package.json version:    ${newVersionStr}`);
     console.log(`  Android versionCode:     ${newVersionCode}`);
+    console.log(`  gradle versionName:      ${newVersionStr}`);
+    console.log(`  gradle versionCode:      ${newVersionCode}`);
     console.log(`  iOS version (plist):     ${newVersionStr}`);
     console.log(`  iOS build (plist):       ${newVersionCode}\n`);
 
@@ -187,7 +208,7 @@ function main() {
 
     // Confirm
     console.log(
-        '⚠️  This will modify app.json, package.json, ios/ShowDown/Info.plist, and ios/ShowDown.xcodeproj/project.pbxproj',
+        '⚠️  This will modify app.json, package.json, android/app/build.gradle, ios/ShowDown/Info.plist, and ios/ShowDown.xcodeproj/project.pbxproj',
     );
     console.log('Press Ctrl+C to cancel, or wait 3 seconds to continue...\n');
 
@@ -204,6 +225,7 @@ function main() {
         // Write files
         writeJSON(APP_JSON_PATH, appJson);
         writeJSON(PACKAGE_JSON_PATH, packageJson);
+        updateBuildGradle(ANDROID_BUILD_GRADLE_PATH, newVersionStr, newVersionCode);
         updateInfoPlist(IOS_INFO_PLIST_PATH, newVersionStr, newVersionCode);
         updatePbxproj(IOS_PBXPROJ_PATH, newVersionStr, newVersionCode);
 
@@ -211,6 +233,7 @@ function main() {
         console.log('Updated files:');
         console.log('  - app.json');
         console.log('  - package.json');
+        console.log('  - android/app/build.gradle');
         console.log('  - ios/ShowDown/Info.plist');
         console.log('  - ios/ShowDown.xcodeproj/project.pbxproj\n');
         console.log('Next steps:');

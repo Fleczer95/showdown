@@ -166,6 +166,7 @@ function BottomSheet({
                                     showsVerticalScrollIndicator={false}
                                     bounces={true}
                                     keyboardShouldPersistTaps='handled'
+                                    automaticallyAdjustKeyboardInsets
                                 >
                                     {children}
                                 </ScrollView>

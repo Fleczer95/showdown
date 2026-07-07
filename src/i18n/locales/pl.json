@@ -381,10 +381,7 @@
                 {
                     "title": "5. Cele Przetwarzania",
                     "content": "Przetwarzamy zebrane dane w celu:",
-                    "listItems": [
-                        "Diagnostyki błędów",
-                        "Poprawy jakości działania aplikacji"
-                    ]
+                    "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
                 },
                 {
                     "title": "6. Podstawa Prawna",
@@ -851,10 +848,7 @@
             {
                 "title": "5. Cele Przetwarzania",
                 "content": "Przetwarzamy zebrane dane w celu:",
-                "listItems": [
-                    "Diagnostyki błędów",
-                    "Poprawy jakości działania aplikacji"
-                ]
+                "listItems": ["Diagnostyki błędów", "Poprawy jakości działania aplikacji"]
             },
             {
                 "title": "6. Podstawa Prawna",
@@ -939,6 +933,10 @@
         "maxLevel": "Osiągnięto najwyższy poziom",
         "mapTitle": "Mapa poziomów",
         "achievementsTitle": "Osiągnięcia",
+        "gameServices": {
+            "achievements": "Osiągnięcia",
+            "leaderboards": "Rankingi"
+        },
         "achievementsCount": "%{n} z %{m}",
         "reserved": "Wkrótce więcej",
         "rewardTheme": "Motyw",

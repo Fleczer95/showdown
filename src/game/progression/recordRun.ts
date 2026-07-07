@@ -8,6 +8,7 @@ import { level, unlockedRewards } from './map';
 import { ACHIEVEMENTS, achievementsUnlocked, detectFeats } from './achievements';
 import type { GameRunResult, ProgressionStats, RecordRunDiff } from './types';
 import { grantLevelBonus } from '../offline/limit';
+import { syncGameServices } from '../../services/gameServices';
 
 /** Fresh state for a player who has never played. */
 export function defaultStats(): ProgressionStats {
@@ -122,6 +123,9 @@ export function localDate(date: Date = new Date()): string {
 export function recordRun(result: GameRunResult): RecordRunDiff {
     const { stats, diff } = applyRun(loadStats(), result, localDate());
     store.set(STATS_KEY, JSON.stringify(stats));
+    // Mirror to Game Center / Play Games — fire-and-forget, idempotent, and a
+    // no-op when the native bridge is absent or the player isn't signed in.
+    void syncGameServices(stats);
     // Bank offline-run bonus for any levels this run crossed. The grant is the
     // single source of truth for the count (idempotent on lastBonusLevel), so any
     // run — solo or challenge — that levels up earns banked solo runs.

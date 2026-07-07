@@ -1340,6 +1340,8 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
   - FirebaseSharedSwift (12.10.0)
+  - GameServices (1.0.0):
+    - ExpoModulesCore
   - GoogleAppMeasurement/Core (12.10.0):
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/MethodSwizzler (~> 8.1)
@@ -3680,6 +3682,7 @@ DEPENDENCIES:
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
+  - GameServices (from `../modules/game-services/ios`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - NitroIap (from `../node_modules/react-native-iap`)
   - NitroMmkv (from `../node_modules/react-native-mmkv`)
@@ -3823,6 +3826,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-system-ui/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
+  GameServices:
+    :path: "../modules/game-services/ios"
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2025-07-07-RNv0.81.0-e0fc67142ec0763c6b6153ca2bf96df815539782
@@ -4017,6 +4022,7 @@ SPEC CHECKSUMS:
   FirebaseFirestoreInternal: a5120d3aea03c837ff9937c90e8a95f81e6a0706
   FirebaseInstallations: 047343aa91fd6a1ebfa3eb374ddecf36a8aaddfd
   FirebaseSharedSwift: 3d1e448b7202e36821a492941c84592d1308ea14
+  GameServices: f7d6517a5905a3dd8c2dbabe8ab3d2a752b6692e
   GoogleAppMeasurement: 57270ccc2b77472d7e85c4cbe45972564eff78bb
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8

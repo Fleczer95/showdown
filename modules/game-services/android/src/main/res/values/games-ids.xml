@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Play Games Services project id. Written by
+         .agents/game-services/create_play_games.py — do not translate. -->
+    <string name="game_services_project_id" translatable="false">381435458877</string>
+</resources>

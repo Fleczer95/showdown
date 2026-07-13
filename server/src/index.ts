@@ -36,8 +36,8 @@ async function parseJsonBody(request: Request): Promise<Record<string, unknown> 
 }
 
 /** Prune challenges past their TTL plus their attempts. Two explicit statements so
- *  we never depend on D1 enforcing the FK CASCADE. Kicked off (via `waitUntil`) when
- *  a challenge is added; it only touches already-expired rows, never the new one. */
+ *  we never depend on D1 enforcing the FK CASCADE. Kicked off (via `waitUntil`) after
+ *  a challenge is added so the originating create does not wait behind cleanup. */
 async function cleanupExpired(env: Env): Promise<void> {
     const now = Date.now();
     await env.DB.batch([
@@ -77,7 +77,6 @@ export default {
                     mascot: body.mascot,
                 };
                 if (!isValidId(id) || !validateChallenge(record)) return json({ error: 'Invalid challenge' }, 400);
-                ctx.waitUntil(cleanupExpired(env));
                 try {
                     await env.DB.prepare(
                         'INSERT INTO challenges (id, lang, game, questions, createdBy, expiresAt, mascot) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -99,6 +98,7 @@ export default {
                     }
                     throw err;
                 }
+                ctx.waitUntil(cleanupExpired(env));
                 return json({ id }, 201);
             }
 

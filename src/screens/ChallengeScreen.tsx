@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Swords, Crown } from 'lucide-react-native';
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
+import { SafeSentry } from '../utils/sentry/init';
 import SafeContainer from '../responsive/SafeContainer';
 import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
@@ -22,6 +24,8 @@ import { getChallengeNickname, setChallengeNickname } from '../game/challenge/ni
 import { getDeviceId } from '../game/challenge/deviceId';
 import { getChallenge, getAttempt, getAttempts, submitAttempt, BlockedError } from '../game/challenge/store';
 import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
+import { shareChallenge } from '../game/challenge/share';
+import { registerAutoShareAfterTransition } from '../game/challenge/autoShare';
 import { pushRanking } from '../game/ranking/push';
 import {
     gateChallenge,
@@ -62,7 +66,7 @@ type Phase =
  * never lose the completed run.
  */
 export function ChallengeScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Challenge'>>();
     const route = useRoute<RouteProp<RootStackParamList, 'Challenge'>>();
     const theme = useTheme();
     const { t, locale } = useTranslation();
@@ -84,6 +88,39 @@ export function ChallengeScreen() {
     // injected play element (memoised below) never rebuilds mid-run when these change.
     const nicknameRef = useRef(nickname);
     const pendingResult = useRef<ChallengeResult | null>(null);
+    const autoSharedChallengeId = useRef<string | null>(null);
+
+    // A freshly created challenge asks to share only after the native stack has
+    // finished opening this screen. The share promise is deliberately detached:
+    // a slow extension or failed UIKit presentation must never block loading/play.
+    useFocusEffect(
+        useCallback(() => {
+            if (route.params.autoShare !== true || autoSharedChallengeId.current === challengeId) return;
+            return registerAutoShareAfterTransition({
+                challengeId,
+                subscribe: (listener) =>
+                    navigation.addListener('transitionEnd', (event) =>
+                        listener({ data: { closing: event.data.closing } }),
+                    ),
+                consume: () => {
+                    autoSharedChallengeId.current = challengeId;
+                    navigation.setParams({ autoShare: false });
+                },
+                share: shareChallenge,
+                onError: (error) => {
+                    SafeSentry.captureException(error, {
+                        tags: { area: 'challenge-share', source: 'create' },
+                    });
+                },
+                onFallback: () => {
+                    SafeSentry.captureMessage('Challenge auto-share transition timed out', {
+                        level: 'warning',
+                        tags: { area: 'challenge-share', source: 'create' },
+                    });
+                },
+            });
+        }, [challengeId, navigation, route.params.autoShare]),
+    );
 
     // Once the frozen record loads, the fox reacts by the player's true role:
     // this device created it (sent) vs. opened someone else's (received). Reading
@@ -486,8 +523,7 @@ function ResultsCard({
     // A genuine tie on the ranking key (same progress AND same score) is a draw,
     // not a win — the timestamp tiebreak in rankEntries only fixes row order, it
     // shouldn't crown anyone (e.g. both players score 0). Applies to every game.
-    const isTopTie = (e: LeaderboardEntry) =>
-        !!winner && e.progress === winner.progress && e.score === winner.score;
+    const isTopTie = (e: LeaderboardEntry) => !!winner && e.progress === winner.progress && e.score === winner.score;
     const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
     const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
     useEffect(() => {
@@ -538,7 +574,12 @@ function ResultsCard({
                                 entering={reduceMotion ? undefined : springEnter(i * 80)}
                                 style={[
                                     styles.row,
-                                    { gap: theme.spacing.sm, paddingVertical: scale(10), paddingHorizontal: theme.spacing.sm, borderBottomColor: theme.colors.border },
+                                    {
+                                        gap: theme.spacing.sm,
+                                        paddingVertical: scale(10),
+                                        paddingHorizontal: theme.spacing.sm,
+                                        borderBottomColor: theme.colors.border,
+                                    },
                                     mine && { backgroundColor: hexToRgba(accent, 0.13), borderRadius: theme.radii.sm },
                                 ]}
                             >

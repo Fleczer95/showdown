@@ -214,7 +214,8 @@
             "viewResults": "Played · view results",
             "expiredStatus": "Expired",
             "vs": "vs %{name}",
-            "yours": "Challenge you created"
+            "yours": "Challenge you created",
+            "share": "Share challenge link"
         }
     },
     "offline": {

@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from 'react-native-svg';
-import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, usePreventRemove, type RouteProp } from '@react-navigation/native';
 import { useMachine } from '@xstate/react';
 import { ChevronLeft, Play, Trophy, Swords, Sparkles, Lock } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -25,7 +25,15 @@ import { playScreens } from '../game/playScreens';
 import { useStore } from '../hooks/store/useStore';
 import { buildChallenge } from '../game/challenge/build';
 import { getEquippedLook } from '../game/mascot/equippedLook';
-import { createChallenge, getChallenge, newChallengeId, BlockedError } from '../game/challenge/store';
+import {
+    ensureChallengeCreated,
+    getChallenge,
+    newChallengeId,
+    BlockedError,
+    ChallengeIdCollisionError,
+    prewarmChallengeAuth,
+    sameChallengeRecord,
+} from '../game/challenge/store';
 import { countCreatedToday } from '../game/challenge/log';
 import { dailyCap, canUpsell } from '../game/challenge/limit';
 import {
@@ -35,14 +43,20 @@ import {
     dailyAllowance,
     BONUS_RUNS_PER_LEVEL,
 } from '../game/offline/limit';
-import { shareChallenge } from '../game/challenge/share';
+import {
+    createModalDismissalBarrier,
+    createWhileModalDismisses,
+    type ModalDismissalResult,
+} from '../game/challenge/createFlow';
 import { getDeviceId } from '../game/challenge/deviceId';
 import { SafeAnalytics } from '../utils/firebase/init';
+import { SafeSentry } from '../utils/sentry/init';
 import { getHistory } from '../game/history';
 import { poolCoverage, type PoolCoverage } from '../game/poolCoverage';
 import { hasBuyablePacks } from '../data/store/catalog';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
+import type { ChallengeRecord } from '../game/challenge/types';
 import type { RootStackParamList } from '../navigation/types';
 import { useResponsive } from '../responsive/useResponsive';
 
@@ -76,7 +90,12 @@ function RulesCard({ accent, gameId }: { accent: string; gameId: string }) {
             ]}
         >
             <Stack direction='horizontal' gap='sm' align='center'>
-                <View style={[styles.dot, { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: accent }]} />
+                <View
+                    style={[
+                        styles.dot,
+                        { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: accent },
+                    ]}
+                />
                 <Text variant='overline' color={accent} weight='bold'>
                     {t('common.how_to_play')}
                 </Text>
@@ -138,7 +157,17 @@ function QuestionPoolCard({ accent, coverage, escalated, buyable, onGetMore }: Q
         >
             <Stack direction='horizontal' gap='sm' align='center' justify='between'>
                 <Stack direction='horizontal' gap='sm' align='center'>
-                    <View style={[styles.dot, { width: scale(8), height: scale(8), borderRadius: scale(4), backgroundColor: escalated ? accent : theme.colors.textMuted }]} />
+                    <View
+                        style={[
+                            styles.dot,
+                            {
+                                width: scale(8),
+                                height: scale(8),
+                                borderRadius: scale(4),
+                                backgroundColor: escalated ? accent : theme.colors.textMuted,
+                            },
+                        ]}
+                    />
                     <Text variant='overline' color={escalated ? accent : 'textMuted'} weight='bold'>
                         {t('screen.gameSetup.pool.title')}
                     </Text>
@@ -204,69 +233,109 @@ export function GameSetupScreen() {
     const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
     const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
     const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds, isPremium));
+    const mountedRef = useRef(true);
+    const focusedRef = useRef(true);
+    useEffect(
+        () => () => {
+            mountedRef.current = false;
+        },
+        [],
+    );
     // How much of this game's question pool the player has worked through. Refresh
     // on focus so returning after a session (which marks questions shown) reflects
     // the new tally and can surface the "running low → buy more" nudge.
     const [coverage, setCoverage] = useState(() => poolCoverage(gameId, ownedIds));
     useFocusEffect(
         useCallback(() => {
+            focusedRef.current = true;
             setCreatedToday(countCreatedToday());
             setCoverage(poolCoverage(gameId, ownedIds));
             setRunsLeft(remainingOfflineRuns(ownedIds, isPremium));
+            return () => {
+                focusedRef.current = false;
+            };
         }, [gameId, ownedIds, isPremium]),
     );
     const cap = dailyCap(ownedIds, isPremium);
     const limitReached = createdToday >= cap;
 
-    // The id of an in-flight challenge, held across retries. A create whose
-    // network confirmation timed out (device offline) is still committed by
-    // Firestore on reconnect, so on retry we look the id up first: if that write
-    // landed we reuse it rather than creating a duplicate.
-    const pendingChallengeId = useRef<string | null>(null);
+    // The id and frozen record of an in-flight challenge, held across retries. A
+    // create whose network confirmation timed out may still have committed in D1,
+    // so on retry we look the id up first and reuse it rather than creating a duplicate.
+    const pendingChallenge = useRef<{ id: string; record: ChallengeRecord } | null>(null);
+    const createInFlight = useRef(false);
+    const completeNicknameDismissal = useRef<(() => void) | null>(null);
 
-    // Freeze the current round into a shareable challenge, then open the share
-    // sheet and drop the creator straight into it as the first attempt. Both the
-    // create and play steps are online; a failed create surfaces an offline alert.
-    const createAndShare = async (nick: string) => {
+    // Keep native back/swipe gestures from removing the route while the detached
+    // request is still able to navigate. Touch presenters are guarded below too.
+    usePreventRemove(creating, () => undefined);
+
+    // Build/POST while the nickname modal animates away. Native sharing is then
+    // launched by ChallengeScreen after its stack transition, so neither modal
+    // presentation nor Share.share can keep this screen stuck in "Creating…".
+    const createAndOpen = async (nick: string, nicknameDismissal: Promise<ModalDismissalResult>) => {
+        if (createInFlight.current) return;
+        createInFlight.current = true;
         try {
             setCreating(true);
-            let id = pendingChallengeId.current;
-            if (id) {
-                // A prior attempt may have committed after its timeout — recover it.
-                const existing = await getChallenge(id);
-                if (!existing) id = null;
-            }
-            if (!id) {
-                const record = buildChallenge({
-                    gameId: game.id,
-                    history: getHistory(game.id),
-                    ownedIds: new Set(purchasedItemIds),
-                    createdBy: { uuid: getDeviceId(), nickname: nick },
-                    lang: locale === 'pl' ? 'pl' : 'en',
-                    mascot: getEquippedLook(),
+            const { value: id, dismissal } = await createWhileModalDismisses(async () => {
+                let draft = pendingChallenge.current;
+                if (draft) {
+                    // A prior attempt may have committed after its timeout — recover it.
+                    const existing = await getChallenge(draft.id);
+                    if (existing && !sameChallengeRecord(existing, draft.record)) {
+                        // A confirmed, different record is the only case where this
+                        // UUID may be discarded and a future attempt may mint another.
+                        pendingChallenge.current = null;
+                        throw new BlockedError();
+                    }
+                    if (!existing) await ensureChallengeCreated(draft.record, draft.id);
+                } else {
+                    const record = buildChallenge({
+                        gameId: game.id,
+                        history: getHistory(game.id),
+                        ownedIds: new Set(purchasedItemIds),
+                        createdBy: { uuid: getDeviceId(), nickname: nick },
+                        lang: locale === 'pl' ? 'pl' : 'en',
+                        mascot: getEquippedLook(),
+                    });
+                    draft = { id: newChallengeId(), record };
+                    pendingChallenge.current = draft;
+                    await ensureChallengeCreated(record, draft.id);
+                }
+                return draft.id;
+            }, nicknameDismissal);
+
+            if (dismissal === 'timeout') {
+                SafeSentry.captureMessage('Nickname sheet dismissal timed out', {
+                    level: 'warning',
+                    tags: { area: 'challenge-create', game: game.id },
                 });
-                id = newChallengeId();
-                pendingChallengeId.current = id;
-                await createChallenge(record, id);
             }
-            pendingChallengeId.current = null;
+            if (!mountedRef.current || !focusedRef.current) return;
+            // Even if iOS misses Modal.onDismiss, BottomSheet has already forced the
+            // native modal out of its tree before this barrier watchdog can elapse.
+            navigation.navigate('Challenge', { challengeId: id, autoShare: true });
+            pendingChallenge.current = null;
             SafeAnalytics.logEvent({ name: 'challenge_created', params: { game: game.id } });
-            await shareChallenge(id);
-            navigation.navigate('Challenge', { challengeId: id });
         } catch (err) {
+            if (err instanceof ChallengeIdCollisionError) pendingChallenge.current = null;
+            if (!mountedRef.current || !focusedRef.current) return;
             const blocked = err instanceof BlockedError;
             Alert.alert(
                 t(blocked ? 'challenge.errorTitle' : 'challenge.offline'),
                 t(blocked ? 'challenge.errorDesc' : 'challenge.offlineDesc'),
             );
         } finally {
-            setCreating(false);
+            createInFlight.current = false;
+            if (mountedRef.current) setCreating(false);
         }
     };
 
     // Solo play is daily-capped (offline limit). At zero, open the limit/upsell
     // sheet instead of starting; otherwise spend one run and begin the session.
     const onStart = () => {
+        if (createInFlight.current) return;
         if (!canStartOfflineRun(ownedIds, isPremium)) {
             SafeAnalytics.logEvent({ name: 'offline_limit_hit', params: { game: game.id } });
             setOfflineLimitSheet(true);
@@ -281,17 +350,23 @@ export function GameSetupScreen() {
     // default but editable per challenge (the edit also becomes the new default).
     // Past the daily cap, open the limit/upsell sheet instead of creating.
     const onCreateChallenge = () => {
+        if (createInFlight.current) return;
         if (limitReached) {
             SafeAnalytics.logEvent({ name: 'challenge_limit_hit', params: { game: game.id } });
             setLimitSheet(true);
             return;
         }
-        setNickname(getChallengeNickname());
+        // Hide first-use App Attest latency behind the time spent confirming a name.
+        prewarmChallengeAuth();
+        // A retry must preserve the exact frozen payload as well as its id. Show
+        // that nickname instead of letting an edit appear to change the pending record.
+        setNickname(pendingChallenge.current?.record.createdBy.nickname ?? getChallengeNickname());
         setNicknameError(null);
         setNicknameSheet(true);
     };
 
     const confirmNickname = () => {
+        if (createInFlight.current) return;
         const trimmed = nickname.trim();
         if (trimmed.length === 0) return;
         // The creator's nickname is public (createdBy + global ranking); the setter
@@ -300,9 +375,17 @@ export function GameSetupScreen() {
             setNicknameError(t('challenge.nicknameRejected'));
             return;
         }
+        const dismissal = createModalDismissalBarrier();
+        completeNicknameDismissal.current = dismissal.dismiss;
         setNicknameSheet(false);
-        void createAndShare(trimmed);
+        void createAndOpen(trimmed, dismissal.promise);
     };
+
+    const onNicknameDismissComplete = useCallback(() => {
+        const complete = completeNicknameDismissal.current;
+        completeNicknameDismissal.current = null;
+        complete?.();
+    }, []);
 
     // Per-game accent — mirrors the home card the player tapped to get here.
     const accent = resolveAccent(theme, game.accent);
@@ -313,8 +396,7 @@ export function GameSetupScreen() {
     // only `escalated` (to float the nudge above the rules card when the pool is
     // nearly spent or fully cycled) and whether a pack is still buyable (CTA gate).
     const poolEscalated =
-        coverage.floor >= 1 ||
-        (coverage.total > 0 && coverage.seen / coverage.total >= POOL_NUDGE_THRESHOLD);
+        coverage.floor >= 1 || (coverage.total > 0 && coverage.seen / coverage.total >= POOL_NUDGE_THRESHOLD);
     const poolBuyable = hasBuyablePacks(gameId, ownedIds);
 
     const [state, send] = useMachine(gameSessionMachine, {
@@ -358,12 +440,14 @@ export function GameSetupScreen() {
             coverage={coverage}
             escalated={poolEscalated}
             buyable={poolBuyable}
-            onGetMore={() => navigation.navigate('Store', { gameId: game.id })}
+            onGetMore={() => {
+                if (!createInFlight.current) navigation.navigate('Store', { gameId: game.id });
+            }}
         />
     );
 
     return (
-        <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
+        <SafeContainer edges={['top', 'bottom']} enableSwipeBack={!creating} enableLeftSwipe={!creating}>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={contentContainerStyle}
@@ -377,7 +461,10 @@ export function GameSetupScreen() {
                 >
                     <IconButton
                         icon={<ChevronLeft size={iconSize(28)} color={theme.colors.text} />}
-                        onPress={() => navigation.goBack()}
+                        onPress={() => {
+                            if (!createInFlight.current) navigation.goBack();
+                        }}
+                        disabled={creating}
                         accessibilityLabel={t('screen.gameSetup.back')}
                     />
                     <Text variant='subheading' weight='bold' style={styles.navTitle}>
@@ -385,7 +472,10 @@ export function GameSetupScreen() {
                     </Text>
                     <IconButton
                         icon={<Trophy size={iconSize(28)} color={theme.colors.text} />}
-                        onPress={() => setShowLeaderboard(true)}
+                        onPress={() => {
+                            if (!createInFlight.current) setShowLeaderboard(true);
+                        }}
+                        disabled={creating}
                         accessibilityLabel={t('leaderboard.view')}
                     />
                 </Stack>
@@ -468,6 +558,7 @@ export function GameSetupScreen() {
                             fullWidth
                             size='lg'
                             onPress={onStart}
+                            disabled={creating}
                             style={{
                                 backgroundColor: accent,
                                 borderColor: accent,
@@ -517,6 +608,16 @@ export function GameSetupScreen() {
                 </View>
             </View>
 
+            {creating ? (
+                <View
+                    style={[styles.creatingGuard, { zIndex: theme.zIndex.sheet - 1 }]}
+                    pointerEvents='auto'
+                    onStartShouldSetResponder={() => true}
+                    accessibilityRole='progressbar'
+                    accessibilityLabel={t('challenge.creating')}
+                />
+            ) : null}
+
             <BottomSheet
                 visible={showLeaderboard}
                 onClose={() => setShowLeaderboard(false)}
@@ -526,13 +627,14 @@ export function GameSetupScreen() {
                 <Leaderboard gameId={game.id} />
             </BottomSheet>
 
-            <BottomSheet
-                visible={limitSheet}
-                onClose={() => setLimitSheet(false)}
-                title={t('challenge.limit.title')}
-            >
+            <BottomSheet visible={limitSheet} onClose={() => setLimitSheet(false)} title={t('challenge.limit.title')}>
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='center' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
+                    <Text
+                        variant='body'
+                        color='textSecondary'
+                        align='center'
+                        style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}
+                    >
                         {t('challenge.limit.body')}
                     </Text>
                     {canUpsell(ownedIds, isPremium) && (
@@ -563,7 +665,12 @@ export function GameSetupScreen() {
                 title={t('offline.limit.title')}
             >
                 <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='left' style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}>
+                    <Text
+                        variant='body'
+                        color='textSecondary'
+                        align='left'
+                        style={[styles.limitBody, { marginBottom: theme.spacing.xs }]}
+                    >
                         {[
                             t('offline.limit.bullets.dailyRuns', { count: dailyAllowance(ownedIds) }),
                             t('offline.limit.bullets.resets'),
@@ -596,6 +703,7 @@ export function GameSetupScreen() {
             <BottomSheet
                 visible={nicknameSheet}
                 onClose={() => setNicknameSheet(false)}
+                onDismissComplete={onNicknameDismissComplete}
                 title={t('challenge.nicknamePrompt')}
             >
                 <Stack gap='sm' align='stretch'>
@@ -605,6 +713,7 @@ export function GameSetupScreen() {
                             setNickname(v);
                             setNicknameError(null);
                         }}
+                        editable={!pendingChallenge.current}
                         placeholder={t('leaderboard.nicknamePlaceholder')}
                         maxLength={MAX_NICKNAME_LENGTH}
                         autoCapitalize='words'
@@ -622,6 +731,7 @@ export function GameSetupScreen() {
                         variant='primary'
                         fullWidth
                         disabled={nickname.trim().length === 0}
+                        loading={creating}
                         onPress={confirmNickname}
                     >
                         {t('challenge.create')}
@@ -642,8 +752,7 @@ const styles = StyleSheet.create({
     content: {
         // dynamic spacing moved
     },
-    navBar: {
-    },
+    navBar: {},
     navTitle: {
         flex: 1,
     },
@@ -663,10 +772,8 @@ const styles = StyleSheet.create({
     nicknameInput: {
         paddingHorizontal: 0,
     },
-    limitBody: {
-    },
-    dot: {
-    },
+    limitBody: {},
+    dot: {},
     rulesText: {
         lineHeight: 24,
     },
@@ -674,6 +781,10 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 0,
         right: 0,
+        backgroundColor: 'transparent',
+    },
+    creatingGuard: {
+        ...StyleSheet.absoluteFillObject,
         backgroundColor: 'transparent',
     },
 });

@@ -3,12 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Fredoka_700Bold } from '@expo-google-fonts/fredoka';
-import {
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useThemeActions, isSubscriberTheme } from './src/theme';
@@ -25,12 +20,14 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { isPremiumCatalogId } from './src/data/store/catalog';
 
 // Sentry -> Firebase: initialized before the tree renders. App Check is attested
-// before any Firestore round-trip (fire-and-forget; it never blocks startup).
+// before any protected Worker request (fire-and-forget; it never blocks startup).
 initSentry();
 // Retry any ranking pushes that failed offline (ADR-0004), once App Check has a
 // chance to attest — it's cheap (no-op when nothing is pending) and never blocks.
 // `.catch` keeps it fire-and-forget if attestation rejects (no unhandled rejection).
-void initAppCheck().then(() => retryPending(), () => {});
+void initAppCheck()
+    .then((ready) => (ready ? retryPending() : undefined))
+    .catch(() => undefined);
 initFirebase();
 
 function PremiumThemeGate() {

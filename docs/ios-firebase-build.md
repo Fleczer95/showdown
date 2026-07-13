@@ -1,9 +1,15 @@
-# iOS build bring-up — Firebase / App Check (findings)
+# iOS build bring-up — Firebase / App Check (historical findings)
 
-Status as of 2026-06-13. The committed `ios/` project has **never built successfully
-on this toolchain** (Xcode 26.2, RN new architecture, Hermes, Firebase iOS 12.x,
-`@react-native-firebase` 24, CocoaPods 1.16.2). Below is what was tried, what works,
-and the two unresolved walls, so a future focused effort doesn't re-derive it.
+> Update (2026-07-13): the app has used the Cloudflare D1 backend instead of
+> Firestore since commit `3ed971e`. The stale React Native Firestore dependency
+> has now been removed, so the gRPC module-map and `FirebaseFirestoreInternal`
+> linker workarounds described below no longer apply. This document remains as
+> historical context for the App Check setup and the manual AppDelegate guard.
+
+Historical status recorded on 2026-06-13: the committed `ios/` project had not built
+successfully on this toolchain (Xcode 26.2, RN new architecture, Hermes, Firebase iOS
+12.x, `@react-native-firebase` 24, CocoaPods 1.16.2). The sections below preserve what
+was tried at that time. They are not instructions for the current dependency graph.
 
 ## 1. AppDelegate double `FirebaseApp.configure()` — FIXED (manual, re-apply after prebuild)
 
@@ -28,16 +34,16 @@ behind a `⚠️ MANUAL FIX — RE-APPLY AFTER EVERY expo prebuild` comment. **P
 regenerates this file and reintroduces the duplicate**, so the comment is the durable
 artifact; a future improvement is a small Expo config plugin that dedupes it.
 
-> Not yet runtime-verified — the iOS project does not link (see §3). The crash is
-> near-certain from FirebaseCore behavior, not observed.
+> Superseded on 2026-07-13: the app now builds, launches, and reaches its React Native
+> UI on the simulator. The single-configure guard remains necessary.
 
-## 2. gRPC module map — FIXED
+## 2. Historical gRPC module-map workaround — RETIRED
 
 Under `use_modular_headers!` on CocoaPods 1.16+, the build referenced
 `Pods/Headers/Private/grpc/gRPC-Core.modulemap`, which that CocoaPods version no
 longer generates → `module map file ... not found` (the gRPC-C++ target, ~38 errors).
 
-**Fix** (Podfile, inside the `ShowDown` target — currently reverted, document only):
+**Historical fix** (no longer present or needed):
 
 ```ruby
 pod 'gRPC-Core', :modular_headers => false
@@ -50,7 +56,11 @@ config.build_settings['DEFINES_MODULE'] = 'NO'
 Verified: this drops the stale `-fmodule-map-file` reference and the build then
 compiles **all** of gRPC/Firebase and reaches the link stage. Ref: invertase/react-native-firebase#7805.
 
-## 3. The two unresolved walls (a linkage catch-22)
+## 3. Historical unresolved walls — RETIRED
+
+> These failures belonged to the old Firestore dependency graph. Removing the unused
+> mobile Firestore package removed gRPC, BoringSSL, abseil, leveldb, and
+> `FirebaseFirestoreInternal` from the iOS build. Do not re-apply §2 for the current app.
 
 **Static libs + `use_modular_headers!`** (the supported RNFB path) — after §2, fails at link with:
 - `ld: framework 'FirebaseFirestoreInternal' not found` — Firestore builds from source
@@ -68,10 +78,9 @@ compiles **all** of gRPC/Firebase and reaches the link stage. Ref: invertase/rea
   types without importing React — designed for header-search-path (static-lib) compilation,
   not modular frameworks. Only fixable by `patch-package`-ing RNFB headers.
 
-## Recommendation
+## Historical recommendation — SUPERSEDED
 
-A focused native bring-up, not quick Podfile patches. Likely needs `patch-package`
-and/or Firebase/RNFB version pinning, possibly upstream fixes. Worth checking whether the
-team's real iOS build path is EAS Build (note: EAS uses the same prebuild + Podfile, so it
-would hit the same errors unless its config differs). Re-apply §1 and §2 as the known-good
-starting point.
+At the time, a focused native bring-up and possible dependency patches were recommended.
+That recommendation no longer applies: the unused Firestore chain was the source of the
+linkage catch-22. Keep §1's AppDelegate guard, but do not restore the gRPC or Firestore
+workarounds.

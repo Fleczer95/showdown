@@ -31,10 +31,21 @@ export class OfflineError extends Error {
  * won't help, so the UI must NOT claim "you're offline"; it shows a distinct error.
  */
 export class BlockedError extends Error {
-    constructor(cause?: unknown) {
+    readonly status?: number;
+
+    constructor(cause?: unknown, status?: number) {
         super('Challenge request was rejected by the server.');
         this.name = 'BlockedError';
+        this.status = status;
         if (cause instanceof Error) this.stack = cause.stack;
+    }
+}
+
+/** A client-generated id exists, but for a different immutable record. */
+export class ChallengeIdCollisionError extends BlockedError {
+    constructor(cause?: unknown) {
+        super(cause, 409);
+        this.name = 'ChallengeIdCollisionError';
     }
 }
 
@@ -49,11 +60,11 @@ const REQUEST_TIMEOUT_MS = 10_000;
  */
 export function httpError(status: number): OfflineError | BlockedError {
     if (status === 403) {
-        const err = new BlockedError();
+        const err = new BlockedError(undefined, 403);
         SafeSentry.captureException(err, { tags: { area: 'challenge-store', status: '403' } });
         return err;
     }
-    if (status === 409) return new BlockedError();
+    if (status === 409) return new BlockedError(undefined, 409);
 
     // Log any unexpected HTTP errors (500, 400, etc.) to Sentry
     const err = new OfflineError();
@@ -61,12 +72,14 @@ export function httpError(status: number): OfflineError | BlockedError {
     return err;
 }
 
-/** Reject with `OfflineError` if `promise` doesn't settle within the timeout. A
- *  rejection already typed as Offline/Blocked passes through; anything else (a raw
- *  `fetch` network failure) becomes `OfflineError`. */
-export function withTimeout<T>(promise: Promise<T>): Promise<T> {
+/** Reject with `OfflineError` only when the deadline wins. Ordinary rejections
+ * pass through so `request` remains the single mapping and observability boundary. */
+export function withTimeout<T>(promise: Promise<T>, onTimeout?: () => void): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new OfflineError()), REQUEST_TIMEOUT_MS);
+        const timer = setTimeout(() => {
+            onTimeout?.();
+            reject(new OfflineError());
+        }, REQUEST_TIMEOUT_MS);
         promise.then(
             (value) => {
                 clearTimeout(timer);
@@ -74,8 +87,7 @@ export function withTimeout<T>(promise: Promise<T>): Promise<T> {
             },
             (err) => {
                 clearTimeout(timer);
-                if (err instanceof OfflineError || err instanceof BlockedError) reject(err);
-                else reject(new OfflineError(err));
+                reject(err);
             },
         );
     });
@@ -88,15 +100,42 @@ async function appCheckHeaders(forceRefresh: boolean): Promise<Record<string, st
 }
 
 /**
+ * Begin cached App Check token acquisition while the nickname sheet is open.
+ * Firebase owns token expiry/caching; this only moves attestation off the create
+ * button's critical path and never blocks the UI if warming fails.
+ */
+export function prewarmChallengeAuth(): void {
+    void withTimeout(appCheckHeaders(false)).catch(() => undefined);
+}
+
+/**
  * `fetch` with the App Check header attached. A 403 may just mean the cached token
  * expired, so we force-refresh once and retry before treating it as a real
  * rejection. Returns the raw `Response`; callers map the status.
  */
-export async function fetchWithAppCheck(path: string, init: RequestInit = {}): Promise<Response> {
+export type ChallengeRequestStage =
+    | 'app-check-cached'
+    | 'fetch'
+    | 'app-check-refresh'
+    | 'fetch-retry'
+    | 'response-json';
+
+export async function fetchWithAppCheck(
+    path: string,
+    init: RequestInit = {},
+    onStage?: (stage: ChallengeRequestStage) => void,
+): Promise<Response> {
     const url = `${BASE_API_URL}${path}`;
-    let res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(false)) } });
-    if (res.status === 403)
-        res = await fetch(url, { ...init, headers: { ...init.headers, ...(await appCheckHeaders(true)) } });
+    onStage?.('app-check-cached');
+    let headers = await appCheckHeaders(false);
+    onStage?.('fetch');
+    let res = await fetch(url, { ...init, headers: { ...init.headers, ...headers } });
+    if (res.status === 403) {
+        onStage?.('app-check-refresh');
+        headers = await appCheckHeaders(true);
+        onStage?.('fetch-retry');
+        res = await fetch(url, { ...init, headers: { ...init.headers, ...headers } });
+    }
     return res;
 }
 
@@ -107,15 +146,31 @@ export async function fetchWithAppCheck(path: string, init: RequestInit = {}): P
  */
 export async function request<T>(path: string, init: RequestInit = {}, notFound = false): Promise<T> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let stage: ChallengeRequestStage = 'app-check-cached';
     try {
-        const res = await fetchWithAppCheck(path, { ...init, signal: controller.signal });
-        clearTimeout(timer);
-        if (notFound && res.status === 404) return null as T;
-        if (!res.ok) throw httpError(res.status);
-        return (await res.json()) as T;
+        return await withTimeout(
+            (async () => {
+                const res = await fetchWithAppCheck(path, { ...init, signal: controller.signal }, (next) => {
+                    stage = next;
+                });
+                if (notFound && res.status === 404) return null as T;
+                if (!res.ok) throw httpError(res.status);
+                stage = 'response-json';
+                return (await res.json()) as T;
+            })(),
+            () => {
+                controller.abort();
+                SafeSentry.captureMessage('Challenge request timed out', {
+                    level: 'warning',
+                    tags: {
+                        area: 'challenge-store',
+                        stage,
+                        method: init.method ?? 'GET',
+                    },
+                });
+            },
+        );
     } catch (err: any) {
-        clearTimeout(timer);
         if (err.name === 'AbortError') throw new OfflineError();
         if (err instanceof OfflineError || err instanceof BlockedError) throw err;
 
@@ -156,6 +211,40 @@ export async function getChallenge(id: string): Promise<ChallengeRecord | null> 
     const parsed = parseChallengeRecord(record);
     if (!parsed) throw new BlockedError();
     return parsed;
+}
+
+function canonicalizeJson(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(canonicalizeJson);
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value as Record<string, unknown>)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([key, child]) => [key, canonicalizeJson(child)]),
+        );
+    }
+    return value;
+}
+
+/** Compare frozen challenge payloads independent of object-key insertion order. */
+export function sameChallengeRecord(a: ChallengeRecord, b: ChallengeRecord): boolean {
+    return JSON.stringify(canonicalizeJson(a)) === JSON.stringify(canonicalizeJson(b));
+}
+
+/**
+ * Retry a client-generated id without creating a second challenge. An earlier
+ * timed-out POST may have committed; the old Worker returns 409 in that case, so
+ * verify the immutable record and treat a byte-equivalent retry as success.
+ */
+export async function ensureChallengeCreated(record: ChallengeRecord, id: string): Promise<string> {
+    try {
+        return await createChallenge(record, id);
+    } catch (error) {
+        if (!(error instanceof BlockedError) || error.status !== 409) throw error;
+        const existing = await getChallenge(id);
+        if (existing && sameChallengeRecord(existing, record)) return id;
+        if (existing) throw new ChallengeIdCollisionError(error);
+        throw error;
+    }
 }
 
 /** Record this device's attempt. Create-only, one-per-UUID is enforced server-side. */

@@ -1,4 +1,5 @@
 import appCheck from '@react-native-firebase/app-check';
+import { SafeSentry } from '../sentry/init';
 
 // App Check attests that backend traffic comes from our genuine, unmodified app
 // binary — App Attest on iOS, Play Integrity on Android — closing the open
@@ -13,7 +14,7 @@ import appCheck from '@react-native-firebase/app-check';
 //
 // Init must run before the first attested request. The earliest is user-initiated
 // (creating/opening a challenge), so firing this at startup leaves ample lead time.
-export const initAppCheck = async (): Promise<void> => {
+export const initAppCheck = async (): Promise<boolean> => {
     try {
         const provider = appCheck().newReactNativeFirebaseAppCheckProvider();
         provider.configure({
@@ -21,8 +22,11 @@ export const initAppCheck = async (): Promise<void> => {
             apple: { provider: 'appAttestWithDeviceCheckFallback' },
         });
         await appCheck().initializeAppCheck({ provider, isTokenAutoRefreshEnabled: true });
-    } catch {
-        // App Check must never crash the app. A failed init just means tokens aren't
-        // attached; requests still succeed while enforcement is in monitor mode.
+        return true;
+    } catch (error) {
+        // App Check must never crash startup, but the Worker enforces tokens on every
+        // request, so make initialization failures visible for production diagnosis.
+        SafeSentry.captureException(error, { tags: { area: 'app-check', stage: 'initialize' } });
+        return false;
     }
 };

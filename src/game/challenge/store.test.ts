@@ -2,13 +2,20 @@
 // We mock `global.fetch` and the App Check SDK, and verify the wrappers map
 // results correctly and funnel every failure mode (network reject, timeout, 403,
 // 409) into the right typed error.
+const mockGetToken = jest.fn();
 jest.mock('@react-native-firebase/app-check', () => ({
     __esModule: true,
-    default: () => ({ getToken: jest.fn(async () => ({ token: 'tok' })) }),
+    default: () => ({ getToken: mockGetToken }),
 }));
 
 const mockCapture = jest.fn();
-jest.mock('../../utils/sentry/init', () => ({ SafeSentry: { captureException: (...a: unknown[]) => mockCapture(...a) } }));
+const mockCaptureMessage = jest.fn();
+jest.mock('../../utils/sentry/init', () => ({
+    SafeSentry: {
+        captureException: (...a: unknown[]) => mockCapture(...a),
+        captureMessage: (...a: unknown[]) => mockCaptureMessage(...a),
+    },
+}));
 
 import {
     createChallenge,
@@ -19,6 +26,8 @@ import {
     OfflineError,
     BlockedError,
     BASE_API_URL,
+    ensureChallengeCreated,
+    prewarmChallengeAuth,
 } from './store';
 import { type ChallengeRecord, type Attempt } from './types';
 
@@ -38,6 +47,7 @@ const res = (status: number, body: unknown = {}): Response =>
 const mockFetch = jest.fn();
 beforeEach(() => {
     jest.clearAllMocks();
+    mockGetToken.mockResolvedValue({ token: 'tok' });
     global.fetch = mockFetch as unknown as typeof fetch;
 });
 
@@ -57,6 +67,31 @@ describe('createChallenge', () => {
         mockFetch.mockResolvedValue(res(201));
         const id = await createChallenge(record);
         expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    });
+
+    it('recovers an identical immutable record when a retry receives 409', async () => {
+        mockFetch.mockResolvedValueOnce(res(409)).mockResolvedValueOnce(res(200, record));
+
+        await expect(ensureChallengeCreated(record, 'given')).resolves.toBe('given');
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(mockFetch.mock.calls[1][0]).toBe(`${BASE_API_URL}/challenges/given`);
+    });
+
+    it('keeps a genuine id collision blocked', async () => {
+        mockFetch.mockResolvedValueOnce(res(409)).mockResolvedValueOnce(res(200, { ...record, game: 'the-drop' }));
+
+        await expect(ensureChallengeCreated(record, 'given')).rejects.toBeInstanceOf(BlockedError);
+    });
+
+    it('does not perform conflict recovery for an App Check rejection', async () => {
+        mockFetch.mockResolvedValue(res(403));
+
+        await expect(ensureChallengeCreated(record, 'given')).rejects.toMatchObject({
+            name: 'BlockedError',
+            status: 403,
+        });
+        // Cached-token request + one forced-token retry; no recovery GET.
+        expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 });
 
@@ -115,6 +150,32 @@ describe('error mapping', () => {
         mockFetch.mockResolvedValue(res(409));
         await expect(submitAttempt('c1', 'u1', attempt)).rejects.toBeInstanceOf(BlockedError);
     });
+
+    it('reports an unexpected App Check rejection before mapping it offline', async () => {
+        const error = new Error('App Attest failed');
+        mockGetToken.mockRejectedValue(error);
+
+        await expect(getChallenge('c1')).rejects.toBeInstanceOf(OfflineError);
+        expect(mockCapture).toHaveBeenCalledWith(error, {
+            tags: { area: 'challenge-store', type: 'Error' },
+        });
+    });
+
+    it('reports malformed response JSON before mapping it offline', async () => {
+        const error = new SyntaxError('Unexpected token');
+        mockFetch.mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => {
+                throw error;
+            },
+        } as unknown as Response);
+
+        await expect(getChallenge('c1')).rejects.toBeInstanceOf(OfflineError);
+        expect(mockCapture).toHaveBeenCalledWith(error, {
+            tags: { area: 'challenge-store', type: 'SyntaxError' },
+        });
+    });
 });
 
 describe('timeout', () => {
@@ -136,5 +197,76 @@ describe('timeout', () => {
         await jest.advanceTimersByTimeAsync(10_000);
         await assertion;
         jest.useRealTimers();
+    });
+
+    it('covers App Check token acquisition before fetch starts', async () => {
+        jest.useFakeTimers();
+        mockGetToken.mockReturnValueOnce(new Promise(() => undefined));
+
+        const pending = getChallenge('c1');
+        const assertion = expect(pending).rejects.toBeInstanceOf(OfflineError);
+        await jest.advanceTimersByTimeAsync(10_000);
+
+        await assertion;
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockCapture).not.toHaveBeenCalled();
+        expect(mockCaptureMessage).toHaveBeenCalledWith('Challenge request timed out', {
+            level: 'warning',
+            tags: { area: 'challenge-store', stage: 'app-check-cached', method: 'GET' },
+        });
+        jest.useRealTimers();
+    });
+
+    it('uses one total deadline across App Check and a hanging fetch', async () => {
+        jest.useFakeTimers();
+        mockGetToken.mockImplementationOnce(
+            () => new Promise((resolve) => setTimeout(() => resolve({ token: 'tok' }), 8_000)),
+        );
+        mockFetch.mockImplementation(() => new Promise(() => undefined));
+
+        const pending = getChallenge('c1');
+        const assertion = expect(pending).rejects.toBeInstanceOf(OfflineError);
+        await jest.advanceTimersByTimeAsync(10_000);
+
+        await assertion;
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockCaptureMessage).toHaveBeenCalledWith('Challenge request timed out', {
+            level: 'warning',
+            tags: { area: 'challenge-store', stage: 'fetch', method: 'GET' },
+        });
+        jest.useRealTimers();
+    });
+
+    it('covers response body parsing and aborts the active request', async () => {
+        jest.useFakeTimers();
+        let signal: AbortSignal | undefined;
+        mockFetch.mockImplementation((_url: string, init?: RequestInit) => {
+            signal = init?.signal ?? undefined;
+            return Promise.resolve({
+                ok: true,
+                status: 200,
+                json: () => new Promise(() => undefined),
+            } as unknown as Response);
+        });
+
+        const pending = getChallenge('c1');
+        const assertion = expect(pending).rejects.toBeInstanceOf(OfflineError);
+        await jest.advanceTimersByTimeAsync(10_000);
+
+        await assertion;
+        expect(signal?.aborted).toBe(true);
+        expect(mockCaptureMessage).toHaveBeenCalledWith('Challenge request timed out', {
+            level: 'warning',
+            tags: { area: 'challenge-store', stage: 'response-json', method: 'GET' },
+        });
+        jest.useRealTimers();
+    });
+});
+
+describe('prewarmChallengeAuth', () => {
+    it('starts cached token acquisition without waiting for it', () => {
+        prewarmChallengeAuth();
+        expect(mockGetToken).toHaveBeenCalledWith(false);
+        expect(mockFetch).not.toHaveBeenCalled();
     });
 });

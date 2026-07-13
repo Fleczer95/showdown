@@ -214,7 +214,8 @@
             "viewResults": "Zagrane · zobacz wyniki",
             "expiredStatus": "Wygasło",
             "vs": "kontra %{name}",
-            "yours": "Wyzwanie utworzone przez Ciebie"
+            "yours": "Wyzwanie utworzone przez Ciebie",
+            "share": "Udostępnij link do wyzwania"
         }
     },
     "offline": {

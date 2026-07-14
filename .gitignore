@@ -67,3 +67,9 @@ assets/archived_icons/
 **/.maestro/
 *.maestro
 .claude/handoffs/
+
+# local agent virtualenv
+.venv-agents/
+
+# local screen recordings
+*.mp4

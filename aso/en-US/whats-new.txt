@@ -1,1 +1,1 @@
-Welcome to ShowDown! Three TV-style game shows in one app — The Ladder, The Drop, and The Wheel. Challenge friends with share links, climb the rankings, and unlock premium question packs and themes. This is our very first release — thanks for playing, and tell us what you'd love to see next.
+Challenge creation and sharing are now faster and more reliable. You can also re-share any active challenge directly from your challenge history. We’ve polished the whole flow and fixed a few issues along the way.

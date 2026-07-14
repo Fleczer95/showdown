@@ -175,8 +175,8 @@
         "createWithCount": "Wyzwij znajomego · %{count}/%{cap}",
         "limit": {
             "title": "Limit wyzwań na dziś wyczerpany",
-            "body": "Liczba wyzwań tworzonych dziennie jest ograniczona. Twój limit odnowi się o północy.",
-            "cta": "Odblokuj pakiet lub motyw — każdy daje +1 dziennie",
+            "body": "Liczba wyzwań tworzonych dziennie jest ograniczona. Twój limit odnowi się o północy. Każdy pakiet lub motyw premium dodaje 1 wyzwanie dziennie.",
+            "cta": "Otwórz sklep",
             "dismiss": "Rozumiem"
         },
         "loading": "Ładowanie wyzwania…",

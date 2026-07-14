@@ -84,6 +84,19 @@ This is the one place where you must push back on the reviewer rather than defer
 
 Pre-existing warnings in the untouched bank (e.g. the `Apple` IP hit on the fruit) are **not yours**. Confirm with `git stash` that they exist on the clean tree, then leave them and say so.
 
+## Verify your own content is still yours
+
+These runs are long (hours), and other sessions or tools may be writing to the same repo. On a real run, four Wheel entries were silently overwritten with content this session never authored — including a phrase that is a **registered trademark** and one carrying an escaped apostrophe, i.e. exactly the two things the gates exist to stop. They were caught only because a later pass flagged them and the authored list was diffed against the file.
+
+Before committing, diff what you authored against what is actually on disk:
+
+```bash
+# for each game: every id you authored should still hold the text you wrote
+# (allow for your own later fixes), and no id in your range should be unaccounted for
+```
+
+Anything you did not write is unreviewed content. Do not commit it silently — fix it and say so.
+
 ## Done
 
 Both passes complete, every factual/IP finding resolved, audit 0 errors with exact EN/PL parity, `tsc` clean, validator clean. Report before/after counts and list the judgment calls you did *not* apply.

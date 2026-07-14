@@ -17,6 +17,8 @@ When you write questions one at a time you will unconsciously put the correct an
 
 To fix, **rotate the options** (permute the array and re-point `correctIndex`) — never just renumber `correctIndex`, which silently keys the wrong answer. Leave questions whose option order is meaningful (years, ascending magnitudes) alone.
 
+**Even is not the same as unpredictable.** The first fix assigned the target index with a modulo counter, which produced a perfectly flat distribution *and* a perfectly periodic key: 0,1,2,3,0,1,2,3… down the whole file. Use a **seeded shuffle** of a balanced bag of targets, then check the longest ascending run — it should be ~4-6, not the length of the file.
+
 **Drop is different:** its options are an ascending magnitude bracket, so the true value naturally sits in the middle — the existing bank runs ≈6/97/91/6. Match that shape; do not rotate drop options (it would break the ascending ladder). Vary the *bracket window* instead, so the answer is sometimes the 1st or 4th value.
 - Free ladder questions carry **no `difficulty` field** (position in `RUNGS` = the rung). Only premium packs carry `difficulty`.
 

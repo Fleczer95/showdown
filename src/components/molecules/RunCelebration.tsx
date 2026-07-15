@@ -14,6 +14,7 @@ import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n';
 import { useResponsive } from '../../responsive/useResponsive';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useSound } from '../../hooks/useSound';
 import {
     recordRun,
     levelProgress,
@@ -175,6 +176,7 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const haptics = useHaptics();
+    const { play } = useSound();
     const { iconSize } = useResponsive();
     const reduceMotion = useReducedMotion();
 
@@ -237,17 +239,18 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     }, [diff]);
 
     // The instant the XP bar hits full: flip the level number, burst confetti and
-    // fire a success haptic. Confetti self-stops; clear the host shortly after.
+    // fire a success haptic + fanfare. Confetti self-stops; clear the host shortly after.
     const handleRollover = useCallback(() => {
         if (!diff) return;
         setDisplayLevel(diff.level);
         haptics.notification();
+        play('levelUp');
         // Reduced motion: flip the level + fire the haptic, but skip the confetti.
         if (reduceMotion) return;
         setBurst(true);
         if (burstTimer.current) clearTimeout(burstTimer.current);
         burstTimer.current = setTimeout(() => setBurst(false), 3200);
-    }, [diff, haptics, reduceMotion]);
+    }, [diff, haptics, play, reduceMotion]);
 
     if (!diff) return null;
 

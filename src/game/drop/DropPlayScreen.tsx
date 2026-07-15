@@ -37,6 +37,7 @@ import { useTheme, useAnimationPresets } from '../../theme';
 import { useGameAccent } from '../useGameAccent';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useSound } from '../../hooks/useSound';
 import { useResponsive } from '../../responsive/useResponsive';
 
 import { dropQuestions, zipDropCard, type DropPackCard, type Language } from './content';
@@ -95,6 +96,7 @@ export default function DropPlayScreen({
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { fade } = useAnimationPresets();
     const haptics = useHaptics();
+    const { play } = useSound();
     const { t: translate, locale } = useTranslation();
     const lang = locale as Language;
     const { tabletColumn, isTablet } = useResponsive();
@@ -230,6 +232,7 @@ export default function DropPlayScreen({
                     return next;
                 });
                 haptics.heavy();
+                play('wrong');
             });
         });
 
@@ -244,17 +247,19 @@ export default function DropPlayScreen({
                 next[correctIndex] = 'win';
                 return next;
             });
-            // Relief if points survived; a somber thud if the round busted.
+            // Relief if points survived; a somber "womp" if the round busted.
             if (allocation[correctIndex] > 0) {
                 haptics.notification();
+                play('correct');
             } else {
                 haptics.heavy();
+                play('bust');
             }
         });
 
         // Phase 4 — Continue appears once the answer beat has settled too.
         push(answerTime + RESOLVE_MS, () => setCanAdvance(true));
-    }, [canConfirm, clearTicks, haptics, allocation, question]);
+    }, [canConfirm, clearTicks, haptics, play, allocation, question]);
 
     const onAdvance = useCallback(() => {
         clearTicks();

@@ -40,6 +40,8 @@ import type { ChallengeRecord } from '../game/challenge/types';
 import { Mascot } from '../game/mascot/Mascot';
 import type { LookMap } from '../game/mascot/look';
 import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
+import { useSound } from '../hooks/useSound';
+import { useHaptics } from '../hooks/useHaptics';
 import LadderPlayScreen from '../game/ladder/LadderPlayScreen';
 import DropPlayScreen from '../game/drop/DropPlayScreen';
 import WheelPlayScreen from '../game/wheel/WheelPlayScreen';
@@ -526,9 +528,23 @@ function ResultsCard({
     const isTopTie = (e: LeaderboardEntry) => !!winner && e.progress === winner.progress && e.score === winner.score;
     const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
     const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
+    const { play } = useSound();
+    const haptics = useHaptics();
+    // Sting the verdict once per reveal: a fanfare for beating the challenger, a
+    // buzz for losing. Waiting (no opponent yet) and draws stay silent.
+    const stung = useRef(false);
     useEffect(() => {
         if (youWon) emitMascot('challenge-beaten');
-    }, [emitMascot, youWon]);
+        if (waiting || draw || stung.current || myTimestamp === null) return;
+        stung.current = true;
+        if (youWon) {
+            play('levelUp');
+            haptics.notification();
+        } else {
+            play('wrong');
+            haptics.heavy();
+        }
+    }, [emitMascot, youWon, waiting, draw, myTimestamp, play, haptics]);
     const headline = waiting
         ? t('challenge.waiting')
         : !winner

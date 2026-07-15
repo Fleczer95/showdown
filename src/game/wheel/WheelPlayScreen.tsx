@@ -39,6 +39,8 @@ import { useTranslation } from '../../i18n/TranslationContext';
 import { getPack } from './content';
 import { createDeck } from '../deck';
 import { getHistory, markShown } from '../history';
+import { useSound } from '../../hooks/useSound';
+import { useHaptics } from '../../hooks/useHaptics';
 import { useStore } from '../../hooks/store/useStore';
 import { getOwnedPackContent } from '../../data/store/packContent';
 import { useResponsive } from '../../responsive/useResponsive';
@@ -105,6 +107,8 @@ export default function WheelPlayScreen({
     const reduceMotion = useReducedMotion();
     const { accent, onAccent, glow } = useGameAccent(GAME_ID);
     const { t: tr, locale } = useTranslation();
+    const { play } = useSound();
+    const haptics = useHaptics();
     const ALPHABET = locale === 'pl' ? PL_ALPHABET : EN_ALPHABET;
     const { tabletColumn, scale, iconSize } = useResponsive();
     const wheelSize = scale(240);
@@ -161,6 +165,15 @@ export default function WheelPlayScreen({
         sawBankruptThisPuzzle.current = false;
     }, [currentId, challenge]);
 
+    // Pawl-tick timers scheduled for the current spin; cleared on a new spin and
+    // on unmount so ticks never fire into a torn-down screen.
+    const tickTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const clearTickTimers = useCallback(() => {
+        tickTimers.current.forEach(clearTimeout);
+        tickTimers.current = [];
+    }, []);
+    useEffect(() => clearTickTimers, [clearTickTimers]);
+
     const rotation = useSharedValue(0);
     const wheelStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
     // Charged power level [0,1]; drives both the meter fill and the landing segment.
@@ -186,18 +199,22 @@ export default function WheelPlayScreen({
         if (!boughtVowel.current) cleanPuzzles.current += 1;
         if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
         const next = solve(solvedState, currentPuzzle(solvedState).phrase);
+        play('correct');
+        haptics.notification();
         setStatus('✓');
         setSolveMode(false);
         setSpinValue(0);
         setPhase('resolving');
         setPendingNext(next);
-    }, []);
+    }, [play, haptics]);
 
     const settleSpin = useCallback(
         (result: SpinResult) => {
             setSpinning(false);
             if (result.segment.bankrupt) {
                 sawBankruptThisPuzzle.current = true;
+                play('bust');
+                haptics.heavy();
                 setGame((g) => applyBankrupt(g));
                 setStatus(tr('game.the-wheel.active.bankrupt'));
                 setPhase('awaitSpin');
@@ -208,7 +225,7 @@ export default function WheelPlayScreen({
                 setPhase('awaitGuess');
             }
         },
-        [tr],
+        [tr, play, haptics],
     );
 
     // Land the wheel from a charged power level. Power picks the segment; a small
@@ -235,6 +252,23 @@ export default function WheelPlayScreen({
             const duration = reduceMotion ? 700 : 3400 + Math.round(level * 2000);
             const target = rotation.value + turns * 360 + forward;
 
+            // Pawl ticks: one per segment boundary the wheel passes, timed by
+            // inverting the ease-out curve below (angle(t) = Δ·(1−(1−t/T)²), so the
+            // k-th crossing lands at t = T·(1−√(1−kθ/Δ))). Early crossings arrive
+            // faster than the click sample can replay, so any tick closer than
+            // 90ms to the previous one is dropped — the audible deceleration at
+            // the end, where the drama lives, keeps every click.
+            clearTickTimers();
+            const delta = target - rotation.value;
+            const crossings = Math.floor(delta / segmentAngle);
+            let lastTickAt = -Infinity;
+            for (let k = 1; k <= crossings; k++) {
+                const at = duration * (1 - Math.sqrt(1 - (k * segmentAngle) / delta));
+                if (at - lastTickAt < 90) continue;
+                lastTickAt = at;
+                tickTimers.current.push(setTimeout(() => play('tick'), at));
+            }
+
             // Quadratic ease-out models a coasting wheel under constant friction
             // (constant angular deceleration): it carries speed through the spin then
             // slows smoothly to a stop on the segment, without the floaty creep of a
@@ -244,7 +278,7 @@ export default function WheelPlayScreen({
                 if (finished) runOnJS(settleSpin)(result);
             });
         },
-        [spinning, reduceMotion, settleSpin, rotation],
+        [spinning, reduceMotion, settleSpin, rotation, clearTickTimers, play],
     );
 
     // Hold to start the power meter oscillating 0->1->0 in a loop.
@@ -365,12 +399,14 @@ export default function WheelPlayScreen({
         // Reveal the full answer and hold it on screen; the player taps Continue to
         // see the result before the run ends. A wrong solve ends the run.
         const next = solve(game, guess);
+        play('wrong');
+        haptics.heavy();
         setWrongGuess(guess.trim());
         setStatus('✗');
         setSolveMode(false);
         setPhase('resolving');
         setPendingNext(next);
-    }, [game, filled, finishSolvedPuzzle]);
+    }, [game, filled, finishSolvedPuzzle, play, haptics]);
 
     // Apply the resolved state once the player has read the result.
     const handleContinue = useCallback(() => {

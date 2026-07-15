@@ -32,6 +32,13 @@ jest.mock('expo-haptics', () => ({
     },
 }));
 
+jest.mock('expo-audio', () => ({
+    createAudioPlayer: () => ({
+        play: jest.fn(),
+        seekTo: jest.fn(),
+    }),
+}));
+
 jest.mock('@shopify/react-native-skia', () => ({
     Canvas: ({ children }) => children,
     Circle: () => null,

@@ -66,14 +66,14 @@
         "tip": {
             "1": "Psst — double-tap me to switch my look.",
             "2": "The Climb: 15 questions, one slip ends the run.",
-            "3": "The Grid: wager big on the clues you trust.",
+            "3": "All solo games share one daily play limit.",
             "4": "Letter Wheel: spin, guess letters, solve the word.",
             "5": "The Drop: split your bank onto answers you trust.",
             "6": "Play once a day to keep your streak alive.",
-            "7": "Share a result to challenge a friend.",
+            "7": "Create a challenge and share it with friends.",
             "8": "New looks and packs wait in the Store.",
             "9": "The Climb: tough question? Spend a lifeline.",
-            "10": "Every pack, theme, or look you own adds a daily play.",
+            "10": "Every pack, theme, or costume you buy adds a daily play.",
             "11": "Premium unlocks unlimited daily plays."
         },
         "streak": {
@@ -134,11 +134,11 @@
         },
         "unlock": {
             "1": "Unlocked. Nice pickup.",
-            "2": "New content — go try it.",
+            "2": "Something new — go try it.",
             "3": "Fresh off the shelf.",
             "4": "Yours to keep.",
-            "5": "Fresh pack. Fresh trouble.",
-            "6": "New pack in the spotlight.",
+            "5": "Fresh unlock. Fresh trouble.",
+            "6": "A new addition in the spotlight.",
             "7": "A fine addition to the set."
         },
         "lookEquipped": {

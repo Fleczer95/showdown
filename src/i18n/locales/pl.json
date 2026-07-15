@@ -19,70 +19,70 @@
             "1": "Ech — o włos.",
             "2": "Zabolało. Rewanż?",
             "3": "Następnym razem się uda.",
-            "4": "Bezlitośnie. Otrząśnij się.",
-            "5": "O włos. Serio.",
+            "4": "Ale brutalnie. Głowa do góry.",
+            "5": "O włos od wygranej.",
             "6": "Pech. Nie twoja wina.",
             "7": "Głowa do góry.",
             "8": "Zdarza się najlepszym.",
-            "9": "Dobry bieg. Twarde lądowanie.",
-            "10": "Tym razem plansza wygrała.",
+            "9": "Dobra gra. Bolesny finał.",
+            "10": "Tym razem gra była górą.",
             "11": "Tak blisko, że aż boli.",
             "12": "Małe potknięcie, gwiazdo.",
             "13": "Gasimy światła? Nie, gramy dalej."
         },
         "greeting": {
-            "1": "Witaj. Ja liczę punkty.",
-            "2": "Wracasz po więcej? Dobrze.",
-            "3": "Jestem gotowy, kiedy ty.",
-            "4": "Zróbmy z tego coś dobrego.",
+            "1": "Witaj. Ja zajmę się wynikiem.",
+            "2": "Wracasz po więcej? I dobrze.",
+            "3": "Jestem gotowy. Czekam na twój znak.",
+            "4": "Zróbmy z tego coś wielkiego.",
             "5": "Śmiało, zapraszam.",
             "6": "Czas na show.",
             "7": "Scena jest twoja.",
-            "8": "Światła gotowe. Twoja kolej.",
-            "9": "Trzymałem ci podium.",
-            "10": "Niech gra czołówka.",
-            "11": "Światła w dół. Ty wybierasz.",
-            "12": "Rozgrzałem już oklaski.",
+            "8": "Reflektory już świecą. Twoja kolej.",
+            "9": "Zarezerwowałem ci miejsce na podium.",
+            "10": "Muzyka, proszę!",
+            "11": "Światła przygaszone. Teraz ty decydujesz.",
+            "12": "Publiczność już gotowa, by bić brawo.",
             "13": "Miło, że jesteś."
         },
         "idle": {
             "1": "Nie spiesz się.",
             "2": "Nigdzie się nie wybieram.",
-            "3": "Wybierz grę, dowolną.",
-            "4": "Koło dziś czuje szczęście.",
+            "3": "Wybierz dowolną grę.",
+            "4": "Koło ma dziś szczęście.",
             "5": "Wciąż tu jestem.",
-            "6": "Nigdzie się nie spieszę.",
+            "6": "Mam mnóstwo czasu.",
             "7": "Kiedy tylko zechcesz.",
             "8": "Coś wpadło ci w oko?",
             "9": "Umiem czekać z klasą.",
             "10": "Mała pauza. Duże napięcie.",
             "11": "Twój ruch, gwiazdo.",
-            "12": "Głębokie przemyślenia?",
-            "13": "Napięcie robi rozgrzewkę.",
+            "12": "Trudny wybór?",
+            "13": "Napięcie robi pompki.",
             "14": "Wciąż wybierasz? Szanuję.",
             "15": "W studiu jest cicho... za cicho.",
-            "16": "Ćwiczę mój uśmiech do kamery."
+            "16": "Ćwiczę uśmiech do kamery."
         },
         "tip": {
-            "1": "Psst — stuknij mnie dwa razy, zmienię wygląd.",
+            "1": "Psst — stuknij mnie dwa razy, żeby zmienić mój wygląd.",
             "2": "Na Szczyt: 15 pytań, jeden błąd i koniec.",
-            "3": "Plansza: postaw wysoko na pewne pola.",
-            "4": "Koło Liter: kręć, zgaduj litery, odgadnij hasło.",
-            "5": "Zrzut: rozłóż bank na odpowiedzi, którym ufasz.",
+            "3": "Wszystkie gry solo mają wspólny dzienny limit.",
+            "4": "Koło Liter: zakręć kołem, zgaduj litery i odgadnij hasło.",
+            "5": "Zrzut: rozdziel bank między odpowiedzi, którym ufasz.",
             "6": "Zagraj raz dziennie, by utrzymać serię.",
-            "7": "Udostępnij wynik i rzuć wyzwanie znajomemu.",
-            "8": "Nowe wyglądy i pakiety czekają w Sklepie.",
+            "7": "Utwórz wyzwanie i udostępnij je znajomym.",
+            "8": "Nowe stroje i pakiety czekają w Sklepie.",
             "9": "Na Szczyt: trudne pytanie? Użyj koła ratunkowego.",
-            "10": "Każdy pakiet, motyw czy wygląd dodaje grę dziennie.",
+            "10": "Każdy kupiony pakiet, motyw lub strój daje jedną dodatkową grę dziennie.",
             "11": "Premium znosi dzienny limit gier."
         },
         "streak": {
-            "1": "Idzie ci.",
-            "2": "Rozpęd rośnie.",
+            "1": "Dobrze ci idzie.",
+            "2": "Nabierasz rozpędu.",
             "3": "Świetna passa.",
             "4": "Ta seria ma pazur.",
             "5": "Wygrane ustawiają się w kolejce.",
-            "6": "Ale seria. Gorąco tu.",
+            "6": "Ale passa! Robi się gorąco.",
             "tier1": "Trzy z rzędu!",
             "tier2": "Pięć! Rozpędzasz się.",
             "tier3": "Dziesięć z rzędu — nie do zatrzymania."
@@ -90,81 +90,81 @@
         "levelUp": {
             "1": "Nowy poziom! No proszę.",
             "2": "Kolejny poziom. Zasłużony.",
-            "3": "Naprzód i w górę.",
+            "3": "Naprzód — i coraz wyżej.",
             "4": "Nowy poziom, ten sam styl.",
             "5": "Pniemy się w górę.",
             "6": "Wyższa liga.",
-            "7": "Awans. Ogon wysoko.",
+            "7": "Awans! Ogon do góry.",
             "8": "Większa scena. Ten sam uśmiech."
         },
         "challengeWin": {
-            "1": "Ich wynik pobity. Bez litości.",
-            "2": "Prawo do przechwałek: twoje.",
+            "1": "Wynik pobity. Bez litości.",
+            "2": "Masz się czym chwalić.",
             "3": "Tak się to robi.",
-            "4": "Mikrofon na podłogę.",
-            "5": "Znajomy zdetronizowany. Z klasą.",
-            "6": "Nie mieli szans.",
-            "7": "Korona im spadła. Ups.",
-            "8": "Porachunki wyrównane. Z klasą."
+            "4": "Pozamiatane. Można zejść ze sceny.",
+            "5": "Detronizacja z klasą.",
+            "6": "Bez szans.",
+            "7": "Korona spadła. Ups.",
+            "8": "Wyzwanie rozstrzygnięte. I to jak!"
         },
         "challengeIn": {
-            "1": "Wpadło wyzwanie. Ktoś jest odważny.",
+            "1": "Wpadło wyzwanie. Ktoś tu ma odwagę.",
             "2": "Nowe wyzwanie dla ciebie.",
-            "3": "Rękawica rzucona.",
-            "4": "Ktoś zadzwonił gongiem.",
-            "5": "Wynik szuka kłopotów.",
-            "6": "Ktoś chce wejść w światło reflektorów.",
-            "7": "Ktoś tu chce pobić mistrza."
+            "3": "Rzucono ci rękawicę.",
+            "4": "Ktoś uderzył w gong.",
+            "5": "Ten wynik aż prosi się o kłopoty.",
+            "6": "Ktoś chce stanąć w świetle reflektorów.",
+            "7": "Ktoś chce zepchnąć cię z podium."
         },
         "challengeOut": {
             "1": "Wyzwanie wysłane. Teraz czekamy.",
-            "2": "Zobaczmy, czy dorównają.",
-            "3": "Piłka po ich stronie.",
-            "4": "Wysłane. Niech się spocą.",
-            "5": "Już się boją.",
+            "2": "Zobaczmy, czy ktoś temu dorówna.",
+            "3": "Teraz ruch po drugiej stronie.",
+            "4": "Wysłane. Niech druga strona się martwi.",
+            "5": "Ktoś tu ma powody do obaw.",
             "6": "Twój wynik ruszył w trasę.",
             "7": "Niech rozpocznie się gra."
         },
         "offlineLimit": {
-            "1": "To dzisiejsze darmowe rundy. Sklep podnosi limit.",
+            "1": "Dzisiejszy limit wykorzystany. Sklep może go zwiększyć.",
             "2": "Koniec solowych rund na dziś.",
-            "3": "Darmowe gry zużyte. Może Sklep?",
-            "4": "Bak pusty do jutra — albo Sklep.",
-            "5": "Dziś to tyle. Ale sklep wciąż otwarty."
+            "3": "Dzisiejszy limit wyczerpany. Może zajrzymy do Sklepu?",
+            "4": "Bak pusty aż do jutra — chyba że zajrzysz do Sklepu.",
+            "5": "Dziś to tyle. Ale Sklep wciąż otwarty."
         },
         "unlock": {
             "1": "Odblokowane. Niezły nabytek.",
-            "2": "Nowa zawartość — wypróbuj ją.",
+            "2": "Coś nowego — pora to wypróbować.",
             "3": "Prosto z półki.",
             "4": "Zostaje z tobą.",
-            "5": "Nowa paczka. Nowe emocje.",
-            "6": "Nowy pakiet w świetle reflektorów.",
+            "5": "Nowa zdobycz. Nowe kłopoty.",
+            "6": "Nowość w blasku reflektorów.",
             "7": "Świetny dodatek do naszego studia."
         },
         "lookEquipped": {
-            "1": "Elegancki wygląd.",
+            "1": "Ale szyk!",
             "2": "Pasuje mi, prawda?",
-            "3": "Ubrany, by prowadzić.",
+            "3": "Ubrany jak prawdziwy prowadzący.",
             "4": "Tak, leży idealnie.",
-            "5": "Uszyte na miarę.",
+            "5": "Jakby szyte na miarę.",
             "6": "Jak wyglądam? Pytanie retoryczne.",
             "7": "Gotowy na czerwony dywan.",
-            "8": "Kamera kocha ten styl."
+            "8": "Przed kamerą wyglądam świetnie."
         },
         "clutch": {
             "1": "Na ostatnią chwilę!",
             "2": "Tuż przed gongiem!",
             "3": "Rzutem na taśmę!",
-            "4": "Nawet się nie spociłem.",
-            "5": "Uratowane na krawędzi!",
-            "6": "O mały włos, co?"
+            "4": "Bez kropli potu!",
+            "5": "Cudem uratowane!",
+            "6": "Ale było blisko, co?"
         },
         "allIn": {
             "1": "Va banque — i się opłaciło!",
-            "2": "Cała stawka. Cała twoja.",
-            "3": "Kto nie ryzykuje... i wygrywa!",
+            "2": "Wszystko postawione. Wszystko twoje.",
+            "3": "Ryzyko popłaca. I to jak!",
             "4": "Do odważnych świat należy.",
-            "5": "Postawione wszystko. Scena zapłaciła.",
+            "5": "Wszystko na jedną kartę — i nic nie przepadło!",
             "6": "Grasz ryzykownie. Podoba mi się to."
         }
     },
@@ -267,7 +267,7 @@
                 "roundTimer": "Czas rundy",
                 "soundEffects": "Efekty dźwiękowe",
                 "hapticFeedback": "Wibracje",
-                "mascotChatter": "Gadatliwy lis",
+                "mascotChatter": "Odzywki maskotki",
                 "language": "Język",
                 "language_en": "Angielski",
                 "language_pl": "Polski",
@@ -332,7 +332,7 @@
         },
         "mascot": {
             "title": "Maskotka",
-            "subtitle": "Dotknij lisa lub elementu, aby zmienić kolor.",
+            "subtitle": "Dotknij lisa lub jednego z pól, aby zmienić kolor.",
             "slots": {
                 "fur": "Futro",
                 "suit": "Garnitur",
@@ -552,15 +552,15 @@
                 },
                 "mascot_arctic": {
                     "title": "Strój Arktyczny",
-                    "desc": "Pokoloruj swojego lisa-prowadzącego w chłodnym arktycznym motywie ze srebrnymi i turkusowymi akcentami."
+                    "desc": "Nadaj lisowi prowadzącemu arktyczną kolorystykę ze srebrnymi i turkusowymi akcentami."
                 },
                 "mascot_emerald": {
                     "title": "Strój Szmaragdowy",
-                    "desc": "Pokoloruj swojego lisa-prowadzącego w elegancki szmaragdowy garnitur ze złotymi akcentami."
+                    "desc": "Ubierz lisa prowadzącego w elegancki szmaragdowy garnitur ze złotymi akcentami."
                 },
                 "mascot_plum": {
                     "title": "Strój Śliwkowy",
-                    "desc": "Pokoloruj swojego lisa-prowadzącego w stylowy śliwkowy garnitur z karmazynowymi akcentami i różowym mikrofonem."
+                    "desc": "Ubierz lisa prowadzącego w stylowy śliwkowy garnitur z karmazynowymi akcentami i różowym mikrofonem."
                 }
             },
             "feature": {
@@ -582,12 +582,12 @@
                 "wheel_world-landmarks_2": "Obejmuje starożytne cuda, współczesne perły i piękno natury",
                 "ladder_lost-civilizations_1": "300 szczegółowych pytań o archeologii i starożytnych tajemnicach",
                 "ladder_lost-civilizations_2": "Obejmuje Ameryki, Mezopotamię, Azję i Afrykę",
-                "mascot_arctic_1": "Arktyczne kolory premium — futro, garnitur, dodatek i mikrofon",
-                "mascot_arctic_2": "Odblokowuje zestaw Arktyczny w kreatorze",
-                "mascot_emerald_1": "Szmaragdowe kolory premium — garnitur i dodatek",
-                "mascot_emerald_2": "Odblokowuje zestaw Szmaragdowy w kreatorze",
-                "mascot_plum_1": "Śliwkowe kolory premium — futro, garnitur, dodatek i mikrofon",
-                "mascot_plum_2": "Odblokowuje zestaw Śliwkowy w kreatorze"
+                "mascot_arctic_1": "Arktyczna paleta premium — futro, garnitur, krawat i mikrofon",
+                "mascot_arctic_2": "Odblokowuje zestaw „Arktyczny” w edytorze maskotki",
+                "mascot_emerald_1": "Szmaragdowa paleta premium — garnitur i krawat",
+                "mascot_emerald_2": "Odblokowuje zestaw „Szmaragdowy” w edytorze maskotki",
+                "mascot_plum_1": "Śliwkowa paleta premium — futro, garnitur, krawat i mikrofon",
+                "mascot_plum_2": "Odblokowuje zestaw „Śliwkowy” w edytorze maskotki"
             },
             "unlocked": "Odblokowano",
             "buy": "Kup za %{price}",

@@ -21,6 +21,7 @@ export interface SliderProps {
 
 const THUMB_SIZE = 24; // phone baseline; scaled fluidly below
 const TRACK_HEIGHT = 6;
+const PAN_DIRECTION_SLOP = 10;
 
 export default function Slider({
     label,
@@ -40,9 +41,9 @@ export default function Slider({
     const activeAccent = accentColor || t.colors.primary;
 
     // Fluid sizing so the widget keeps pace with the scaled type/spacing tokens on tablet.
-    const thumbSize = scale(24);
+    const thumbSize = scale(THUMB_SIZE);
     const trackPadding = thumbSize / 2;
-    const trackHeight = scale(6);
+    const trackHeight = scale(TRACK_HEIGHT);
 
     const onLayout = useCallback((event: LayoutChangeEvent) => {
         setTrackWidth(event.nativeEvent.layout.width);
@@ -71,6 +72,11 @@ export default function Slider({
     };
 
     const gesture = Gesture.Pan()
+        // Wait for a clearly horizontal drag before claiming the touch. If the
+        // finger moves vertically first, fail this recognizer so a surrounding
+        // ScrollView can take over immediately.
+        .activeOffsetX([-PAN_DIRECTION_SLOP, PAN_DIRECTION_SLOP])
+        .failOffsetY([-PAN_DIRECTION_SLOP, PAN_DIRECTION_SLOP])
         .onBegin(() => {
             isPressed.value = true;
         })

@@ -40,6 +40,17 @@ describe('maskedPhrase', () => {
         const g = guessConsonant(createGame(PUZZLES), 'L', 100);
         expect(maskedPhrase(g)).toBe('__LL_ ___L_');
     });
+
+    it('hides canonical foreign-accented letters', () => {
+        const g = createGame([{ id: 'p1', phrase: 'CRÈME BRÛLÉE', category: 'Dessert' }]);
+        expect(maskedPhrase(g)).toBe('_____ ______');
+    });
+
+    it('reveals canonical foreign accents through their base keyboard key', () => {
+        let g = createGame([{ id: 'p1', phrase: 'CRÈME BRÛLÉE', category: 'Dessert' }]);
+        g = buyVowel({ ...g, roundCash: VOWEL_COST }, 'E');
+        expect(maskedPhrase(g)).toBe('__È_E ____ÉE');
+    });
 });
 
 describe('guessConsonant', () => {
@@ -70,6 +81,19 @@ describe('guessConsonant', () => {
         const g = guessConsonant(createGame(PUZZLES), 'L', 100);
         expect(alreadyGuessed(g, 'l')).toBe(true);
         expect(alreadyGuessed(g, 'Z')).toBe(false);
+    });
+
+    it('folds foreign diacritics for scoring but keeps Polish letters distinct', () => {
+        const g = guessConsonant(
+            createGame([{ id: 'p1', phrase: 'PARK GÜELL ET CRÈME BRÛLÉE', category: 'X' }]),
+            'U',
+            100,
+        );
+        expect(g.roundCash).toBe(200);
+        expect(maskedPhrase(g)).toContain('Ü');
+        expect(maskedPhrase(g)).toContain('Û');
+        expect(countLetter('ŁÓDŹ', 'O')).toBe(0);
+        expect(countLetter('ŁÓDŹ', 'Ó')).toBe(1);
     });
 });
 

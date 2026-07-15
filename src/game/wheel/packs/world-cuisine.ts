@@ -50,7 +50,7 @@ const puzzles: BiPuzzle[] = [
 
     // --- Desserts ---
     { id: 'wheel-world-cuisine-021', phrase: { en: 'CHOCOLATE MOUSSE', pl: 'MUS CZEKOLADOWY' }, category: DESSERT },
-    { id: 'wheel-world-cuisine-022', phrase: { en: 'CREME BRULEE', pl: 'CREME BRULEE' }, category: DESSERT },
+    { id: 'wheel-world-cuisine-022', phrase: { en: 'CRÈME BRÛLÉE', pl: 'CRÈME BRÛLÉE' }, category: DESSERT },
     { id: 'wheel-world-cuisine-023', phrase: { en: 'TIRAMISU CAKE', pl: 'CIASTO TIRAMISU' }, category: DESSERT },
     { id: 'wheel-world-cuisine-024', phrase: { en: 'LEMON CHEESECAKE', pl: 'SERNIK CYTRYNOWY' }, category: DESSERT },
     { id: 'wheel-world-cuisine-025', phrase: { en: 'VANILLA ICE CREAM', pl: 'LODY WANILIOWE' }, category: DESSERT },

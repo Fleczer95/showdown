@@ -51,23 +51,37 @@ export const WHEEL: WheelSegment[] = [
     { value: 1000, bankrupt: false, label: '1000' },
 ];
 
-const LETTER = /[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/;
+const LETTER = /^\p{L}$/u;
+const POLISH_GUESS_KEY = /^[ĄĆĘŁŃÓŚŹŻ]$/;
 
-/** True if `ch` (already uppercased) is an alphabetic letter we can hide. */
+/**
+ * Map a displayed phrase character to the keyboard key that reveals it.
+ *
+ * Polish letters keep their own keys because the Polish keyboard exposes them.
+ * Other Latin diacritics fold to the base key available on both keyboards, so
+ * E reveals È/É and U reveals Û/Ü while the canonical character stays visible.
+ */
+function guessKey(ch: string): string {
+    const upper = ch.toUpperCase();
+    if (POLISH_GUESS_KEY.test(upper)) return upper;
+    return upper.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
+
+/** True if `ch` is an alphabetic Unicode character we can hide. */
 export function isLetter(ch: string): boolean {
     return LETTER.test(ch);
 }
 
 export function isVowel(ch: string): boolean {
-    return VOWELS.includes(ch.toUpperCase());
+    return VOWELS.includes(guessKey(ch));
 }
 
-/** Count occurrences of an (uppercased) letter in the phrase, case-insensitive. */
+/** Count occurrences of a keyboard letter, including its foreign diacritic forms. */
 export function countLetter(phrase: string, letter: string): number {
-    const target = letter.toUpperCase();
+    const target = guessKey(letter);
     let n = 0;
     for (const ch of phrase) {
-        if (isLetter(ch) && ch.toUpperCase() === target) n++;
+        if (isLetter(ch) && guessKey(ch) === target) n++;
     }
     return n;
 }
@@ -184,7 +198,7 @@ export function maskedPhrase(state: GameState): string {
     return Array.from(phrase)
         .map((ch) => {
             if (!isLetter(ch)) return ch;
-            return state.revealed.has(ch.toUpperCase()) ? ch : '_';
+            return state.revealed.has(guessKey(ch)) ? ch : '_';
         })
         .join('');
 }
@@ -193,14 +207,14 @@ export function maskedPhrase(state: GameState): string {
 export function isFullyRevealed(state: GameState): boolean {
     const phrase = currentPuzzle(state).phrase;
     for (const ch of phrase) {
-        if (isLetter(ch) && !state.revealed.has(ch.toUpperCase())) return false;
+        if (isLetter(ch) && !state.revealed.has(guessKey(ch))) return false;
     }
     return true;
 }
 
 /** True if a letter has already been guessed this puzzle (can't guess twice). */
 export function alreadyGuessed(state: GameState, letter: string): boolean {
-    return state.guessedLetters.has(letter.toUpperCase());
+    return state.guessedLetters.has(guessKey(letter));
 }
 
 /**
@@ -210,12 +224,12 @@ export function alreadyGuessed(state: GameState, letter: string): boolean {
  * Either way the letter is marked guessed (can't be guessed again).
  */
 export function guessConsonant(state: GameState, letter: string, spinValue: number): GameState {
-    const upper = letter.toUpperCase();
-    const count = countLetter(currentPuzzle(state).phrase, upper);
+    const key = guessKey(letter);
+    const count = countLetter(currentPuzzle(state).phrase, key);
     const guessedLetters = new Set(state.guessedLetters);
-    guessedLetters.add(upper);
+    guessedLetters.add(key);
     const revealed = new Set(state.revealed);
-    if (count > 0) revealed.add(upper);
+    if (count > 0) revealed.add(key);
     return {
         ...state,
         guessedLetters,
@@ -230,11 +244,11 @@ export function guessConsonant(state: GameState, letter: string, spinValue: numb
  */
 export function buyVowel(state: GameState, letter: string): GameState {
     if (state.roundCash < VOWEL_COST) return state;
-    const upper = letter.toUpperCase();
+    const key = guessKey(letter);
     const guessedLetters = new Set(state.guessedLetters);
-    guessedLetters.add(upper);
+    guessedLetters.add(key);
     const revealed = new Set(state.revealed);
-    revealed.add(upper);
+    revealed.add(key);
     return {
         ...state,
         guessedLetters,

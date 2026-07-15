@@ -3,16 +3,29 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#1a1a2e" />
         <title>ShowDown Challenge</title>
         <style>
+            /* Palette mirrors src/theme/defaults.ts so the page reads as the game. */
+            :root {
+                --bg: #1a1a2e;
+                --surface: #16213e;
+                --border: #3a3a5a;
+                --text: #fff;
+                --muted: #b8b8c8;
+                --primary: #ff6b6b;
+            }
+            * {
+                box-sizing: border-box;
+            }
             body {
                 margin: 0;
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: #1a1a2e;
-                color: #fff;
+                background: radial-gradient(circle at 50% 20%, #24244a 0%, var(--bg) 60%);
+                color: var(--text);
                 font-family:
                     -apple-system,
                     Segoe UI,
@@ -21,40 +34,241 @@
                 text-align: center;
             }
             .card {
-                padding: 32px;
-                max-width: 360px;
+                padding: 32px 24px;
+                width: 100%;
+                max-width: 380px;
+            }
+            /* Speech bubble — same recipe as the in-game MascotOverlay bubble
+               (surface bg, light border, rotated-square tail). */
+            .bubble {
+                position: relative;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 16px 20px 18px;
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+                margin: 0 8px 22px;
+            }
+            .bubble::after {
+                content: '';
+                position: absolute;
+                width: 14px;
+                height: 14px;
+                bottom: -8px;
+                left: 50%;
+                margin-left: -7px;
+                background: var(--surface);
+                border-right: 1px solid var(--border);
+                border-bottom: 1px solid var(--border);
+                transform: rotate(45deg);
             }
             h1 {
-                font-size: 22px;
-                margin: 0 0 8px;
+                font-size: 21px;
+                margin: 0 0 6px;
             }
-            p {
-                color: #b8b8c8;
-                line-height: 1.5;
+            .bubble p {
+                margin: 0;
+                color: var(--muted);
+                line-height: 1.45;
+                font-size: 15px;
+            }
+            .fox {
+                display: block;
+                margin: 0 auto;
             }
             a.btn {
                 display: block;
                 margin: 12px 0;
                 padding: 14px;
                 border-radius: 14px;
-                background: #e94560;
-                color: #fff;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                color: var(--text);
                 text-decoration: none;
                 font-weight: 600;
+            }
+            a.btn.primary {
+                background: var(--primary);
+                border-color: var(--primary);
+                color: #1a1a2e;
+                box-shadow: 0 6px 16px rgba(255, 107, 107, 0.35);
+            }
+            p.hint {
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.5;
+                margin: 10px 0;
+            }
+            [hidden] {
+                display: none;
+            }
+            /* Entrance + idle "breathing", mirroring the mascot's intro/idle poses. */
+            @media (prefers-reduced-motion: no-preference) {
+                .fox-wrap {
+                    animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.15) both;
+                }
+                .fox {
+                    animation: breathe 1.4s ease-in-out 0.6s infinite alternate;
+                }
+                .bubble {
+                    animation: pop 0.35s cubic-bezier(0.2, 0.8, 0.3, 1.2) 0.55s both;
+                }
+                .actions {
+                    animation: fadeup 0.4s ease-out 0.75s both;
+                }
+            }
+            @keyframes rise {
+                from {
+                    opacity: 0;
+                    transform: translateY(60px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            @keyframes breathe {
+                to {
+                    transform: scale(1.035);
+                }
+            }
+            @keyframes pop {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px) scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            @keyframes fadeup {
+                from {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
         </style>
     </head>
     <body>
         <!--
-      Store-redirect fallback shown only when the app is NOT installed (an
-      installed app intercepts /c/* via Universal/App Links before this loads).
-      Replace the two store URLs once the listings are live.
+      Fallback page shown when the app did not intercept /c/* via
+      Universal/App Links — either the app is not installed, or the link was
+      opened in an in-app browser (Messenger, Instagram, ...) whose WebView
+      bypasses OS link handling. The script below offers a custom-scheme /
+      intent:// escape hatch for the latter case.
+
+      The fox is the in-game mascot SVG (src/game/mascot/Mascot.tsx, happy
+      expression) with the default look colors from src/game/mascot/look.ts;
+      the speech bubble mirrors MascotOverlay's bubble styling.
     -->
         <div class="card">
-            <h1>🏆 You've been challenged!</h1>
-            <p>Install ShowDown to take this challenge and see who wins.</p>
-            <a class="btn" href="https://apps.apple.com/app/id6774886649">Download on the App Store</a>
-            <a class="btn" href="https://play.google.com/store/apps/details?id=com.showdown.app">Get it on Google Play</a>
+            <div class="bubble">
+                <h1 id="t-title">🏆 You've been challenged!</h1>
+                <p id="t-sub">Someone thinks you can't beat their score. Care to prove them wrong?</p>
+            </div>
+            <div class="fox-wrap">
+                <svg class="fox" width="190" height="175" viewBox="0 30 200 184" role="img" aria-label="ShowDown fox mascot holding a microphone">
+                    <defs>
+                        <pattern id="micGrille" patternUnits="userSpaceOnUse" width="2.9" height="2.9">
+                            <circle cx="1.45" cy="1.45" r="0.7" fill="rgba(0,0,0,0.34)" />
+                        </pattern>
+                    </defs>
+                    <!-- tail -->
+                    <path d="M60,182 C30,186 18,164 20,138 C22,118 38,110 48,116 C40,124 40,140 48,156 C54,170 62,176 68,178 Z" fill="#F2780C" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M21,137 C23,119 38,111 47,116 C44,122 41,129 41,139 C34,145 27,144 21,137 Z" fill="#F8E6CE" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M52,168 C58,176 64,180 68,178 L60,182 C54,180 50,174 52,168 Z" fill="rgba(0,0,0,0.18)" />
+                    <!-- suit body + lapels -->
+                    <path d="M82,130 C64,134 52,146 48,166 L44,206 Q44,213 54,213 L146,213 Q156,213 156,206 L152,166 C148,146 136,134 118,130 Z" fill="#1D4ED8" stroke="rgba(0,0,0,0.32)" stroke-width="2" />
+                    <polygon points="82,130 60,150 90,182 98,140" fill="#1D4ED8" />
+                    <polygon points="118,130 140,150 110,182 102,140" fill="#1D4ED8" />
+                    <polygon points="98,140 90,182 96,182 100,146" fill="rgba(0,0,0,0.18)" />
+                    <polygon points="90,132 110,132 100,146" fill="rgba(255,255,255,0.22)" />
+                    <!-- tie -->
+                    <path d="M100,138 L108,146 L106,156 L112,194 L100,202 L88,194 L94,156 L92,146 Z" fill="#DC2626" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <polygon points="100,156 112,194 100,202" fill="rgba(0,0,0,0.18)" />
+                    <!-- ears -->
+                    <path d="M60,74 C51,58 48,42 54,34 C58,30 63,32 66,42 C70,54 78,62 86,66 Z" fill="#F2780C" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M140,74 C149,58 152,42 146,34 C142,30 137,32 134,42 C130,54 122,62 114,66 Z" fill="#F2780C" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M60,66 C54,54 55,44 60,40 C64,48 72,58 80,64 Z" fill="rgba(0,0,0,0.18)" />
+                    <path d="M140,66 C146,54 145,44 140,40 C136,48 128,58 120,64 Z" fill="rgba(0,0,0,0.18)" />
+                    <!-- head -->
+                    <path d="M100,50 C82,48 60,54 54,74 C48,90 48,102 56,110 C66,126 80,136 100,144 C120,136 134,126 144,110 C152,102 152,90 146,74 C140,54 118,48 100,50 Z" fill="#F2780C" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M100,102 C87,102 81,113 85,125 C89,135 96,141 100,141 C104,141 111,135 115,125 C119,113 113,102 100,102 Z" fill="rgba(255,255,255,0.22)" />
+                    <!-- face: happy expression -->
+                    <path d="M70,73 Q80,67 90,73" stroke="rgba(0,0,0,0.18)" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                    <path d="M130,73 Q120,67 110,73" stroke="rgba(0,0,0,0.18)" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                    <ellipse cx="80" cy="91" rx="9" ry="10" fill="#1F2937" />
+                    <ellipse cx="120" cy="91" rx="9" ry="10" fill="#1F2937" />
+                    <circle cx="83" cy="87" r="3.2" fill="#FFFFFF" />
+                    <circle cx="123" cy="87" r="3.2" fill="#FFFFFF" />
+                    <circle cx="77" cy="94" r="1.6" fill="#FFFFFF" />
+                    <circle cx="117" cy="94" r="1.6" fill="#FFFFFF" />
+                    <path d="M100,124 C92,124 88,118 92,114 C95,111 100,112 100,112 C100,112 105,111 108,114 C112,118 108,124 100,124 Z" fill="#1F2937" />
+                    <path d="M100,124 L100,130 M84,131 Q100,147 116,131" stroke="#1F2937" stroke-width="3" stroke-linecap="round" fill="none" />
+                    <!-- right arm + mic -->
+                    <path d="M120,162 C130,162 142,166 149,174 C153,179 151,187 145,187 C136,186 126,180 119,176 C114,173 114,164 120,162 Z" fill="#1D4ED8" stroke="rgba(0,0,0,0.32)" stroke-width="2" />
+                    <path d="M122,165 C131,165 141,169 147,176 C150,180 148,185 143,185 C135,184 127,179 121,175 C117,172 117,166 122,165 Z" fill="rgba(255,255,255,0.22)" />
+                    <line x1="124" y1="164" x2="123" y2="181" stroke="#374151" stroke-width="5" stroke-linecap="round" />
+                    <circle cx="126" cy="150" r="15" fill="#FBBF24" stroke="rgba(0,0,0,0.32)" stroke-width="2" />
+                    <circle cx="130" cy="154" r="12" fill="rgba(0,0,0,0.18)" opacity="0.22" />
+                    <circle cx="126" cy="150" r="15" fill="url(#micGrille)" />
+                    <circle cx="119" cy="143" r="4.5" fill="rgba(255,255,255,0.22)" />
+                    <path d="M114,170 C112,162 120,157 127,161 C133,164 133,173 128,177 C122,181 116,177 114,170 Z" fill="#F2780C" stroke="rgba(0,0,0,0.32)" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M120,163 L119,172 M125,164 L124,173" stroke="rgba(0,0,0,0.18)" stroke-width="1.6" stroke-linecap="round" fill="none" />
+                </svg>
+            </div>
+            <div class="actions">
+                <a class="btn primary" id="open-app" hidden>Open in ShowDown</a>
+                <p class="hint" id="iab-hint" hidden>
+                    If the button does nothing, tap <strong>&ctdot;</strong> and choose
+                    <strong>Open in ShowDown</strong> (or <strong>Open in browser</strong>).
+                </p>
+                <a class="btn" id="t-ios" href="https://apps.apple.com/app/id6774886649">Download on the App Store</a>
+                <a class="btn" id="t-android" href="https://play.google.com/store/apps/details?id=com.showdown.app">Get it on Google Play</a>
+            </div>
         </div>
+        <script>
+            (function () {
+                // Recipient-side language swap: Polish devices get the PL copy
+                // (tone mirrors src/i18n/locales/pl.json), everyone else keeps EN.
+                if (/^pl\b/i.test(navigator.language || '')) {
+                    document.documentElement.lang = 'pl';
+                    document.title = 'Wyzwanie ShowDown';
+                    document.getElementById('t-title').textContent = '🏆 Rzucono Ci wyzwanie!';
+                    document.getElementById('t-sub').textContent =
+                        'Ktoś uważa, że nie pobijesz jego wyniku. Udowodnisz, że się myli?';
+                    document.getElementById('open-app').textContent = 'Otwórz w ShowDown';
+                    document.getElementById('iab-hint').innerHTML =
+                        'Jeśli przycisk nie działa, stuknij <strong>&ctdot;</strong> i wybierz ' +
+                        '<strong>Otwórz w ShowDown</strong> (lub <strong>Otwórz w przeglądarce</strong>).';
+                    document.getElementById('t-ios').textContent = 'Pobierz z App Store';
+                    document.getElementById('t-android').textContent = 'Pobierz z Google Play';
+                }
+                var match = location.pathname.match(/^\/c\/([\w-]+)\/?$/);
+                if (!match) return;
+                var id = match[1];
+                var ua = navigator.userAgent;
+                var playUrl = 'https://play.google.com/store/apps/details?id=com.showdown.app';
+                var btn = document.getElementById('open-app');
+                // intent:// opens the app (or falls back to the Play Store) even from
+                // WebViews that ignore App Links; iOS WebViews only escape via the
+                // custom scheme, which fails silently when the app is missing —
+                // hence the store buttons stay visible.
+                btn.href = /Android/i.test(ua)
+                    ? 'intent://showdown.lebene.pl/c/' + id +
+                      '#Intent;scheme=https;package=com.showdown.app;S.browser_fallback_url=' +
+                      encodeURIComponent(playUrl) + ';end'
+                    : 'showdown://c/' + id;
+                btn.hidden = false;
+                if (/FBAN|FBAV|FB_IAB|Messenger|Instagram/i.test(ua)) {
+                    document.getElementById('iab-hint').hidden = false;
+                }
+            })();
+        </script>
     </body>
 </html>

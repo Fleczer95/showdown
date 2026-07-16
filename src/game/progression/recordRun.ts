@@ -20,6 +20,7 @@ export function defaultStats(): ProgressionStats {
         todayGameIds: [],
         bestScoreByGame: {},
         feats: [],
+        challengesPlayed: 0,
     };
 }
 
@@ -67,6 +68,7 @@ export function applyRun(
         todayGameIds,
         bestScoreByGame,
         feats: [...feats],
+        challengesPlayed: prev.challengesPlayed + (result.challenge ? 1 : 0),
     };
 
     // Newly-completed achievements pay their flat XP into the same spine.

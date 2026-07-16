@@ -975,7 +975,8 @@
             "winner": "Zwycięzca",
             "ladder-scorer": "Wynik w grze Na Szczyt",
             "drop-scorer": "Wynik w Zrzucie",
-            "wheel-scorer": "Wynik w Kole Liter"
+            "wheel-scorer": "Wynik w Kole Liter",
+            "challenger": "Rywal"
         },
         "requirement": {
             "contestant": "Rozegraj %{n} rozgrywek",
@@ -984,7 +985,13 @@
             "winner": "Wygraj %{n} gier",
             "ladder-scorer": "Zdobądź %{n} punktów w jednej rozgrywce gry Na Szczyt",
             "drop-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Zrzutu",
-            "wheel-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Koła Liter"
+            "wheel-scorer": "Zdobądź %{n} punktów w jednej rozgrywce Koła Liter",
+            "challenger": {
+                "one": "Rozegraj pierwsze wyzwanie",
+                "few": "Rozegraj %{n} wyzwania",
+                "many": "Rozegraj %{n} wyzwań",
+                "other": "Rozegraj %{n} wyzwań"
+            }
         },
         "oneoff": {
             "well-rounded": "Wszechstronny",

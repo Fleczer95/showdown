@@ -128,6 +128,7 @@ function AchievementDetailSheet({
                                                     <Text variant='caption' color='textMuted'>
                                                         {t(`progression.requirement.${family.family}`, {
                                                             n: fmt(family.thresholds[i]),
+                                                            count: family.thresholds[i],
                                                         })}
                                                     </Text>
                                                 </Stack>

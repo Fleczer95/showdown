@@ -975,7 +975,8 @@
             "winner": "Winner",
             "ladder-scorer": "Climb Scorer",
             "drop-scorer": "Drop Scorer",
-            "wheel-scorer": "Letter Wheel Scorer"
+            "wheel-scorer": "Letter Wheel Scorer",
+            "challenger": "Challenger"
         },
         "requirement": {
             "contestant": "Play %{n} runs",
@@ -984,7 +985,11 @@
             "winner": "Win %{n} games",
             "ladder-scorer": "Score %{n} in a single Climb run",
             "drop-scorer": "Score %{n} in a single Drop run",
-            "wheel-scorer": "Score %{n} in a single Letter Wheel run"
+            "wheel-scorer": "Score %{n} in a single Letter Wheel run",
+            "challenger": {
+                "one": "Play your first challenge",
+                "other": "Play %{n} challenges"
+            }
         },
         "oneoff": {
             "well-rounded": "Well-Rounded",

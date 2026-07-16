@@ -35,6 +35,10 @@ export interface GameRunResult {
     cleanPuzzles?: number;
     /** Solved a puzzle after recovering from a Bankrupt → "Comeback". */
     bankruptRecovered?: boolean;
+
+    // Challenge
+    /** True when this run was an async challenge (ADR-0003). Drives "Challenger". */
+    challenge?: boolean;
 }
 
 /**
@@ -58,6 +62,8 @@ export interface ProgressionStats {
     bestScoreByGame: Record<string, number>;
     /** Momentary feats already earned — monotonic; not derivable from aggregates. */
     feats: string[];
+    /** Async challenge runs completed. Powers the Challenger family. */
+    challengesPlayed: number;
 }
 
 /** Before/after summary returned by recordRun so the game-over screen can celebrate. */

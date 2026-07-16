@@ -40,6 +40,7 @@ export const ACHIEVEMENT_FAMILIES: readonly AchievementFamily[] = [
     { family: 'ladder-scorer', axis: (s) => s.bestScoreByGame['the-ladder'] ?? 0, thresholds: [8000, 15000, 22000] },
     { family: 'drop-scorer', axis: (s) => s.bestScoreByGame['the-drop'] ?? 0, thresholds: [200000, 600000, 1200000] },
     { family: 'wheel-scorer', axis: (s) => s.bestScoreByGame['the-wheel'] ?? 0, thresholds: [5000, 10000, 18000] },
+    { family: 'challenger', axis: (s) => s.challengesPlayed, thresholds: [1, 10, 30] },
 ];
 
 const TIER_NAMES = ['bronze', 'silver', 'gold'] as const;
@@ -97,7 +98,7 @@ const feat = (id: string): AchievementDef => ({
 export const ONE_OFF_IDS = ['well-rounded', ...FEAT_IDS] as const;
 
 export const ACHIEVEMENTS: readonly AchievementDef[] = [
-    // Tiered families (15)
+    // Tiered families (18)
     ...ACHIEVEMENT_FAMILIES.flatMap(tiers),
 
     // One-offs (10): Well-Rounded is derivable; the rest are recorded feats.

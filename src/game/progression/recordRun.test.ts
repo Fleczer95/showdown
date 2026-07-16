@@ -117,3 +117,44 @@ describe('applyRun — bonus runs field', () => {
         expect(diff.bonusRunsGranted).toBe(0);
     });
 });
+
+describe('applyRun — challenge runs', () => {
+    it('increments challengesPlayed and unlocks Challenger Bronze on the first challenge', () => {
+        const { stats: next, diff } = applyRun(
+            stats(),
+            result({ gameId: 'the-ladder', rungReached: 6, challenge: true }),
+            TODAY,
+        );
+        expect(next.challengesPlayed).toBe(1);
+        expect(diff.newAchievements).toContain('challenger-bronze');
+    });
+
+    it('leaves challengesPlayed untouched on a solo run', () => {
+        const { stats: next, diff } = applyRun(
+            stats(),
+            result({ gameId: 'the-ladder', rungReached: 6 }),
+            TODAY,
+        );
+        expect(next.challengesPlayed).toBe(0);
+        expect(diff.newAchievements).not.toContain('challenger-bronze');
+    });
+
+    it('unlocks Challenger Silver and Gold at 10 and 30 challenges', () => {
+        const silver = applyRun(
+            stats({ challengesPlayed: 9 }),
+            result({ gameId: 'the-ladder', rungReached: 6, challenge: true }),
+            TODAY,
+        );
+        expect(silver.diff.newAchievements).toContain('challenger-silver');
+        const gold = applyRun(
+            stats({ challengesPlayed: 29 }),
+            result({ gameId: 'the-ladder', rungReached: 6, challenge: true }),
+            TODAY,
+        );
+        expect(gold.diff.newAchievements).toContain('challenger-gold');
+    });
+
+    it('seeds challengesPlayed to 0 for fresh (and legacy spread-merged) stats', () => {
+        expect(defaultStats().challengesPlayed).toBe(0);
+    });
+});

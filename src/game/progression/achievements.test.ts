@@ -19,6 +19,7 @@ function stats(overrides: Partial<ProgressionStats> = {}): ProgressionStats {
         todayGameIds: [],
         bestScoreByGame: {},
         feats: [],
+        challengesPlayed: 0,
         ...overrides,
     };
 }
@@ -28,9 +29,9 @@ function result(overrides: Partial<GameRunResult> & Pick<GameRunResult, 'gameId'
 }
 
 describe('ACHIEVEMENTS catalog', () => {
-    it('defines exactly 31 achievements with unique ids', () => {
-        expect(ACHIEVEMENTS).toHaveLength(31);
-        expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(31);
+    it('defines exactly 34 achievements with unique ids', () => {
+        expect(ACHIEVEMENTS).toHaveLength(34);
+        expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(34);
     });
 
     it('pays tier and one-off XP per the spec', () => {

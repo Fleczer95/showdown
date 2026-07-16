@@ -442,16 +442,6 @@ export default function WheelPlayScreen({
             speed: speedTotal.current,
             cleanPuzzles: cleanPuzzles.current,
         });
-        // Challenge mode reports the result to the orchestrator instead of the board.
-        if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={solvedCount.current}
-                    score={breakdown.total}
-                    onComplete={challenge.onComplete}
-                />
-            );
-        }
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
@@ -460,6 +450,17 @@ export default function WheelPlayScreen({
             cleanPuzzles: cleanPuzzles.current,
             bankruptRecovered: bankruptRecovered.current,
         };
+        // Challenge mode reports the result to the orchestrator instead of the board.
+        if (challenge) {
+            return (
+                <ChallengeHandoff
+                    progress={solvedCount.current}
+                    score={breakdown.total}
+                    run={runResult}
+                    onComplete={challenge.onComplete}
+                />
+            );
+        }
         // The Wheel classifies its own outcome for the host: a solved/banked run
         // cheers, a busted-out run draws a dismay (plan §3).
         const mascotPose = game.status === 'over' ? 'cheer' : 'dismay';

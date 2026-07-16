@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import type { GameRunResult } from '../progression';
 
 /**
  * Bridges a game's play screen back to the Challenge orchestrator. When a run
@@ -11,22 +12,26 @@ export interface ChallengeResult {
     progress: number;
     /** Unified points score — the tie-breaker. */
     score: number;
+    /** The run's full progression facts — recorded by the Challenge orchestrator. */
+    run: GameRunResult;
 }
 
 export function ChallengeHandoff({
     progress,
     score,
+    run,
     onComplete,
 }: {
     progress: number;
     score: number;
+    run: GameRunResult;
     onComplete: (result: ChallengeResult) => void;
 }) {
     const reported = useRef(false);
     useEffect(() => {
         if (reported.current) return;
         reported.current = true;
-        onComplete({ progress, score });
+        onComplete({ progress, score, run });
         // Report once; the score is fixed the moment the run ends.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

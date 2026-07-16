@@ -277,12 +277,6 @@ export default function DropPlayScreen({
         // every round before the one that wiped the bank.
         const roundsSurvived = Math.max(0, won ? state.round : state.round - 1);
         const breakdown = dropScore({ bank: state.bank, roundsSurvived, speed: survivalSpeed.current });
-        // Challenge mode reports the result to the orchestrator instead of the board.
-        if (challenge) {
-            return (
-                <ChallengeHandoff progress={roundsSurvived} score={breakdown.total} onComplete={challenge.onComplete} />
-            );
-        }
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
@@ -290,6 +284,17 @@ export default function DropPlayScreen({
             finalBank: state.bank,
             roundsSurvived,
         };
+        // Challenge mode reports the result to the orchestrator instead of the board.
+        if (challenge) {
+            return (
+                <ChallengeHandoff
+                    progress={roundsSurvived}
+                    score={breakdown.total}
+                    run={runResult}
+                    onComplete={challenge.onComplete}
+                />
+            );
+        }
         return (
             <View style={styles.container}>
                 <ScrollView

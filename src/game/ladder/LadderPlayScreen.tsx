@@ -244,17 +244,6 @@ export default function LadderPlayScreen({
         // Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
         // never reaches the board), a win clears all RUN_LENGTH rungs.
         const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
-        // Challenge mode hands the result to the Challenge orchestrator (submit +
-        // reveal) instead of the normal game-over board.
-        if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={correctAnswered}
-                    score={breakdown.total}
-                    onComplete={challenge.onComplete}
-                />
-            );
-        }
         const runResult: GameRunResult = {
             gameId: GAME_ID,
             score: breakdown.total,
@@ -263,6 +252,18 @@ export default function LadderPlayScreen({
             lifelinesUsed: run.usedLifelines.length,
             quickWit: quickWit.current,
         };
+        // Challenge mode hands the result to the Challenge orchestrator (submit +
+        // reveal) instead of the normal game-over board.
+        if (challenge) {
+            return (
+                <ChallengeHandoff
+                    progress={correctAnswered}
+                    score={breakdown.total}
+                    run={runResult}
+                    onComplete={challenge.onComplete}
+                />
+            );
+        }
         return (
             <GameOverView
                 won={run.status === 'won'}

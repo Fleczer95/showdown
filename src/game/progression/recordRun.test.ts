@@ -1,6 +1,11 @@
-import { applyRun, defaultStats } from './recordRun';
+import { applyRun, defaultStats, recordRun } from './recordRun';
 import { RUN_XP_FLOOR, SKILL_CAP, BREADTH_BONUS, ACHIEVEMENT_XP_TIERS } from './constants';
 import type { GameRunResult, ProgressionStats } from './types';
+import { SafeAnalytics } from '../../utils/firebase/init';
+
+jest.mock('../../utils/firebase/init', () => ({
+    SafeAnalytics: { logEvent: jest.fn() },
+}));
 
 function stats(overrides: Partial<ProgressionStats> = {}): ProgressionStats {
     return { ...defaultStats(), today: '2026-06-10', ...overrides };
@@ -156,5 +161,24 @@ describe('applyRun — challenge runs', () => {
 
     it('seeds challengesPlayed to 0 for fresh (and legacy spread-merged) stats', () => {
         expect(defaultStats().challengesPlayed).toBe(0);
+    });
+});
+
+describe('recordRun — level-up telemetry', () => {
+    it('logs level_up at the recording seam, independent of any celebration UI', () => {
+        (SafeAnalytics.logEvent as jest.Mock).mockClear();
+        // Fresh stats + a rung-15 run: 50 floor + 100 skill + 75 breadth + feat XP
+        // crosses the level-2 threshold (150), so the run levels up.
+        recordRun(result({ gameId: 'the-ladder', rungReached: 15 }));
+        expect(SafeAnalytics.logEvent).toHaveBeenCalledWith(
+            expect.objectContaining({ name: 'level_up' }),
+        );
+    });
+
+    it('stays silent on a run that does not level up', () => {
+        (SafeAnalytics.logEvent as jest.Mock).mockClear();
+        // Fresh stats + a weak run (floor + small skill + breadth = 130 < 150).
+        recordRun(result({ gameId: 'the-drop', finalBank: 1000 }));
+        expect(SafeAnalytics.logEvent).not.toHaveBeenCalled();
     });
 });

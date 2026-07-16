@@ -4,7 +4,8 @@
 import { createMMKV } from 'react-native-mmkv';
 import { PROGRESSION_STORE_ID } from './constants';
 import { runXp } from './xp';
-import { level, unlockedRewards } from './map';
+import { level, unlockedRewards, isApproachingMaxLevel, MAX_LEVEL } from './map';
+import { SafeAnalytics } from '../../utils/firebase/init';
 import { ACHIEVEMENTS, achievementsUnlocked, detectFeats } from './achievements';
 import type { GameRunResult, ProgressionStats, RecordRunDiff } from './types';
 import { grantLevelBonus } from '../offline/limit';
@@ -124,6 +125,27 @@ export function localDate(date: Date = new Date()): string {
 export function recordRun(result: GameRunResult): RecordRunDiff {
     const { stats, diff } = applyRun(loadStats(), result, localDate());
     store.set(STATS_KEY, JSON.stringify(stats));
+    // Level-up telemetry lives at the recording seam so every run reports it —
+    // solo or challenge, whether or not the celebration UI ever gets displayed.
+    if (diff.leveledUp) {
+        SafeAnalytics.logEvent({
+            name: 'level_up',
+            params: { from_level: diff.previousLevel, to_level: diff.level, lifetime_xp: diff.lifetimeXp },
+        });
+        // Fire once, on the run that first crosses INTO the near-max band. The band
+        // is derived from the live level map, so it moves up if more levels ship.
+        if (!isApproachingMaxLevel(diff.previousLevel) && isApproachingMaxLevel(diff.level)) {
+            SafeAnalytics.logEvent({
+                name: 'approaching_max_level',
+                params: {
+                    level: diff.level,
+                    max_level: MAX_LEVEL,
+                    levels_remaining: MAX_LEVEL - diff.level,
+                    lifetime_xp: diff.lifetimeXp,
+                },
+            });
+        }
+    }
     // Bank offline-run bonus for any levels this run crossed. The grant is the
     // single source of truth for the count (idempotent on lastBonusLevel), so any
     // run — solo or challenge — that levels up earns banked solo runs.

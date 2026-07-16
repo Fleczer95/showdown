@@ -18,14 +18,11 @@ import { useSound } from '../../hooks/useSound';
 import {
     recordRun,
     levelProgress,
-    isApproachingMaxLevel,
-    MAX_LEVEL,
     PROGRESSION_THEMES,
     SIGNATURES,
     type GameRunResult,
     type RecordRunDiff,
 } from '../../game/progression';
-import { SafeAnalytics } from '../../utils/firebase/init';
 import { shouldPromptReview, acceptReview } from '../../services/review/reviewPrompt';
 import ReviewPromptModal from './ReviewPromptModal';
 
@@ -201,28 +198,11 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
         [],
     );
 
-    // Report a level-up exactly once, when this run crossed a threshold.
+    // On a level-up run: after the animation settles, surface the rate pre-prompt
+    // on every 5th-level milestone until the player accepts (see services/review).
+    // The level_up analytics fire in recordRun, at the recording seam.
     useEffect(() => {
         if (!diff?.leveledUp) return;
-        SafeAnalytics.logEvent({
-            name: 'level_up',
-            params: { from_level: diff.previousLevel, to_level: diff.level, lifetime_xp: diff.lifetimeXp },
-        });
-        // Fire once, on the run that first crosses INTO the near-max band. The band
-        // is derived from the live level map, so it moves up if more levels ship.
-        if (!isApproachingMaxLevel(diff.previousLevel) && isApproachingMaxLevel(diff.level)) {
-            SafeAnalytics.logEvent({
-                name: 'approaching_max_level',
-                params: {
-                    level: diff.level,
-                    max_level: MAX_LEVEL,
-                    levels_remaining: MAX_LEVEL - diff.level,
-                    lifetime_xp: diff.lifetimeXp,
-                },
-            });
-        }
-        // After the level-up animation settles, surface the rate pre-prompt on every
-        // 5th-level milestone until the player accepts (see services/review).
         if (shouldPromptReview(diff.previousLevel, diff.level)) {
             reviewTimer.current = setTimeout(() => setReviewVisible(true), 3000);
         }

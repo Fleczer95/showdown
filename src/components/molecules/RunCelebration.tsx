@@ -167,12 +167,13 @@ function CelebrationTicker({ slides }: { slides: React.ReactNode[] }) {
 }
 
 /**
- * Inline game-over celebration: records the finished run (exactly once) and plays a
- * short sequence — the XP bar rises and the gain counts up; on a level-up the level
- * number flips, confetti bursts and a success haptic fires; any earned gift (theme
- * or signature) is revealed with a scale-in.
+ * Presentational celebration for an already-recorded run diff: the XP bar rises
+ * and the gain counts up; on a level-up the level number flips, confetti bursts
+ * and a success haptic fires; any earned gift (theme or signature) is revealed
+ * with a scale-in. Rendered by RunCelebration (offline, records itself) and by
+ * the Challenge results board (which records at run end and passes the diff in).
  */
-function RunCelebration({ result, accent }: { result: GameRunResult; accent: string }) {
+export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent: string }) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const haptics = useHaptics();
@@ -180,22 +181,11 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
     const { iconSize } = useResponsive();
     const reduceMotion = useReducedMotion();
 
-    const [diff, setDiff] = useState<RecordRunDiff | null>(null);
     const [displayLevel, setDisplayLevel] = useState<number | null>(null);
     const [burst, setBurst] = useState(false);
     const [reviewVisible, setReviewVisible] = useState(false);
-    const recorded = useRef(false);
     const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const reviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Persist the finished run as a real side effect (not in render) and exactly
-    // once — the ref guards against a StrictMode setup/cleanup/setup double-call.
-    // useLayoutEffect commits the diff before paint, so the card never flashes empty.
-    useLayoutEffect(() => {
-        if (recorded.current) return;
-        recorded.current = true;
-        setDiff(recordRun(result));
-    }, [result]);
 
     // Seed the level label: show the *previous* level until the bar rolls over.
     useEffect(() => {
@@ -251,8 +241,6 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
         if (burstTimer.current) clearTimeout(burstTimer.current);
         burstTimer.current = setTimeout(() => setBurst(false), 3200);
     }, [diff, haptics, play, reduceMotion]);
-
-    if (!diff) return null;
 
     const prevFill = fillOf(diff.lifetimeXp - diff.xpGained);
     const newFill = fillOf(diff.lifetimeXp);
@@ -400,6 +388,27 @@ function RunCelebration({ result, accent }: { result: GameRunResult; accent: str
             </Stack>
         </View>
     );
+}
+
+/**
+ * Inline game-over celebration for offline runs: records the finished run
+ * (exactly once) and renders the celebration card with the resulting diff.
+ */
+function RunCelebration({ result, accent }: { result: GameRunResult; accent: string }) {
+    const [diff, setDiff] = useState<RecordRunDiff | null>(null);
+    const recorded = useRef(false);
+
+    // Persist the finished run as a real side effect (not in render) and exactly
+    // once — the ref guards against a StrictMode setup/cleanup/setup double-call.
+    // useLayoutEffect commits the diff before paint, so the card never flashes empty.
+    useLayoutEffect(() => {
+        if (recorded.current) return;
+        recorded.current = true;
+        setDiff(recordRun(result));
+    }, [result]);
+
+    if (!diff) return null;
+    return <CelebrationCard diff={diff} accent={accent} />;
 }
 
 const styles = StyleSheet.create({

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs><radialGradient id="gNavy" cx="50%" cy="42%" r="75%">
+      <stop offset="0%" stop-color="#2b2b54"/><stop offset="100%" stop-color="#191930"/>
+    </radialGradient>
+<radialGradient id="gRedGlow" cx="50%" cy="46%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,90,90,0.4)"/><stop offset="100%" stop-color="rgba(255,90,90,0)"/>
+    </radialGradient>
+<radialGradient id="gDome" cx="40%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#ff8787"/><stop offset="60%" stop-color="#e03131"/><stop offset="100%" stop-color="#c42828"/>
+    </radialGradient>
+<linearGradient id="gSlamBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d1b3a"/><stop offset="100%" stop-color="#33174e"/>
+    </linearGradient>
+<radialGradient id="gFoxGlow" cx="50%" cy="48%" r="50%">
+      <stop offset="0%" stop-color="rgba(242,120,12,0.22)"/><stop offset="100%" stop-color="rgba(242,120,12,0)"/>
+    </radialGradient>
+<radialGradient id="gGoldGlow" cx="50%" cy="48%" r="50%">
+      <stop offset="0%" stop-color="rgba(251,191,36,0.32)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/>
+    </radialGradient>
+<linearGradient id="gMarqBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7e1d2b"/><stop offset="100%" stop-color="#4a1020"/>
+    </linearGradient>
+<linearGradient id="gCurtL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c22b3a"/><stop offset="100%" stop-color="#8e1e2a"/>
+    </linearGradient>
+<linearGradient id="gCurtR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#c22b3a"/><stop offset="100%" stop-color="#8e1e2a"/>
+    </linearGradient></defs>
+      <rect width="1024" height="1024" fill="url(#gNavy)"/>
+      <circle cx="512" cy="560" r="430" fill="url(#gRedGlow)"/><g transform="translate(143.36,143.36) scale(0.72)">
+      <g fill="#fbbf24">
+        <polygon points="170,198 184,220 170,242 156,220"/>
+        <polygon points="852,158 868,184 852,210 836,184"/>
+        <polygon points="806,330 815,344 806,358 797,344"/>
+        <polygon points="215,398 223,410 215,422 207,410"/>
+      </g>
+      <path d="M340,330 C290,265 275,170 315,130 C348,102 395,125 415,190 C432,240 460,275 495,295 Z" fill="#f2780c"/>
+      <path d="M344,292 C318,245 314,190 334,162 C356,194 382,240 418,272 Z" fill="#b4540a"/>
+      <path d="M684,330 C734,265 749,170 709,130 C676,102 629,125 609,190 C592,240 564,275 529,295 Z" fill="#f2780c"/>
+      <path d="M680,292 C706,245 710,190 690,162 C668,194 642,240 606,272 Z" fill="#b4540a"/>
+      <circle cx="512" cy="475" r="235" fill="#f2780c"/>
+      <path d="M282,505 L215,555 L294,592 Z" fill="#f2780c"/>
+      <path d="M742,505 L809,555 L730,592 Z" fill="#f2780c"/>
+      <path d="M390,354 Q432,332 474,354" stroke="rgba(0,0,0,0.26)" stroke-width="15" stroke-linecap="round" fill="none"/>
+      <path d="M550,354 Q592,332 634,354" stroke="rgba(0,0,0,0.26)" stroke-width="15" stroke-linecap="round" fill="none"/>
+      <ellipse cx="432" cy="450" rx="37" ry="47" fill="#1f2937"/>
+      <ellipse cx="592" cy="450" rx="37" ry="47" fill="#1f2937"/>
+      <circle cx="445" cy="433" r="13" fill="#ffffff"/>
+      <circle cx="605" cy="433" r="13" fill="#ffffff"/>
+      <circle cx="420" cy="468" r="7" fill="#ffffff"/>
+      <circle cx="580" cy="468" r="7" fill="#ffffff"/>
+      <ellipse cx="512" cy="1010" rx="482" ry="400" fill="url(#gDome)"/>
+      <path d="M225,782 Q512,592 799,782" stroke="rgba(255,255,255,0.45)" stroke-width="34" stroke-linecap="round" fill="none"/>
+      <g fill="#f2780c">
+        <rect x="252" y="622" width="30" height="66" rx="15"/>
+        <rect x="290" y="632" width="30" height="74" rx="15"/>
+        <rect x="328" y="626" width="30" height="66" rx="15"/>
+        <rect x="666" y="626" width="30" height="66" rx="15"/>
+        <rect x="704" y="632" width="30" height="74" rx="15"/>
+        <rect x="742" y="622" width="30" height="66" rx="15"/>
+      </g>
+    </g></svg>

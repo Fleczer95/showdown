@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs><radialGradient id="gNavy" cx="50%" cy="42%" r="75%">
+      <stop offset="0%" stop-color="#2b2b54"/><stop offset="100%" stop-color="#191930"/>
+    </radialGradient>
+<radialGradient id="gRedGlow" cx="50%" cy="46%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,90,90,0.4)"/><stop offset="100%" stop-color="rgba(255,90,90,0)"/>
+    </radialGradient>
+<radialGradient id="gDome" cx="40%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#ff8787"/><stop offset="60%" stop-color="#e03131"/><stop offset="100%" stop-color="#c42828"/>
+    </radialGradient>
+<linearGradient id="gSlamBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d1b3a"/><stop offset="100%" stop-color="#33174e"/>
+    </linearGradient>
+<radialGradient id="gFoxGlow" cx="50%" cy="48%" r="50%">
+      <stop offset="0%" stop-color="rgba(242,120,12,0.22)"/><stop offset="100%" stop-color="rgba(242,120,12,0)"/>
+    </radialGradient>
+<radialGradient id="gGoldGlow" cx="50%" cy="48%" r="50%">
+      <stop offset="0%" stop-color="rgba(251,191,36,0.32)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/>
+    </radialGradient>
+<linearGradient id="gMarqBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7e1d2b"/><stop offset="100%" stop-color="#4a1020"/>
+    </linearGradient>
+<linearGradient id="gCurtL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c22b3a"/><stop offset="100%" stop-color="#8e1e2a"/>
+    </linearGradient>
+<linearGradient id="gCurtR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#c22b3a"/><stop offset="100%" stop-color="#8e1e2a"/>
+    </linearGradient></defs>
+      <rect width="1024" height="1024" fill="url(#gMarqBg)"/>
+      <rect x="148" y="148" width="728" height="728" rx="150" fill="#171730"/>
+      <ellipse cx="512" cy="520" rx="270" ry="270" fill="url(#gGoldGlow)"/>
+      <g fill="#fbbf24">
+        <circle cx="232" cy="148" r="27"/><circle cx="372" cy="148" r="27"/><circle cx="512" cy="148" r="27"/><circle cx="652" cy="148" r="27"/><circle cx="792" cy="148" r="27"/>
+        <circle cx="232" cy="876" r="27"/><circle cx="372" cy="876" r="27"/><circle cx="512" cy="876" r="27"/><circle cx="652" cy="876" r="27"/><circle cx="792" cy="876" r="27"/>
+        <circle cx="148" cy="232" r="27"/><circle cx="148" cy="372" r="27"/><circle cx="148" cy="512" r="27"/><circle cx="148" cy="652" r="27"/><circle cx="148" cy="792" r="27"/>
+        <circle cx="876" cy="232" r="27"/><circle cx="876" cy="372" r="27"/><circle cx="876" cy="512" r="27"/><circle cx="876" cy="652" r="27"/><circle cx="876" cy="792" r="27"/>
+      </g>
+      <g fill="#fff7e0">
+        <circle cx="232" cy="148" r="10"/><circle cx="512" cy="148" r="10"/><circle cx="792" cy="148" r="10"/>
+        <circle cx="232" cy="876" r="10"/><circle cx="512" cy="876" r="10"/><circle cx="792" cy="876" r="10"/>
+        <circle cx="148" cy="372" r="10"/><circle cx="148" cy="652" r="10"/>
+        <circle cx="876" cy="372" r="10"/><circle cx="876" cy="652" r="10"/>
+      </g>
+      <path d="M580,230 L362,572 L490,572 L432,806 L678,452 L546,452 L640,230 Z" fill="#fbbf24"/>
+    </svg>

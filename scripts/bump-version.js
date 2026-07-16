@@ -218,6 +218,9 @@ function main() {
         if (appJson.expo.android) {
             appJson.expo.android.versionCode = newVersionCode;
         }
+        if (appJson.expo.ios) {
+            appJson.expo.ios.buildNumber = String(newVersionCode);
+        }
 
         // Update package.json
         packageJson.version = newVersionStr;

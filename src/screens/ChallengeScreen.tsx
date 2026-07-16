@@ -208,7 +208,7 @@ export function ChallengeScreen() {
             const attempt: LeaderboardEntry = {
                 nickname: nicknameRef.current,
                 progress: result.progress,
-                score: result.score,
+                score: result.run.score,
                 timestamp: Date.now(),
             };
             try {
@@ -218,12 +218,12 @@ export function ChallengeScreen() {
                 if (record) {
                     SafeAnalytics.logEvent({
                         name: 'challenge_completed',
-                        params: { game: record.game, progress: result.progress, score: result.score },
+                        params: { game: record.game, progress: result.progress, score: result.run.score },
                     });
                     // Feed the global ranking (ADR-0004). Best-effort and fire-and-forget
                     // so the result reveal is never blocked; a failed push stays pending
                     // locally and is retried on next app open / rankings view.
-                    void pushRanking(record.game, result.score, attempt.nickname);
+                    void pushRanking(record.game, result.run.score, attempt.nickname);
                 }
                 await showResults(attempt.timestamp);
             } catch (err) {

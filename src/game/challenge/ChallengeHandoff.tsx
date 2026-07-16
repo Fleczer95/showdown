@@ -10,20 +10,17 @@ import type { GameRunResult } from '../progression';
 export interface ChallengeResult {
     /** How far the run got — the leaderboard's primary ranking key. */
     progress: number;
-    /** Unified points score — the tie-breaker. */
-    score: number;
-    /** The run's full progression facts — recorded by the Challenge orchestrator. */
+    /** The run's full facts: the unified points score (the tie-breaker, as
+     * `run.score`) plus everything the progression engine records. */
     run: GameRunResult;
 }
 
 export function ChallengeHandoff({
     progress,
-    score,
     run,
     onComplete,
 }: {
     progress: number;
-    score: number;
     run: GameRunResult;
     onComplete: (result: ChallengeResult) => void;
 }) {
@@ -31,7 +28,7 @@ export function ChallengeHandoff({
     useEffect(() => {
         if (reported.current) return;
         reported.current = true;
-        onComplete({ progress, score, run });
+        onComplete({ progress, run });
         // Report once; the score is fixed the moment the run ends.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

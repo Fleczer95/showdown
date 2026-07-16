@@ -289,7 +289,6 @@ export default function DropPlayScreen({
             return (
                 <ChallengeHandoff
                     progress={roundsSurvived}
-                    score={breakdown.total}
                     run={runResult}
                     onComplete={challenge.onComplete}
                 />

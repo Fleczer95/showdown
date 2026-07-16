@@ -455,7 +455,6 @@ export default function WheelPlayScreen({
             return (
                 <ChallengeHandoff
                     progress={solvedCount.current}
-                    score={breakdown.total}
                     run={runResult}
                     onComplete={challenge.onComplete}
                 />

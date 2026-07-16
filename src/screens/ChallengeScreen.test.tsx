@@ -178,7 +178,7 @@ const RUN: GameRunResult = { gameId: 'the-ladder', score: 1200, won: false, rung
 jest.mock('../game/ladder/LadderPlayScreen', () => ({
     __esModule: true,
     default: ({ challenge }: any) => (
-        <MockPressable onPress={() => challenge.onComplete({ progress: 6, score: 1200, run: RUN })}>
+        <MockPressable onPress={() => challenge.onComplete({ progress: 6, run: RUN })}>
             <MockNativeText>FINISH</MockNativeText>
         </MockPressable>
     ),

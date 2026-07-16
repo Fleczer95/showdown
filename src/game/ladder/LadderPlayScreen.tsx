@@ -258,7 +258,6 @@ export default function LadderPlayScreen({
             return (
                 <ChallengeHandoff
                     progress={correctAnswered}
-                    score={breakdown.total}
                     run={runResult}
                     onComplete={challenge.onComplete}
                 />

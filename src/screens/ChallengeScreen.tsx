@@ -37,6 +37,8 @@ import {
 } from '../game/challenge/resolve';
 import type { ChallengeResult } from '../game/challenge/ChallengeHandoff';
 import type { ChallengeRecord } from '../game/challenge/types';
+import { recordRun, type RecordRunDiff } from '../game/progression';
+import { CelebrationCard } from '../components/molecules/RunCelebration';
 import { Mascot } from '../game/mascot/Mascot';
 import type { LookMap } from '../game/mascot/look';
 import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
@@ -85,6 +87,7 @@ export function ChallengeScreen() {
     const [nicknameError, setNicknameError] = useState<string | null>(null);
     const [attempts, setAttempts] = useState<LeaderboardEntry[]>([]);
     const [myTimestamp, setMyTimestamp] = useState<number | null>(null);
+    const [celebrationDiff, setCelebrationDiff] = useState<RecordRunDiff | null>(null);
 
     // The nickname used to submit, and the held result, kept in refs so the
     // injected play element (memoised below) never rebuilds mid-run when these change.
@@ -230,7 +233,16 @@ export function ChallengeScreen() {
         [challengeId, deviceId, record, showResults],
     );
 
-    const handleComplete = useCallback((result: ChallengeResult) => submit(result), [submit]);
+    const handleComplete = useCallback(
+        (result: ChallengeResult) => {
+            // Bank the run's XP/achievements the moment it ends, before the submit:
+            // a failed or abandoned submit never loses them, and submit retries
+            // (which re-enter submit, not this callback) can't double-record.
+            setCelebrationDiff(recordRun({ ...result.run, challenge: true }));
+            return submit(result);
+        },
+        [submit],
+    );
 
     const startPlay = useCallback(() => {
         const trimmed = nickname.trim();
@@ -344,6 +356,7 @@ export function ChallengeScreen() {
                         record={record}
                         attempts={attempts}
                         myTimestamp={myTimestamp}
+                        celebrationDiff={celebrationDiff}
                         onExit={exit}
                         t={t}
                         locale={locale}
@@ -499,6 +512,7 @@ function ResultsCard({
     record,
     attempts,
     myTimestamp,
+    celebrationDiff,
     onExit,
     t,
     locale,
@@ -506,6 +520,8 @@ function ResultsCard({
     record: ChallengeRecord;
     attempts: LeaderboardEntry[];
     myTimestamp: number | null;
+    /** Set only in the session where the run just finished — reopened links never celebrate. */
+    celebrationDiff: RecordRunDiff | null;
     onExit: () => void;
     t: (key: string, options?: Record<string, unknown>) => string;
     locale: string;
@@ -633,6 +649,7 @@ function ResultsCard({
                         );
                     })}
                 </Stack>
+                {celebrationDiff ? <CelebrationCard diff={celebrationDiff} accent={accent} /> : null}
                 <Button
                     variant='primary'
                     fullWidth

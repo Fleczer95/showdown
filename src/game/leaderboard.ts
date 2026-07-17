@@ -1,4 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
+import { profileStore } from '../storage/appStores';
 import { loadStats, signatureSlug } from './progression';
 import { stripNonText } from '../utils/nickname';
 
@@ -60,7 +61,6 @@ export function insertEntry(
 // v2: unified points scoring changed every game's scale, so old boards are not
 // comparable and are cleanly abandoned by bumping the namespace (no migration).
 const boardStore = createMMKV({ id: 'showdown-leaderboard-v2' });
-const prefsStore = createMMKV({ id: 'showdown' });
 const LAST_NICKNAME_KEY = 'lastNickname';
 
 /** Read a game's board, ranked. Empty when nothing has been saved. */
@@ -93,9 +93,9 @@ export function saveScore(gameId: string, nickname: string, score: number, progr
 
 /** The last nickname used to save a score, shared across all games (empty if none). */
 export function getLastNickname(): string {
-    return prefsStore.getString(LAST_NICKNAME_KEY) ?? '';
+    return profileStore.getString(LAST_NICKNAME_KEY) ?? '';
 }
 
 export function setLastNickname(nickname: string): void {
-    prefsStore.set(LAST_NICKNAME_KEY, nickname);
+    profileStore.set(LAST_NICKNAME_KEY, nickname);
 }

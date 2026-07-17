@@ -1,11 +1,10 @@
-import { createMMKV } from 'react-native-mmkv';
+import { deviceStore } from '../../storage/appStores';
 
 // Stable per-install device id, sent with every challenge attempt as the
 // participant identity (ADR-0003). No auth: a reinstall / data-clear yields a
 // new id, which is the accepted trade-off for friendly, setup-free play. Stored
-// in the shared `showdown` prefs store, alongside the last-nickname key.
+// in a device-only namespace that native backup rules exclude.
 
-const prefsStore = createMMKV({ id: 'showdown' });
 const DEVICE_ID_KEY = 'deviceId';
 
 /**
@@ -22,9 +21,9 @@ export function generateUuid(): string {
 
 /** Read this install's device id, generating and persisting one on first call. */
 export function getDeviceId(): string {
-    const existing = prefsStore.getString(DEVICE_ID_KEY);
+    const existing = deviceStore.getString(DEVICE_ID_KEY);
     if (existing) return existing;
     const id = generateUuid();
-    prefsStore.set(DEVICE_ID_KEY, id);
+    deviceStore.set(DEVICE_ID_KEY, id);
     return id;
 }

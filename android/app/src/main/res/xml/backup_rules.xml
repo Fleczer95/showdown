@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and lower. Any <include> makes this an allowlist. -->
+<full-backup-content>
+  <include domain="file" path="mmkv/showdown-progression"/>
+  <include domain="file" path="mmkv/showdown-progression.crc"/>
+  <include domain="file" path="mmkv/showdown-settings"/>
+  <include domain="file" path="mmkv/showdown-settings.crc"/>
+  <include domain="file" path="mmkv/showdown-profile"/>
+  <include domain="file" path="mmkv/showdown-profile.crc"/>
+</full-backup-content>

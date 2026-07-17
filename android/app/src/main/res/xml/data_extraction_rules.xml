@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 and higher. MMKV requires both its data and .crc metadata files. -->
+<data-extraction-rules>
+  <cloud-backup>
+    <include domain="file" path="mmkv/showdown-progression"/>
+    <include domain="file" path="mmkv/showdown-progression.crc"/>
+    <include domain="file" path="mmkv/showdown-settings"/>
+    <include domain="file" path="mmkv/showdown-settings.crc"/>
+    <include domain="file" path="mmkv/showdown-profile"/>
+    <include domain="file" path="mmkv/showdown-profile.crc"/>
+  </cloud-backup>
+  <device-transfer>
+    <include domain="file" path="mmkv/showdown-progression"/>
+    <include domain="file" path="mmkv/showdown-progression.crc"/>
+    <include domain="file" path="mmkv/showdown-settings"/>
+    <include domain="file" path="mmkv/showdown-settings.crc"/>
+    <include domain="file" path="mmkv/showdown-profile"/>
+    <include domain="file" path="mmkv/showdown-profile.crc"/>
+  </device-transfer>
+</data-extraction-rules>

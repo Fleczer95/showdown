@@ -1,17 +1,42 @@
 // Stateful MMKV stub so we can assert the id persists across calls. The global
 // jest.setup mock is write-only (getString always undefined), which would make
 // getDeviceId mint a fresh id every call.
-const mockStore = new Map<string, string>();
+const mockStores = new Map<string, Map<string, string | boolean>>();
+
+function mockStoreFor(id: string): Map<string, string | boolean> {
+    let store = mockStores.get(id);
+    if (!store) {
+        store = new Map();
+        mockStores.set(id, store);
+    }
+    return store;
+}
+
 jest.mock('react-native-mmkv', () => ({
-    createMMKV: () => ({
-        getString: (k: string) => mockStore.get(k),
-        set: (k: string, v: string) => void mockStore.set(k, v),
-    }),
+    createMMKV: ({ id }: { id: string }) => {
+        const store = mockStoreFor(id);
+        return {
+            getString: (key: string) => {
+                const value = store.get(key);
+                return typeof value === 'string' ? value : undefined;
+            },
+            getBoolean: (key: string) => {
+                const value = store.get(key);
+                return typeof value === 'boolean' ? value : undefined;
+            },
+            set: (key: string, value: string | boolean) => void store.set(key, value),
+            remove: (key: string) => void store.delete(key),
+        };
+    },
 }));
 
-import { getDeviceId } from './deviceId';
+// Keep this require below the stateful mock setup; static imports are hoisted.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { getDeviceId } = require('./deviceId') as typeof import('./deviceId');
 
-beforeEach(() => mockStore.clear());
+beforeEach(() => {
+    for (const store of mockStores.values()) store.clear();
+});
 
 describe('getDeviceId', () => {
     it('generates a v4-shaped UUID on first call', () => {
@@ -25,7 +50,15 @@ describe('getDeviceId', () => {
     });
 
     it('persists under a stable key, reusing an already-stored id', () => {
-        mockStore.set('deviceId', 'preexisting-id');
+        mockStoreFor('showdown-device').set('deviceId', 'preexisting-id');
         expect(getDeviceId()).toBe('preexisting-id');
+    });
+
+    it('moves an id from the legacy namespace into device-only storage', () => {
+        mockStoreFor('showdown').set('deviceId', 'legacy-id');
+
+        expect(getDeviceId()).toBe('legacy-id');
+        expect(mockStoreFor('showdown-device').get('deviceId')).toBe('legacy-id');
+        expect(mockStoreFor('showdown').has('deviceId')).toBe(false);
     });
 });

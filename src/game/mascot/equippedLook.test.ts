@@ -11,7 +11,9 @@ describe('equipped mascot look', () => {
                         cape: 'cape.future',
                     }),
                 ),
+                getBoolean: jest.fn(),
                 set: jest.fn(),
+                remove: jest.fn(),
             };
             jest.doMock('react-native-mmkv', () => ({ createMMKV: () => store }));
 

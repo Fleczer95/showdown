@@ -18,6 +18,7 @@ import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { isPremiumCatalogId } from './src/data/store/catalog';
+import { ConfettiOverlayProvider } from './src/animations/ConfettiOverlay';
 
 // Sentry -> Firebase: initialized before the tree renders. App Check is attested
 // before any protected Worker request (fire-and-forget; it never blocks startup).
@@ -67,13 +68,15 @@ function App() {
                     <SettingsProvider>
                         <TranslationProvider>
                             <ThemeProvider>
-                                <StoreProvider>
-                                    <AnalyticsProviders>
-                                        <PremiumThemeGate />
-                                        <RootNavigator />
-                                        <StatusBar style='auto' />
-                                    </AnalyticsProviders>
-                                </StoreProvider>
+                                <ConfettiOverlayProvider>
+                                    <StoreProvider>
+                                        <AnalyticsProviders>
+                                            <PremiumThemeGate />
+                                            <RootNavigator />
+                                            <StatusBar style='auto' />
+                                        </AnalyticsProviders>
+                                    </StoreProvider>
+                                </ConfettiOverlayProvider>
                             </ThemeProvider>
                         </TranslationProvider>
                     </SettingsProvider>

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable as RNPressable, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { InteractionManager, Modal, Platform, Pressable as RNPressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut, Easing, useReducedMotion } from 'react-native-reanimated';
 import { Star } from 'lucide-react-native';
 import Text from '../atoms/Text';
@@ -17,6 +17,8 @@ interface ReviewPromptModalProps {
     onRate: () => void;
     /** Player gave 1–4 stars, tapped "Maybe later", or dismissed via the backdrop. */
     onDismiss: () => void;
+    /** Fires only after the native modal is fully gone. */
+    onDismissComplete?: () => void;
 }
 
 const STARS = [1, 2, 3, 4, 5];
@@ -27,7 +29,7 @@ const STARS = [1, 2, 3, 4, 5];
  * only spend the OS-throttled native sheet on players who tap 5 stars — and gives us
  * a real "later" signal (1–4 stars / dismiss) the native API never exposes.
  */
-function ReviewPromptModal({ visible, onRate, onDismiss }: ReviewPromptModalProps) {
+function ReviewPromptModal({ visible, onRate, onDismiss, onDismissComplete }: ReviewPromptModalProps) {
     const { t } = useTranslation();
     const theme = useTheme();
     const { setIsBlurry } = useBlur();
@@ -35,16 +37,37 @@ function ReviewPromptModal({ visible, onRate, onDismiss }: ReviewPromptModalProp
     const reduceMotion = useReducedMotion();
     const [rating, setRating] = useState(0);
     const actionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const previouslyVisible = useRef(visible);
 
     useEffect(() => {
         if (visible) {
-            setIsBlurry(true);
             setRating(0);
         }
         return () => {
             setIsBlurry(false);
         };
     }, [visible, setIsBlurry]);
+
+    // Native Modal presentation can be rejected when another controller is still
+    // dismissing. Only dim the underlying app after the platform confirms that this
+    // modal is actually on-screen, otherwise an invisible prompt can strand the blur.
+    const handleShow = useCallback(() => setIsBlurry(true), [setIsBlurry]);
+    const handleNativeDismiss = useCallback(() => {
+        setIsBlurry(false);
+        onDismissComplete?.();
+    }, [onDismissComplete, setIsBlurry]);
+
+    // React Native only emits Modal.onDismiss on iOS. On Android, visible=false
+    // removes the native host during the commit; wait until interactions flush
+    // before allowing a caller to present its next native surface.
+    useEffect(() => {
+        const didHide = previouslyVisible.current && !visible;
+        previouslyVisible.current = visible;
+        if (!didHide || Platform.OS === 'ios') return;
+
+        const task = InteractionManager.runAfterInteractions(() => onDismissComplete?.());
+        return () => task.cancel();
+    }, [onDismissComplete, visible]);
 
     useEffect(() => () => clearActionTimer(), []);
 
@@ -64,7 +87,15 @@ function ReviewPromptModal({ visible, onRate, onDismiss }: ReviewPromptModalProp
     const starSize = iconSize(36);
 
     return (
-        <Modal visible={visible} transparent animationType='none' statusBarTranslucent onRequestClose={onDismiss}>
+        <Modal
+            visible={visible}
+            transparent
+            animationType='none'
+            statusBarTranslucent
+            onShow={handleShow}
+            onDismiss={Platform.OS === 'ios' ? handleNativeDismiss : undefined}
+            onRequestClose={onDismiss}
+        >
             <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.backdrop}>
                 <RNPressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
 

@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Modal, TextInput } from 'react-native';
-import Animated, { ZoomIn, FadeIn, useSharedValue, useAnimatedProps, withTiming, withDelay, useReducedMotion } from 'react-native-reanimated';
+import { View, StyleSheet, TextInput } from 'react-native';
+import Animated, {
+    ZoomIn,
+    FadeIn,
+    useSharedValue,
+    useAnimatedProps,
+    withTiming,
+    withDelay,
+    useReducedMotion,
+} from 'react-native-reanimated';
 import { Sparkles, ArrowUpCircle, Award, Trophy, Crown } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import Stack from '../atoms/Stack';
@@ -8,7 +16,7 @@ import Text from '../atoms/Text';
 import Icon from '../atoms/Icon';
 import Glyph from '../atoms/Glyph';
 import XpRiseBar from './XpRiseBar';
-import Confetti from '../../animations/Confetti';
+import { useConfettiOverlay } from '../../animations/ConfettiOverlay';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useTranslation } from '../../i18n';
@@ -177,12 +185,12 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
     const { play } = useSound();
     const { iconSize } = useResponsive();
     const reduceMotion = useReducedMotion();
+    const { burstConfetti } = useConfettiOverlay();
 
     const [displayLevel, setDisplayLevel] = useState<number | null>(null);
-    const [burst, setBurst] = useState(false);
     const [reviewVisible, setReviewVisible] = useState(false);
-    const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const reviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pendingNativeReview = useRef(false);
 
     // Seed the level label: show the *previous* level until the bar rolls over.
     useEffect(() => {
@@ -192,7 +200,6 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
 
     useEffect(
         () => () => {
-            if (burstTimer.current) clearTimeout(burstTimer.current);
             if (reviewTimer.current) clearTimeout(reviewTimer.current);
         },
         [],
@@ -208,8 +215,25 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
         }
     }, [diff]);
 
-    // The instant the XP bar hits full: flip the level number, burst confetti and
-    // fire a success haptic + fanfare. Confetti self-stops; clear the host shortly after.
+    const handleReviewRate = useCallback(() => {
+        pendingNativeReview.current = true;
+        setReviewVisible(false);
+    }, []);
+
+    const handleReviewDismiss = useCallback(() => {
+        pendingNativeReview.current = false;
+        setReviewVisible(false);
+    }, []);
+
+    const handleReviewDismissComplete = useCallback(() => {
+        if (!pendingNativeReview.current) return;
+        pendingNativeReview.current = false;
+        void acceptReview();
+    }, []);
+
+    // The instant the XP bar hits full: flip the level number, burst app-root
+    // confetti and fire a success haptic + fanfare. Keeping the visual effect out
+    // of a native Modal leaves the platform presenter free for the review prompt.
     const handleRollover = useCallback(() => {
         if (!diff) return;
         setDisplayLevel(diff.level);
@@ -217,10 +241,8 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
         play('levelUp');
         // Reduced motion: flip the level + fire the haptic, but skip the confetti.
         if (reduceMotion) return;
-        setBurst(true);
-        if (burstTimer.current) clearTimeout(burstTimer.current);
-        burstTimer.current = setTimeout(() => setBurst(false), 3200);
-    }, [diff, haptics, play, reduceMotion]);
+        burstConfetti([accent, theme.colors.secondary, theme.colors.success]);
+    }, [diff, haptics, play, reduceMotion, burstConfetti, accent, theme.colors.secondary, theme.colors.success]);
 
     const prevFill = fillOf(diff.lifetimeXp - diff.xpGained);
     const newFill = fillOf(diff.lifetimeXp);
@@ -269,19 +291,11 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
                 },
             ]}
         >
-            <Modal transparent visible={burst} animationType='none' onRequestClose={() => setBurst(false)}>
-                <View pointerEvents='none' style={StyleSheet.absoluteFill}>
-                    <Confetti active={burst} colors={[accent, theme.colors.secondary, theme.colors.success]} />
-                </View>
-            </Modal>
-
             <ReviewPromptModal
                 visible={reviewVisible}
-                onRate={() => {
-                    setReviewVisible(false);
-                    void acceptReview();
-                }}
-                onDismiss={() => setReviewVisible(false)}
+                onRate={handleReviewRate}
+                onDismiss={handleReviewDismiss}
+                onDismissComplete={handleReviewDismissComplete}
             />
 
             <Stack gap='xs'>
@@ -344,7 +358,9 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
                 {diff.newAchievements.map((id, i) => (
                     <Animated.View
                         key={id}
-                        entering={reduceMotion ? undefined : ZoomIn.duration(280).delay(900 + (rewards.length + i) * 120)}
+                        entering={
+                            reduceMotion ? undefined : ZoomIn.duration(280).delay(900 + (rewards.length + i) * 120)
+                        }
                         style={{
                             borderRadius: theme.radii.md,
                             backgroundColor: hexToRgba(accent, 0.12),

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -289,6 +289,34 @@ export function ChallengeScreen() {
         return <SafeContainer edges={['top']}>{playElement}</SafeContainer>;
     }
 
+    if (phase === 'results' && record) {
+        return (
+            <SafeContainer edges={['top', 'bottom']}>
+                <ScrollView
+                    style={styles.flex}
+                    contentContainerStyle={[
+                        styles.resultsContent,
+                        { padding: theme.spacing.xl, paddingBottom: theme.spacing.xxl + theme.spacing.xl },
+                    ]}
+                    keyboardShouldPersistTaps='handled'
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={[styles.card, tabletColumn]}>
+                        <ResultsCard
+                            record={record}
+                            attempts={attempts}
+                            myTimestamp={myTimestamp}
+                            celebrationDiff={celebrationDiff}
+                            onExit={exit}
+                            t={t}
+                            locale={locale}
+                        />
+                    </View>
+                </ScrollView>
+            </SafeContainer>
+        );
+    }
+
     return (
         <SafeContainer edges={['top', 'bottom']}>
             <View style={[styles.center, tabletColumn, { padding: theme.spacing.xl }]}>
@@ -351,16 +379,6 @@ export function ChallengeScreen() {
                             t={t}
                         />
                     </KeyboardAvoidingView>
-                ) : phase === 'results' && record ? (
-                    <ResultsCard
-                        record={record}
-                        attempts={attempts}
-                        myTimestamp={myTimestamp}
-                        celebrationDiff={celebrationDiff}
-                        onExit={exit}
-                        t={t}
-                        locale={locale}
-                    />
                 ) : null}
             </View>
         </SafeContainer>
@@ -665,6 +683,14 @@ function ResultsCard({
 }
 
 const styles = StyleSheet.create({
+    flex: {
+        flex: 1,
+    },
+    resultsContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     center: {
         flex: 1,
         justifyContent: 'center',

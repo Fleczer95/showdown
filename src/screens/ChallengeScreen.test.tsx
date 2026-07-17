@@ -1,11 +1,13 @@
 import React from 'react';
 import {
     Pressable as MockPressable,
+    ScrollView,
+    StyleSheet,
     Text as MockNativeText,
     TextInput as MockTextInput,
     View as MockView,
 } from 'react-native';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor, within } from '@testing-library/react-native';
 import { ChallengeScreen } from './ChallengeScreen';
 import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
 import { recordRun } from '../game/progression';
@@ -205,7 +207,14 @@ jest.mock('../game/progression', () => ({
 jest.mock('../components/molecules/RunCelebration', () => ({
     __esModule: true,
     default: () => null,
-    CelebrationCard: () => <MockNativeText>CELEBRATION</MockNativeText>,
+    CelebrationCard: () => (
+        <MockView>
+            <MockNativeText>CELEBRATION</MockNativeText>
+            {Array.from({ length: 12 }, (_, index) => (
+                <MockNativeText key={index}>{`ACHIEVEMENT ${index + 1}`}</MockNativeText>
+            ))}
+        </MockView>
+    ),
 }));
 
 const record: ChallengeRecord = {
@@ -244,13 +253,15 @@ describe('ChallengeScreen progression', () => {
         expect(recordRun).toHaveBeenCalledTimes(1);
         expect(recordRun).toHaveBeenCalledWith({ ...RUN, challenge: true });
         expect(submitAttempt).toHaveBeenCalledTimes(1);
+        const resultsScroll = screen.UNSAFE_getByType(ScrollView);
+        expect(StyleSheet.flatten(resultsScroll.props.contentContainerStyle).flexGrow).toBe(1);
+        expect(within(resultsScroll).getByText('ACHIEVEMENT 12')).toBeTruthy();
+        expect(within(resultsScroll).getByText('common.home')).toBeTruthy();
     });
 
     it('keeps the XP on a failed submit and does not re-record on retry', async () => {
         (getAttempt as jest.Mock).mockResolvedValue(null);
-        (submitAttempt as jest.Mock)
-            .mockRejectedValueOnce(new Error('offline'))
-            .mockResolvedValueOnce(undefined);
+        (submitAttempt as jest.Mock).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined);
 
         const screen = render(<ChallengeScreen />);
         await playThrough(screen);

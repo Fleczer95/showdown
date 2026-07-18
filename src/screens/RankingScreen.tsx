@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -210,15 +210,19 @@ export function RankingScreen() {
     const [status, setStatus] = useState<'loading' | 'ready' | 'offline' | 'error'>('loading');
     const [syncingPending, setSyncingPending] = useState(false);
     const [, setLocalRevision] = useState(0);
+    const latestLoadRequest = useRef(0);
 
     const currentMonth = monthBucketId();
 
     const load = useCallback(async () => {
+        const requestId = ++latestLoadRequest.current;
+        const isLatestRequest = () => requestId === latestLoadRequest.current;
         setStatus('loading');
         // A board barely moves minute-to-minute, so serve an hour-fresh cached pull
         // when there is one — zero Firestore reads, and it works offline (ADR-0004).
         const cached = readCachedBoard(game, scope);
         if (cached) {
+            if (!isLatestRequest()) return;
             setBoard(cached.board);
             setDisplayedMonth(cached.displayedMonth);
             setStatus('ready');
@@ -244,10 +248,14 @@ export function RankingScreen() {
                 nextBoard = await getBoard(game, displayed);
             }
             writeCachedBoard(game, scope, nextBoard, displayed);
+            // A slower request for a previously selected tab may still warm its
+            // correctly keyed cache, but it must never replace the visible board.
+            if (!isLatestRequest()) return;
             setBoard(nextBoard);
             setDisplayedMonth(displayed);
             setStatus('ready');
         } catch (err) {
+            if (!isLatestRequest()) return;
             if (err instanceof BlockedError) setStatus('error');
             else if (err instanceof OfflineError) setStatus('offline');
             else setStatus('ready');
@@ -255,7 +263,10 @@ export function RankingScreen() {
     }, [game, scope, currentMonth]);
 
     useEffect(() => {
-        load();
+        void load();
+        return () => {
+            latestLoadRequest.current += 1;
+        };
     }, [load]);
 
     // The player's own best for the chip (month scope only counts this month).

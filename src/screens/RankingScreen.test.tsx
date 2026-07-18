@@ -5,6 +5,7 @@ import { RankingScreen } from './RankingScreen';
 import { countEntries, getBoard } from '../game/ranking/store';
 import { getLocalState } from '../game/ranking/local';
 import { retryPending } from '../game/ranking/push';
+import { BlockedError } from '../game/challenge/store';
 
 let mockFocusEffect: (() => void | (() => void)) | undefined;
 
@@ -153,6 +154,16 @@ const localState = {
     allTime: { score: 4321, synced: true },
 };
 
+function deferred<T>() {
+    let resolve!: (value: T) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+    return { promise, resolve, reject };
+}
+
 beforeEach(() => {
     jest.clearAllMocks();
     mockFocusEffect = undefined;
@@ -195,6 +206,55 @@ it('uses the all-time best label when that scope is selected', async () => {
 
     await waitFor(() => expect(screen.getByText('ranking.yourBestAllTime')).toBeTruthy());
     expect(screen.getByText('4,321 leaderboard.points')).toBeTruthy();
+});
+
+it('ignores an older board request after the scope changes', async () => {
+    const initialMonthCount = deferred<number>();
+    jest.mocked(countEntries).mockReturnValue(initialMonthCount.promise);
+    jest.mocked(getBoard).mockImplementation(async (_game, period) => [
+        {
+            nickname: period === 'alltime' ? 'All-time Ada' : 'Monthly Ada',
+            score: 900,
+        },
+    ]);
+
+    const screen = render(<RankingScreen />);
+
+    await waitFor(() => expect(countEntries).toHaveBeenCalledWith('the-ladder', '2026-07'));
+    fireEvent.press(screen.getByText('ranking.allTime'));
+    await screen.findByText('All-time Ada');
+
+    await act(async () => {
+        initialMonthCount.resolve(12);
+        await Promise.resolve();
+    });
+
+    await waitFor(() => expect(getBoard).toHaveBeenCalledWith('the-ladder', '2026-07'));
+    await waitFor(() => {
+        expect(screen.getByText('All-time Ada')).toBeTruthy();
+        expect(screen.queryByText('Monthly Ada')).toBeNull();
+    });
+});
+
+it('ignores an older request error after the scope changes', async () => {
+    const initialMonthCount = deferred<number>();
+    jest.mocked(countEntries).mockReturnValue(initialMonthCount.promise);
+    jest.mocked(getBoard).mockResolvedValue([{ nickname: 'All-time Ada', score: 900 }]);
+
+    const screen = render(<RankingScreen />);
+
+    await waitFor(() => expect(countEntries).toHaveBeenCalledWith('the-ladder', '2026-07'));
+    fireEvent.press(screen.getByText('ranking.allTime'));
+    await screen.findByText('All-time Ada');
+
+    await act(async () => {
+        initialMonthCount.reject(new BlockedError());
+        await Promise.resolve();
+        await Promise.resolve();
+    });
+
+    expect(screen.getByText('All-time Ada')).toBeTruthy();
+    expect(screen.queryByText('ranking.error')).toBeNull();
 });
 
 it('automatically retries a pending personal best and reflects completion without reloading the board', async () => {

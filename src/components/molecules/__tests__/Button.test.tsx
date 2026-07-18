@@ -27,4 +27,20 @@ describe('Button component', () => {
         fireEvent.press(getByTestId('button'));
         expect(onPress).toHaveBeenCalled();
     });
+
+    it('supports an opt-in icon-to-label gap', () => {
+        const { getByTestId } = render(
+            <ThemeProvider>
+                <Button icon={<MockIcon />} contentGap={8} testID='button'>
+                    Click Me
+                </Button>
+            </ThemeProvider>,
+        );
+
+        expect(getByTestId('button-content', { includeHiddenElements: true })).toHaveStyle({ gap: 8 });
+    });
 });
+
+function MockIcon() {
+    return null;
+}

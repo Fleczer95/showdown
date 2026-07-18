@@ -17,10 +17,10 @@ export interface RankingEntry {
     signature?: string;
 }
 
-/** This device's locally-tracked best for one scope, plus its sync status. */
+/** This device's locally-tracked best for one scope, plus its retry state. */
 export interface LocalBest {
     score: number;
-    /** False until the best has been confirmed-written to the global board. */
+    /** False while a push should be retried; true once written or terminally resolved. */
     synced: boolean;
 }
 

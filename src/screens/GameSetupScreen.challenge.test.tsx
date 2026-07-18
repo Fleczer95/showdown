@@ -14,6 +14,7 @@ import type { ChallengeRecord } from '../game/challenge/types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockLeaderboard = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
@@ -125,7 +126,10 @@ jest.mock('../components/molecules/Input', () => ({
 
 jest.mock('../components/molecules/Leaderboard', () => ({
     __esModule: true,
-    default: () => null,
+    default: (props: unknown) => {
+        mockLeaderboard(props);
+        return null;
+    },
 }));
 
 // This test double models the iOS contract that matters to GameSetupScreen:
@@ -340,4 +344,15 @@ it('unlocks after a failed create and retries the frozen draft with the same id'
     expect(getChallenge).toHaveBeenCalledWith('challenge-id');
     expect(ensureChallengeCreated).toHaveBeenNthCalledWith(1, record, 'challenge-id');
     expect(ensureChallengeCreated).toHaveBeenNthCalledWith(2, record, 'challenge-id');
+});
+
+it('uses the sheet title without duplicating the Solo Leaderboard heading', () => {
+    const screen = render(<GameSetupScreen />);
+
+    fireEvent.press(screen.getByLabelText('leaderboard.view'));
+
+    expect(screen.getByText('leaderboard.title')).toBeTruthy();
+    expect(mockLeaderboard).toHaveBeenLastCalledWith(
+        expect.objectContaining({ gameId: 'the-drop', showTitle: false }),
+    );
 });

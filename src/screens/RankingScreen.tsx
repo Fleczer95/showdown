@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { ChevronLeft, RefreshCw, WifiOff } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import Text from '../components/atoms/Text';
-import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Glyph from '../components/atoms/Glyph';
 import RankBadge from '../components/atoms/RankBadge';
@@ -122,8 +121,18 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
     );
 }
 
-/** The player's own best for the active scope: score plus synced/pending status. */
-function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
+/** The player's own best for the active scope, with retry when its push is still pending. */
+function BestChip({
+    best,
+    scope,
+    syncing,
+    onRetry,
+}: {
+    best: LocalBest;
+    scope: RankingScope;
+    syncing: boolean;
+    onRetry: () => void;
+}) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const { iconSize, scale } = useResponsive();
@@ -141,28 +150,38 @@ function BestChip({ best, onRetry }: { best: LocalBest; onRetry: () => void }) {
                 },
             ]}
         >
-            <Stack gap='xs' flex={1}>
+            <View style={{ flex: 1, gap: theme.spacing.xs }}>
                 <Text variant='caption' weight='bold' color='primary'>
-                    {t('ranking.yourBest')}
+                    {t(scope === 'month' ? 'ranking.yourBestMonth' : 'ranking.yourBestAllTime')}
                 </Text>
                 <Text variant='body' weight='bold'>
                     {`${best.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
                 </Text>
-            </Stack>
-            {best.synced ? (
-                <View style={{ backgroundColor: hexToRgba(theme.colors.success, 0.15), paddingHorizontal: 8, paddingVertical: 4, borderRadius: theme.radii.full }}>
-                    <Text variant='caption' weight='bold' color='success'>
-                        {t('ranking.synced')}
+            </View>
+            {!best.synced && syncing ? (
+                <View
+                    accessible
+                    accessibilityLabel={t('ranking.syncing')}
+                    style={[styles.retry, { gap: scale(6) }]}
+                >
+                    <ActivityIndicator size='sm' accessibilityLabel={t('ranking.syncing')} />
+                    <Text variant='caption' weight='bold' color='primary'>
+                        {t('ranking.syncing')}
                     </Text>
                 </View>
-            ) : (
-                <Pressable onPress={onRetry} haptic='light' style={[styles.retry, { gap: scale(6) }]}>
+            ) : !best.synced ? (
+                <Pressable
+                    onPress={onRetry}
+                    haptic='light'
+                    accessibilityLabel={t('ranking.retrySync')}
+                    style={[styles.retry, { gap: scale(6) }]}
+                >
                     <Icon name={RefreshCw} size={iconSize(14)} color={theme.colors.primary} />
                     <Text variant='caption' weight='bold' color='primary'>
                         {t('ranking.pending')} · {t('ranking.retry')}
                     </Text>
                 </Pressable>
-            )}
+            ) : null}
         </View>
     );
 }
@@ -189,6 +208,8 @@ export function RankingScreen() {
     const [board, setBoard] = useState<RankingEntry[] | null>(null);
     const [displayedMonth, setDisplayedMonth] = useState<string | null>(null);
     const [status, setStatus] = useState<'loading' | 'ready' | 'offline' | 'error'>('loading');
+    const [syncingPending, setSyncingPending] = useState(false);
+    const [, setLocalRevision] = useState(0);
 
     const currentMonth = monthBucketId();
 
@@ -246,10 +267,35 @@ export function RankingScreen() {
               ? localState.month
               : undefined;
 
-    const handleRetrySync = useCallback(async () => {
-        await retryPending();
-        load();
-    }, [load]);
+    const syncPending = useCallback(async () => {
+        setSyncingPending(true);
+        try {
+            await retryPending();
+        } catch {
+            // A pending best remains actionable; the visible Retry affordance returns
+            // when this attempt settles, so rankings never replace cached content with
+            // an error merely because a background sync failed.
+        } finally {
+            setSyncingPending(false);
+            // Do not rely on the temporary syncing state to cause a render: when
+            // retryPending resolves immediately, React may batch true → false and
+            // otherwise leave a now-resolved MMKV best looking pending.
+            setLocalRevision((revision) => revision + 1);
+        }
+    }, []);
+
+    // Keep the cached board instant, but reconcile the actionable local state whenever
+    // Rankings gains focus. Every settled attempt bumps the local revision and re-reads
+    // MMKV, so a just-finished challenge cannot leave a stale pending affordance.
+    useFocusEffect(
+        useCallback(() => {
+            void syncPending();
+        }, [syncPending]),
+    );
+
+    const handleRetrySync = useCallback(() => {
+        void syncPending();
+    }, [syncPending]);
 
     return (
         <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
@@ -273,13 +319,13 @@ export function RankingScreen() {
 
             <View style={[{ paddingHorizontal: theme.spacing.xl, gap: theme.spacing.lg, flex: 1 }, tabletColumn]}>
                 {/* Variant A — accent game medallions */}
-                <Stack direction='horizontal' gap='sm'>
+                <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
                     {RANKED_GAMES.map((g) => (
                         <View key={g} style={styles.gameTabSlot}>
                             <GameTab game={g} active={g === game} onPress={() => setGame(g)} />
                         </View>
                     ))}
-                </Stack>
+                </View>
 
                 <ToggleGroup
                     value={scope}
@@ -290,11 +336,20 @@ export function RankingScreen() {
                     ]}
                 />
 
-                {scope === 'month' && displayedMonth ? (
-                    <Text variant='caption' weight='bold' color='textSecondary'>
-                        {formatMonth(displayedMonth, locale)}
-                    </Text>
+                {best ? (
+                    <BestChip best={best} scope={scope} syncing={syncingPending} onRetry={handleRetrySync} />
                 ) : null}
+
+                <View style={{ gap: theme.spacing.xs }}>
+                    <Text variant='caption' weight='bold' color='textSecondary'>
+                        {t('ranking.globalBoard')}
+                    </Text>
+                    {scope === 'month' && displayedMonth ? (
+                        <Text variant='caption' color='textMuted'>
+                            {formatMonth(displayedMonth, locale)}
+                        </Text>
+                    ) : null}
+                </View>
 
                 <Animated.View
                     key={status}
@@ -317,7 +372,8 @@ export function RankingScreen() {
                         <Button
                             variant='secondary'
                             onPress={load}
-                            icon={<RefreshCw size={iconSize(18)} color={theme.colors.text} />}
+                            accessibilityLabel={t('ranking.loadRetry')}
+                            icon={<Icon name={RefreshCw} size={iconSize(18)} color={theme.colors.text} />}
                         >
                             {t('ranking.loadRetry')}
                         </Button>
@@ -338,9 +394,7 @@ export function RankingScreen() {
                             </Text>
                         }
                         ListFooterComponent={
-                            <Stack gap='md' style={{ marginTop: theme.spacing.lg }}>
-                                {best ? <BestChip best={best} onRetry={handleRetrySync} /> : null}
-
+                            <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.lg }}>
                                 <Text variant='caption' color='textMuted'>
                                     {t('ranking.updatesNote')}
                                 </Text>
@@ -352,7 +406,7 @@ export function RankingScreen() {
                                         {t('ranking.connectivityNote')}
                                     </Text>
                                 ) : null}
-                            </Stack>
+                            </View>
                         }
                         contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
                         showsVerticalScrollIndicator={false}

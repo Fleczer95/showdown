@@ -29,6 +29,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('lucide-react-native', () => ({
     Swords: () => null,
     Crown: () => null,
+    Trophy: () => null,
 }));
 
 jest.mock('../game/transitions', () => ({
@@ -61,8 +62,12 @@ jest.mock('../components/molecules/Card', () => ({
 
 jest.mock('../components/molecules/Button', () => ({
     __esModule: true,
-    default: ({ children, onPress, disabled }: any) => (
-        <MockPressable onPress={disabled ? undefined : onPress} disabled={disabled}>
+    default: ({ children, onPress, disabled, accessibilityLabel }: any) => (
+        <MockPressable
+            onPress={disabled ? undefined : onPress}
+            disabled={disabled}
+            accessibilityLabel={accessibilityLabel}
+        >
             <MockNativeText>{children}</MockNativeText>
         </MockPressable>
     ),
@@ -256,6 +261,8 @@ describe('ChallengeScreen progression', () => {
         const resultsScroll = screen.UNSAFE_getByType(ScrollView);
         expect(StyleSheet.flatten(resultsScroll.props.contentContainerStyle).flexGrow).toBe(1);
         expect(within(resultsScroll).getByText('ACHIEVEMENT 12')).toBeTruthy();
+        fireEvent.press(within(resultsScroll).getByLabelText('challenge.viewGlobalRankings'));
+        expect(mockNavigate).toHaveBeenCalledWith('Ranking', { gameId: 'the-ladder' });
         expect(within(resultsScroll).getByText('common.home')).toBeTruthy();
     });
 

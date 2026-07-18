@@ -82,8 +82,11 @@ delayed monthly rollover and an Admin-SDK script for rotation/retention.
   never holds up the result reveal. Each device keeps, per game, its
   `allTimeBest` and `monthBest` (+ `monthId`) with `synced` flags in MMKV; a
   push that fails leaves the best **pending** and is retried on next online app
-  open and when the rankings view opens. A local history view shows
-  pending-vs-verified status.
+  open and when the rankings view opens. The flag means **resolved / no retry
+  needed**, not "visible on the board": a below-cutoff score or a terminal
+  rejection is also resolved without being listed. The rankings view only
+  exposes actionable pending state, with automatic background retry plus a
+  manual Retry affordance when the attempt remains pending.
 
 ### Record shape
 
@@ -118,7 +121,7 @@ wrong sweep is reversible.
   correctness holds — the script only bounds storage.
 - New native surface: a per-game ranking screen with This Month / All Time tabs,
   the delayed-rollover logic, the rollover help note, the connectivity note, and
-  a local history view with sync status.
+  the device's local best with actionable pending/retry status.
 - App Check moving to **Enforce** is service-wide and affects the live Async
   Challenge writes too; it is gated on healthy verified-request metrics.
 

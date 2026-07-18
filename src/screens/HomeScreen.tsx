@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Settings, ArrowRight, ShoppingBag, Swords } from 'lucide-react-native';
+import { Settings, ArrowRight, ShoppingBag, Swords, Trophy } from 'lucide-react-native';
 import SafeContainer from '../responsive/SafeContainer';
 import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
@@ -182,7 +182,12 @@ export function HomeScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
-    const { tabletColumn, iconSize } = useResponsive();
+    const { tabletColumn, iconSize, width, fontScale } = useResponsive();
+    const competeColor = theme.components.button.secondary.text;
+    // Preserve the compact two-up dock when both labels have room. Dynamic Type
+    // effectively narrows that room, so treat width relative to font scale just
+    // like a physically compact screen and stack before either label truncates.
+    const stackCompeteDock = width / Math.max(fontScale, 1) < 360;
     const { purchasedItemIds, isPremium } = useStore();
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
     const { streak } = useProgression();
@@ -216,6 +221,7 @@ export function HomeScreen() {
     return (
         <SafeContainer edges={['top', 'bottom']}>
             <ScrollView
+                testID='home-scroll'
                 style={styles.root}
                 contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
@@ -250,8 +256,9 @@ export function HomeScreen() {
                 </Stack>
             </ScrollView>
 
-            {/* Fixed footer: the Challenges entry pinned to the very bottom, in the thumb zone. */}
+            {/* Fixed Compete dock: both social destinations stay labeled and in the thumb zone. */}
             <View
+                testID='home-compete-footer'
                 style={[
                     styles.footer,
                     {
@@ -259,18 +266,47 @@ export function HomeScreen() {
                         paddingTop: theme.spacing.md,
                         paddingBottom: theme.spacing.sm,
                     },
+                    tabletColumn,
                 ]}
             >
-                <View style={tabletColumn}>
-                    <Button
-                        variant='secondary'
-                        fullWidth
-                        onPress={() => navigation.navigate('ChallengeHistory')}
-                        icon={<Swords size={iconSize(20)} color={theme.colors.text} />}
-                        accessibilityLabel={t('screen.home.challenges')}
+                <View
+                    testID='home-compete-dock'
+                    style={[
+                        styles.competeDock,
+                        { gap: theme.spacing.sm },
+                        stackCompeteDock && styles.competeDockStacked,
+                    ]}
+                >
+                    <View
+                        testID='home-challenges-action'
+                        style={stackCompeteDock ? styles.competeActionStacked : styles.competeAction}
                     >
-                        {t('challenge.history.title')}
-                    </Button>
+                        <Button
+                            variant='secondary'
+                            fullWidth
+                            contentGap='sm'
+                            onPress={() => navigation.navigate('ChallengeHistory')}
+                            icon={<Icon name={Swords} size={iconSize(20)} color={competeColor} />}
+                            accessibilityLabel={t('screen.home.challenges')}
+                        >
+                            {t('screen.home.challenges')}
+                        </Button>
+                    </View>
+                    <View
+                        testID='home-rankings-action'
+                        style={stackCompeteDock ? styles.competeActionStacked : styles.competeAction}
+                    >
+                        <Button
+                            variant='secondary'
+                            fullWidth
+                            contentGap='sm'
+                            onPress={() => navigation.navigate('Ranking')}
+                            icon={<Icon name={Trophy} size={iconSize(20)} color={competeColor} />}
+                            accessibilityLabel={t('ranking.title')}
+                        >
+                            {t('screen.home.rankings')}
+                        </Button>
+                    </View>
                 </View>
             </View>
         </SafeContainer>
@@ -286,6 +322,21 @@ const styles = StyleSheet.create({
     },
     footer: {
         // pinned below the ScrollView; horizontal/vertical padding from theme
+    },
+    competeDock: {
+        flexDirection: 'row',
+        width: '100%',
+    },
+    competeDockStacked: {
+        flexDirection: 'column',
+    },
+    competeAction: {
+        flex: 1,
+        minWidth: 0,
+    },
+    competeActionStacked: {
+        width: '100%',
+        minWidth: 0,
     },
     header: {
         flexDirection: 'row',

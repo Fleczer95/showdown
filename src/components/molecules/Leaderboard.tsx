@@ -25,13 +25,15 @@ import { useResponsive } from '../../responsive/useResponsive';
 
 interface LeaderboardProps {
     gameId: string;
+    /** Show the Solo Leaderboard heading when embedded in a game-over screen. */
+    showTitle?: boolean;
     /** When set, enables the post-game entry flow for this just-achieved score. */
     pendingScore?: number;
     /** How far the just-played run got; primary ranking key and the no-empty-run gate. */
     pendingProgress?: number;
 }
 
-function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps) {
+function Leaderboard({ gameId, showTitle = true, pendingScore, pendingProgress }: LeaderboardProps) {
     const theme = useTheme();
     const { t, locale } = useTranslation();
     const reduceMotion = useReducedMotion();
@@ -147,6 +149,16 @@ function Leaderboard({ gameId, pendingScore, pendingProgress }: LeaderboardProps
 
     return (
         <Animated.View entering={reduceMotion ? undefined : FadeIn.duration(300)} style={styles.container}>
+            {showTitle ? (
+                <Text
+                    variant='subheading'
+                    weight='bold'
+                    align='center'
+                    style={{ marginBottom: theme.spacing.md }}
+                >
+                    {t('leaderboard.title')}
+                </Text>
+            ) : null}
             <Stack gap='md' align='stretch' style={styles.listContainer}>
                 {board.length === 0 ? (
                     <View style={[styles.emptyContainer, { paddingVertical: theme.spacing.xxl }]}>

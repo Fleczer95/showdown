@@ -624,7 +624,7 @@ export function GameSetupScreen() {
                 title={t('leaderboard.title')}
                 scrollable
             >
-                <Leaderboard gameId={game.id} />
+                <Leaderboard gameId={game.id} showTitle={false} />
             </BottomSheet>
 
             <BottomSheet visible={limitSheet} onClose={() => setLimitSheet(false)} title={t('challenge.limit.title')}>

@@ -22,6 +22,8 @@ export interface ButtonProps {
     /** Icon element placed before or after text */
     icon?: React.ReactNode;
     iconPosition?: 'left' | 'right';
+    /** Spacing between the icon and label. Defaults to the compact button rhythm. */
+    contentGap?: React.ComponentProps<typeof Stack>['gap'];
     testID?: string;
     accessibilityLabel?: string;
     style?: View['props']['style'];
@@ -51,6 +53,7 @@ function Button({
     fullWidth,
     icon,
     iconPosition = 'left',
+    contentGap = 'xs',
     testID,
     accessibilityLabel,
     style,
@@ -98,11 +101,12 @@ function Button({
             ) : icon || children ? (
                 <Stack
                     direction='horizontal'
-                    gap='xs'
+                    gap={contentGap}
                     align='center'
                     justify='center'
                     style={styles.content}
                     pointerEvents='none'
+                    testID={testID ? `${testID}-content` : undefined}
                 >
                     {icon && iconPosition === 'left' ? icon : null}
                     {children ? (

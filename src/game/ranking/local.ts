@@ -4,8 +4,9 @@ import type { LocalRankingState } from './types';
 
 // Per-device, per-game ranking state (ADR-0004). Mirrors the local leaderboard:
 // the device remembers its own best per scope and whether that best has been
-// confirmed on the global board, so a failed push can be retried later. This is
-// also what the local history view reads to show pending-vs-verified status.
+// resolved, so a failed push can be retried later. "Resolved" does not guarantee
+// board visibility: below-cutoff scores and terminal rejections need no retry.
+// The rankings view only surfaces the actionable pending state.
 
 const store = createMMKV({ id: 'showdown-ranking' });
 
@@ -32,7 +33,7 @@ export function getLocalState(game: string): LocalRankingState {
  * Record a run's score as the new best for a scope if it beats the stored one
  * (a new month always counts as a fresh best). Returns true when it became the
  * best — i.e. there is something new to push. A new best is marked unsynced
- * until a push confirms it.
+ * until its push is written or terminally resolved.
  */
 export function recordBestIfHigher(game: string, scope: RankingScope, score: number, monthId: string): boolean {
     const state = read(game);
@@ -47,7 +48,7 @@ export function recordBestIfHigher(game: string, scope: RankingScope, score: num
     return true;
 }
 
-/** Flag a scope's best as confirmed (written to the global board, or terminal). */
+/** Flag a scope's best as resolved (written to the global board, or terminal). */
 export function markSynced(game: string, scope: RankingScope): void {
     const state = read(game);
     if (scope === 'alltime') {
@@ -65,7 +66,7 @@ export interface PendingBest {
     monthId?: string;
 }
 
-/** Every unsynced best across all games — the retry queue and history source. */
+/** Every unresolved best across all games — the retry queue. */
 export function listPending(): PendingBest[] {
     const pending: PendingBest[] = [];
     for (const game of RANKED_GAMES) {

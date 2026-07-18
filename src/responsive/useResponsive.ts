@@ -11,6 +11,8 @@ export const MAX_CONTENT_WIDTH_LANDSCAPE = 960;
 export interface ResponsiveInfo {
     width: number;
     height: number;
+    /** OS text scaling multiplier from the current Dynamic Type / font-size setting. */
+    fontScale: number;
     breakpoint: Breakpoint;
     isTablet: boolean;
     /** Orientation-aware max width for the centred content column. */
@@ -22,7 +24,7 @@ export interface ResponsiveInfo {
 }
 
 export function useResponsive(): ResponsiveInfo {
-    const { width, height } = useWindowDimensions();
+    const { width, height, fontScale } = useWindowDimensions();
 
     // Memoised on dimensions so consumers get stable function/object identities
     // between renders — otherwise the fresh `scale`/`iconSize`/`tabletColumn` defeat
@@ -44,6 +46,6 @@ export function useResponsive(): ResponsiveInfo {
             ? { maxWidth: contentMaxWidth, width: '100%' as const, alignSelf: 'center' as const }
             : undefined;
 
-        return { width, height, breakpoint, isTablet, contentMaxWidth, tabletColumn, scale, iconSize };
-    }, [width, height]);
+        return { width, height, fontScale, breakpoint, isTablet, contentMaxWidth, tabletColumn, scale, iconSize };
+    }, [width, height, fontScale]);
 }

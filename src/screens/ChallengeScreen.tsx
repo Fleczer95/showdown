@@ -3,7 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, ScrollView, StyleSheet, View, 
 import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Swords, Crown } from 'lucide-react-native';
+import { Swords, Crown, Trophy } from 'lucide-react-native';
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
 import { SafeSentry } from '../utils/sentry/init';
@@ -11,6 +11,7 @@ import SafeContainer from '../responsive/SafeContainer';
 import { useResponsive } from '../responsive/useResponsive';
 import Text from '../components/atoms/Text';
 import Stack from '../components/atoms/Stack';
+import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import Button from '../components/molecules/Button';
 import Input from '../components/molecules/Input';
@@ -135,6 +136,12 @@ export function ChallengeScreen() {
     }, [emitMascot, record, deviceId]);
 
     const exit = useCallback(() => navigation.navigate('Home'), [navigation]);
+    const viewRanking = useCallback(
+        () => {
+            if (record) navigation.navigate('Ranking', { gameId: record.game });
+        },
+        [navigation, record],
+    );
 
     const showResults = useCallback(
         async (mine: number | null) => {
@@ -307,6 +314,7 @@ export function ChallengeScreen() {
                             attempts={attempts}
                             myTimestamp={myTimestamp}
                             celebrationDiff={celebrationDiff}
+                            onViewRanking={viewRanking}
                             onExit={exit}
                             t={t}
                             locale={locale}
@@ -531,6 +539,7 @@ function ResultsCard({
     attempts,
     myTimestamp,
     celebrationDiff,
+    onViewRanking,
     onExit,
     t,
     locale,
@@ -540,6 +549,7 @@ function ResultsCard({
     myTimestamp: number | null;
     /** Set only in the session where the run just finished — reopened links never celebrate. */
     celebrationDiff: RecordRunDiff | null;
+    onViewRanking: () => void;
     onExit: () => void;
     t: (key: string, options?: Record<string, unknown>) => string;
     locale: string;
@@ -668,15 +678,23 @@ function ResultsCard({
                     })}
                 </Stack>
                 {celebrationDiff ? <CelebrationCard diff={celebrationDiff} accent={accent} /> : null}
-                <Button
-                    variant='primary'
-                    fullWidth
-                    onPress={onExit}
-                    style={{ backgroundColor: accent, borderColor: accent }}
-                    textColor={onAccent}
-                >
-                    {t('common.home')}
-                </Button>
+                <View style={{ gap: theme.spacing.sm }}>
+                    <Button
+                        variant='primary'
+                        fullWidth
+                        contentGap='sm'
+                        onPress={onViewRanking}
+                        accessibilityLabel={t('challenge.viewGlobalRankings')}
+                        style={{ backgroundColor: accent, borderColor: accent }}
+                        textColor={onAccent}
+                        icon={<Icon name={Trophy} size={iconSize(20)} color={onAccent} />}
+                    >
+                        {t('challenge.viewGlobalRankings')}
+                    </Button>
+                    <Button variant='ghost' fullWidth onPress={onExit} accessibilityLabel={t('common.home')}>
+                        {t('common.home')}
+                    </Button>
+                </View>
             </Card>
         </Animated.View>
     );

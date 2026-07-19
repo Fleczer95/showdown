@@ -5,6 +5,7 @@
 // PackDefinition.content; the store bridge zips en/pl by index at runtime.
 
 import type { DropPackCard } from '../content';
+import { getDropQuestionDifficulty } from '../difficulty';
 
 interface BiCard {
     id: string;
@@ -224,6 +225,7 @@ const toLocale = (lang: 'en' | 'pl') => (c: BiCard): DropPackCard => ({
     prompt: c.prompt[lang],
     options: c.options.map((o) => o[lang]),
     correctIndex: c.correctIndex,
+    difficulty: getDropQuestionDifficulty(c.id),
 });
 
 export const worldGeographyEn: DropPackCard[] = cards.map(toLocale('en'));

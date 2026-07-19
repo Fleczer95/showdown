@@ -10,11 +10,12 @@ import {
     type DropQuestion,
     type DropState,
 } from './logic';
+import { DROP_ROUND_DIFFICULTIES, type DropDifficulty } from './difficulty';
 
 /** Deterministic RNG: returns 0 so shuffles are stable for assertions. */
 const zeroRng = () => 0;
 
-function makeQuestion(id: number, correctIndex = 0): DropQuestion {
+function makeQuestion(id: number, correctIndex = 0, difficulty: DropDifficulty = 'easy'): DropQuestion {
     return {
         id: `q-${id}`,
         prompt: { en: `Q${id}`, pl: `P${id}` },
@@ -25,10 +26,13 @@ function makeQuestion(id: number, correctIndex = 0): DropQuestion {
             { en: `${id}-d`, pl: `${id}-d` },
         ],
         correctIndex,
+        difficulty,
     };
 }
 
-const pool: DropQuestion[] = Array.from({ length: 15 }, (_, i) => makeQuestion(i, i % 4));
+const pool: DropQuestion[] = Array.from({ length: 15 }, (_, i) =>
+    makeQuestion(i, i % 4, i < 5 ? 'easy' : i < 10 ? 'medium' : 'hard'),
+);
 
 describe('bundle math', () => {
     test('starting bank is 40 bundles of 25k', () => {
@@ -101,6 +105,13 @@ describe('buildGame', () => {
         }
     });
 
+    test('orders three easy, three medium, then three hard questions', () => {
+        const state = buildGame(pool, {}, zeroRng);
+
+        expect(state.questions.map((question) => question.difficulty)).toEqual(DROP_ROUND_DIFFICULTIES);
+        expect(new Set(state.questions.map((question) => question.id)).size).toBe(TOTAL_ROUNDS);
+    });
+
     test('correct option content is preserved through shuffle', () => {
         // Use a question with a distinctive correct option.
         const q: DropQuestion = {
@@ -113,6 +124,7 @@ describe('buildGame', () => {
                 { en: 'wrong3', pl: 'wrong3' },
             ],
             correctIndex: 1,
+            difficulty: 'hard',
         };
         // rng cycling produces a non-identity shuffle.
         let n = 0;
@@ -123,12 +135,11 @@ describe('buildGame', () => {
         expect(built!.options[built!.correctIndex].en).toBe('TRUE');
     });
 
-    test('selects the least-shown questions, excluding high-count ids in a single run', () => {
-        // Pool of 15 ids (q-0..q-14); a run takes TOTAL_ROUNDS = 9. Mark the
-        // first 6 ids as already heavily shown so the 9 never-shown ids fill
-        // the whole run and none of the marked ids appear.
+    test('selects the least-shown questions independently within each difficulty', () => {
+        // Five questions per level; mark two in every level as heavily shown so
+        // the three unseen questions fill that level's three-round quota.
         const history: Record<string, number> = {};
-        for (let i = 0; i < 6; i++) {
+        for (const i of [0, 1, 5, 6, 10, 11]) {
             history[`q-${i}`] = 99;
         }
 
@@ -136,12 +147,19 @@ describe('buildGame', () => {
         const ids = state.questions.map((q) => q.id);
 
         expect(ids).toHaveLength(TOTAL_ROUNDS);
-        for (let i = 0; i < 6; i++) {
+        for (const i of [0, 1, 5, 6, 10, 11]) {
             expect(ids).not.toContain(`q-${i}`);
         }
-        // The 9 selected are exactly the never-shown ids q-6..q-14.
-        const expected = Array.from({ length: 9 }, (_, i) => `q-${i + 6}`).sort();
+        const expected = [2, 3, 4, 7, 8, 9, 12, 13, 14].map((i) => `q-${i}`).sort();
         expect([...ids].sort()).toEqual(expected);
+    });
+
+    test('fails clearly when a difficulty has fewer than three questions', () => {
+        const onlyTwoHard = pool.filter(
+            (question) => question.difficulty !== 'hard' || question.id.endsWith('10') || question.id.endsWith('11'),
+        );
+
+        expect(() => buildGame(onlyTwoHard, {}, zeroRng)).toThrow('The Drop needs at least 3 hard questions, got 2.');
     });
 });
 

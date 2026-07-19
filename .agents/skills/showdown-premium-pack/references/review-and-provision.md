@@ -12,6 +12,14 @@ It checks: intra-pack duplicates, structural integrity (4 options, valid `correc
 
 Then re-check the five hard requirements yourself (see `legal-and-quality.md`), including the cross-file dedup the engine does not do. Fix issues and re-run until clean.
 
+For every new Drop premium pack, validate the classifier-authored map as a separate blocking gate:
+
+```bash
+node .agents/skills/showdown-premium-pack/scripts/check_drop_ratio.mjs src/game/drop/difficulty/<camelSlug>.ts
+```
+
+It must report exactly 180 unique IDs split into **77 easy / 65 medium / 38 hard**. A count mismatch, duplicate classification, missing group, or unregistered map blocks the pack. Review the questions themselves before changing any label: meet the inventory by authoring or replacing content, never by disguising a medium question as easy filler.
+
 **Expected, non-blocking:** ladder "fewer than 20 per rung" warnings on rungs 10–15 — the front-load curve makes pools 4–5 lean by design. Everything else must be clean before proceeding.
 
 ## Stage 3 — Gemini review (BLOCKING on facts/IP)
@@ -27,7 +35,7 @@ For EVERY item check and report:
 1. FACTUAL: is the marked-correct answer actually true? List any wrong/dubious facts with the correct value.
 2. IP: any copyrighted phrase (lyric, movie/TV quote, slogan, poem) or trademarked-franchise subject? List them.
 3. POLISH: is the Polish natural and accurate (not machine-literal)? List awkward/incorrect translations.
-4. DIFFICULTY: for Ladder, does difficulty rise across rungs as labeled? Flag mismatches.
+4. DIFFICULTY: for Ladder, does difficulty rise across rungs as labeled? For Drop, independently audit every easy/medium/hard label for a general adult EN/PL audience, flag clear misclassifications, and verify the final inventory is 77 easy / 65 medium / 38 hard without mislabeled filler.
 End with a VERDICT line: "VERDICT: BLOCK" if any factual error or IP issue exists, else "VERDICT: PASS".
 Pack follows:
 EOF
@@ -39,6 +47,7 @@ $(cat <path-to-pack-file>)"
 
 Handling the verdict:
 - **BLOCK on factual or IP findings** — fix them (re-author the offending items), then re-run stages 2–3.
+- **BLOCK on a Drop inventory mismatch** — the local ratio checker is authoritative even if Gemini overlooks the count.
 - **Style/judgment calls** (Polish phrasing nuance, difficulty borderline) — surface a short summary to the user and apply reasonable fixes; do not block on subjective polish alone.
 
 Note: sending the pack to Gemini transmits content to an external service. That is fine for original pre-release pack content, but do not send credentials or anything from the key files.
@@ -48,11 +57,13 @@ Note: sending the pack to Gemini transmits content to an external service. That 
 ```bash
 node scripts/validate-content.mjs      # validates the bilingual content banks
 npx tsc --noEmit                        # typecheck the catalog + content wiring
+# Drop only — validates the new pack's classifier-authored difficulty inventory
+node .agents/skills/showdown-premium-pack/scripts/check_drop_ratio.mjs src/game/drop/difficulty/<camelSlug>.ts
 ```
 
 `npx tsc --noEmit` is the binding gate — it must exit 0, and it typechecks the new pack + `packs.ts` + catalog wiring end to end. The project's real checks are `npm run type-check`, `lint`, `format:check`, and `jest` (see `package.json`); `validate-content.mjs` is NOT among them.
 
-**`validate-content.mjs` caveat (known-broken, do not block on it):** it only validates the static free banks (`RUNGS`, `dropQuestions`, …) — a premium pack lives in the catalog, not those banks, so it is out of scope regardless. As of this writing the script also fails to run: plain `node` cannot import its `.ts` targets, and it imports `CATEGORIES` from `grid/content`, which no longer exports it (Grid was deferred). So the **audit engine is the effective content validator for a premium pack**, paired with `tsc`. Don't try to "fix" the script as part of a pack run — note it and move on.
+**`validate-content.mjs` caveat:** it validates the static game banks (`RUNGS`, `dropQuestions`, …), while a new premium pack lives in the catalog and may remain outside that scan. Run it as the repository-wide regression check, but do not treat its green result as proof that the premium pack itself was inspected. The pack-specific binding gates are the **audit engine**, `tsc`, and—only for Drop—the difficulty-ratio checker.
 
 **Style/formatting:** the per-game `content.ts` files (and your new pack `.ts`) are committed in a one-line-per-question style that Prettier does NOT enforce (they fail `prettier --check` by design) — match that style, do not reformat. But `catalog.ts`/`packs.ts` ARE Prettier-clean; run `prettier --write` on those two. The locale JSONs may already be Prettier-dirty before you touch them — only match the surrounding indentation, never reformat the whole file.
 

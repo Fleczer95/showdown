@@ -2,10 +2,11 @@
 // No React / React Native imports here; this file is unit-tested in isolation.
 
 import { createDeck, type History } from '../deck';
+import { DROP_DIFFICULTIES, DROP_ROUND_DIFFICULTIES, type DropDifficulty } from './difficulty';
 
 export const STARTING_BANK = 1_000_000;
 export const BUNDLE = 25_000;
-export const TOTAL_ROUNDS = 9;
+export const TOTAL_ROUNDS = DROP_ROUND_DIFFICULTIES.length;
 export const MAX_OPTIONS_COVERED = 3;
 
 /** A question as it lives in the active game (options already shuffled). */
@@ -18,6 +19,8 @@ export interface DropQuestion {
     options: { en: string; pl: string }[];
     /** Index (0-3) of the true statistic within `options`. */
     correctIndex: number;
+    /** Classifier-authored level used to build the easy → hard round curve. */
+    difficulty: DropDifficulty;
 }
 
 export type DropStatus = 'active' | 'over';
@@ -61,23 +64,38 @@ function shuffle<T>(items: T[], rng: Rng): T[] {
 }
 
 /**
- * Build a fresh game: pick TOTAL_ROUNDS least-shown questions from the pool
- * (via `history`) and shuffle each question's options (re-pointing correctIndex
- * to the true option's new position).
+ * Build a fresh game with three questions at each difficulty level. Selection
+ * is least-shown-first within each level, then the levels are concatenated in
+ * easy → medium → hard order. Each question's options are shuffled afterward.
  */
-export function buildGame(
-    pool: DropQuestion[],
-    history: History,
-    rng: Rng = Math.random,
-): DropState {
-    const picked = createDeck(pool, history, rng).slice(0, TOTAL_ROUNDS);
+export function buildGame(pool: DropQuestion[], history: History, rng: Rng = Math.random): DropState {
+    const decks = Object.fromEntries(
+        DROP_DIFFICULTIES.map((difficulty) => [
+            difficulty,
+            createDeck(
+                pool.filter((question) => question.difficulty === difficulty),
+                history,
+                rng,
+            ),
+        ]),
+    ) as Record<DropDifficulty, DropQuestion[]>;
+
+    for (const difficulty of DROP_DIFFICULTIES) {
+        const required = DROP_ROUND_DIFFICULTIES.filter((level) => level === difficulty).length;
+        if (decks[difficulty].length < required) {
+            throw new Error(
+                `The Drop needs at least ${required} ${difficulty} questions, got ${decks[difficulty].length}.`,
+            );
+        }
+    }
+
+    const picked = DROP_ROUND_DIFFICULTIES.map((difficulty) => decks[difficulty].shift()!);
 
     const questions: DropQuestion[] = picked.map((q) => {
         const correctOption = q.options[q.correctIndex];
         const shuffledOptions = shuffle(q.options, rng);
         return {
-            id: q.id,
-            prompt: q.prompt,
+            ...q,
             options: shuffledOptions,
             correctIndex: shuffledOptions.indexOf(correctOption),
         };

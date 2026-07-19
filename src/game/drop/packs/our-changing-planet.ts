@@ -1,6 +1,9 @@
 import type { DropPackCard } from '../content';
+import { getDropQuestionDifficulty } from '../difficulty';
 
-export const en: DropPackCard[] = [
+type UnratedDropPackCard = Omit<DropPackCard, 'difficulty'>;
+
+const enCards: UnratedDropPackCard[] = [
 
     { id: 'drop-our-changing-planet-001', prompt: 'A widely cited 2015 global estimate put the number of trees on Earth at roughly how many?', options: ['300 billion', '1 trillion', '3 trillion', '7 trillion'], correctIndex: 2 },
     { id: 'drop-our-changing-planet-002', prompt: 'Which measure compares humanity\'s demand on nature with Earth\'s ability to regenerate resources?', options: ['Ecological footprint', 'Carbon dating', 'Heat index', 'Albedo'], correctIndex: 0 },
@@ -188,7 +191,7 @@ export const en: DropPackCard[] = [
 
 ];
 
-export const pl: DropPackCard[] = [
+const plCards: UnratedDropPackCard[] = [
 
     { id: 'drop-our-changing-planet-001', prompt: 'Ile mniej więcej drzew rosło na Ziemi według szeroko cytowanego globalnego szacunku z 2015 roku?', options: ['300 miliardów', '1 bilion', '3 biliony', '7 bilionów'], correctIndex: 2 },
     { id: 'drop-our-changing-planet-002', prompt: 'Która miara porównuje zapotrzebowanie ludzkości na zasoby z możliwością ich odtwarzania przez Ziemię?', options: ['Ślad ekologiczny', 'Datowanie radiowęglowe', 'Indeks ciepła', 'Albedo'], correctIndex: 0 },
@@ -375,3 +378,11 @@ export const pl: DropPackCard[] = [
     { id: 'drop-our-changing-planet-180', prompt: 'Ile drzew rosło w Amazonii według szacunku z badania opublikowanego w 2013 roku?', options: ['100 miliardów', '250 miliardów', '390 miliardów', '700 miliardów'], correctIndex: 2 },
 
 ];
+
+const withDifficulty = (card: UnratedDropPackCard): DropPackCard => ({
+    ...card,
+    difficulty: getDropQuestionDifficulty(card.id),
+});
+
+export const en: DropPackCard[] = enCards.map(withDifficulty);
+export const pl: DropPackCard[] = plCards.map(withDifficulty);

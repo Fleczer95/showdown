@@ -30,7 +30,7 @@ Compare case-insensitively on the question/phrase text across BOTH locales. The 
 ## 4. Difficulty calibration
 
 - **Ladder:** difficulty genuinely rises across pools 1→5. Pool 1 (rungs 1–3) is general-audience easy; pool 5 (rungs 13–15) is genuinely hard/specialist. `difficulty`/rung indices must be consistent. Avoid "toddler-level" items the audit flags (basic color/counting/arithmetic, ambiguous descriptors).
-- **Drop:** spread of magnitudes so the answer isn't obvious; distractors plausibly close.
+- **Drop:** spread of magnitudes so the answer is not visually obvious; distractors plausibly close. Classify every card as `easy`, `medium`, or `hard` for a general adult EN/PL audience: easy = broadly recognizable or directly inferable, medium = narrower knowledge or a short reasoning step, hard = specialist/obscure exact knowledge or multi-step reasoning. A new 180-card premium pack must finish at **77 easy / 65 medium / 38 hard**, the closest whole-card apportionment of **20 : 17 : 10**. Reach the target by authoring or replacing cards; never downgrade or upgrade a label just to satisfy the count.
 - **Wheel:** phrase lengths and letter spread stay playable (not single short words, not absurdly long); reasonable consonant/vowel balance.
 
 ## 5. Thematic coherence + store copy

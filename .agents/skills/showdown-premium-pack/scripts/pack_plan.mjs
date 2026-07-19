@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+import { DROP_DIFFICULTY_RATIO, DROP_PACK_TOTAL, getDropDifficultyTargets } from './drop_ratio.mjs';
+
 // Deterministic sizing planner for a Showdown premium pack.
 //
 // Emits the exact per-slot target counts + id ranges for a pack so authoring is
 // consistent across runs. The sizing rule is fixed: total = 20 x full-run size.
 //   - ladder: 300, FRONT-LOADED across the 15 rungs (5 pools of 3 rungs).
-//   - drop:   180, flat pool.
+//   - drop:   180, flat storage with a 77/65/38 easy/medium/hard inventory.
 //   - wheel:  60,  flat pool.
 //
 // Usage:
@@ -22,7 +24,7 @@
 
 const GAMES = ['ladder', 'drop', 'wheel'];
 const LADDER_PER_RUNG = [30, 30, 30, 24, 24, 24, 20, 20, 20, 15, 15, 15, 11, 11, 11]; // rungs 1..15
-const FLAT = { drop: 180, wheel: 60 };
+const FLAT = { drop: DROP_PACK_TOTAL, wheel: 60 };
 
 function parseArgs(argv) {
     const a = {};
@@ -57,15 +59,25 @@ function plan(game, slug) {
         };
     }
     const total = FLAT[game];
+    const dropPlan =
+        game === 'drop'
+            ? {
+                  difficultyRatio: DROP_DIFFICULTY_RATIO,
+                  difficultyTargets: getDropDifficultyTargets(total),
+                  roundOrder: ['easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard'],
+              }
+            : {};
     return {
         game,
         slug,
         total,
         idPrefix: `${game}-${slug}-`,
         idExample: `${game}-${slug}-${pad(1)} .. ${game}-${slug}-${pad(total)}`,
-        note: game === 'drop'
-            ? 'Flat pool of DropQuestion. No difficulty field. Each is 4 plausible real statistics; exactly one true.'
-            : 'Flat pool of PuzzleContent. No difficulty field. Phrases UPPERCASE, public-domain/original only.',
+        ...dropPlan,
+        note:
+            game === 'drop'
+                ? 'Flat storage, but every card needs a classifier-authored difficulty. Required inventory: 77 easy / 65 medium / 38 hard (largest-remainder apportionment of 20:17:10). Author or replace content to hit the targets; never force a false label.'
+                : 'Flat pool of PuzzleContent. No difficulty field. Phrases UPPERCASE, public-domain/original only.',
     };
 }
 

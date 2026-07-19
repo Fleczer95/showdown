@@ -13,6 +13,8 @@ import {
 } from './resolve';
 import { type ChallengeRecord } from './types';
 import { STARTING_BANK, TOTAL_ROUNDS } from '../drop/logic';
+import { dropQuestions } from '../drop/content';
+import { DROP_ROUND_DIFFICULTIES } from '../drop/difficulty';
 import { RUN_LENGTH } from '../ladder/logic';
 import { TOTAL_PUZZLES } from '../wheel/logic';
 
@@ -65,6 +67,29 @@ describe('dropStateFromRecord', () => {
             expect(q.options).toHaveLength(4);
             expect(q.options[q.correctIndex].en.length).toBeGreaterThan(0);
         }
+        expect(state.questions.map((question) => question.difficulty)).toEqual(DROP_ROUND_DIFFICULTIES);
+    });
+
+    it('preserves the pinned order of legacy id-only records instead of re-sorting them', () => {
+        const legacyDifficultyOrder = [
+            'hard',
+            'easy',
+            'medium',
+            'hard',
+            'medium',
+            'easy',
+            'easy',
+            'hard',
+            'medium',
+        ] as const;
+        const questions = legacyDifficultyOrder.map((difficulty) => ({
+            id: dropQuestions.find((question) => question.difficulty === difficulty)!.id,
+        }));
+        const legacy = { ...record('the-drop'), questions };
+
+        expect(dropStateFromRecord(legacy).questions.map((question) => question.difficulty)).toEqual(
+            legacyDifficultyOrder,
+        );
     });
 });
 

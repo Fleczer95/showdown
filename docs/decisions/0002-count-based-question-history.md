@@ -8,10 +8,10 @@ Accepted
 
 ## Context
 
-Each ShowDown game samples N questions per run from a pool (The Drop: 9 of ~14;
-The Wheel: 3 of ~6; The Ladder: 1 per rung). Selection was pure-random, so
-questions repeated too often. We want a game to cycle through its whole pool
-before repeating, and to keep doing so indefinitely.
+Each ShowDown game samples a fixed number of questions per run from a pool
+(The Drop: 9; The Wheel: 3; The Ladder: 1 per rung). Selection was pure-random, so
+questions repeated too often. We want a game to cycle through each selection
+pool before repeating, and to keep doing so indefinitely.
 
 Two approaches were considered:
 
@@ -26,7 +26,7 @@ Two approaches were considered:
 Use **count-based** selection.
 
 - A per-game **Question History** (`Record<questionId, showCount>`) is persisted
-  on device in MMKV (`createMMKV({ id: 'showdown-history' })`), keyed by game id.
+  on device in MMKV (`createMMKV({ id: 'showdown-history-v2' })`), keyed by game id.
 - Selection uses a pure `createDeck(items, history, rng)` (standard implementation):
   group by show-count, sort ascending, shuffle within each tier, take the
   least-seen first.
@@ -41,8 +41,10 @@ Use **count-based** selection.
 
 ## Consequences
 
-- Cycles the full pool before any repeat (the count-0 tier is exhausted before
-  any count-1 item is shown) — the same guarantee booleans give.
+- Cycles each selection pool before any repeat (the count-0 tier is exhausted
+  before any count-1 item is shown) — the same guarantee booleans give. Games
+  with difficulty bands cycle those bands independently, so a smaller band may
+  repeat while a larger one still contains unseen questions.
 - **No explicit reset branch** to write or get wrong; the pool self-cycles once
   all counts equalize.
 - Better at the wrap boundary: when the pool is smaller than a run needs, repeats

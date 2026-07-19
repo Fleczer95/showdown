@@ -9,6 +9,7 @@ import { CHALLENGE_TTL_DAYS, type ChallengeQuestion } from './types';
 import { dropQuestions } from '../drop/content';
 import { RUN_LENGTH } from '../ladder/logic';
 import { TOTAL_ROUNDS } from '../drop/logic';
+import { DROP_ROUND_DIFFICULTIES } from '../drop/difficulty';
 import { TOTAL_PUZZLES } from '../wheel/logic';
 
 const NOW = 1_700_000_000_000;
@@ -79,6 +80,15 @@ describe('the-drop freeze', () => {
         expectIds(questions);
         for (const q of questions) {
             expect(dropQuestions.find((d) => d.id === q.id)).toBeDefined();
+        }
+    });
+
+    it('freezes an easy → medium → hard question curve while keeping the wire id-only', () => {
+        const byId = new Map(dropQuestions.map((question) => [question.id, question]));
+
+        expect(questions.map((question) => byId.get(question.id)?.difficulty)).toEqual(DROP_ROUND_DIFFICULTIES);
+        for (const question of questions) {
+            expect(question).toEqual({ id: question.id });
         }
     });
 });

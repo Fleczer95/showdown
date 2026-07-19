@@ -6,6 +6,7 @@
 - Per-game card shapes
 - Authoring representation
 - Front-load curve (ladder)
+- Difficulty inventory (drop)
 - id / sku / i18n conventions
 - Catalog wiring (PackDefinition)
 - i18n wiring
@@ -20,7 +21,7 @@ Each play screen reads `useStore().purchasedItemIds`, calls the bridge, and merg
 
 **What this means for authoring** — the bridge consumes `PackDefinition.content` (`{ en, pl }`) for the game's `gameId`, so the per-locale card shape MUST match what each game expects:
 - Ladder: each card needs `difficulty` (1–15) in addition to the localized question fields, or it cannot be slotted into a rung.
-- Drop: cards are `DropPackCard` (`{ id, prompt: string, options: string[], correctIndex }`); EN and PL arrays must be the same length and index-aligned (the zipper pairs them by position).
+- Drop: cards are `DropPackCard` (`{ id, prompt: string, options: string[], correctIndex, difficulty }`); EN and PL arrays must be the same length, index-aligned, and carry the same classifier-authored difficulty (the zipper pairs them by position and rejects a mismatch).
 - Wheel: cards are the localized `PuzzleContent` from `wheel/logic.ts` (`{ id, phrase: string, category: string }`), phrases UPPERCASE.
 
 A pack with the wrong per-card shape will type-check at the catalog boundary but break at runtime, so match these exactly.
@@ -31,6 +32,7 @@ A pack with the wrong per-card shape will type-check at the catalog boundary but
 |---|---|
 | Ladder free content | `src/game/ladder/content.ts` (`RUNGS: QuestionContent[][]`, `ALL_PACK`) |
 | Drop free content | `src/game/drop/content.ts` (`dropQuestions: DropQuestion[]`), type in `src/game/drop/logic.ts` |
+| Drop difficulty registry | `src/game/drop/difficulty.ts` + one map per bank in `src/game/drop/difficulty/` |
 | Wheel free content | `src/game/wheel/content.ts` (`PACKS`, `PuzzleContent`) |
 | Store types | `src/data/store/types.ts` (`PackDefinition`, `PackContent`) |
 | Store catalog | `src/data/store/catalog.ts` (`STORE_CATALOG`) |
@@ -55,12 +57,13 @@ interface QuestionContent {
   hint: { en: string; pl: string };
 }
 
-// Drop — logic.ts. Flat pool. No difficulty field.
+// Drop — logic.ts. Flat storage, classifier-authored difficulty inventory.
 interface DropQuestion {
   id: string;                 // `drop-<slug>-NNN`
   prompt: { en: string; pl: string };
   options: { en: string; pl: string }[];   // exactly 4 real statistics; one true
   correctIndex: number;       // 0..3
+  difficulty: 'easy' | 'medium' | 'hard';
 }
 
 // Wheel — content.ts. Flat pool. Phrases UPPERCASE.
@@ -77,7 +80,7 @@ Author the pack as a **bilingual content module** matching the shapes above, at 
 
 **Single quotes, no apostrophes (hard rule).** The audit engine's TS mode validates parity by regex-counting single-quoted `en: '...'` vs `pl: '...'` literals, and dedups prompts via `question: { en: '...'`. So: author every `en`/`pl` string in **single quotes** (matching `content.ts`), and **avoid apostrophes inside strings** — an escaped apostrophe (`\'`) truncates the `[^']*` capture and desyncs the en/pl counts, producing a false `[MISMATCH]` error. Rephrase to dodge apostrophes (e.g. `of Rome` not `Rome's`; `cannot` not `can't`).
 
-The store's `PackContent<TCard>` is `{ en: TCard[]; pl: TCard[] }` — **monolingual arrays per locale**. Derive it by splitting each field into its locale so EN/PL parity is guaranteed by construction. **Match the GAME's runtime card shape, not the bilingual authoring shape** — e.g. The Ladder consumes `LadderPackCard` (`{ id, prompt, options: string[], correctIndex, hint, difficulty }`): note `prompt` (not `question`) and the carried `difficulty`. The Drop consumes `DropPackCard` (`{ id, prompt, options, correctIndex }`).
+The store's `PackContent<TCard>` is `{ en: TCard[]; pl: TCard[] }` — **monolingual arrays per locale**. Derive it by splitting each field into its locale so EN/PL parity is guaranteed by construction. **Match the GAME's runtime card shape, not the bilingual authoring shape** — e.g. The Ladder consumes `LadderPackCard` (`{ id, prompt, options: string[], correctIndex, hint, difficulty }`): note `prompt` (not `question`) and the carried `difficulty`. The Drop consumes `DropPackCard` (`{ id, prompt, options, correctIndex, difficulty }`).
 
 ```ts
 // Ladder example (QuestionContent & { difficulty }):
@@ -88,6 +91,20 @@ const toLocale = (lang: 'en' | 'pl') => (c) => ({
 export const en = cards.map(toLocale('en'));
 export const pl = cards.map(toLocale('pl'));
 // PackDefinition.content = { en, pl }
+```
+
+For Drop, first create `src/game/drop/difficulty/<camelSlug>.ts` with disjoint `easy`, `medium`, and `hard` ID arrays, import it into `src/game/drop/difficulty.ts`, and register it in `DROP_DIFFICULTY_ASSIGNMENTS`. Derive both locale arrays through the same registry so their labels cannot drift:
+
+```ts
+const toLocale = (lang: 'en' | 'pl') => (c: BiCard): DropPackCard => ({
+  id: c.id,
+  prompt: c.prompt[lang],
+  options: c.options.map((o) => o[lang]),
+  correctIndex: c.correctIndex,
+  difficulty: getDropQuestionDifficulty(c.id),
+});
+export const en = cards.map(toLocale('en'));
+export const pl = cards.map(toLocale('pl'));
 ```
 
 ## Front-load curve (ladder)
@@ -103,6 +120,27 @@ Run `scripts/pack_plan.mjs --game ladder --slug <slug>` for the authoritative ta
 | 5 | 13–15 | 13–15 | 11 |
 
 Total = 300. Each `QuestionContent.difficulty` (if present in the consuming shape) and its rung index MUST match. Pools 4–5 are intentionally below the audit's 20/rung floor.
+
+## Difficulty inventory (drop)
+
+Every new 180-card Drop premium pack must approximate the project exposure ratio **easy : medium : hard = 2 : 1.7 : 1**, expressed as integer weights **20 : 17 : 10**. Because 180 is not divisible by 47, use deterministic largest-remainder apportionment:
+
+| Difficulty | Ideal at 180 | Required integer target |
+|---|---:|---:|
+| easy | 76.596 | **77** |
+| medium | 65.106 | **65** |
+| hard | 38.298 | **38** |
+
+The target is therefore **77 easy / 65 medium / 38 hard**. This inventory supports the nine-round curve (`3 easy → 3 medium → 3 hard`) while giving the most frequently reached tier the largest anti-repetition pool.
+
+Classify each question independently for a general adult EN/PL audience. Use the targets to guide what facts you author or replace, never to attach a dishonest label. Every ID must appear exactly once in the pack's difficulty map, EN and PL must resolve to the same label, and the map must be registered centrally. Run both commands before review:
+
+```bash
+node .agents/skills/showdown-premium-pack/scripts/pack_plan.mjs --game drop --slug <slug>
+node .agents/skills/showdown-premium-pack/scripts/check_drop_ratio.mjs src/game/drop/difficulty/<camelSlug>.ts
+```
+
+Also import the new pack in `src/game/drop/difficulty.test.ts`, add it to `premiumPacks`, and assert its per-pack counts are `{ easy: 77, medium: 65, hard: 38 }` alongside EN/PL metadata parity. Update the existing exact global inventory expectation by adding `+77 easy`, `+65 medium`, and `+38 hard` for the new registered pack; do not weaken or remove that assertion.
 
 ## id / sku / i18n conventions
 

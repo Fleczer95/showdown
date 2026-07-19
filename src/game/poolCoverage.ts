@@ -31,13 +31,13 @@ export function computeCoverage(ids: Iterable<string>, history: History): PoolCo
 }
 
 /**
- * How much of a game's question pool the player has worked through. The deck
- * draws least-shown-first and cycles the whole pool before any repeat (see
- * `deck.ts`), so once every question has been seen once (`seen === total`),
- * `floor` counts the completed laps and `reseen` is the progress into the
- * current one. That lets the setup-screen meter keep moving past 100% — showing
- * "lap 2", "lap 3"… — instead of freezing, while still nudging a pack purchase
- * as the only source of genuinely new questions.
+ * How much of a game's combined question inventory the player has worked
+ * through. Selection itself may use narrower difficulty pools, but once every
+ * question has been seen once (`seen === total`), `floor` counts completed
+ * whole-inventory laps and `reseen` is progress into the current one. That lets
+ * the setup-screen meter keep moving past 100% — showing "lap 2", "lap 3"… —
+ * instead of freezing, while still nudging a pack purchase as the only source
+ * of genuinely new questions.
  */
 export function poolCoverage(gameId: string, ownedIds: ReadonlySet<string>): PoolCoverage {
     return computeCoverage(ownedQuestionIds(gameId, ownedIds), getHistory(gameId));

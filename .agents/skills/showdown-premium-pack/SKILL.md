@@ -17,7 +17,7 @@ Auto-derive everything else: `slug` = kebab-case(topic); `id` = `pack-<game>-<sl
 
 ## Sizing rule (fixed)
 
-Total = 20 × full-run size. The Ladder is **front-loaded**; Drop and Wheel are flat pools.
+Total = 20 × full-run size. The Ladder is **front-loaded**; Drop is stored as a flat pool but has a mandatory difficulty inventory; Wheel is a flat pool.
 
 Always run the planner first to get exact per-slot targets and id ranges:
 
@@ -28,22 +28,28 @@ node .agents/skills/showdown-premium-pack/scripts/pack_plan.mjs --game <game> --
 | Game | Total | Shape |
 |---|---|---|
 | ladder | 300 | front-loaded per rung: P1 30/rung, P2 24, P3 20, P4 15, P5 11 (pools of 3 rungs) |
-| drop | 180 | flat |
+| drop | 180 | flat storage; **77 easy / 65 medium / 38 hard** |
 | wheel | 60 | flat |
+
+For every new **The Drop** premium pack, preserve the project ratio **easy : medium : hard = 2 : 1.7 : 1** (integer weights **20 : 17 : 10**). An exact ratio is impossible at the fixed 180-card size because 180 is not divisible by 47, so the mandatory closest whole-card apportionment is **77 / 65 / 38**. Classify every question on its own merits first, then author or replace questions until the targets are met; never mislabel a question merely to fill a quota. If the topic cannot support that inventory honestly, broaden the topic with the user or stop instead of shipping a distorted pack. The planner output is authoritative.
 
 ## Pipeline — strict order
 
 Execute these stages in order. Stages 1–5 are local and reversible; stage 6 is outward-facing and gated by explicit confirmation.
 
-1. **Generate** original bilingual content meeting every hard requirement. See `references/content-schemas.md` for exact TS shapes, id conventions, and difficulty rules; `references/legal-and-quality.md` for the 5 hard requirements and the legal gate.
+1. **Generate** original bilingual content meeting every hard requirement. See `references/content-schemas.md` for exact TS shapes, id conventions, and difficulty rules; `references/legal-and-quality.md` for the 5 hard requirements and the legal gate. For Drop, create and register the classifier-authored difficulty map and hit the planner targets **77 easy / 65 medium / 38 hard** by changing the authored content, not by forcing labels.
 
 2. **Self-review (BLOCKING, auto-fix loop)** — run the content audit and re-check the hard requirements yourself. Fix and re-run until clean:
    ```bash
    node .agents/skills/showdown-content-audit/scripts/audit_engine.cjs <pack-file>
    ```
+   For a Drop pack, also run the blocking ratio check against its difficulty map:
+   ```bash
+   node .agents/skills/showdown-premium-pack/scripts/check_drop_ratio.mjs <difficulty-map-file>
+   ```
    Treat ladder "<20 per rung" warnings on rungs 10–15 as EXPECTED (front-loaded pools are intentionally lean). Everything else must pass.
 
-3. **Gemini review (BLOCKING on facts/IP)** — independent second opinion via the `gemini` CLI on factual accuracy, Polish naturalness, IP risk, and difficulty calibration. Factual/IP errors block and must be fixed; style/judgment calls are surfaced to the user. See `references/review-and-provision.md`.
+3. **Gemini review (BLOCKING on facts/IP)** — independent second opinion via the `gemini` CLI on factual accuracy, Polish naturalness, IP risk, and difficulty calibration. For Drop, it must review every label independently and confirm that the final pack reaches **77 / 65 / 38** without obviously misclassified filler. Factual/IP errors block and must be fixed; style/judgment calls are surfaced to the user. See `references/review-and-provision.md`.
 
 4. **Structural validation** — `node scripts/validate-content.mjs` and a TypeScript typecheck (`npx tsc --noEmit`). Both green before proceeding.
 
@@ -53,7 +59,7 @@ Execute these stages in order. Stages 1–5 are local and reversible; stage 6 is
 
 ## Definition of done
 
-Local content validated, both review layers pass, `tsc` clean, content validators green, and the IAP products exist as **drafts** in both consoles pending manual submission. The catalog entry stays `status: 'hidden'` until the IAP is approved in both stores, then is flipped to `'live'`.
+Local content validated, both review layers pass, `tsc` clean, content validators green, and the IAP products exist as **drafts** in both consoles pending manual submission. A Drop pack is not done unless all 180 IDs are classified exactly once and the blocking ratio check reports **77 easy / 65 medium / 38 hard**. The catalog entry stays `status: 'hidden'` until the IAP is approved in both stores, then is flipped to `'live'`.
 
 ## References
 

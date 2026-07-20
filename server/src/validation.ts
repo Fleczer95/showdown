@@ -8,6 +8,12 @@ import { isChallengeRecord, isValidChallengeId, type ChallengeRecord } from '../
 export const SIGNATURE_SLUGS = ['sprout', 'spark', 'fire', 'gem', 'star', 'crown'];
 export const RANKED_GAMES = ['the-ladder', 'the-drop', 'the-wheel'];
 export const MAX_SCORE = 1_000_000_000;
+export const MAX_SYNC_IDS = 100;
+
+export interface BoundedSyncIds {
+    uuid: string;
+    ids: string[];
+}
 
 type Json = Record<string, unknown>;
 
@@ -18,6 +24,17 @@ const isObject = (v: unknown): v is Json => typeof v === 'object' && v !== null;
 /** A challenge document id — non-empty, bounded. */
 export function isValidId(v: unknown): v is string {
     return isValidChallengeId(v);
+}
+
+/** Parse the shared security boundary for bounded pull-sync requests. */
+export function parseBoundedSyncIds(
+    body: Json | null,
+    field: 'sourceChallengeIds' | 'challengeIds',
+): BoundedSyncIds | null {
+    if (!body || !isValidId(body.uuid)) return null;
+    const ids = body[field];
+    if (!Array.isArray(ids) || ids.length > MAX_SYNC_IDS || !ids.every(isValidId)) return null;
+    return { uuid: body.uuid, ids };
 }
 
 export function validateChallenge(d: unknown): d is ChallengeRecord {

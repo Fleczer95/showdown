@@ -1,3 +1,19 @@
+export interface ActiveRematch {
+    id: string;
+}
+
+/** One query owns the definition of an active immediate successor. */
+export function findActiveRematch(
+    db: D1Database,
+    sourceChallengeId: string,
+    now: number = Date.now(),
+): Promise<ActiveRematch | null> {
+    return db
+        .prepare('SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?')
+        .bind(sourceChallengeId, now)
+        .first<ActiveRematch>();
+}
+
 export interface RematchParticipant {
     uuid: string;
     nickname: string;

@@ -6,8 +6,9 @@ import {
     isRankedGame,
     isWritablePeriod,
     isValidId,
+    parseBoundedSyncIds,
 } from './validation';
-import { resolveRematchRecipient, type RematchParticipant } from './rematch';
+import { findActiveRematch, resolveRematchRecipient, type RematchParticipant } from './rematch';
 import { canSubmitDirectedAttempt, isSameAttempt, type AttemptPayload } from './attempt';
 
 // Showdown backend. One Worker fronting a D1 database; replaces the direct
@@ -160,9 +161,7 @@ export default {
                     return json({ error: 'Rematch requires exactly two completed participants' }, 409);
                 }
 
-                const existing = await env.DB.prepare('SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?')
-                    .bind(sourceId, Date.now())
-                    .first<{ id: string }>();
+                const existing = await findActiveRematch(env.DB, sourceId);
                 if (existing) {
                     return json({ id: existing.id, created: false, recipientNickname: recipient.nickname });
                 }
@@ -188,11 +187,7 @@ export default {
                 } catch (err: unknown) {
                     // A concurrent participant may have won the one-rematch race.
                     // Resolve that successor instead of surfacing a duplicate error.
-                    const winner = await env.DB.prepare(
-                        'SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?',
-                    )
-                        .bind(sourceId, Date.now())
-                        .first<{ id: string }>();
+                    const winner = await findActiveRematch(env.DB, sourceId);
                     if (winner) {
                         return json({ id: winner.id, created: false, recipientNickname: recipient.nickname });
                     }
@@ -219,9 +214,7 @@ export default {
                     .bind(seg[1], seg[3])
                     .first();
                 if (!member) return json({ error: 'Not found' }, 404);
-                const existing = await env.DB.prepare('SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?')
-                    .bind(seg[1], Date.now())
-                    .first<{ id: string }>();
+                const existing = await findActiveRematch(env.DB, seg[1]);
                 if (!existing) return json({ error: 'Not found' }, 404);
                 return json(existing);
             }
@@ -230,20 +223,11 @@ export default {
             // Discovery is scoped to source ids already indexed on this device,
             // rather than exposing a device-wide inbox by a public creator UUID.
             if (method === 'POST' && seg.length === 2 && seg[0] === 'rematches' && seg[1] === 'sync') {
-                const body = await parseJsonBody(request);
-                const sourceIds = body?.sourceChallengeIds;
-                if (
-                    !body ||
-                    !isValidId(body.uuid) ||
-                    !Array.isArray(sourceIds) ||
-                    sourceIds.length > 100 ||
-                    !sourceIds.every(isValidId)
-                ) {
-                    return json({ error: 'Invalid rematch sync' }, 400);
-                }
-                if (sourceIds.length === 0) return json([]);
+                const sync = parseBoundedSyncIds(await parseJsonBody(request), 'sourceChallengeIds');
+                if (!sync) return json({ error: 'Invalid rematch sync' }, 400);
+                if (sync.ids.length === 0) return json([]);
 
-                const placeholders = sourceIds.map(() => '?').join(', ');
+                const placeholders = sync.ids.map(() => '?').join(', ');
                 const { results } = await env.DB.prepare(
                     `SELECT c.id, c.game, c.createdBy, c.expiresAt, c.rematchOf
                          FROM challenges c
@@ -255,7 +239,7 @@ export default {
                            AND mine.uuid IS NULL
                          ORDER BY c.expiresAt DESC`,
                 )
-                    .bind(body.uuid, body.uuid, ...sourceIds, Date.now())
+                    .bind(sync.uuid, sync.uuid, ...sync.ids, Date.now())
                     .all<RematchRow>();
                 return json(results.map(rematchSummary));
             }
@@ -264,20 +248,11 @@ export default {
             // One bounded query refreshes History without issuing one request per
             // row. It reports this device's attempt and whether anyone else played.
             if (method === 'POST' && seg.length === 2 && seg[0] === 'challenges' && seg[1] === 'statuses') {
-                const body = await parseJsonBody(request);
-                const challengeIds = body?.challengeIds;
-                if (
-                    !body ||
-                    !isValidId(body.uuid) ||
-                    !Array.isArray(challengeIds) ||
-                    challengeIds.length > 100 ||
-                    !challengeIds.every(isValidId)
-                ) {
-                    return json({ error: 'Invalid challenge status sync' }, 400);
-                }
-                if (challengeIds.length === 0) return json([]);
+                const sync = parseBoundedSyncIds(await parseJsonBody(request), 'challengeIds');
+                if (!sync) return json({ error: 'Invalid challenge status sync' }, 400);
+                if (sync.ids.length === 0) return json([]);
 
-                const placeholders = challengeIds.map(() => '?').join(', ');
+                const placeholders = sync.ids.map(() => '?').join(', ');
                 const { results } = await env.DB.prepare(
                     `SELECT c.id,
                             MAX(CASE WHEN a.uuid = ? THEN 1 ELSE 0 END) AS played,
@@ -288,7 +263,7 @@ export default {
                         AND c.expiresAt > ?
                       GROUP BY c.id`,
                 )
-                    .bind(body.uuid, body.uuid, ...challengeIds, Date.now())
+                    .bind(sync.uuid, sync.uuid, ...sync.ids, Date.now())
                     .all<ChallengeStatusRow>();
                 return json(
                     results.map((row) => ({

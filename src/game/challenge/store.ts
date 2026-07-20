@@ -247,6 +247,62 @@ export async function ensureChallengeCreated(record: ChallengeRecord, id: string
     }
 }
 
+export interface RematchCreationResult {
+    id: string;
+    /** False when a retry or the other participant already created the successor. */
+    created: boolean;
+    recipientNickname: string;
+}
+
+export interface IncomingRematch {
+    id: string;
+    sourceChallengeId: string;
+    game: string;
+    senderNickname: string;
+    expiresAt: number;
+}
+
+export interface ChallengeStatusSnapshot {
+    id: string;
+    played: boolean;
+    opponentPlayed: boolean;
+}
+
+/** Create the sole directed successor to a completed 1:1 challenge. The Worker
+ * derives the recipient from source attempts; callers never supply a target UUID. */
+export function createRematch(
+    sourceChallengeId: string,
+    senderUuid: string,
+    record: ChallengeRecord,
+    id: string,
+): Promise<RematchCreationResult> {
+    return request<RematchCreationResult>(`/challenges/${sourceChallengeId}/rematch`, {
+        method: 'POST',
+        body: JSON.stringify({ id, senderUuid, challenge: serializeChallengeRecord(record) }),
+    });
+}
+
+/** Resolve an existing successor before spending another daily challenge allowance. */
+export function getRematch(sourceChallengeId: string, uuid: string): Promise<{ id: string } | null> {
+    return request<{ id: string } | null>(`/challenges/${sourceChallengeId}/rematch/${uuid}`, undefined, true);
+}
+
+/** Pull directed rematches for source challenges already known to this device. */
+export function syncRematches(uuid: string, sourceChallengeIds: string[]): Promise<IncomingRematch[]> {
+    return request<IncomingRematch[]>('/rematches/sync', {
+        method: 'POST',
+        body: JSON.stringify({ uuid, sourceChallengeIds }),
+    });
+}
+
+/** Refresh all three History states in one bounded Worker/D1 query. */
+export function syncChallengeStatuses(uuid: string, challengeIds: string[]): Promise<ChallengeStatusSnapshot[]> {
+    return request<ChallengeStatusSnapshot[]>('/challenges/statuses', {
+        method: 'POST',
+        body: JSON.stringify({ uuid, challengeIds }),
+    });
+}
+
 /** Record this device's attempt. Create-only, one-per-UUID is enforced server-side. */
 export async function submitAttempt(id: string, uuid: string, attempt: Attempt): Promise<void> {
     await request(`/challenges/${id}/attempts/${uuid}`, { method: 'POST', body: JSON.stringify(attempt) });

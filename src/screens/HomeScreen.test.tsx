@@ -1,17 +1,20 @@
 import React from 'react';
 import { Pressable as MockPressable, StyleSheet, Text as MockText, View as MockView } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { HomeScreen } from './HomeScreen';
+import { markChallengeSeen, markChallengeSnoozed } from '../game/challenge/log';
+import { syncIncomingRematches } from '../game/challenge/rematchSync';
 
 const mockNavigate = jest.fn();
 const mockButton = jest.fn();
+const mockUseFocusEffect = jest.fn();
 let mockTabletColumn: { maxWidth: number; width: '100%'; alignSelf: 'center' } | undefined;
 let mockWidth: number;
 let mockFontScale: number;
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({ navigate: mockNavigate }),
-    useFocusEffect: () => undefined,
+    useFocusEffect: (callback: () => void) => mockUseFocusEffect(callback),
 }));
 
 jest.mock('lucide-react-native', () => ({
@@ -163,6 +166,12 @@ jest.mock('../game/mascot/reactions/useMascotDirector', () => ({
 }));
 
 jest.mock('../game/challenge/limit', () => ({ canUpsell: () => false }));
+jest.mock('../game/challenge/log', () => ({
+    isChallengeBannerDue: (challenge: any) => !challenge.seen && !challenge.played,
+    markChallengeSeen: jest.fn(),
+    markChallengeSnoozed: jest.fn(),
+}));
+jest.mock('../game/challenge/rematchSync', () => ({ syncIncomingRematches: jest.fn(() => Promise.resolve([])) }));
 jest.mock('../game/offline/limit', () => ({ remainingOfflineRuns: () => 3 }));
 jest.mock('../hooks/store/useStore', () => ({
     useStore: () => ({ purchasedItemIds: [], isPremium: false }),
@@ -170,9 +179,64 @@ jest.mock('../hooks/store/useStore', () => ({
 
 beforeEach(() => {
     jest.clearAllMocks();
+    mockUseFocusEffect.mockImplementation(() => undefined);
+    jest.mocked(syncIncomingRematches).mockResolvedValue([]);
     mockTabletColumn = undefined;
     mockWidth = 390;
     mockFontScale = 1;
+});
+
+it('surfaces a synced rematch and opens it without sharing a link', async () => {
+    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    const incoming = {
+        id: 'r1',
+        game: 'the-ladder',
+        role: 'received' as const,
+        opponent: 'Bob',
+        played: false,
+        createdAt: 1,
+        updatedAt: 1,
+        expiresAt: 999,
+        isRematch: true,
+        sourceChallengeId: 'c1',
+    };
+    let resolveSync!: (rounds: (typeof incoming)[]) => void;
+    jest.mocked(syncIncomingRematches).mockImplementation(() => new Promise((resolve) => (resolveSync = resolve)));
+
+    const screen = render(<HomeScreen />);
+    await act(async () => resolveSync([incoming]));
+    fireEvent.press(screen.getByText('challenge.rematch.play'));
+
+    expect(markChallengeSeen).toHaveBeenCalledWith('r1');
+    expect(mockNavigate).toHaveBeenCalledWith('Challenge', { challengeId: 'r1' });
+});
+
+it('snoozes the current rematch and immediately advances the banner queue', async () => {
+    mockUseFocusEffect.mockImplementation((callback: () => void) => callback());
+    const first = {
+        id: 'r1',
+        game: 'the-ladder',
+        role: 'received' as const,
+        opponent: 'Ada',
+        played: false,
+        createdAt: 2,
+        updatedAt: 2,
+        expiresAt: 999,
+        isRematch: true,
+        sourceChallengeId: 'c1',
+    };
+    const second = { ...first, id: 'r2', opponent: 'Bob', createdAt: 1, updatedAt: 1 };
+    let resolveSync!: (rounds: (typeof first)[]) => void;
+    jest.mocked(syncIncomingRematches).mockImplementation(() => new Promise((resolve) => (resolveSync = resolve)));
+
+    const screen = render(<HomeScreen />);
+    await act(async () => resolveSync([first, second]));
+    fireEvent.press(screen.getByText('challenge.rematch.later'));
+
+    expect(markChallengeSnoozed).toHaveBeenCalledWith('r1');
+    fireEvent.press(screen.getByText('challenge.rematch.play'));
+    expect(markChallengeSeen).toHaveBeenCalledWith('r2');
+    expect(mockNavigate).toHaveBeenCalledWith('Challenge', { challengeId: 'r2' });
 });
 
 it.each([

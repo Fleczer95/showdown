@@ -15,19 +15,21 @@ import { useResponsive } from '../responsive/useResponsive';
 import { games } from '../data/games';
 import { listChallenges, challengeStatus, type ChallengeStub, type ChallengeStatus } from '../game/challenge/log';
 import { shareChallenge } from '../game/challenge/share';
+import { syncIncomingRematches } from '../game/challenge/rematchSync';
 
 /** Status → icon + i18n label key. Color is the game accent (muted for expired). */
 const STATUS_META: Record<ChallengeStatus, { icon: LucideIcon; labelKey: string }> = {
     yourTurn: { icon: Swords, labelKey: 'challenge.history.yourTurn' },
-    played: { icon: Trophy, labelKey: 'challenge.history.viewResults' },
+    waitingOpponent: { icon: Hourglass, labelKey: 'challenge.history.waitingOpponent' },
+    completed: { icon: Trophy, labelKey: 'challenge.history.completed' },
     expired: { icon: Hourglass, labelKey: 'challenge.history.expiredStatus' },
 };
 
 interface ChallengeRowProps {
     id: string;
     gameId: string;
-    role: ChallengeStub['role'];
     opponent: string;
+    isRematch: boolean;
     status: ChallengeStatus;
     onOpen: (id: string) => void;
     onShare: (id: string) => Promise<void>;
@@ -36,8 +38,8 @@ interface ChallengeRowProps {
 const ChallengeRow = React.memo(function ChallengeRow({
     id,
     gameId,
-    role,
     opponent,
+    isRematch,
     status,
     onOpen,
     onShare,
@@ -48,15 +50,17 @@ const ChallengeRow = React.memo(function ChallengeRow({
     const game = games.find((g) => g.id === gameId);
     const meta = STATUS_META[status];
     const accent = game ? resolveAccent(theme, game.accent) : theme.colors.primary;
-    const tint = status === 'expired' ? theme.colors.textMuted : accent;
+    const muted = status === 'completed' || status === 'expired';
+    const tint = status === 'waitingOpponent' ? theme.colors.warning : muted ? theme.colors.textMuted : accent;
 
-    const title =
-        role === 'received' && opponent ? t('challenge.history.vs', { name: opponent }) : t('challenge.history.yours');
+    const title = opponent ? t('challenge.history.vs', { name: opponent }) : t('challenge.history.yours');
     const handleOpen = useCallback(() => onOpen(id), [id, onOpen]);
     const handleShare = useCallback(() => {
         void onShare(id).catch(() => undefined);
     }, [id, onShare]);
-    const hasShareAction = status !== 'expired';
+    // A directed rematch already has exactly one recipient. Sharing its deep
+    // link would silently turn the 1:1 round back into a group challenge.
+    const canShare = status !== 'expired' && !isRematch;
 
     return (
         <View style={styles.row}>
@@ -69,9 +73,9 @@ const ChallengeRow = React.memo(function ChallengeRow({
                 style={{
                     borderRadius: theme.radii.lg,
                     borderCurve: 'continuous',
-                    borderColor: hexToRgba(tint, 0.4),
-                    opacity: status === 'expired' ? 0.7 : 1,
-                    paddingRight: hasShareAction ? scale(64) : theme.spacing.md,
+                    borderColor: hexToRgba(tint, status === 'yourTurn' ? 0.4 : 0.28),
+                    opacity: status === 'expired' ? 0.62 : status === 'completed' ? 0.82 : 1,
+                    paddingRight: canShare ? scale(64) : theme.spacing.md,
                 }}
             >
                 <View pointerEvents='none'>
@@ -91,7 +95,12 @@ const ChallengeRow = React.memo(function ChallengeRow({
                             <Icon name={meta.icon} size={iconSize(22)} color={tint} />
                         </View>
                         <Stack gap='xs' flex={1}>
-                            <Text variant='body' weight='bold' numberOfLines={1}>
+                            <Text
+                                variant='body'
+                                weight='bold'
+                                color={muted ? 'textSecondary' : undefined}
+                                numberOfLines={1}
+                            >
                                 {title}
                             </Text>
                             <Text variant='caption' color='textSecondary' numberOfLines={1}>
@@ -99,13 +108,11 @@ const ChallengeRow = React.memo(function ChallengeRow({
                                 {t(meta.labelKey)}
                             </Text>
                         </Stack>
-                        {hasShareAction ? (
-                            <Icon name={ChevronRight} size={iconSize(20)} color={theme.colors.textMuted} />
-                        ) : null}
+                        <Icon name={ChevronRight} size={iconSize(20)} color={theme.colors.textMuted} />
                     </Stack>
                 </View>
             </Card>
-            {hasShareAction ? (
+            {canShare ? (
                 <View pointerEvents='box-none' style={[styles.shareAction, { width: scale(64) }]}>
                     <IconButton
                         icon={<Icon name={Share2} size={iconSize(18)} color={tint} />}
@@ -167,7 +174,16 @@ export function ChallengeHistoryScreen() {
     // Refresh on focus so a just-played challenge reflects its new status.
     useFocusEffect(
         useCallback(() => {
+            let active = true;
             setStubs(listChallenges());
+            void syncIncomingRematches()
+                .then(() => {
+                    if (active) setStubs(listChallenges());
+                })
+                .catch(() => undefined);
+            return () => {
+                active = false;
+            };
         }, []),
     );
 
@@ -181,8 +197,8 @@ export function ChallengeHistoryScreen() {
             <ChallengeRow
                 id={item.id}
                 gameId={item.game}
-                role={item.role}
                 opponent={item.opponent}
+                isRematch={item.isRematch === true}
                 status={challengeStatus(item)}
                 onOpen={openChallenge}
                 onShare={shareChallenge}

@@ -3,7 +3,7 @@
 // identical — App Check proves a request came from a genuine app, NOT that the
 // payload is honest, so these checks still matter. Keep in sync with the rules.
 
-import { isChallengeRecord, isValidChallengeId } from '../../shared/challenge/contract';
+import { isChallengeRecord, isValidChallengeId, type ChallengeRecord } from '../../shared/challenge/contract';
 
 export const SIGNATURE_SLUGS = ['sprout', 'spark', 'fire', 'gem', 'star', 'crown'];
 export const RANKED_GAMES = ['the-ladder', 'the-drop', 'the-wheel'];
@@ -20,7 +20,7 @@ export function isValidId(v: unknown): v is string {
     return isValidChallengeId(v);
 }
 
-export function validateChallenge(d: unknown): boolean {
+export function validateChallenge(d: unknown): d is ChallengeRecord {
     return isChallengeRecord(d, { nowMs: Date.now() });
 }
 

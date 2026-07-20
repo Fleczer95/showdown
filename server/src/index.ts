@@ -7,6 +7,7 @@ import {
     isWritablePeriod,
     isValidId,
 } from './validation';
+import { resolveRematchRecipient, type RematchParticipant } from './rematch';
 
 // Showdown backend. One Worker fronting a D1 database; replaces the direct
 // Firestore reads/writes (ADR-0003 / ADR-0004). Every request — read and write —
@@ -16,6 +17,31 @@ import {
 interface Env {
     DB: D1Database;
     FIREBASE_PROJECT_NUMBER: string;
+}
+
+interface RematchRow {
+    id: string;
+    game: string;
+    createdBy: string;
+    expiresAt: number;
+    rematchOf: string;
+}
+
+interface ChallengeStatusRow {
+    id: string;
+    played: number;
+    opponentPlayed: number;
+}
+
+function rematchSummary(row: RematchRow) {
+    const creator = JSON.parse(row.createdBy) as { nickname: string };
+    return {
+        id: row.id,
+        sourceChallengeId: row.rematchOf,
+        game: row.game,
+        senderNickname: creator.nickname,
+        expiresAt: row.expiresAt,
+    };
 }
 
 function json(body: unknown, status = 200): Response {
@@ -41,9 +67,9 @@ async function parseJsonBody(request: Request): Promise<Record<string, unknown> 
 async function cleanupExpired(env: Env): Promise<void> {
     const now = Date.now();
     await env.DB.batch([
-        env.DB
-            .prepare('DELETE FROM attempts WHERE challengeId IN (SELECT id FROM challenges WHERE expiresAt < ?)')
-            .bind(now),
+        env.DB.prepare(
+            'DELETE FROM attempts WHERE challengeId IN (SELECT id FROM challenges WHERE expiresAt < ?)',
+        ).bind(now),
         env.DB.prepare('DELETE FROM challenges WHERE expiresAt < ?').bind(now),
     ]);
 }
@@ -102,6 +128,176 @@ export default {
                 return json({ id }, 201);
             }
 
+            // POST /challenges/:sourceId/rematch
+            // Build a new immutable round while deriving its sole recipient from
+            // the two completed source attempts. The client can never address an
+            // arbitrary UUID. A unique rematchOf index makes retries and two
+            // simultaneous "Rematch" taps converge on the same successor.
+            if (method === 'POST' && seg.length === 3 && seg[0] === 'challenges' && seg[2] === 'rematch') {
+                const sourceId = seg[1];
+                const body = await parseJsonBody(request);
+                if (!body || !isValidId(body.id) || !isValidId(body.senderUuid) || !validateChallenge(body.challenge)) {
+                    return json({ error: 'Invalid rematch' }, 400);
+                }
+                const senderUuid = body.senderUuid;
+                const record = body.challenge;
+                if (record.createdBy.uuid !== senderUuid) return json({ error: 'Invalid rematch creator' }, 400);
+
+                const source = await env.DB.prepare('SELECT game FROM challenges WHERE id = ? AND expiresAt > ?')
+                    .bind(sourceId, Date.now())
+                    .first<{ game: string }>();
+                if (!source) return json({ error: 'Challenge not found' }, 404);
+                if (record.game !== source.game) return json({ error: 'Rematch game must match source' }, 400);
+
+                const { results: participants } = await env.DB.prepare(
+                    'SELECT uuid, nickname FROM attempts WHERE challengeId = ? ORDER BY timestamp ASC LIMIT 3',
+                )
+                    .bind(sourceId)
+                    .all<RematchParticipant>();
+                const recipient = resolveRematchRecipient(participants, senderUuid);
+                if (!recipient) {
+                    return json({ error: 'Rematch requires exactly two completed participants' }, 409);
+                }
+
+                const existing = await env.DB.prepare('SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?')
+                    .bind(sourceId, Date.now())
+                    .first<{ id: string }>();
+                if (existing) {
+                    return json({ id: existing.id, created: false, recipientNickname: recipient.nickname });
+                }
+
+                try {
+                    await env.DB.prepare(
+                        `INSERT INTO challenges
+                         (id, lang, game, questions, createdBy, expiresAt, mascot, rematchOf, recipientUuid)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    )
+                        .bind(
+                            body.id,
+                            record.lang,
+                            record.game,
+                            JSON.stringify(record.questions),
+                            JSON.stringify(record.createdBy),
+                            record.expiresAt,
+                            JSON.stringify(record.mascot),
+                            sourceId,
+                            recipient.uuid,
+                        )
+                        .run();
+                } catch (err: unknown) {
+                    // A concurrent participant may have won the one-rematch race.
+                    // Resolve that successor instead of surfacing a duplicate error.
+                    const winner = await env.DB.prepare(
+                        'SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?',
+                    )
+                        .bind(sourceId, Date.now())
+                        .first<{ id: string }>();
+                    if (winner) {
+                        return json({ id: winner.id, created: false, recipientNickname: recipient.nickname });
+                    }
+                    if (err instanceof Error && err.message.includes('UNIQUE constraint failed')) {
+                        return json({ error: 'Challenge already exists' }, 409);
+                    }
+                    throw err;
+                }
+                ctx.waitUntil(cleanupExpired(env));
+                return json({ id: body.id, created: true, recipientNickname: recipient.nickname }, 201);
+            }
+
+            // GET /challenges/:sourceId/rematch/:uuid
+            // Used by the result CTA before consuming a daily create allowance:
+            // opening an already-created successor is free and idempotent.
+            if (
+                method === 'GET' &&
+                seg.length === 4 &&
+                seg[0] === 'challenges' &&
+                seg[2] === 'rematch' &&
+                isValidId(seg[3])
+            ) {
+                const member = await env.DB.prepare('SELECT 1 AS ok FROM attempts WHERE challengeId = ? AND uuid = ?')
+                    .bind(seg[1], seg[3])
+                    .first();
+                if (!member) return json({ error: 'Not found' }, 404);
+                const existing = await env.DB.prepare('SELECT id FROM challenges WHERE rematchOf = ? AND expiresAt > ?')
+                    .bind(seg[1], Date.now())
+                    .first<{ id: string }>();
+                if (!existing) return json({ error: 'Not found' }, 404);
+                return json(existing);
+            }
+
+            // POST /rematches/sync
+            // Discovery is scoped to source ids already indexed on this device,
+            // rather than exposing a device-wide inbox by a public creator UUID.
+            if (method === 'POST' && seg.length === 2 && seg[0] === 'rematches' && seg[1] === 'sync') {
+                const body = await parseJsonBody(request);
+                const sourceIds = body?.sourceChallengeIds;
+                if (
+                    !body ||
+                    !isValidId(body.uuid) ||
+                    !Array.isArray(sourceIds) ||
+                    sourceIds.length > 100 ||
+                    !sourceIds.every(isValidId)
+                ) {
+                    return json({ error: 'Invalid rematch sync' }, 400);
+                }
+                if (sourceIds.length === 0) return json([]);
+
+                const placeholders = sourceIds.map(() => '?').join(', ');
+                const { results } = await env.DB.prepare(
+                    `SELECT c.id, c.game, c.createdBy, c.expiresAt, c.rematchOf
+                         FROM challenges c
+                         LEFT JOIN attempts mine
+                           ON mine.challengeId = c.id AND mine.uuid = ?
+                         WHERE c.recipientUuid = ?
+                           AND c.rematchOf IN (${placeholders})
+                           AND c.expiresAt > ?
+                           AND mine.uuid IS NULL
+                         ORDER BY c.expiresAt DESC`,
+                )
+                    .bind(body.uuid, body.uuid, ...sourceIds, Date.now())
+                    .all<RematchRow>();
+                return json(results.map(rematchSummary));
+            }
+
+            // POST /challenges/statuses
+            // One bounded query refreshes History without issuing one request per
+            // row. It reports this device's attempt and whether anyone else played.
+            if (method === 'POST' && seg.length === 2 && seg[0] === 'challenges' && seg[1] === 'statuses') {
+                const body = await parseJsonBody(request);
+                const challengeIds = body?.challengeIds;
+                if (
+                    !body ||
+                    !isValidId(body.uuid) ||
+                    !Array.isArray(challengeIds) ||
+                    challengeIds.length > 100 ||
+                    !challengeIds.every(isValidId)
+                ) {
+                    return json({ error: 'Invalid challenge status sync' }, 400);
+                }
+                if (challengeIds.length === 0) return json([]);
+
+                const placeholders = challengeIds.map(() => '?').join(', ');
+                const { results } = await env.DB.prepare(
+                    `SELECT c.id,
+                            MAX(CASE WHEN a.uuid = ? THEN 1 ELSE 0 END) AS played,
+                            MAX(CASE WHEN a.uuid <> ? THEN 1 ELSE 0 END) AS opponentPlayed
+                       FROM challenges c
+                       LEFT JOIN attempts a ON a.challengeId = c.id
+                      WHERE c.id IN (${placeholders})
+                        AND c.expiresAt > ?
+                      GROUP BY c.id`,
+                )
+                    .bind(body.uuid, body.uuid, ...challengeIds, Date.now())
+                    .all<ChallengeStatusRow>();
+                return json(
+                    results.map((row) => ({
+                        id: row.id,
+                        played: row.played === 1,
+                        opponentPlayed: row.opponentPlayed === 1,
+                    })),
+                );
+            }
+
             // GET /challenges/:id
             if (method === 'GET' && seg.length === 2 && seg[0] === 'challenges') {
                 const row = await env.DB.prepare(
@@ -134,16 +330,14 @@ export default {
                 const body = await parseJsonBody(request);
                 if (!body || !validateAttempt(body)) return json({ error: 'Invalid attempt' }, 400);
                 // No orphan attempts: the (unexpired) parent must exist.
-                const parent = await env.DB
-                    .prepare('SELECT 1 AS ok FROM challenges WHERE id = ? AND expiresAt > ?')
+                const parent = await env.DB.prepare('SELECT 1 AS ok FROM challenges WHERE id = ? AND expiresAt > ?')
                     .bind(challengeId, Date.now())
                     .first();
                 if (!parent) return json({ error: 'Challenge not found' }, 404);
                 try {
-                    await env.DB
-                        .prepare(
-                            'INSERT INTO attempts (challengeId, uuid, nickname, progress, score, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
-                        )
+                    await env.DB.prepare(
+                        'INSERT INTO attempts (challengeId, uuid, nickname, progress, score, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+                    )
                         .bind(challengeId, uuid, body.nickname, body.progress, body.score, body.timestamp)
                         .run();
                 } catch (err: any) {
@@ -158,10 +352,9 @@ export default {
 
             // GET /challenges/:id/attempts
             if (method === 'GET' && seg.length === 3 && seg[0] === 'challenges' && seg[2] === 'attempts') {
-                const { results } = await env.DB
-                    .prepare(
-                        'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? ORDER BY progress DESC LIMIT 100',
-                    )
+                const { results } = await env.DB.prepare(
+                    'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? ORDER BY progress DESC LIMIT 100',
+                )
                     .bind(seg[1])
                     .all();
                 return json(results);
@@ -169,8 +362,9 @@ export default {
 
             // GET /challenges/:id/attempts/:uuid
             if (method === 'GET' && seg.length === 4 && seg[0] === 'challenges' && seg[2] === 'attempts') {
-                const attempt = await env.DB
-                    .prepare('SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?')
+                const attempt = await env.DB.prepare(
+                    'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?',
+                )
                     .bind(seg[1], seg[3])
                     .first();
                 if (!attempt) return json({ error: 'Not found' }, 404);
@@ -191,13 +385,12 @@ export default {
                 const signature = typeof body.signature === 'string' ? body.signature : null;
                 // Create, or update only when the new score is strictly higher
                 // (best-only). An equal re-push is a no-op — idempotent, no error.
-                await env.DB
-                    .prepare(
-                        `INSERT INTO rankings (game, period, uuid, nickname, score, signature) VALUES (?, ?, ?, ?, ?, ?)
+                await env.DB.prepare(
+                    `INSERT INTO rankings (game, period, uuid, nickname, score, signature) VALUES (?, ?, ?, ?, ?, ?)
                          ON CONFLICT(game, period, uuid) DO UPDATE SET
                            score = excluded.score, nickname = excluded.nickname, signature = excluded.signature
                          WHERE excluded.score > rankings.score`,
-                    )
+                )
                     .bind(game, period, uuid, body.nickname, body.score, signature)
                     .run();
                 return json({ ok: true });
@@ -206,10 +399,9 @@ export default {
             // GET /rankings/:game/:period?limit=
             if (method === 'GET' && seg.length === 3 && seg[0] === 'rankings') {
                 const limit = Math.max(1, Math.min(Number(url.searchParams.get('limit')) || 50, 100));
-                const { results } = await env.DB
-                    .prepare(
-                        'SELECT nickname, score, signature FROM rankings WHERE game = ? AND period = ? ORDER BY score DESC, uuid ASC LIMIT ?',
-                    )
+                const { results } = await env.DB.prepare(
+                    'SELECT nickname, score, signature FROM rankings WHERE game = ? AND period = ? ORDER BY score DESC, uuid ASC LIMIT ?',
+                )
                     .bind(seg[1], seg[2], limit)
                     .all<{ nickname: string; score: number; signature: string | null }>();
                 // Drop null signatures so the wire shape matches RankingEntry (signature?: string).
@@ -218,8 +410,7 @@ export default {
 
             // GET /rankings/:game/:period/count
             if (method === 'GET' && seg.length === 4 && seg[0] === 'rankings' && seg[3] === 'count') {
-                const row = await env.DB
-                    .prepare('SELECT COUNT(*) AS count FROM rankings WHERE game = ? AND period = ?')
+                const row = await env.DB.prepare('SELECT COUNT(*) AS count FROM rankings WHERE game = ? AND period = ?')
                     .bind(seg[1], seg[2])
                     .first<{ count: number }>();
                 return json({ count: row?.count ?? 0 });
@@ -227,8 +418,9 @@ export default {
 
             // GET /rankings/:game/:period/lowest
             if (method === 'GET' && seg.length === 4 && seg[0] === 'rankings' && seg[3] === 'lowest') {
-                const row = await env.DB
-                    .prepare('SELECT score FROM rankings WHERE game = ? AND period = ? ORDER BY score ASC LIMIT 1')
+                const row = await env.DB.prepare(
+                    'SELECT score FROM rankings WHERE game = ? AND period = ? ORDER BY score ASC LIMIT 1',
+                )
                     .bind(seg[1], seg[2])
                     .first<{ score: number }>();
                 return json({ score: row ? row.score : null });

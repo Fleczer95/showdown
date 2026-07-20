@@ -38,6 +38,10 @@ jest.mock('../game/challenge/share', () => ({
     shareChallenge: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../game/challenge/rematchSync', () => ({
+    syncIncomingRematches: jest.fn(() => Promise.resolve([])),
+}));
+
 const stub = {
     id: 'challenge-123',
     game: 'the-ladder',
@@ -63,5 +67,32 @@ it('shares an active challenge without opening the history row', () => {
     expect(mockNavigate).not.toHaveBeenCalledWith('Challenge', { challengeId: 'challenge-123' });
 
     fireEvent.press(getByLabelText('Challenge you created'));
+    expect(mockNavigate).toHaveBeenCalledWith('Challenge', { challengeId: 'challenge-123' });
+});
+
+it('visually distinguishes my turn, waiting for the opponent, and completed', () => {
+    jest.mocked(listChallenges).mockReturnValue([
+        { ...stub, id: 'turn', played: false },
+        { ...stub, id: 'waiting', played: true, opponentPlayed: false },
+        { ...stub, id: 'completed', played: true, opponentPlayed: true },
+    ]);
+
+    const screen = render(<ChallengeHistoryScreen />);
+
+    const tree = JSON.stringify(screen.toJSON());
+    expect(tree).toContain('challenge.history.yourTurn');
+    expect(tree).toContain('challenge.history.waitingOpponent');
+    expect(tree).toContain('challenge.history.completed');
+});
+
+it('keeps a directed rematch private and labels its opponent', () => {
+    jest.mocked(listChallenges).mockReturnValue([
+        { ...stub, opponent: 'Anna', isRematch: true, sourceChallengeId: 'source' },
+    ]);
+
+    const screen = render(<ChallengeHistoryScreen />);
+
+    expect(screen.queryByLabelText('Share challenge link')).toBeNull();
+    fireEvent.press(screen.getByLabelText('vs Anna'));
     expect(mockNavigate).toHaveBeenCalledWith('Challenge', { challengeId: 'challenge-123' });
 });

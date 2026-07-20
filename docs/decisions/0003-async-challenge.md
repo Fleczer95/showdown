@@ -155,3 +155,26 @@ Changes from the original record sketch:
 - No `schemaVersion` or `minAppVersion` field is carried for now. The shared
   runtime contract validates the current shape, and content-version gaps are
   handled by missing-id detection.
+
+## Amendment (2026-07-20): directed 1:1 rematches without resharing
+
+A completed challenge with exactly two participants may create one directed
+follow-up round. The rematch is a new immutable Challenge Record with a fresh
+deck, a new TTL, and the other completed participant as its server-derived
+recipient; it is never a second attempt on the source record. Each round may
+have at most one immediate successor, producing a linear series while still
+allowing another rematch after both players finish the new round.
+
+The relationship and recipient are server-only challenge metadata (`rematchOf`
+and `recipientUuid`), not part of the canonical Challenge Record contract. The
+Worker derives the recipient from the two source attempts and a unique
+`rematchOf` index makes retries and simultaneous requests converge on one
+successor. The client never supplies an arbitrary recipient UUID.
+
+Delivery is pull-based and scoped to source challenge ids already indexed on
+the recipient device. Home and Challenge History synchronise these directed
+successors when focused; there is deliberately no push-notification promise.
+This preserves ADR-0003's device identity/no-account trade-off and means an app
+reinstall or data clear still breaks identity and pending-rematch discovery.
+Directed rematches are not shareable from History, because sharing their link
+would silently turn the 1:1 follow-up back into a group challenge.

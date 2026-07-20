@@ -8,10 +8,14 @@ CREATE TABLE IF NOT EXISTS challenges (
     game      TEXT NOT NULL,
     questions TEXT NOT NULL,   -- JSON-stringified ChallengeQuestion[]
     createdBy TEXT NOT NULL,   -- JSON-stringified { uuid, nickname }
-    expiresAt INTEGER NOT NULL, -- epoch ms
-    mascot    TEXT NOT NULL DEFAULT '{"fur":"fur.orange","suit":"suit.royal","accent":"accent.crimson","mic":"mic.gold"}' -- JSON-stringified { fur, suit, accent, mic }
+    expiresAt     INTEGER NOT NULL, -- epoch ms
+    mascot       TEXT NOT NULL DEFAULT '{"fur":"fur.orange","suit":"suit.royal","accent":"accent.crimson","mic":"mic.gold"}', -- JSON-stringified { fur, suit, accent, mic }
+    rematchOf     TEXT, -- source challenge id for a directed 1:1 follow-up
+    recipientUuid TEXT -- server-derived recipient; never accepted directly from the client
 );
 CREATE INDEX IF NOT EXISTS idx_challenges_expires ON challenges(expiresAt);
+CREATE INDEX IF NOT EXISTS idx_challenges_recipient ON challenges(recipientUuid, expiresAt);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_challenges_one_rematch ON challenges(rematchOf) WHERE rematchOf IS NOT NULL;
 
 -- One participant result per device. Create-only, one row per (challenge, uuid).
 -- The FK documents intent; the Worker also deletes attempts explicitly on cleanup

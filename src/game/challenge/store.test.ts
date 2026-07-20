@@ -28,6 +28,10 @@ import {
     BASE_API_URL,
     ensureChallengeCreated,
     prewarmChallengeAuth,
+    createRematch,
+    getRematch,
+    syncRematches,
+    syncChallengeStatuses,
 } from './store';
 import { type ChallengeRecord, type Attempt } from './types';
 
@@ -104,6 +108,60 @@ describe('getChallenge', () => {
     it('returns null on 404', async () => {
         mockFetch.mockResolvedValue(res(404));
         await expect(getChallenge('missing')).resolves.toBeNull();
+    });
+});
+
+describe('rematches', () => {
+    it('creates a directed successor without sending a recipient UUID', async () => {
+        mockFetch.mockResolvedValue(res(201, { id: 'r1', created: true, recipientNickname: 'Bob' }));
+
+        await expect(createRematch('c1', 'u1', record, 'r1')).resolves.toEqual({
+            id: 'r1',
+            created: true,
+            recipientNickname: 'Bob',
+        });
+        expect(mockFetch.mock.calls[0][0]).toBe(`${BASE_API_URL}/challenges/c1/rematch`);
+        expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+            id: 'r1',
+            senderUuid: 'u1',
+            challenge: record,
+        });
+    });
+
+    it('resolves an existing rematch and maps a missing one to null', async () => {
+        mockFetch.mockResolvedValueOnce(res(200, { id: 'r1' })).mockResolvedValueOnce(res(404));
+        await expect(getRematch('c1', 'u1')).resolves.toEqual({ id: 'r1' });
+        await expect(getRematch('c2', 'u1')).resolves.toBeNull();
+    });
+
+    it('syncs only from source ids already known to the device', async () => {
+        const incoming = {
+            id: 'r1',
+            sourceChallengeId: 'c1',
+            game: 'the-ladder',
+            senderNickname: 'Bob',
+            expiresAt: 999,
+        };
+        mockFetch.mockResolvedValue(res(200, [incoming]));
+
+        await expect(syncRematches('u1', ['c1', 'c2'])).resolves.toEqual([incoming]);
+        expect(mockFetch.mock.calls[0][0]).toBe(`${BASE_API_URL}/rematches/sync`);
+        expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+            uuid: 'u1',
+            sourceChallengeIds: ['c1', 'c2'],
+        });
+    });
+
+    it('refreshes waiting/completed History states in one request', async () => {
+        const statuses = [{ id: 'c1', played: true, opponentPlayed: true }];
+        mockFetch.mockResolvedValue(res(200, statuses));
+
+        await expect(syncChallengeStatuses('u1', ['c1'])).resolves.toEqual(statuses);
+        expect(mockFetch.mock.calls[0][0]).toBe(`${BASE_API_URL}/challenges/statuses`);
+        expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+            uuid: 'u1',
+            challengeIds: ['c1'],
+        });
     });
 });
 

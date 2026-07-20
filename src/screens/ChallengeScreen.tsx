@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import {
+    Alert,
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    ScrollView,
+    StyleSheet,
+    View,
+    type ViewStyle,
+} from 'react-native';
 import Animated, { useReducedMotion } from 'react-native-reanimated';
-import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, usePreventRemove, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Swords, Crown, Trophy } from 'lucide-react-native';
+import { Swords, Crown, Trophy, Play, Lock } from 'lucide-react-native';
 import { springEnter } from '../game/transitions';
 import { SafeAnalytics } from '../utils/firebase/init';
 import { SafeSentry } from '../utils/sentry/init';
@@ -15,6 +23,7 @@ import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import Button from '../components/molecules/Button';
 import Input from '../components/molecules/Input';
+import BottomSheet from '../components/molecules/BottomSheet';
 import { useTheme } from '../theme';
 import { resolveAccent, readableOn, hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
@@ -23,10 +32,29 @@ import { useStore } from '../hooks/store/useStore';
 import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import { getDeviceId } from '../game/challenge/deviceId';
-import { getChallenge, getAttempt, getAttempts, submitAttempt, BlockedError } from '../game/challenge/store';
-import { recordChallenge, markChallengePlayed } from '../game/challenge/log';
+import {
+    getChallenge,
+    getAttempt,
+    getAttempts,
+    submitAttempt,
+    createRematch,
+    getRematch,
+    newChallengeId,
+    prewarmChallengeAuth,
+    BlockedError,
+} from '../game/challenge/store';
+import {
+    recordChallenge,
+    markChallengePlayed,
+    markChallengeOpponentPlayed,
+    countCreatedToday,
+} from '../game/challenge/log';
 import { shareChallenge } from '../game/challenge/share';
 import { registerAutoShareAfterTransition } from '../game/challenge/autoShare';
+import { buildChallenge } from '../game/challenge/build';
+import { getHistory } from '../game/history';
+import { dailyCap, canUpsell } from '../game/challenge/limit';
+import { getEquippedLook } from '../game/mascot/equippedLook';
 import { pushRanking } from '../game/ranking/push';
 import {
     gateChallenge,
@@ -75,8 +103,9 @@ export function ChallengeScreen() {
     const route = useRoute<RouteProp<RootStackParamList, 'Challenge'>>();
     const theme = useTheme();
     const { t, locale } = useTranslation();
-    const { purchasedItemIds } = useStore();
+    const { purchasedItemIds, isPremium } = useStore();
     const { tabletColumn } = useResponsive();
+    const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
@@ -89,12 +118,25 @@ export function ChallengeScreen() {
     const [attempts, setAttempts] = useState<LeaderboardEntry[]>([]);
     const [myTimestamp, setMyTimestamp] = useState<number | null>(null);
     const [celebrationDiff, setCelebrationDiff] = useState<RecordRunDiff | null>(null);
+    const [rematchConfirmSheet, setRematchConfirmSheet] = useState(false);
+    const [rematchLimitSheet, setRematchLimitSheet] = useState(false);
+    const [rematchBusy, setRematchBusy] = useState(false);
+    const [rematchLookup, setRematchLookup] = useState<{ checked: boolean; id: string | null }>({
+        checked: false,
+        id: null,
+    });
 
     // The nickname used to submit, and the held result, kept in refs so the
     // injected play element (memoised below) never rebuilds mid-run when these change.
     const nicknameRef = useRef(nickname);
     const pendingResult = useRef<ChallengeResult | null>(null);
+    const pendingRematch = useRef<{ id: string; record: ChallengeRecord } | null>(null);
+    const rematchInFlight = useRef(false);
     const autoSharedChallengeId = useRef<string | null>(null);
+
+    // An immutable create can still finish after a timeout, so do not let a back
+    // gesture remove the route while its result is allowed to navigate.
+    usePreventRemove(rematchBusy, () => undefined);
 
     // A freshly created challenge asks to share only after the native stack has
     // finished opening this screen. The share promise is deliberately detached:
@@ -136,17 +178,15 @@ export function ChallengeScreen() {
     }, [emitMascot, record, deviceId]);
 
     const exit = useCallback(() => navigation.navigate('Home'), [navigation]);
-    const viewRanking = useCallback(
-        () => {
-            if (record) navigation.navigate('Ranking', { gameId: record.game });
-        },
-        [navigation, record],
-    );
+    const viewRanking = useCallback(() => {
+        if (record) navigation.navigate('Ranking', { gameId: record.game });
+    }, [navigation, record]);
 
     const showResults = useCallback(
         async (mine: number | null) => {
             try {
                 const all = await getAttempts(challengeId);
+                if (all.length >= 2) markChallengeOpponentPlayed(challengeId);
                 setAttempts(rankEntries(all));
                 setMyTimestamp(mine);
                 setPhase('results');
@@ -264,11 +304,133 @@ export function ChallengeScreen() {
         setPhase('playing');
     }, [nickname, t]);
 
+    const rematchOpponent = useMemo(
+        () => (myTimestamp === null ? null : (attempts.find((entry) => entry.timestamp !== myTimestamp) ?? null)),
+        [attempts, myTimestamp],
+    );
+
+    // Resolve availability in the background so a lock is shown only after the
+    // server confirms there is no existing successor. Offline leaves the CTA in
+    // its neutral state; tapping it still performs the authoritative lookup.
+    useEffect(() => {
+        if (phase !== 'results' || attempts.length !== 2 || !rematchOpponent) return;
+        let active = true;
+        void getRematch(challengeId, deviceId)
+            .then((existing) => {
+                if (active) setRematchLookup({ checked: true, id: existing?.id ?? null });
+            })
+            .catch(() => undefined);
+        return () => {
+            active = false;
+        };
+    }, [attempts.length, challengeId, deviceId, phase, rematchOpponent]);
+
+    const rematchLimitReached =
+        rematchLookup.checked && !rematchLookup.id && countCreatedToday() >= dailyCap(ownedIds, isPremium);
+
+    // Resolve first: if either participant already created the sole successor,
+    // opening it must not consume another daily allowance.
+    const beginRematch = useCallback(async () => {
+        if (!record || attempts.length !== 2 || !rematchOpponent || rematchInFlight.current) return;
+        if (rematchLookup.id) {
+            navigation.push('Challenge', { challengeId: rematchLookup.id });
+            return;
+        }
+        rematchInFlight.current = true;
+        setRematchBusy(true);
+        try {
+            const existing = await getRematch(challengeId, deviceId);
+            if (existing) {
+                setRematchLookup({ checked: true, id: existing.id });
+                navigation.push('Challenge', { challengeId: existing.id });
+                return;
+            }
+            setRematchLookup({ checked: true, id: null });
+            if (countCreatedToday() >= dailyCap(ownedIds, isPremium)) {
+                SafeAnalytics.logEvent({ name: 'challenge_limit_hit', params: { game: record.game } });
+                setRematchLimitSheet(true);
+                return;
+            }
+            prewarmChallengeAuth();
+            setRematchConfirmSheet(true);
+        } catch (error) {
+            Alert.alert(
+                t(error instanceof BlockedError ? 'challenge.errorTitle' : 'challenge.offline'),
+                t(error instanceof BlockedError ? 'challenge.errorDesc' : 'challenge.rematch.offlineBody'),
+            );
+        } finally {
+            rematchInFlight.current = false;
+            setRematchBusy(false);
+        }
+    }, [
+        attempts.length,
+        challengeId,
+        deviceId,
+        isPremium,
+        navigation,
+        ownedIds,
+        record,
+        rematchLookup.id,
+        rematchOpponent,
+        t,
+    ]);
+
+    const confirmRematch = useCallback(async () => {
+        if (!record || !rematchOpponent || rematchInFlight.current) return;
+        rematchInFlight.current = true;
+        setRematchConfirmSheet(false);
+        setRematchBusy(true);
+        try {
+            let draft = pendingRematch.current;
+            if (!draft) {
+                const creatorNickname =
+                    attempts.find((entry) => entry.timestamp === myTimestamp)?.nickname ?? getChallengeNickname();
+                const nextRecord = buildChallenge({
+                    gameId: record.game,
+                    history: getHistory(record.game),
+                    ownedIds,
+                    createdBy: { uuid: deviceId, nickname: creatorNickname },
+                    lang: locale === 'pl' ? 'pl' : 'en',
+                    mascot: getEquippedLook(),
+                });
+                draft = { id: newChallengeId(), record: nextRecord };
+                pendingRematch.current = draft;
+            }
+
+            const result = await createRematch(challengeId, deviceId, draft.record, draft.id);
+            if (result.created) {
+                // Index before navigation so an app close in the transition cannot
+                // lose the daily count or the target's display name.
+                recordChallenge({
+                    id: result.id,
+                    game: draft.record.game,
+                    role: 'created',
+                    opponent: result.recipientNickname,
+                    played: false,
+                    expiresAt: draft.record.expiresAt,
+                    isRematch: true,
+                    sourceChallengeId: challengeId,
+                });
+                SafeAnalytics.logEvent({ name: 'rematch_created', params: { game: record.game } });
+            }
+            pendingRematch.current = null;
+            navigation.push('Challenge', { challengeId: result.id });
+        } catch (error) {
+            Alert.alert(
+                t(error instanceof BlockedError ? 'challenge.errorTitle' : 'challenge.offline'),
+                t(error instanceof BlockedError ? 'challenge.rematch.errorBody' : 'challenge.rematch.offlineBody'),
+            );
+        } finally {
+            rematchInFlight.current = false;
+            setRematchBusy(false);
+        }
+    }, [attempts, challengeId, deviceId, locale, myTimestamp, navigation, ownedIds, record, rematchOpponent, t]);
+
     // The play screen wired to the frozen deck. Memoised on the record so it is
     // built once and isn't reset by unrelated re-renders during the run.
     const playElement = useMemo(() => {
         if (!record) return null;
-        const owned = ownedQuestionIds(record.game, new Set(purchasedItemIds));
+        const owned = ownedQuestionIds(record.game, ownedIds);
         const base = { ownedIds: owned, onComplete: handleComplete };
         switch (record.game) {
             case 'the-ladder':
@@ -290,7 +452,7 @@ export function ChallengeScreen() {
             default:
                 return null;
         }
-    }, [record, purchasedItemIds, locale, handleComplete, exit]);
+    }, [record, ownedIds, locale, handleComplete, exit]);
 
     if (phase === 'playing' && playElement) {
         return <SafeContainer edges={['top']}>{playElement}</SafeContainer>;
@@ -314,6 +476,10 @@ export function ChallengeScreen() {
                             attempts={attempts}
                             myTimestamp={myTimestamp}
                             celebrationDiff={celebrationDiff}
+                            rematchBusy={rematchBusy}
+                            existingRematch={rematchLookup.id !== null}
+                            rematchLimitReached={rematchLimitReached}
+                            onRematch={beginRematch}
                             onViewRanking={viewRanking}
                             onExit={exit}
                             t={t}
@@ -321,6 +487,59 @@ export function ChallengeScreen() {
                         />
                     </View>
                 </ScrollView>
+
+                <BottomSheet
+                    visible={rematchConfirmSheet}
+                    onClose={() => setRematchConfirmSheet(false)}
+                    title={t('challenge.rematch.confirmTitle', {
+                        name: rematchOpponent?.nickname ?? '',
+                    })}
+                >
+                    <Stack gap='md' align='stretch'>
+                        <Text variant='body' color='textSecondary' align='center'>
+                            {t('challenge.rematch.confirmBody', {
+                                game: t(`game.${record.game}.name`),
+                            })}
+                        </Text>
+                        <Button variant='primary' fullWidth loading={rematchBusy} onPress={confirmRematch}>
+                            {t('challenge.rematch.confirmAction')}
+                        </Button>
+                        <Button variant='ghost' fullWidth onPress={() => setRematchConfirmSheet(false)}>
+                            {t('common.cancel')}
+                        </Button>
+                    </Stack>
+                </BottomSheet>
+
+                <BottomSheet
+                    visible={rematchLimitSheet}
+                    onClose={() => setRematchLimitSheet(false)}
+                    title={t('challenge.limit.title')}
+                >
+                    <Stack gap='md' align='stretch'>
+                        <Text variant='body' color='textSecondary' align='center'>
+                            {t('challenge.limit.body')}
+                        </Text>
+                        {canUpsell(ownedIds, isPremium) ? (
+                            <Button
+                                variant='primary'
+                                fullWidth
+                                onPress={() => {
+                                    setRematchLimitSheet(false);
+                                    navigation.navigate('Store');
+                                }}
+                            >
+                                {t('challenge.limit.cta')}
+                            </Button>
+                        ) : null}
+                        <Button
+                            variant={canUpsell(ownedIds, isPremium) ? 'ghost' : 'primary'}
+                            fullWidth
+                            onPress={() => setRematchLimitSheet(false)}
+                        >
+                            {t('challenge.limit.dismiss')}
+                        </Button>
+                    </Stack>
+                </BottomSheet>
             </SafeContainer>
         );
     }
@@ -539,6 +758,10 @@ function ResultsCard({
     attempts,
     myTimestamp,
     celebrationDiff,
+    rematchBusy,
+    existingRematch,
+    rematchLimitReached,
+    onRematch,
     onViewRanking,
     onExit,
     t,
@@ -549,6 +772,10 @@ function ResultsCard({
     myTimestamp: number | null;
     /** Set only in the session where the run just finished — reopened links never celebrate. */
     celebrationDiff: RecordRunDiff | null;
+    rematchBusy: boolean;
+    existingRematch: boolean;
+    rematchLimitReached: boolean;
+    onRematch: () => void;
     onViewRanking: () => void;
     onExit: () => void;
     t: (key: string, options?: Record<string, unknown>) => string;
@@ -572,6 +799,10 @@ function ResultsCard({
     const isTopTie = (e: LeaderboardEntry) => !!winner && e.progress === winner.progress && e.score === winner.score;
     const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
     const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
+    const rematchOpponent =
+        attempts.length === 2 && myTimestamp !== null
+            ? attempts.find((entry) => entry.timestamp !== myTimestamp)
+            : undefined;
     const { play } = useSound();
     const haptics = useHaptics();
     // Sting the verdict once per reveal: a fanfare for beating the challenger, a
@@ -679,15 +910,56 @@ function ResultsCard({
                 </Stack>
                 {celebrationDiff ? <CelebrationCard diff={celebrationDiff} accent={accent} /> : null}
                 <View style={{ gap: theme.spacing.sm }}>
+                    {rematchOpponent ? (
+                        <Button
+                            variant='primary'
+                            fullWidth
+                            contentGap='sm'
+                            loading={rematchBusy}
+                            disabled={rematchBusy}
+                            onPress={onRematch}
+                            accessibilityLabel={t(
+                                existingRematch
+                                    ? 'challenge.rematch.openA11y'
+                                    : rematchLimitReached
+                                      ? 'challenge.rematch.limitA11y'
+                                      : 'challenge.rematch.actionA11y',
+                                { name: rematchOpponent.nickname },
+                            )}
+                            style={{
+                                backgroundColor: accent,
+                                borderColor: accent,
+                                opacity: rematchLimitReached ? 0.7 : 1,
+                            }}
+                            textColor={onAccent}
+                            icon={
+                                <Icon
+                                    name={existingRematch ? Play : rematchLimitReached ? Lock : Swords}
+                                    size={iconSize(20)}
+                                    color={onAccent}
+                                />
+                            }
+                        >
+                            {existingRematch
+                                ? t('challenge.rematch.open')
+                                : t('challenge.rematch.action', { name: rematchOpponent.nickname })}
+                        </Button>
+                    ) : null}
                     <Button
-                        variant='primary'
+                        variant={rematchOpponent ? 'secondary' : 'primary'}
                         fullWidth
                         contentGap='sm'
                         onPress={onViewRanking}
                         accessibilityLabel={t('challenge.viewGlobalRankings')}
-                        style={{ backgroundColor: accent, borderColor: accent }}
-                        textColor={onAccent}
-                        icon={<Icon name={Trophy} size={iconSize(20)} color={onAccent} />}
+                        style={rematchOpponent ? undefined : { backgroundColor: accent, borderColor: accent }}
+                        textColor={rematchOpponent ? undefined : onAccent}
+                        icon={
+                            <Icon
+                                name={Trophy}
+                                size={iconSize(20)}
+                                color={rematchOpponent ? theme.components.button.secondary.text : onAccent}
+                            />
+                        }
                     >
                         {t('challenge.viewGlobalRankings')}
                     </Button>

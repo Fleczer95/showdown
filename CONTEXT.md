@@ -66,6 +66,14 @@ the ordered question ids, the creator's identity, expiry time, and the creator's
 mascot look. It is the shared contract both devices use to play the same
 challenge and show the same creator presentation.
 
+### Rematch
+A directed 1:1 follow-up [[Async Challenge]] between exactly the two participants
+who completed the previous challenge. It creates a new [[Challenge Record]] with
+fresh questions rather than adding another attempt to the previous record. Each
+record can lead to at most one immediate rematch. Delivery is asynchronous: the
+invited player discovers it when the app next synchronises, without a promise of
+a system notification.
+
 ### Rung
 The 1-based position a player has reached on [[The Ladder]]. Reaching rung 15
 is a win.

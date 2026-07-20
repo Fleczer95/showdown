@@ -39,3 +39,12 @@
 - [ ] Finalize App Store metadata (Refine for character limits)
 - [ ] Implement Studio Theme switching logic
 - [ ] UI/UX Polish (Sound effects, Animations)
+
+## Async Challenge Rematch
+- [x] Add directed 1:1 rematch metadata and indexes to D1
+- [x] Add idempotent create, lookup, and inbox-sync Worker routes
+- [x] Add typed client store wrappers and local rematch indexing/sync
+- [x] Add result-screen rematch creation with limits, retry, and fresh questions
+- [x] Add incoming-rematch discovery on Home and Challenge History
+- [x] Add synchronized EN/PL copy and analytics
+- [x] Add tests and run server/client static checks plus i18n analysis

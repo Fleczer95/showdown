@@ -117,8 +117,8 @@ function extractUsedKeysFromCode(code) {
 
     // Pattern 1: translate('key') or t('key')
     const patterns = [
-        /translate\s*\(\s*['"`]([^'"`]+)['"`]/g,
-        /t\s*\(\s*['"`]([^'"`]+)['"`]/g,
+        /\btranslate\s*\(\s*['"`]([^'"`]+)['"`]/g,
+        /\bt\s*\(\s*['"`]([^'"`]+)['"`]/g,
         /labelKey:\s*['"`]([^'"`]+)['"`]/g,
         /titleKey:\s*['"`]([^'"`]+)['"`]/g,
         /descriptionKey:\s*['"`]([^'"`]+)['"`]/g,
@@ -127,7 +127,9 @@ function extractUsedKeysFromCode(code) {
     patterns.forEach((pattern) => {
         let match;
         while ((match = pattern.exec(code)) !== null) {
-            usedKeys.add(match[1]);
+            // Template-literal keys containing interpolation are checked by the
+            // dynamic-pattern pass below, not as impossible literal locale keys.
+            if (!match[1].includes('${')) usedKeys.add(match[1]);
         }
     });
 

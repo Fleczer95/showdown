@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeInRight, FadeOutLeft, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Settings, ArrowRight, ShoppingBag, Swords, Trophy } from 'lucide-react-native';
@@ -22,6 +23,13 @@ import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
 import { canUpsell } from '../game/challenge/limit';
 import { remainingOfflineRuns } from '../game/offline/limit';
 import { useStore } from '../hooks/store/useStore';
+import {
+    isChallengeBannerDue,
+    markChallengeSeen,
+    markChallengeSnoozed,
+    type ChallengeStub,
+} from '../game/challenge/log';
+import { syncIncomingRematches } from '../game/challenge/rematchSync';
 
 /**
  * Accent-forward game card: a dark elevated card whose per-game color shows up
@@ -54,7 +62,12 @@ function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
             }}
         >
             <Stack direction='horizontal' gap='lg' align='center'>
-                <View style={[styles.iconContainer, { width: scale(56), height: scale(56), borderRadius: theme.radii.xl }]}>
+                <View
+                    style={[
+                        styles.iconContainer,
+                        { width: scale(56), height: scale(56), borderRadius: theme.radii.xl },
+                    ]}
+                >
                     <View style={StyleSheet.absoluteFill} pointerEvents='none'>
                         <Svg width='100%' height='100%'>
                             <Defs>
@@ -77,7 +90,15 @@ function GameCard({ game, onPress }: { game: Game; onPress: () => void }) {
                     </Text>
                 </Stack>
                 <View
-                    style={[styles.ctaPill, { width: scale(40), height: scale(40), backgroundColor: hexToRgba(accent, 0.16), borderRadius: theme.radii.full }]}
+                    style={[
+                        styles.ctaPill,
+                        {
+                            width: scale(40),
+                            height: scale(40),
+                            backgroundColor: hexToRgba(accent, 0.16),
+                            borderRadius: theme.radii.full,
+                        },
+                    ]}
                     pointerEvents='none'
                 >
                     <Icon name={ArrowRight} size={iconSize(20)} color={accent} />
@@ -100,10 +121,7 @@ function Wordmark() {
     const h = Math.round(fontSize * 1.25);
 
     return (
-        <View
-            style={{ height: h, justifyContent: 'center' }}
-            onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-        >
+        <View style={{ height: h, justifyContent: 'center' }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
             <Svg width={width} height={h}>
                 <Defs>
                     <SvgGradient id='home-wordmark' x1='0' y1='0' x2='1' y2='0'>
@@ -159,7 +177,17 @@ function LevelBar({ onPress }: { onPress: () => void }) {
                 },
             ]}
         >
-            <View style={[styles.levelChip, { height: scale(28), paddingHorizontal: scale(12), backgroundColor: theme.colors.primary, borderRadius: theme.radii.full }]}>
+            <View
+                style={[
+                    styles.levelChip,
+                    {
+                        height: scale(28),
+                        paddingHorizontal: scale(12),
+                        backgroundColor: theme.colors.primary,
+                        borderRadius: theme.radii.full,
+                    },
+                ]}
+            >
                 <Text variant='caption' weight='bold' color={readableOn(theme.colors.primary)}>
                     {t('progression.levelShort', { n: level })}
                 </Text>
@@ -182,7 +210,8 @@ export function HomeScreen() {
     const navigation = useNavigation();
     const { t } = useTranslation();
     const theme = useTheme();
-    const { tabletColumn, iconSize, width, fontScale } = useResponsive();
+    const reduceMotion = useReducedMotion();
+    const { tabletColumn, iconSize, scale, width, fontScale } = useResponsive();
     const competeColor = theme.components.button.secondary.text;
     // Preserve the compact two-up dock when both labels have room. Dynamic Type
     // effectively narrows that room, so treat width relative to font scale just
@@ -191,20 +220,45 @@ export function HomeScreen() {
     const { purchasedItemIds, isPremium } = useStore();
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
     const { streak } = useProgression();
+    const [incomingRematches, setIncomingRematches] = useState<ChallengeStub[]>([]);
 
     // Tell the mascot director we've landed on Home (greeting + idle drip live in
     // the app-root host now); nudge the offline-limit upsell when it applies.
     const emitMascot = useMascotEmit();
     useFocusEffect(
         useCallback(() => {
+            let active = true;
             emitMascot('home-focus', { streak });
             if (remainingOfflineRuns(ownedIds, isPremium) === 0 && canUpsell(ownedIds, isPremium)) {
                 emitMascot('offline-limit', {});
             }
+            // Inbox sync is non-blocking: Home remains fully usable offline and
+            // the Challenge screen owns the explicit retry state after opening.
+            void syncIncomingRematches()
+                .then((rounds) => {
+                    if (active) {
+                        const pending = rounds.filter((round) => isChallengeBannerDue(round));
+                        setIncomingRematches(pending);
+                    }
+                })
+                .catch(() => undefined);
+            return () => {
+                active = false;
+            };
         }, [emitMascot, streak, ownedIds, isPremium]),
     );
 
+    const incomingRematch = incomingRematches[0] ?? null;
     const openGame = (game: Game) => navigation.navigate(game.setupRoute, { gameId: game.id });
+    const openIncomingRematch = (rematch: ChallengeStub) => {
+        markChallengeSeen(rematch.id);
+        setIncomingRematches((current) => current.filter((item) => item.id !== rematch.id));
+        navigation.navigate('Challenge', { challengeId: rematch.id });
+    };
+    const dismissIncomingRematch = (rematch: ChallengeStub) => {
+        markChallengeSnoozed(rematch.id);
+        setIncomingRematches((current) => current.filter((item) => item.id !== rematch.id));
+    };
 
     // Themed container style
     const contentContainerStyle = [
@@ -248,6 +302,79 @@ export function HomeScreen() {
                     </View>
                     <LevelBar onPress={() => navigation.navigate('Progress')} />
                 </View>
+
+                {incomingRematch ? (
+                    <Animated.View
+                        key={incomingRematch.id}
+                        entering={reduceMotion ? undefined : FadeInRight.delay(180).duration(220)}
+                        exiting={reduceMotion ? undefined : FadeOutLeft.duration(180)}
+                    >
+                        <Card
+                            variant='elevated'
+                            padding='lg'
+                            gap='md'
+                            accessibilityLabel={t('challenge.rematch.incomingA11y', {
+                                name: incomingRematch.opponent,
+                                game: t(`game.${incomingRematch.game}.name`),
+                            })}
+                        >
+                            <View pointerEvents='none'>
+                                <Stack direction='horizontal' gap='md' align='center'>
+                                    <View
+                                        style={[
+                                            styles.rematchBadge,
+                                            {
+                                                width: scale(48),
+                                                height: scale(48),
+                                                borderRadius: theme.radii.lg,
+                                                backgroundColor: hexToRgba(theme.colors.primary, 0.16),
+                                            },
+                                        ]}
+                                    >
+                                        <Icon name={Swords} size={iconSize(24)} color={theme.colors.primary} />
+                                    </View>
+                                    <Stack gap='xs' flex={1}>
+                                        <Text variant='body' weight='bold'>
+                                            {t('challenge.rematch.incomingTitle', { name: incomingRematch.opponent })}
+                                        </Text>
+                                        <Text variant='caption' color='textSecondary'>
+                                            {t('challenge.rematch.incomingBody', {
+                                                game: t(`game.${incomingRematch.game}.name`),
+                                            })}
+                                        </Text>
+                                        {incomingRematches.length > 1 ? (
+                                            <Text variant='caption' color='primary' weight='bold'>
+                                                {t('challenge.rematch.queuePosition', {
+                                                    count: incomingRematches.length,
+                                                })}
+                                            </Text>
+                                        ) : null}
+                                    </Stack>
+                                </Stack>
+                            </View>
+                            <Stack direction='horizontal' gap='sm' style={styles.rematchActions}>
+                                <View style={styles.rematchAction}>
+                                    <Button
+                                        variant='ghost'
+                                        fullWidth
+                                        onPress={() => dismissIncomingRematch(incomingRematch)}
+                                    >
+                                        {t('challenge.rematch.later')}
+                                    </Button>
+                                </View>
+                                <View style={styles.rematchAction}>
+                                    <Button
+                                        variant='primary'
+                                        fullWidth
+                                        onPress={() => openIncomingRematch(incomingRematch)}
+                                    >
+                                        {t('challenge.rematch.play')}
+                                    </Button>
+                                </View>
+                            </Stack>
+                        </Card>
+                    </Animated.View>
+                ) : null}
 
                 <Stack gap='lg'>
                     {games.map((game) => (
@@ -359,6 +486,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     levelPips: {
+        flex: 1,
+    },
+    rematchBadge: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    rematchActions: {
+        width: '100%',
+    },
+    rematchAction: {
         flex: 1,
     },
     iconContainer: {

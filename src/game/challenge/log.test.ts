@@ -14,6 +14,11 @@ jest.mock('react-native-mmkv', () => {
 import {
     recordChallenge,
     markChallengePlayed,
+    markChallengeOpponentPlayed,
+    markChallengeSeen,
+    markChallengeSnoozed,
+    isChallengeBannerDue,
+    REMATCH_SNOOZE_MS,
     listChallenges,
     challengeStatus,
     countCreatedToday,
@@ -50,6 +55,16 @@ describe('recordChallenge', () => {
         const found = listChallenges().find((s) => s.id === 'dg');
         expect(found?.played).toBe(true);
     });
+
+    it('preserves directed-rematch metadata when ChallengeScreen reindexes it', () => {
+        recordChallenge(stub({ id: 'meta', opponent: 'Anna', isRematch: true, sourceChallengeId: 'source' }));
+        recordChallenge(stub({ id: 'meta', role: 'created', opponent: '' }));
+        expect(listChallenges().find((s) => s.id === 'meta')).toMatchObject({
+            opponent: 'Anna',
+            isRematch: true,
+            sourceChallengeId: 'source',
+        });
+    });
 });
 
 describe('markChallengePlayed', () => {
@@ -64,13 +79,49 @@ describe('markChallengePlayed', () => {
     });
 });
 
+describe('markChallengeOpponentPlayed', () => {
+    it('separates waiting for the opponent from a completed challenge', () => {
+        recordChallenge(stub({ id: 'opponent', played: true, opponentPlayed: false }));
+        expect(challengeStatus(listChallenges().find((s) => s.id === 'opponent')!)).toBe('waitingOpponent');
+        markChallengeOpponentPlayed('opponent');
+        expect(challengeStatus(listChallenges().find((s) => s.id === 'opponent')!)).toBe('completed');
+    });
+});
+
+describe('markChallengeSnoozed', () => {
+    it('hides a rematch banner for one hour and then makes it due again', () => {
+        const now = 1_000_000;
+        jest.spyOn(Date, 'now').mockReturnValue(now);
+        recordChallenge(stub({ id: 'snooze', isRematch: true, seen: false }));
+        markChallengeSnoozed('snooze');
+        const challenge = listChallenges().find((s) => s.id === 'snooze')!;
+
+        expect(challenge.snoozedUntil).toBe(now + REMATCH_SNOOZE_MS);
+        expect(isChallengeBannerDue(challenge, now + REMATCH_SNOOZE_MS - 1)).toBe(false);
+        expect(isChallengeBannerDue(challenge, now + REMATCH_SNOOZE_MS)).toBe(true);
+    });
+});
+
+describe('markChallengeSeen', () => {
+    it('acknowledges an incoming banner without marking the round played', () => {
+        recordChallenge(stub({ id: 'seen', played: false, seen: false }));
+        markChallengeSeen('seen');
+        const challenge = listChallenges().find((s) => s.id === 'seen')!;
+        expect(challenge).toMatchObject({ played: false, seen: true });
+        expect(isChallengeBannerDue({ ...challenge, isRematch: true })).toBe(false);
+    });
+});
+
 describe('listChallenges', () => {
-    it('orders newest touch first', () => {
+    it('keeps creation order stable when an older challenge is reopened', () => {
         let now = 1000;
         jest.spyOn(Date, 'now').mockImplementation(() => now);
         recordChallenge(stub({ id: 'old' }));
         now = 2000;
         recordChallenge(stub({ id: 'new' }));
+        now = 3000;
+        recordChallenge(stub({ id: 'old', played: true }));
+
         const ids = listChallenges().map((s) => s.id);
         expect(ids.indexOf('new')).toBeLessThan(ids.indexOf('old'));
     });
@@ -126,8 +177,14 @@ describe('challengeStatus', () => {
         expect(challengeStatus({ ...base, expiresAt: 50 }, 100)).toBe('expired');
     });
 
-    it('is played when finished and not expired', () => {
-        expect(challengeStatus({ ...base, played: true, expiresAt: 200 }, 100)).toBe('played');
+    it('waits for the opponent after only this device has played', () => {
+        expect(challengeStatus({ ...base, played: true, opponentPlayed: false, expiresAt: 200 }, 100)).toBe(
+            'waitingOpponent',
+        );
+    });
+
+    it('is completed after this device and an opponent have played', () => {
+        expect(challengeStatus({ ...base, played: true, opponentPlayed: true, expiresAt: 200 }, 100)).toBe('completed');
     });
 
     it('is yourTurn when unplayed and not expired', () => {

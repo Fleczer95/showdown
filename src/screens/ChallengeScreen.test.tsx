@@ -9,21 +9,33 @@ import {
 } from 'react-native';
 import { fireEvent, render, waitFor, within } from '@testing-library/react-native';
 import { ChallengeScreen } from './ChallengeScreen';
-import { getChallenge, getAttempt, getAttempts, submitAttempt } from '../game/challenge/store';
+import {
+    getChallenge,
+    getAttempt,
+    getAttempts,
+    submitAttempt,
+    getRematch,
+    createRematch,
+} from '../game/challenge/store';
+import { countCreatedToday, recordChallenge } from '../game/challenge/log';
+import { buildChallenge } from '../game/challenge/build';
 import { recordRun } from '../game/progression';
 import type { GameRunResult, RecordRunDiff } from '../game/progression';
 import type { ChallengeRecord } from '../game/challenge/types';
 
 const mockNavigate = jest.fn();
+const mockPush = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: mockNavigate,
+        push: mockPush,
         addListener: jest.fn(() => jest.fn()),
         setParams: jest.fn(),
     }),
     useRoute: () => ({ params: { challengeId: 'c1' } }),
     useFocusEffect: () => undefined,
+    usePreventRemove: () => undefined,
 }));
 
 jest.mock('lucide-react-native', () => ({
@@ -73,6 +85,11 @@ jest.mock('../components/molecules/Button', () => ({
     ),
 }));
 
+jest.mock('../components/molecules/BottomSheet', () => ({
+    __esModule: true,
+    default: ({ visible, children }: any) => (visible ? <MockView>{children}</MockView> : null),
+}));
+
 jest.mock('../components/molecules/Input', () => ({
     __esModule: true,
     default: ({ value, onChangeText, placeholder }: any) => (
@@ -94,6 +111,7 @@ jest.mock('../theme', () => ({
         spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 },
         radii: { sm: 8, md: 12, lg: 16 },
         typography: { sm: 14, lineHeight: { sm: 20 }, fontFamily: {} },
+        components: { button: { secondary: { text: '#ffffff' } } },
     }),
 }));
 
@@ -108,7 +126,7 @@ jest.mock('../i18n/TranslationContext', () => ({
 }));
 
 jest.mock('../hooks/store/useStore', () => ({
-    useStore: () => ({ purchasedItemIds: [] }),
+    useStore: () => ({ purchasedItemIds: [], isPremium: false }),
 }));
 
 jest.mock('../hooks/useSound', () => ({
@@ -149,12 +167,18 @@ jest.mock('../game/challenge/store', () => ({
     getAttempt: jest.fn(),
     getAttempts: jest.fn(),
     submitAttempt: jest.fn(),
+    getRematch: jest.fn(),
+    createRematch: jest.fn(),
+    newChallengeId: jest.fn(() => 'r1'),
+    prewarmChallengeAuth: jest.fn(),
     BlockedError: class BlockedError extends Error {},
 }));
 
 jest.mock('../game/challenge/log', () => ({
     recordChallenge: jest.fn(),
     markChallengePlayed: jest.fn(),
+    markChallengeOpponentPlayed: jest.fn(),
+    countCreatedToday: jest.fn(() => 0),
 }));
 
 jest.mock('../game/challenge/share', () => ({
@@ -168,6 +192,11 @@ jest.mock('../game/challenge/autoShare', () => ({
 jest.mock('../game/ranking/push', () => ({
     pushRanking: jest.fn(() => Promise.resolve()),
 }));
+
+jest.mock('../game/challenge/build', () => ({ buildChallenge: jest.fn() }));
+jest.mock('../game/history', () => ({ getHistory: jest.fn(() => ({})) }));
+jest.mock('../game/challenge/limit', () => ({ dailyCap: jest.fn(() => 3), canUpsell: jest.fn(() => false) }));
+jest.mock('../game/mascot/equippedLook', () => ({ getEquippedLook: jest.fn(() => ({})) }));
 
 jest.mock('../game/challenge/resolve', () => ({
     gateChallenge: jest.fn(() => 'live'),
@@ -232,6 +261,7 @@ const record: ChallengeRecord = {
 } as unknown as ChallengeRecord;
 
 const myAttempt = { nickname: 'Ada', progress: 6, score: 1200, timestamp: 111 };
+const opponentAttempt = { nickname: 'Bob', progress: 5, score: 900, timestamp: 222 };
 
 async function playThrough(screen: ReturnType<typeof render>) {
     await waitFor(() => screen.getByText('challenge.start'));
@@ -244,6 +274,7 @@ describe('ChallengeScreen progression', () => {
         jest.clearAllMocks();
         (getChallenge as jest.Mock).mockResolvedValue(record);
         (getAttempts as jest.Mock).mockResolvedValue([myAttempt]);
+        (countCreatedToday as jest.Mock).mockReturnValue(0);
         (recordRun as jest.Mock).mockReturnValue(DIFF);
     });
 
@@ -291,5 +322,60 @@ describe('ChallengeScreen progression', () => {
 
         expect(recordRun).not.toHaveBeenCalled();
         expect(screen.queryByText('CELEBRATION')).toBeNull();
+    });
+
+    it('creates and locally indexes a fresh directed rematch without sharing', async () => {
+        const nextRecord = {
+            ...record,
+            createdBy: { uuid: 'my-device', nickname: 'Ada' },
+            expiresAt: Date.now() + 86_400_000,
+        };
+        (getAttempt as jest.Mock).mockResolvedValue(myAttempt);
+        (getAttempts as jest.Mock).mockResolvedValue([myAttempt, opponentAttempt]);
+        (getRematch as jest.Mock).mockResolvedValue(null);
+        (buildChallenge as jest.Mock).mockReturnValue(nextRecord);
+        (createRematch as jest.Mock).mockResolvedValue({
+            id: 'r1',
+            created: true,
+            recipientNickname: 'Bob',
+        });
+
+        const screen = render(<ChallengeScreen />);
+        fireEvent.press(await screen.findByLabelText('challenge.rematch.actionA11y'));
+        fireEvent.press(await screen.findByText('challenge.rematch.confirmAction'));
+
+        await waitFor(() => expect(createRematch).toHaveBeenCalledWith('c1', 'my-device', nextRecord, 'r1'));
+        expect(recordChallenge).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'r1',
+                role: 'created',
+                opponent: 'Bob',
+                isRematch: true,
+                sourceChallengeId: 'c1',
+            }),
+        );
+        expect(mockPush).toHaveBeenCalledWith('Challenge', { challengeId: 'r1' });
+    });
+
+    it('opens the sole existing rematch instead of creating another round', async () => {
+        (getAttempt as jest.Mock).mockResolvedValue(myAttempt);
+        (getAttempts as jest.Mock).mockResolvedValue([myAttempt, opponentAttempt]);
+        (getRematch as jest.Mock).mockResolvedValue({ id: 'r1' });
+
+        const screen = render(<ChallengeScreen />);
+        fireEvent.press(await screen.findByLabelText('challenge.rematch.openA11y'));
+
+        await waitFor(() => expect(mockPush).toHaveBeenCalledWith('Challenge', { challengeId: 'r1' }));
+    });
+
+    it('shows a tappable locked CTA only after confirming no rematch exists and the daily cap is reached', async () => {
+        (getAttempt as jest.Mock).mockResolvedValue(myAttempt);
+        (getAttempts as jest.Mock).mockResolvedValue([myAttempt, opponentAttempt]);
+        (getRematch as jest.Mock).mockResolvedValue(null);
+        (countCreatedToday as jest.Mock).mockReturnValue(3);
+
+        const screen = render(<ChallengeScreen />);
+
+        expect(await screen.findByLabelText('challenge.rematch.limitA11y')).toBeTruthy();
     });
 });

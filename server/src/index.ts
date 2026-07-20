@@ -8,6 +8,7 @@ import {
     isValidId,
 } from './validation';
 import { resolveRematchRecipient, type RematchParticipant } from './rematch';
+import { canSubmitDirectedAttempt, isSameAttempt, type AttemptPayload } from './attempt';
 
 // Showdown backend. One Worker fronting a D1 database; replaces the direct
 // Firestore reads/writes (ADR-0003 / ADR-0004). Every request — read and write —
@@ -328,22 +329,43 @@ export default {
                 const challengeId = seg[1];
                 const uuid = seg[3];
                 const body = await parseJsonBody(request);
-                if (!body || !validateAttempt(body)) return json({ error: 'Invalid attempt' }, 400);
-                // No orphan attempts: the (unexpired) parent must exist.
-                const parent = await env.DB.prepare('SELECT 1 AS ok FROM challenges WHERE id = ? AND expiresAt > ?')
+                if (!isValidId(uuid) || !body || !validateAttempt(body)) {
+                    return json({ error: 'Invalid attempt' }, 400);
+                }
+                const attempt = body as unknown as AttemptPayload;
+
+                // No orphan attempts: the unexpired parent must exist. Legacy and
+                // group rounds stay open, while directed rematches admit only the
+                // creator and their server-derived recipient.
+                const parent = await env.DB.prepare(
+                    'SELECT createdBy, recipientUuid FROM challenges WHERE id = ? AND expiresAt > ?',
+                )
                     .bind(challengeId, Date.now())
-                    .first();
+                    .first<{ createdBy: string; recipientUuid: string | null }>();
                 if (!parent) return json({ error: 'Challenge not found' }, 404);
+                if (!canSubmitDirectedAttempt(parent.createdBy, parent.recipientUuid, uuid)) {
+                    return json({ error: 'Challenge is limited to its two participants' }, 403);
+                }
+
                 try {
                     await env.DB.prepare(
                         'INSERT INTO attempts (challengeId, uuid, nickname, progress, score, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
                     )
-                        .bind(challengeId, uuid, body.nickname, body.progress, body.score, body.timestamp)
+                        .bind(challengeId, uuid, attempt.nickname, attempt.progress, attempt.score, attempt.timestamp)
                         .run();
-                } catch (err: any) {
-                    // One attempt per device — a second is rejected, never overwritten.
-                    if (err.message && err.message.includes('UNIQUE constraint failed')) {
-                        return json({ error: 'Attempt already exists' }, 409);
+                } catch (err: unknown) {
+                    if (err instanceof Error && err.message.includes('UNIQUE constraint failed')) {
+                        const existing = await env.DB.prepare(
+                            'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?',
+                        )
+                            .bind(challengeId, uuid)
+                            .first<AttemptPayload>();
+                        // A retry after an uncertain committed timeout is a normal,
+                        // idempotent success. A changed result remains immutable.
+                        if (existing && isSameAttempt(existing, attempt)) {
+                            return json({ ok: true, existing: true });
+                        }
+                        return json({ error: 'AttemptConflict' }, 409);
                     }
                     throw err;
                 }

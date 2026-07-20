@@ -178,3 +178,54 @@ This preserves ADR-0003's device identity/no-account trade-off and means an app
 reinstall or data clear still breaks identity and pending-rematch discovery.
 Directed rematches are not shareable from History, because sharing their link
 would silently turn the 1:1 follow-up back into a group challenge.
+
+### Minimal hardening and security boundary
+
+A directed rematch has two structural attempt seats. The Worker accepts attempts
+only for the creator UUID or its server-derived `recipientUuid`; legacy and group
+challenges keep their existing behavior. Attempt insertion is idempotent for an
+identical retry after an uncertain timeout, while a different retry remains a
+`409 AttemptConflict` and never overwrites the first result. Rematch discovery
+and History-status refresh degrade independently, so a transient failure in one
+does not discard useful state returned by the other.
+
+These checks enforce the intended product shape but do **not** make the UUID an
+authentication credential. App Check proves that a request came from a genuine
+ShowDown app, not that its claimed UUID belongs to the caller. Challenge ids
+remain high-entropy capabilities, and hiding Share for a directed rematch
+reduces accidental disclosure rather than providing cryptographic privacy. The
+current release must therefore not describe rematches as authenticated private
+relationships. A reinstall or data clear still creates a new identity and
+breaks delivery.
+
+### Deferred decision: private Challenge Series and push delivery
+
+A stronger design is intentionally deferred until product usage justifies the
+additional identity, migration, native, and operational surface. If approved,
+it should be implemented as a coherent **Private Challenge Series** model, not
+as isolated speculative columns on the current challenge chain:
+
+1. Introduce an anonymous Installation credential backed by a random secret in
+   Keychain/Keystore-class secure storage. Store only its hash in D1 and derive
+   the actor server-side for every member operation.
+2. Add a two-seat Challenge Series, a single-use Invitation that atomically
+   claims the second seat, an ordered round sequence, and member-authorized
+   reads and immutable Attempts. Existing UUID relationships cannot be safely
+   promoted; they require one final Invitation handshake.
+3. Decide explicitly whether private 1:1 Series replace new group links or
+   coexist as a separate product mode. The initial group-challenge behavior
+   must not disappear as an accidental schema consequence.
+4. Only after authenticated Series exist, add opt-in Expo notifications. Push
+   remains a delivery hint; an authoritative batched foreground sync recovers
+   missed notifications. Token lifecycle, localized copy, cold-start routing,
+   mute/close preferences, deterministic delivery ids, retry/receipt cleanup,
+   and native permission audits belong to that follow-up.
+5. Add lifecycle and observability after measuring use: one unresolved round,
+   unread sequence, inactive-Series retention, unauthorized access and replay
+   metrics, simultaneous-rematch recovery, and notification/sync effectiveness.
+
+No `seriesId`, push-token table, delivery outbox, or native notification
+permission is added by the minimal rematch implementation. Before releasing the
+current flow, deploy the additive D1 migration first, then the backward-
+compatible Worker, then the app, and verify create/retry/simultaneous-rematch
+behavior on two real installations.

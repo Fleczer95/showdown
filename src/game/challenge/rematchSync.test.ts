@@ -78,3 +78,38 @@ it('reconciles waiting and completed states from the server snapshot', async () 
     expect(markChallengePlayed).toHaveBeenCalledWith('c1');
     expect(markChallengeOpponentPlayed).toHaveBeenCalledWith('c1');
 });
+
+it('still indexes an incoming rematch when status refresh fails', async () => {
+    const incoming = {
+        id: 'r1',
+        sourceChallengeId: 'c1',
+        game: 'the-ladder',
+        senderNickname: 'Bob',
+        expiresAt: 200,
+    };
+    const merged = { ...source, id: 'r1', isRematch: true, sourceChallengeId: 'c1' };
+    jest.mocked(listChallenges).mockReturnValueOnce([source]).mockReturnValueOnce([merged, source]);
+    jest.mocked(syncRematches).mockResolvedValue([incoming]);
+    jest.mocked(syncChallengeStatuses).mockRejectedValue(new Error('status unavailable'));
+
+    await expect(syncIncomingRematches()).resolves.toEqual([merged]);
+    expect(recordChallenge).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
+});
+
+it('still reconciles statuses when rematch discovery fails', async () => {
+    jest.mocked(listChallenges).mockReturnValueOnce([source]).mockReturnValueOnce([source]);
+    jest.mocked(syncRematches).mockRejectedValue(new Error('rematch unavailable'));
+    jest.mocked(syncChallengeStatuses).mockResolvedValue([{ id: 'c1', played: true, opponentPlayed: true }]);
+
+    await expect(syncIncomingRematches()).resolves.toEqual([]);
+    expect(markChallengePlayed).toHaveBeenCalledWith('c1');
+    expect(markChallengeOpponentPlayed).toHaveBeenCalledWith('c1');
+});
+
+it('rejects only when both independent sync requests fail', async () => {
+    jest.mocked(listChallenges).mockReturnValue([source]);
+    jest.mocked(syncRematches).mockRejectedValue(new Error('rematch unavailable'));
+    jest.mocked(syncChallengeStatuses).mockRejectedValue(new Error('status unavailable'));
+
+    await expect(syncIncomingRematches()).rejects.toThrow('rematch unavailable');
+});

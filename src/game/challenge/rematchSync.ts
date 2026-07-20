@@ -19,10 +19,18 @@ export async function syncIncomingRematches(): Promise<ChallengeStub[]> {
     if (sourceIds.length === 0) return [];
 
     const deviceId = getDeviceId();
-    const [incoming, statuses] = await Promise.all([
+    const [incomingResult, statusesResult] = await Promise.allSettled([
         syncRematches(deviceId, sourceIds),
         syncChallengeStatuses(deviceId, sourceIds),
     ]);
+    if (incomingResult.status === 'rejected' && statusesResult.status === 'rejected') {
+        throw incomingResult.reason;
+    }
+
+    // Discovery and status refresh are independent. A transient failure in one
+    // must not discard useful state returned by the other.
+    const incoming = incomingResult.status === 'fulfilled' ? incomingResult.value : [];
+    const statuses = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
     for (const status of statuses) {
         if (status.played) markChallengePlayed(status.id);
         if (status.opponentPlayed) markChallengeOpponentPlayed(status.id);

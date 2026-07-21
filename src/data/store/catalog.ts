@@ -24,6 +24,11 @@ for (const entry of STORE_CATALOG) {
     }
 }
 
+/** Canonical id → entry lookup, derived from the catalog. */
+export function getEntryForId(id: string): CatalogEntry | undefined {
+    return idToEntry.get(id);
+}
+
 /** Canonical id → SKU lookup, derived from the catalog. */
 export function getSkuForId(id: string): string | undefined {
     return idToSku.get(id);

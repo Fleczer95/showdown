@@ -44,6 +44,27 @@ describe('PurchaseEngine.markAsPurchased', () => {
     });
 });
 
+describe('PurchaseEngine.reconcilePurchasedItem', () => {
+    it('records a new entitlement without clearing another operation processing state', () => {
+        const engine = new PurchaseEngine(makePersistence());
+        engine.setProcessing(true);
+
+        expect(engine.reconcilePurchasedItem('fw-pack-adults')).toBe(true);
+        expect(engine.isPurchased('fw-pack-adults')).toBe(true);
+        expect(engine.getState().isProcessing).toBe(true);
+    });
+
+    it('returns false for an entitlement already recorded and preserves processing state', () => {
+        const persistence = makePersistence(['fw-pack-adults']);
+        const engine = new PurchaseEngine(persistence);
+        engine.setProcessing(true);
+
+        expect(engine.reconcilePurchasedItem('fw-pack-adults')).toBe(false);
+        expect(persistence.savePurchasedItem).not.toHaveBeenCalled();
+        expect(engine.getState().isProcessing).toBe(true);
+    });
+});
+
 describe('PurchaseEngine.setPremiumActive', () => {
     it('seeds premiumActive from persistence', () => {
         expect(new PurchaseEngine(makePersistence([], true)).getState().premiumActive).toBe(true);

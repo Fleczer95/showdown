@@ -615,6 +615,10 @@
             "purchasing": "Przetwarzanie...",
             "restore": "Przywróć zakupy",
             "restore_success": "Zakupy zostały pomyślnie przywrócone!",
+            "auto_sync_title": "Zakup zsynchronizowany",
+            "auto_sync_message": "Nowo zsynchronizowana zawartość jest gotowa do użycia.",
+            "auto_sync_more": "+%{count} więcej",
+            "auto_sync_confirm": "Rozumiem",
             "empty": "Brak dostępnych produktów."
         }
     },

@@ -28,18 +28,12 @@ export class PurchaseEngine {
     }
 
     public markAsPurchased(itemId: string) {
-        if (this.isPurchased(itemId)) {
-            // Even if already purchased, we want to clear processing state
-            this.updateState({ isProcessing: false });
-            return;
-        }
+        this.recordPurchasedItem(itemId, false);
+    }
 
-        this.persistence.savePurchasedItem(itemId);
-        const updatedItems = this.persistence.getPurchasedItems();
-        this.updateState({
-            purchasedItemIds: updatedItems,
-            isProcessing: false,
-        });
+    /** Reconcile store ownership without changing another operation's processing state. */
+    public reconcilePurchasedItem(itemId: string): boolean {
+        return this.recordPurchasedItem(itemId);
     }
 
     public setProcessing(isProcessing: boolean) {
@@ -95,6 +89,20 @@ export class PurchaseEngine {
 
     public getState(): StoreState {
         return this.state;
+    }
+
+    private recordPurchasedItem(itemId: string, isProcessing?: boolean): boolean {
+        if (this.isPurchased(itemId)) {
+            if (isProcessing !== undefined) this.updateState({ isProcessing });
+            return false;
+        }
+
+        this.persistence.savePurchasedItem(itemId);
+        this.updateState({
+            purchasedItemIds: this.persistence.getPurchasedItems(),
+            ...(isProcessing !== undefined ? { isProcessing } : {}),
+        });
+        return true;
     }
 
     private updateState(partialState: Partial<StoreState>) {

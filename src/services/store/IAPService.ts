@@ -1,6 +1,5 @@
-import { requestPurchase, getAvailablePurchases } from 'react-native-iap';
-import { getSkuForId, getIdForSku } from '../../data/store/catalog';
-import { isSubscriptionProductId } from '../../data/store/subscription';
+import { requestPurchase, getAvailablePurchases, type Purchase } from 'react-native-iap';
+import { getSkuForId } from '../../data/store/catalog';
 
 /**
  * Imperative IAP operations (purchase + restore). The store connection
@@ -61,30 +60,18 @@ export class IAPService {
     }
 
     /**
-     * Store-validated Premium status. Returns `null` when the store can't be
-     * reached so the caller keeps the cached flag rather than downgrading an
-     * offline subscriber to free.
+     * Read the account's current store entitlements. `null` means the store
+     * could not be reached, so callers must keep cached ownership unchanged.
      */
-    public async getActivePremium(): Promise<boolean | null> {
-        try {
-            const purchases = await getAvailablePurchases();
-            return purchases.some((p) => isSubscriptionProductId(p.productId));
-        } catch (error) {
-            console.error('[IAPService] Error checking subscription status:', error);
-            return null;
-        }
-    }
-
-    public async getPurchasedItemsFromStore(): Promise<string[]> {
+    public async getPurchasesFromStore(): Promise<Purchase[] | null> {
         try {
             console.log('[IAPService] Fetching available purchases...');
             const purchases = await getAvailablePurchases();
             console.log(`[IAPService] Found ${purchases.length} purchases`);
-
-            return purchases.map((p) => getIdForSku(p.productId)).filter((id): id is string => !!id);
+            return purchases;
         } catch (error) {
             console.error('[IAPService] Error getting available purchases:', error);
-            return [];
+            return null;
         }
     }
 }

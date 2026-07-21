@@ -19,6 +19,7 @@ import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { isPremiumCatalogId } from './src/data/store/catalog';
 import { ConfettiOverlayProvider } from './src/animations/ConfettiOverlay';
+import AutoSyncedPurchasesSheet from './src/components/molecules/AutoSyncedPurchasesSheet';
 
 // Sentry -> Firebase: initialized before the tree renders. App Check is attested
 // before any protected Worker request (fire-and-forget; it never blocks startup).
@@ -73,6 +74,7 @@ function App() {
                                         <AnalyticsProviders>
                                             <PremiumThemeGate />
                                             <RootNavigator />
+                                            <AutoSyncedPurchasesSheet />
                                             <StatusBar style='auto' />
                                         </AnalyticsProviders>
                                     </StoreProvider>

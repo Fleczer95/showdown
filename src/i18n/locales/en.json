@@ -615,6 +615,10 @@
             "purchasing": "Processing...",
             "restore": "Restore Purchases",
             "restore_success": "Purchases restored successfully!",
+            "auto_sync_title": "Purchase synced",
+            "auto_sync_message": "Newly synced content is ready to use.",
+            "auto_sync_more": "+%{count} more",
+            "auto_sync_confirm": "Got it",
             "empty": "No items available yet."
         }
     },

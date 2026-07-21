@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Platform } from 'react-native';
-import { useIAP } from 'react-native-iap';
+import { AppState, Platform } from 'react-native';
+import { useIAP, type Purchase } from 'react-native-iap';
 import { PurchaseEngine, StoreState } from '../../services/store/PurchaseEngine';
 import { MMKVPurchaseAdapter } from '../../services/store/MMKVPurchaseAdapter';
 import { IAPService } from '../../services/store/IAPService';
-import { ALL_SKUS, getIdForSku } from '../../data/store/catalog';
+import { ALL_SKUS, getIdForSku, getSkuForId } from '../../data/store/catalog';
 import {
     SUBSCRIPTION_SKUS,
     SUBSCRIPTION_PLANS,
@@ -18,9 +18,21 @@ import {
 // In a real app, you might want to use an environment variable or a developer setting
 const USE_MOCK_IAP = process.env.EXPO_PUBLIC_USE_MOCK_IAP === 'true' || __DEV__;
 
+interface AutoSyncNotice {
+    itemIds: string[];
+    premium: boolean;
+}
+
+type ReconciledEntitlement =
+    | { kind: 'item'; itemId: string; newlyGranted: boolean }
+    | { kind: 'premium'; newlyGranted: boolean };
+
 interface StoreContextValue extends StoreState {
     purchaseItem: (itemId: string) => Promise<boolean>;
     restorePurchases: () => Promise<boolean>;
+    /** Entitlements discovered by the latest silent sync, or null when dismissed. */
+    autoSyncNotice: AutoSyncNotice | null;
+    dismissAutoSyncNotice: () => void;
     /** Localized store prices keyed by SKU. Empty until products load or in mock mode. */
     priceBySku: Record<string, string>;
     /** Localized subscription prices keyed by plan id. Empty until subs products load. */
@@ -43,39 +55,64 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const engine = engineRef.current;
 
     const [state, setState] = useState<StoreState>(() => engine.getState());
+    const [autoSyncNotice, setAutoSyncNotice] = useState<AutoSyncNotice | null>(null);
+    const syncInFlightRef = useRef<Promise<boolean> | null>(null);
+    const purchasesStartedInAppRef = useRef(new Set<string>());
+    const premiumPurchaseEventRevisionRef = useRef(0);
+
+    const addAutoSyncNotice = useCallback((itemIds: string[], premium: boolean) => {
+        if (itemIds.length === 0 && !premium) return;
+
+        setAutoSyncNotice((current) => ({
+            itemIds: [...new Set([...(current?.itemIds ?? []), ...itemIds])],
+            premium: (current?.premium ?? false) || premium,
+        }));
+    }, []);
+
+    const reconcilePurchase = useCallback(
+        (purchase: Purchase): ReconciledEntitlement | null => {
+            if (isSubscriptionProductId(purchase.productId)) {
+                const newlyGranted = !engine.getState().premiumActive;
+                engine.setPremiumActive(true);
+                return { kind: 'premium', newlyGranted };
+            }
+
+            const itemId = getIdForSku(purchase.productId);
+            if (!itemId) return null;
+            return { kind: 'item', itemId, newlyGranted: engine.reconcilePurchasedItem(itemId) };
+        },
+        [engine],
+    );
 
     // --- IAP Integration ---
     const { connected, products, subscriptions, fetchProducts, finishTransaction } = useIAP({
         onPurchaseSuccess: async (purchase) => {
             console.log('[StoreProvider] Purchase success:', purchase.productId);
-            if (isSubscriptionProductId(purchase.productId)) {
-                engine.setPremiumActive(true);
-                engine.setProcessing(false);
-            } else {
-                const itemId = getIdForSku(purchase.productId);
-                if (itemId) {
-                    engine.markAsPurchased(itemId);
-                } else {
-                    // If we can't map the SKU back to an item, at least stop the loading indicator
-                    engine.setProcessing(false);
-                }
+            const startedInApp = purchasesStartedInAppRef.current.delete(purchase.productId);
+            if (isSubscriptionProductId(purchase.productId)) premiumPurchaseEventRevisionRef.current += 1;
+            const entitlement = reconcilePurchase(purchase);
+
+            // Only the matching in-app checkout owns the global processing flag.
+            if (startedInApp) engine.setProcessing(false);
+
+            // StoreKit / Play Billing can publish purchases redeemed outside the app
+            // before the launch sync query completes. Include that path in the notice,
+            // while purchases explicitly started in ShowDown keep their normal UI flow.
+            if (!startedInApp && entitlement?.newlyGranted) {
+                addAutoSyncNotice(
+                    entitlement.kind === 'item' ? [entitlement.itemId] : [],
+                    entitlement.kind === 'premium',
+                );
             }
+
             await finishTransaction({ purchase, isConsumable: false });
         },
         onPurchaseError: (error) => {
             console.error('[StoreProvider] Purchase error:', error);
+            purchasesStartedInAppRef.current.clear();
             engine.setProcessing(false);
         },
     });
-
-    // Pull store-validated Premium status into the engine. A `null` result means
-    // the store was unreachable, so the cached flag is kept rather than
-    // downgrading an offline subscriber. Shared by the launch refresh and Restore.
-    const refreshPremiumStatus = useCallback(async () => {
-        if (USE_MOCK_IAP) return;
-        const active = await IAPService.getInstance().getActivePremium();
-        if (active !== null) engine.setPremiumActive(active);
-    }, [engine]);
 
     // Fetch IAP product metadata once connected. Required so the store can
     // launch a purchase (Google Play needs cached ProductDetails) and so real
@@ -91,15 +128,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             });
         }
     }, [connected, fetchProducts]);
-
-    // Store-validated Premium status, refreshed once the store connects. The
-    // cached MMKV flag covers offline sessions until this resolves.
-    useEffect(() => {
-        if (!connected) return;
-        refreshPremiumStatus().catch((error) =>
-            console.error('[StoreProvider] premium status check failed:', error),
-        );
-    }, [connected, refreshPremiumStatus]);
 
     const priceBySku = useMemo(() => {
         const map: Record<string, string> = {};
@@ -126,6 +154,106 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return engine.subscribe(setState);
     }, [engine]);
 
+    // One reconciliation path powers both the visible Restore action and silent
+    // launch/foreground syncs. This catches purchases redeemed outside the app.
+    const syncPurchasesFromStore = useCallback(
+        ({ showProcessing }: { showProcessing: boolean }): Promise<boolean> => {
+            // A manual restore that overlaps a silent sync must await the real result,
+            // rather than reporting success before the store request has completed.
+            if (syncInFlightRef.current) return syncInFlightRef.current;
+
+            const syncRequest = (async () => {
+                try {
+                    if (showProcessing) engine.setProcessing(true);
+
+                    if (USE_MOCK_IAP) {
+                        engine.restorePurchases();
+                        return true;
+                    }
+
+                    const premiumEventRevisionBeforeQuery = premiumPurchaseEventRevisionRef.current;
+                    const purchases = await IAPService.getInstance().getPurchasesFromStore();
+                    if (purchases === null) return false;
+
+                    const completedPurchases = purchases.filter((purchase) => purchase.purchaseState !== 'pending');
+                    const newlySyncedItemIds = new Set<string>();
+                    let premiumFound = false;
+                    let premiumSynced = false;
+
+                    for (const purchase of completedPurchases) {
+                        const startedInApp = purchasesStartedInAppRef.current.delete(purchase.productId);
+                        const entitlement = reconcilePurchase(purchase);
+                        if (!entitlement) continue;
+
+                        if (startedInApp) engine.setProcessing(false);
+                        if (entitlement.kind === 'premium') premiumFound = true;
+
+                        if (!startedInApp && entitlement.newlyGranted) {
+                            if (entitlement.kind === 'item') newlySyncedItemIds.add(entitlement.itemId);
+                            else premiumSynced = true;
+                        }
+
+                        const shouldFinish =
+                            Platform.OS !== 'android' ||
+                            !('isAcknowledgedAndroid' in purchase) ||
+                            purchase.isAcknowledgedAndroid !== true;
+                        if (!shouldFinish) continue;
+
+                        try {
+                            await finishTransaction({ purchase, isConsumable: false });
+                        } catch (error) {
+                            console.error('[StoreProvider] Failed to finish restored purchase:', error);
+                        }
+                    }
+
+                    // A successful store response is authoritative for recurring access,
+                    // unless a newer subscription callback arrived while this snapshot
+                    // was in flight. Never let an older empty response undo that event.
+                    if (!premiumFound && premiumPurchaseEventRevisionRef.current === premiumEventRevisionBeforeQuery) {
+                        engine.setPremiumActive(false);
+                    }
+                    if (!showProcessing) addAutoSyncNotice([...newlySyncedItemIds], premiumSynced);
+                    return true;
+                } catch (error) {
+                    console.error('[StoreProvider] Restore failed:', error);
+                    return false;
+                } finally {
+                    if (showProcessing) engine.setProcessing(false);
+                }
+            })();
+
+            syncInFlightRef.current = syncRequest;
+            const clearInFlight = () => {
+                if (syncInFlightRef.current === syncRequest) syncInFlightRef.current = null;
+            };
+            void syncRequest.then(clearInFlight, clearInFlight);
+            return syncRequest;
+        },
+        [addAutoSyncNotice, engine, finishTransaction, reconcilePurchase],
+    );
+
+    const autoSyncPurchases = useCallback(async () => {
+        if (USE_MOCK_IAP || !connected) return;
+
+        // A foreground event means the store may have changed. If an older query
+        // is still running, wait for it and then issue a fresh query instead of
+        // letting single-flight deduplication discard the foreground refresh.
+        const olderSync = syncInFlightRef.current;
+        if (olderSync) await olderSync;
+        await syncPurchasesFromStore({ showProcessing: false });
+    }, [connected, syncPurchasesFromStore]);
+
+    useEffect(() => {
+        autoSyncPurchases();
+    }, [autoSyncPurchases]);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextState) => {
+            if (nextState === 'active') autoSyncPurchases();
+        });
+        return () => subscription.remove();
+    }, [autoSyncPurchases]);
+
     const purchaseItem = useCallback(
         async (itemId: string) => {
             if (USE_MOCK_IAP) {
@@ -133,14 +261,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 return await engine.purchaseItem(itemId);
             }
 
+            const sku = getSkuForId(itemId);
             try {
                 console.log('[StoreProvider] Using real IAP purchase for:', itemId);
                 engine.setProcessing(true);
+                if (sku) purchasesStartedInAppRef.current.add(sku);
                 await IAPService.getInstance().buyItem(itemId);
                 // We return true because requestPurchase was successful.
                 // The actual unlock happens in onPurchaseSuccess.
                 return true;
             } catch (error) {
+                if (sku) purchasesStartedInAppRef.current.delete(sku);
                 console.error('[StoreProvider] Purchase failed:', error);
                 engine.setProcessing(false);
                 return false;
@@ -150,25 +281,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     );
 
     const restorePurchases = useCallback(async () => {
-        try {
-            engine.setProcessing(true);
-            if (USE_MOCK_IAP) {
-                engine.restorePurchases();
-                return true;
-            }
+        return await syncPurchasesFromStore({ showProcessing: true });
+    }, [syncPurchasesFromStore]);
 
-            const items = await IAPService.getInstance().getPurchasedItemsFromStore();
-            items.forEach((itemId) => engine.markAsPurchased(itemId));
-            // Restore the subscription too — a flip to inactive correctly downgrades.
-            await refreshPremiumStatus();
-            return true;
-        } catch (error) {
-            console.error('[StoreProvider] Restore failed:', error);
-            return false;
-        } finally {
-            engine.setProcessing(false);
-        }
-    }, [engine, refreshPremiumStatus]);
+    const dismissAutoSyncNotice = useCallback(() => setAutoSyncNotice(null), []);
 
     const subscribePremium = useCallback(
         async (planId: 'monthly' | 'annual') => {
@@ -199,6 +315,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                         return false;
                     }
                 }
+                const productId = Platform.OS === 'android' ? GOOGLE_SUBSCRIPTION_ID : plan.appleSku;
+                purchasesStartedInAppRef.current.add(productId);
                 await IAPService.getInstance().buySubscription({
                     appleSku: plan.appleSku,
                     googleProductId: GOOGLE_SUBSCRIPTION_ID,
@@ -207,6 +325,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 // The actual unlock lands in onPurchaseSuccess.
                 return true;
             } catch (error) {
+                const productId = Platform.OS === 'android' ? GOOGLE_SUBSCRIPTION_ID : plan.appleSku;
+                purchasesStartedInAppRef.current.delete(productId);
                 console.error('[StoreProvider] Subscription failed:', error);
                 engine.setProcessing(false);
                 return false;
@@ -229,6 +349,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 ...state,
                 purchaseItem,
                 restorePurchases,
+                autoSyncNotice,
+                dismissAutoSyncNotice,
                 priceBySku,
                 subscriptionPriceByPlanId,
                 isPremium: state.premiumActive,

@@ -1,4 +1,21 @@
-import { hasBuyablePacks, getGamePackIds, gameIdForPack, premiumPackCount, ownsAllPremiumPacks } from './catalog';
+import {
+    getEntryForId,
+    hasBuyablePacks,
+    getGamePackIds,
+    gameIdForPack,
+    premiumPackCount,
+    ownsAllPremiumPacks,
+} from './catalog';
+
+describe('getEntryForId', () => {
+    it('returns the matching catalog entry', () => {
+        expect(getEntryForId('theme-cyberpunk')?.presentation.titleKey).toBe('screen.store.item.theme_cyberpunk.title');
+    });
+
+    it('returns undefined for an unknown id', () => {
+        expect(getEntryForId('not-an-entry')).toBeUndefined();
+    });
+});
 
 describe('hasBuyablePacks', () => {
     it('is true when a game has a live premium pack the player does not own', () => {

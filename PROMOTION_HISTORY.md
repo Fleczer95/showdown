@@ -16,3 +16,13 @@
 - **Audio:** Original silent track; no unlicensed music added.
 - **Goal:** Drive qualified game discovery, ShowDown installs, and friend challenges.
 - **Initial status:** Public after TikTok review; 0 views immediately after publication.
+
+## 2026-07-22 — TikTok profile icon refresh
+
+- **Timestamp:** 2026-07-22T15:43:34Z
+- **Platform:** TikTok
+- **Account:** [@lebenegames](https://www.tiktok.com/@lebenegames)
+- **Action:** Replaced the detailed controller avatar with the approved high-contrast `LG` monogram.
+- **Source asset:** `social/tiktok/assets/lebene-games-avatar.png` in the `tiktok_creator` repository
+- **Verification:** Confirmed the live 200×200 TikTok CDN crop displays the white `L`, lime `G`, midnight background, and gradient ring.
+- **Goal:** Improve brand recognition and legibility at small feed and comment-avatar sizes.

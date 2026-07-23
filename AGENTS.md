@@ -34,7 +34,10 @@ Advertising ID). **Do not re-add these, and do not "fix" the manifest by deletin
 ### Android — `android/app/src/main/AndroidManifest.xml`
 Keep these `tools:node="remove"` entries (and the `xmlns:tools` attribute on `<manifest>`):
 - `com.google.android.gms.permission.AD_ID` — no ads; AAID not used
+- `android.permission.ACCESS_ADSERVICES_AD_ID` and
+  `android.permission.ACCESS_ADSERVICES_ATTRIBUTION` — no ads or ad attribution
 - `android.permission.ACTIVITY_RECOGNITION` — from `expo-sensors` (unused; no pedometer)
+- `android.permission.FOREGROUND_SERVICE` — from `expo-audio`; no background work or playback
 - `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK` — from `expo-audio`; SFX play foreground-only
 - `android.permission.RECORD_AUDIO` — from `expo-audio`; the app never records
 - `<service>` removals: `expo.modules.audio.service.AudioControlsService`,

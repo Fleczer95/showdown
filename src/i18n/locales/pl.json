@@ -373,59 +373,55 @@
             "subtitle": "Zgodna z RODO, App Store i Google Play",
             "sections": [
                 {
-                    "title": "1. Zbierane Informacje",
-                    "content": "Zbieramy informacje, aby zapewnić lepsze usługi wszystkim użytkownikom. Rodzaje zbieranych informacji obejmują:",
+                    "title": "1. Zbierane informacje",
+                    "content": "ShowDown nie wymaga zakładania konta. W zależności od używanych funkcji zbieramy:",
                     "listItems": [
-                        "Statystyki użytkowania gier i dane sesji",
-                        "Raporty o wydajności aplikacji i awariach",
-                        "Informacje o urządzeniu i wersji systemu operacyjnego",
-                        "Preferencje i ustawienia użytkownika"
+                        "Publiczny pseudonim wybrany przez Ciebie i losowy identyfikator instalacji na potrzeby wyzwań online i globalnych rankingów",
+                        "Dane wyzwań i rankingów, w tym grę, postęp, wynik, znaczniki czasu i kosmetyczny podpis",
+                        "Interakcje w aplikacji, sesje, ustawienia i zdarzenia zakupu, a także przybliżoną lokalizację oraz identyfikatory aplikacji lub urządzenia używane przez Firebase Analytics",
+                        "Dzienniki awarii, dane diagnostyczne, model urządzenia, wersję systemu operacyjnego i dane o wydajności przetwarzane przez Sentry"
                     ]
                 },
                 {
-                    "title": "2. Sposób Używania Informacji",
-                    "content": "Używamy zebranych informacji, aby:",
+                    "title": "2. Jak wykorzystujemy informacje",
+                    "content": "Przetwarzamy te informacje, aby:",
                     "listItems": [
-                        "Świadczyć i utrzymywać nasze gry",
-                        "Poprawiać wydajność aplikacji i doświadczenie użytkownika",
-                        "Analizować wzorce użytkowania w celu optymalizacji funkcji",
-                        "Odpowiadać na opinie użytkowników i prośby o wsparcie"
+                        "Obsługiwać wyzwania online i globalne rankingi",
+                        "Utrzymywać, zabezpieczać i ulepszać aplikację",
+                        "Rozumieć sposób korzystania z funkcji oraz diagnozować awarie i problemy z wydajnością",
+                        "Obsługiwać i przywracać zakupy w aplikacji za pośrednictwem Apple lub Google"
                     ]
                 },
                 {
-                    "title": "3. Przechowywanie i Bezpieczeństwo Danych",
-                    "content": "Wszystkie dane użytkownika są przechowywane lokalnie na urządzeniu. Nie transmitujemy ani nie przechowujemy żadnych informacji osobowych na zewnętrznych serwerach. Twoje dane gier pozostają prywatne i pod Twoją kontrolą."
+                    "title": "3. Dane lokalne i online",
+                    "content": "Preferencje i postęp w grach solo są przechowywane lokalnie. Gdy korzystasz z wyzwania online lub globalnego rankingu, pseudonim, identyfikator instalacji, dane gry, wynik, postęp i znaczniki czasu potrzebne do działania tej funkcji są przesyłane przez HTTPS do naszego backendu hostowanego przez Cloudflare."
                 },
                 {
-                    "title": "4. Zakres Danych",
-                    "content": "Aplikacja zbiera wyłącznie dane techniczne (diagnostyczne) związane z błędami działania aplikacji. Dane nie pozwalają na identyfikację użytkownika."
+                    "title": "4. Widoczność publiczna i odbiorcy",
+                    "content": "Wybrany pseudonim oraz wynik wyzwania lub rankingu mogą być widoczne dla przeciwników i innych użytkowników rankingu. Cloudflare hostuje te rekordy online; Google Firebase przetwarza dane analityczne i dane integralności aplikacji; Sentry przetwarza dane o awariach i dane diagnostyczne; a Apple lub Google obsługuje zakupy. Nie sprzedajemy danych osobowych ani nie wykorzystujemy ich do reklam."
                 },
                 {
-                    "title": "5. Cele Przetwarzania",
-                    "content": "Przetwarzamy zebrane dane w celu:",
+                    "title": "5. Okres przechowywania",
+                    "content": "Rekordy wyzwań online wygasają po 30 dniach i są usuwane podczas czyszczenia backendu. Miesięczne wpisy rankingowe mogą pozostać w historycznych okresach rankingowych do chwili, gdy przestaną być potrzebne lub poprosisz o ich usunięcie. Dane analityczne i diagnostyczne podlegają ustawieniom retencji Firebase i Sentry. Dane lokalne pozostają do czasu ich wyczyszczenia lub odinstalowania aplikacji."
+                },
+                {
+                    "title": "6. Bezpieczeństwo i transfery międzynarodowe",
+                    "content": "Dane są szyfrowane podczas przesyłania. Nasi usługodawcy mogą przetwarzać dane poza EOG na podstawie decyzji stwierdzającej odpowiedni stopień ochrony lub odpowiednich zabezpieczeń, takich jak standardowe klauzule umowne Komisji Europejskiej."
+                },
+                {
+                    "title": "7. Podstawa prawna",
+                    "content": "Dane niezbędne do realizacji żądanych funkcji i zakupów przetwarzamy na podstawie art. 6 ust. 1 lit. b RODO, a dane analityczne, bezpieczeństwa i diagnostyczne oraz dane służące ulepszaniu usługi — na podstawie naszego prawnie uzasadnionego interesu z art. 6 ust. 1 lit. f. Gdy wymagana jest zgoda, możesz ją wycofać w dowolnym momencie."
+                },
+                {
+                    "title": "8. Twoje prawa i usuwanie danych",
+                    "content": "Zależnie od obowiązującego prawa możesz żądać dostępu, sprostowania, usunięcia, ograniczenia lub przeniesienia danych, wnieść sprzeciw wobec przetwarzania oraz skargę do organu nadzorczego. Ponieważ aplikacja nie ma kont, podaj pseudonim oraz — jeśli to możliwe — link do wyzwania lub identyfikator instalacji, abyśmy mogli odnaleźć rekordy online."
+                },
+                {
+                    "title": "9. Kontakt",
+                    "content": "W sprawach prywatności i żądań usunięcia danych:",
                     "listItems": [
-                        "Diagnostyki błędów",
-                        "Poprawy jakości działania aplikacji"
-                    ]
-                },
-                {
-                    "title": "6. Podstawa Prawna",
-                    "content": "Art. 6 ust. 1 lit. f RODO – uzasadniony interes administratora."
-                },
-                {
-                    "title": "7. Odbiorcy Danych",
-                    "content": "Dane mogą być przetwarzane przez usługodawców technologicznych (np. Google Crashlytics) wyłącznie w celu zapewnienia funkcjonalności aplikacji."
-                },
-                {
-                    "title": "8. Transfer Danych",
-                    "content": "Możliwy transfer poza EOG w oparciu o standardowe klauzule umowne."
-                },
-                {
-                    "title": "9. Prawa Użytkownika",
-                    "content": "Masz prawo do:",
-                    "listItems": [
-                        "Dostępu, sprostowania, ograniczenia przetwarzania, usunięcia danych",
-                        "Kontakt z nami: contact@showdown.app"
+                        "E-mail: contact@lebene.pl",
+                        "Nie otrzymujemy danych karty płatniczej, kontaktów, zdjęć, dokładnej lokalizacji ani profilu reklamowego"
                     ]
                 }
             ],
@@ -850,59 +846,55 @@
         "subtitle": "Zgodna z RODO, App Store i Google Play",
         "sections": [
             {
-                "title": "1. Zbierane Informacje",
-                "content": "Zbieramy informacje, aby zapewnić lepsze usługi wszystkim użytkownikom. Rodzaje zbieranych informacji obejmują:",
+                "title": "1. Zbierane informacje",
+                "content": "ShowDown nie wymaga zakładania konta. W zależności od używanych funkcji zbieramy:",
                 "listItems": [
-                    "Statystyki użytkowania gier i dane sesji",
-                    "Raporty o wydajności aplikacji i awariach",
-                    "Informacje o urządzeniu i wersji systemu operacyjnego",
-                    "Preferencje i ustawienia użytkownika"
+                    "Publiczny pseudonim wybrany przez Ciebie i losowy identyfikator instalacji na potrzeby wyzwań online i globalnych rankingów",
+                    "Dane wyzwań i rankingów, w tym grę, postęp, wynik, znaczniki czasu i kosmetyczny podpis",
+                    "Interakcje w aplikacji, sesje, ustawienia i zdarzenia zakupu, a także przybliżoną lokalizację oraz identyfikatory aplikacji lub urządzenia używane przez Firebase Analytics",
+                    "Dzienniki awarii, dane diagnostyczne, model urządzenia, wersję systemu operacyjnego i dane o wydajności przetwarzane przez Sentry"
                 ]
             },
             {
-                "title": "2. Sposób Używania Informacji",
-                "content": "Używamy zebranych informacji, aby:",
+                "title": "2. Jak wykorzystujemy informacje",
+                "content": "Przetwarzamy te informacje, aby:",
                 "listItems": [
-                    "Świadczyć i utrzymywać nasze gry",
-                    "Poprawiać wydajność aplikacji i doświadczenie użytkownika",
-                    "Analizować wzorce użytkowania w celu optymalizacji funkcji",
-                    "Odpowiadać na opinie użytkowników i prośby o wsparcie"
+                    "Obsługiwać wyzwania online i globalne rankingi",
+                    "Utrzymywać, zabezpieczać i ulepszać aplikację",
+                    "Rozumieć sposób korzystania z funkcji oraz diagnozować awarie i problemy z wydajnością",
+                    "Obsługiwać i przywracać zakupy w aplikacji za pośrednictwem Apple lub Google"
                 ]
             },
             {
-                "title": "3. Przechowywanie i Bezpieczeństwo Danych",
-                "content": "Wszystkie dane użytkownika są przechowywane lokalnie na urządzeniu. Nie transmitujemy ani nie przechowujemy żadnych informacji osobowych na zewnętrznych serwerach. Twoje dane gier pozostają prywatne i pod Twoją kontrolą."
+                "title": "3. Dane lokalne i online",
+                "content": "Preferencje i postęp w grach solo są przechowywane lokalnie. Gdy korzystasz z wyzwania online lub globalnego rankingu, pseudonim, identyfikator instalacji, dane gry, wynik, postęp i znaczniki czasu potrzebne do działania tej funkcji są przesyłane przez HTTPS do naszego backendu hostowanego przez Cloudflare."
             },
             {
-                "title": "4. Zakres Danych",
-                "content": "Aplikacja zbiera wyłącznie dane techniczne (diagnostyczne) związane z błędami działania aplikacji. Dane nie pozwalają na identyfikację użytkownika."
+                "title": "4. Widoczność publiczna i odbiorcy",
+                "content": "Wybrany pseudonim oraz wynik wyzwania lub rankingu mogą być widoczne dla przeciwników i innych użytkowników rankingu. Cloudflare hostuje te rekordy online; Google Firebase przetwarza dane analityczne i dane integralności aplikacji; Sentry przetwarza dane o awariach i dane diagnostyczne; a Apple lub Google obsługuje zakupy. Nie sprzedajemy danych osobowych ani nie wykorzystujemy ich do reklam."
             },
             {
-                "title": "5. Cele Przetwarzania",
-                "content": "Przetwarzamy zebrane dane w celu:",
+                "title": "5. Okres przechowywania",
+                "content": "Rekordy wyzwań online wygasają po 30 dniach i są usuwane podczas czyszczenia backendu. Miesięczne wpisy rankingowe mogą pozostać w historycznych okresach rankingowych do chwili, gdy przestaną być potrzebne lub poprosisz o ich usunięcie. Dane analityczne i diagnostyczne podlegają ustawieniom retencji Firebase i Sentry. Dane lokalne pozostają do czasu ich wyczyszczenia lub odinstalowania aplikacji."
+            },
+            {
+                "title": "6. Bezpieczeństwo i transfery międzynarodowe",
+                "content": "Dane są szyfrowane podczas przesyłania. Nasi usługodawcy mogą przetwarzać dane poza EOG na podstawie decyzji stwierdzającej odpowiedni stopień ochrony lub odpowiednich zabezpieczeń, takich jak standardowe klauzule umowne Komisji Europejskiej."
+            },
+            {
+                "title": "7. Podstawa prawna",
+                "content": "Dane niezbędne do realizacji żądanych funkcji i zakupów przetwarzamy na podstawie art. 6 ust. 1 lit. b RODO, a dane analityczne, bezpieczeństwa i diagnostyczne oraz dane służące ulepszaniu usługi — na podstawie naszego prawnie uzasadnionego interesu z art. 6 ust. 1 lit. f. Gdy wymagana jest zgoda, możesz ją wycofać w dowolnym momencie."
+            },
+            {
+                "title": "8. Twoje prawa i usuwanie danych",
+                "content": "Zależnie od obowiązującego prawa możesz żądać dostępu, sprostowania, usunięcia, ograniczenia lub przeniesienia danych, wnieść sprzeciw wobec przetwarzania oraz skargę do organu nadzorczego. Ponieważ aplikacja nie ma kont, podaj pseudonim oraz — jeśli to możliwe — link do wyzwania lub identyfikator instalacji, abyśmy mogli odnaleźć rekordy online."
+            },
+            {
+                "title": "9. Kontakt",
+                "content": "W sprawach prywatności i żądań usunięcia danych:",
                 "listItems": [
-                    "Diagnostyki błędów",
-                    "Poprawy jakości działania aplikacji"
-                ]
-            },
-            {
-                "title": "6. Podstawa Prawna",
-                "content": "Art. 6 ust. 1 lit. f RODO – uzasadniony interes administratora."
-            },
-            {
-                "title": "7. Odbiorcy Danych",
-                "content": "Dane mogą być przetwarzane przez usługodawców technologicznych (np. Google Crashlytics) wyłącznie w celu zapewnienia funkcjonalności aplikacji."
-            },
-            {
-                "title": "8. Transfer Danych",
-                "content": "Możliwy transfer poza EOG w oparciu o standardowe klauzule umowne."
-            },
-            {
-                "title": "9. Prawa Użytkownika",
-                "content": "Masz prawo do:",
-                "listItems": [
-                    "Dostępu, sprostowania, ograniczenia przetwarzania, usunięcia danych",
-                    "Kontakt z nami: {{email}}"
+                    "E-mail: contact@lebene.pl",
+                    "Nie otrzymujemy danych karty płatniczej, kontaktów, zdjęć, dokładnej lokalizacji ani profilu reklamowego"
                 ]
             }
         ],

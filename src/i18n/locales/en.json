@@ -374,58 +374,54 @@
             "sections": [
                 {
                     "title": "1. Information We Collect",
-                    "content": "We collect information to provide better services to all our users. The types of information we collect include:",
+                    "content": "ShowDown does not require an account. Depending on the features you use, we collect:",
                     "listItems": [
-                        "Game usage statistics and session data",
-                        "App performance reports and crash logs",
-                        "Device information and OS version",
-                        "User preferences and settings"
+                        "The public nickname you choose and a random per-install identifier for online challenges and global rankings",
+                        "Challenge and ranking data, including the game, progress, score, timestamps, and cosmetic signature",
+                        "App interactions, sessions, settings, and purchase events, plus approximate location and app or device identifiers used by Firebase Analytics",
+                        "Crash logs, diagnostics, device model, operating-system version, and performance data processed by Sentry"
                     ]
                 },
                 {
                     "title": "2. How We Use Information",
-                    "content": "We use the information we collect to:",
+                    "content": "We process this information to:",
                     "listItems": [
-                        "Provide and maintain our games",
-                        "Improve app performance and user experience",
-                        "Analyze usage patterns to optimize features",
-                        "Respond to user feedback and support requests"
+                        "Run online challenges and global rankings",
+                        "Maintain, secure, and improve the app",
+                        "Understand feature usage and diagnose crashes or performance problems",
+                        "Process and restore in-app purchases through Apple or Google"
                     ]
                 },
                 {
-                    "title": "3. Data Storage and Security",
-                    "content": "All user data is stored locally on your device. We do not transmit or store any personal information on external servers. Your game data remains private and under your control."
+                    "title": "3. Local and Online Data",
+                    "content": "Preferences and solo-game progress are stored locally. When you use an online challenge or global ranking, the nickname, per-install identifier, game data, score, progress, and timestamps needed for that feature are sent over HTTPS to our Cloudflare-hosted backend."
                 },
                 {
-                    "title": "4. Scope of Data",
-                    "content": "The app collects only technical (diagnostic) data related to app performance errors. This data does not allow for user identification."
+                    "title": "4. Public Visibility and Recipients",
+                    "content": "Your chosen nickname and challenge or ranking result can be visible to opponents and other ranking users. Cloudflare hosts these online records; Google Firebase processes analytics and app-integrity data; Sentry processes crash and diagnostic data; and Apple or Google processes purchases. We do not sell personal data or use it for advertising."
                 },
                 {
-                    "title": "5. Purposes of Processing",
-                    "content": "We use the collected data for:",
+                    "title": "5. Retention",
+                    "content": "Online challenge records expire after 30 days and are removed during backend cleanup. Monthly ranking entries may remain for historical ranking periods until they are no longer needed or you ask us to delete them. Analytics and diagnostic data follow the retention settings of Firebase and Sentry. Local data remains until you clear it or uninstall the app."
+                },
+                {
+                    "title": "6. Security and International Transfers",
+                    "content": "Data is encrypted in transit. Our service providers may process data outside the EEA under an adequacy decision or appropriate safeguards such as the European Commission's Standard Contractual Clauses."
+                },
+                {
+                    "title": "7. Legal Basis",
+                    "content": "We process data needed to provide features you request and purchases under Article 6(1)(b) GDPR, and analytics, security, diagnostics, and service improvement under our legitimate interests in Article 6(1)(f). Where consent is required, you may withdraw it at any time."
+                },
+                {
+                    "title": "8. Your Rights and Deletion",
+                    "content": "Depending on applicable law, you may request access, correction, deletion, restriction, portability, or object to processing, and you may complain to a supervisory authority. Because there is no account, include your nickname and, if available, the relevant challenge link or installation identifier so we can locate online records."
+                },
+                {
+                    "title": "9. Contact",
+                    "content": "For privacy questions or deletion requests:",
                     "listItems": [
-                        "Diagnosing technical issues",
-                        "Improving app performance"
-                    ]
-                },
-                {
-                    "title": "6. Legal Basis",
-                    "content": "Article 6(1)(f) GDPR – legitimate interest."
-                },
-                {
-                    "title": "7. Data Recipients",
-                    "content": "Technical providers (e.g., Google Crashlytics) may process diagnostic data solely for functionality."
-                },
-                {
-                    "title": "8. Data Transfer",
-                    "content": "Possible transfers outside the EEA follow Standard Contractual Clauses."
-                },
-                {
-                    "title": "9. User Rights",
-                    "content": "You have the right to:",
-                    "listItems": [
-                        "Access, rectification, restriction, deletion",
-                        "Contact us at: contact@showdown.app"
+                        "Email: contact@lebene.pl",
+                        "We do not receive your payment-card details, contacts, photos, precise location, or an advertising profile"
                     ]
                 }
             ],
@@ -851,58 +847,54 @@
         "sections": [
             {
                 "title": "1. Information We Collect",
-                "content": "We collect information to provide better services to all our users. The types of information we collect include:",
+                "content": "ShowDown does not require an account. Depending on the features you use, we collect:",
                 "listItems": [
-                    "Game usage statistics and session data",
-                    "App performance and crash reports",
-                    "Device information and OS version",
-                    "User preferences and settings"
+                    "The public nickname you choose and a random per-install identifier for online challenges and global rankings",
+                    "Challenge and ranking data, including the game, progress, score, timestamps, and cosmetic signature",
+                    "App interactions, sessions, settings, and purchase events, plus approximate location and app or device identifiers used by Firebase Analytics",
+                    "Crash logs, diagnostics, device model, operating-system version, and performance data processed by Sentry"
                 ]
             },
             {
                 "title": "2. How We Use Information",
-                "content": "We use the information we collect to:",
+                "content": "We process this information to:",
                 "listItems": [
-                    "Provide and maintain our games",
-                    "Improve app performance and user experience",
-                    "Analyze usage patterns to optimize features",
-                    "Respond to user feedback and support requests"
+                    "Run online challenges and global rankings",
+                    "Maintain, secure, and improve the app",
+                    "Understand feature usage and diagnose crashes or performance problems",
+                    "Process and restore in-app purchases through Apple or Google"
                 ]
             },
             {
-                "title": "3. Data Storage and Security",
-                "content": "All user data is stored locally on your device. We do not transmit or store any personal information on external servers. Your gaming data remains private and under your control."
+                "title": "3. Local and Online Data",
+                "content": "Preferences and solo-game progress are stored locally. When you use an online challenge or global ranking, the nickname, per-install identifier, game data, score, progress, and timestamps needed for that feature are sent over HTTPS to our Cloudflare-hosted backend."
             },
             {
-                "title": "4. Scope of Data",
-                "content": "The app collects only technical crash diagnostics. No personal data is processed."
+                "title": "4. Public Visibility and Recipients",
+                "content": "Your chosen nickname and challenge or ranking result can be visible to opponents and other ranking users. Cloudflare hosts these online records; Google Firebase processes analytics and app-integrity data; Sentry processes crash and diagnostic data; and Apple or Google processes purchases. We do not sell personal data or use it for advertising."
             },
             {
-                "title": "5. Purposes of Processing",
-                "content": "We use the collected data for:",
+                "title": "5. Retention",
+                "content": "Online challenge records expire after 30 days and are removed during backend cleanup. Monthly ranking entries may remain for historical ranking periods until they are no longer needed or you ask us to delete them. Analytics and diagnostic data follow the retention settings of Firebase and Sentry. Local data remains until you clear it or uninstall the app."
+            },
+            {
+                "title": "6. Security and International Transfers",
+                "content": "Data is encrypted in transit. Our service providers may process data outside the EEA under an adequacy decision or appropriate safeguards such as the European Commission's Standard Contractual Clauses."
+            },
+            {
+                "title": "7. Legal Basis",
+                "content": "We process data needed to provide features you request and purchases under Article 6(1)(b) GDPR, and analytics, security, diagnostics, and service improvement under our legitimate interests in Article 6(1)(f). Where consent is required, you may withdraw it at any time."
+            },
+            {
+                "title": "8. Your Rights and Deletion",
+                "content": "Depending on applicable law, you may request access, correction, deletion, restriction, portability, or object to processing, and you may complain to a supervisory authority. Because there is no account, include your nickname and, if available, the relevant challenge link or installation identifier so we can locate online records."
+            },
+            {
+                "title": "9. Contact",
+                "content": "For privacy questions or deletion requests:",
                 "listItems": [
-                    "Diagnosing technical issues",
-                    "Improving app performance"
-                ]
-            },
-            {
-                "title": "6. Legal Basis",
-                "content": "Article 6(1)(f) GDPR – legitimate interest."
-            },
-            {
-                "title": "7. Data Recipients",
-                "content": "Technical providers (e.g., Google Crashlytics) may process diagnostic data solely for functionality."
-            },
-            {
-                "title": "8. Data Transfer",
-                "content": "Possible transfers outside the EEA follow Standard Contractual Clauses."
-            },
-            {
-                "title": "9. User Rights",
-                "content": "You have the right to:",
-                "listItems": [
-                    "Access, rectification, restriction, deletion",
-                    "Contact us at: {{email}}"
+                    "Email: contact@lebene.pl",
+                    "We do not receive your payment-card details, contacts, photos, precise location, or an advertising profile"
                 ]
             }
         ],

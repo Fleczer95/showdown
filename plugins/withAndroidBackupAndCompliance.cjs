@@ -11,7 +11,10 @@ const DEFAULT_MMKV_STORE_IDS = ['showdown-progression', 'showdown-settings', 'sh
 // ShowDown. Keep the removals here so `expo prebuild` cannot reintroduce them.
 const REMOVED_PERMISSIONS = [
     'com.google.android.gms.permission.AD_ID',
+    'android.permission.ACCESS_ADSERVICES_AD_ID',
+    'android.permission.ACCESS_ADSERVICES_ATTRIBUTION',
     'android.permission.ACTIVITY_RECOGNITION',
+    'android.permission.FOREGROUND_SERVICE',
     'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
     'android.permission.RECORD_AUDIO',
 ];

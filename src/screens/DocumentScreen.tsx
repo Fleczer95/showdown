@@ -45,7 +45,7 @@ export function DocumentScreen() {
     const title = t(`screen.${documentKey}.title` as any);
     const subtitle = t(`screen.${documentKey}.subtitle` as any, { defaultValue: '' });
     const sections = t(`screen.${documentKey}.sections` as any, { returnObjects: true }) as any[];
-    const lastUpdated = t(`screen.${documentKey}.lastUpdated` as any, { lastUpdated: '2026-05-31', defaultValue: '' });
+    const lastUpdated = t(`screen.${documentKey}.lastUpdated` as any, { lastUpdated: '2026-07-22', defaultValue: '' });
 
     return (
         <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>

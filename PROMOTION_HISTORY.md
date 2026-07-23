@@ -17,6 +17,17 @@
 - **Goal:** Drive qualified game discovery, ShowDown installs, and friend challenges.
 - **Initial status:** Public after TikTok review; 0 views immediately after publication.
 
+## 2026-07-23 — Reddit recommendation comment prepared
+
+- **Timestamp:** 2026-07-23T10:08:09Z
+- **Platform:** Reddit (`r/AndroidGaming`)
+- **Target:** https://www.reddit.com/r/AndroidGaming/comments/1qzyqid/looking_for_great_triviaquiz_games_bonus_if_they/
+- **Action:** Prepared and copied an approved no-link recommendation comment to the clipboard; not published by the agent.
+- **Strategy:** Transparent indie-developer disclosure, searchable full store name, and a concise feature summary tailored to the request for trivia games with RPG-style progression.
+- **Content highlights:** Three TV-style game modes; XP and a 50-level map; streaks, achievements, unlockable themes and signatures; fox-host customization; offline solo play and local high scores; asynchronous Android/iOS challenges, rematches, and monthly/all-time global challenge rankings; English and Polish support; no account required.
+- **Goal:** Earn relevant discovery and honest player feedback without risking link-based self-promotion removal.
+- **Revision (2026-07-23T10:09:41Z):** Replaced the formal `Full disclosure` opening with the softer but still transparent `I recently released a trivia game called…` wording and copied the complete revised comment to the clipboard. Publication remains unconfirmed.
+
 ## 2026-07-22 — TikTok profile icon refresh
 
 - **Timestamp:** 2026-07-22T15:43:34Z

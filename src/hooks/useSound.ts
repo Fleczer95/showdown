@@ -24,8 +24,15 @@ export const useSound = () => {
         (name: SoundName) => {
             if (!enabled) return;
             const player = players[name];
-            player.seekTo(0);
-            player.play();
+            try {
+                player.seekTo(0);
+                player.play();
+            } catch {
+                // These are synchronous native calls, and iOS throws from them when it
+                // won't activate the audio session — backgrounded, interrupted by a
+                // call, or in low power mode. A missed effect is cosmetic; letting it
+                // reach the JS error handler is not.
+            }
         },
         [enabled],
     );

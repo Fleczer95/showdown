@@ -19,6 +19,7 @@ import {
 } from '../game/challenge/store';
 import { countCreatedToday, recordChallenge } from '../game/challenge/log';
 import { buildChallenge } from '../game/challenge/build';
+import { dropStateFromRecord, missingContentIds } from '../game/challenge/resolve';
 import { recordRun } from '../game/progression';
 import type { GameRunResult, RecordRunDiff } from '../game/progression';
 import type { ChallengeRecord } from '../game/challenge/types';
@@ -273,9 +274,26 @@ describe('ChallengeScreen progression', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (getChallenge as jest.Mock).mockResolvedValue(record);
+        (missingContentIds as jest.Mock).mockReturnValue([]);
+        (dropStateFromRecord as jest.Mock).mockReturnValue({});
         (getAttempts as jest.Mock).mockResolvedValue([myAttempt]);
         (countCreatedToday as jest.Mock).mockReturnValue(0);
         (recordRun as jest.Mock).mockReturnValue(DIFF);
+    });
+
+    it('shows the update prompt without resolving content the app lacks', async () => {
+        // A challenge minted by a newer build: the resolver throws on the unknown id,
+        // exactly as `lookup` does, so the guard has to run before any resolution.
+        (getChallenge as jest.Mock).mockResolvedValue({ ...record, game: 'the-drop' });
+        (missingContentIds as jest.Mock).mockReturnValue(['drop-482']);
+        (dropStateFromRecord as jest.Mock).mockImplementation(() => {
+            throw new Error('Challenge references unknown question id "drop-482".');
+        });
+
+        const screen = render(<ChallengeScreen />);
+
+        await waitFor(() => screen.getByText('challenge.updateRequired'));
+        expect(dropStateFromRecord).not.toHaveBeenCalled();
     });
 
     it('records the run once with the challenge flag and celebrates on the results board', async () => {

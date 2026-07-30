@@ -27,7 +27,7 @@ export async function isAuthenticated(): Promise<boolean> {
     }
 }
 
-/** Prompt platform sign-in (Play Games dialog / held Game Center sheet). */
+/** Prompt platform sign-in (Play Games dialog / Game Center sheet). */
 export async function signIn(): Promise<boolean> {
     try {
         return (await native?.signIn()) ?? false;

@@ -88,13 +88,13 @@ bonus is a nice-to-have, not a core driver for The Wheel.
 
 ## Constants (final)
 
-| Constant | Value |
-|---|---|
-| Speed window | 100 s |
-| Ladder base per rung | `rung × 100` |
+| Constant              | Value                              |
+| --------------------- | ---------------------------------- |
+| Speed window          | 100 s                              |
+| Ladder base per rung  | `rung × 100`                       |
 | Ladder lifeline bonus | 500 per unused lifeline (max 1500) |
-| Wheel no-vowel bonus | 250 per clean puzzle |
-| Board MMKV namespace | `showdown-leaderboard-v2` |
+| Wheel no-vowel bonus  | 250 per clean puzzle               |
+| Board MMKV namespace  | `showdown-leaderboard-v2`          |
 
 ## Architecture / units
 

@@ -91,15 +91,7 @@ export const LeafEffect = ({ width: widthProp, height: heightProp, color: colorP
     return (
         <Group opacity={0.4}>
             {particles.map((p, i) => (
-                <Leaf
-                    key={i}
-                    particle={p}
-                    time={time}
-                    path={path}
-                    width={width}
-                    height={height}
-                    color={color}
-                />
+                <Leaf key={i} particle={p} time={time} path={path} width={width} height={height} color={color} />
             ))}
         </Group>
     );

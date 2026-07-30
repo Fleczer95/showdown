@@ -8,7 +8,13 @@ import type { GameAccent } from '../data/games';
 /** Normalize #RGB / #RRGGBB to [r, g, b]. */
 export function toRgb(hex: string): [number, number, number] {
     const h = hex.replace('#', '');
-    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    const full =
+        h.length === 3
+            ? h
+                  .split('')
+                  .map((c) => c + c)
+                  .join('')
+            : h;
     return [parseInt(full.slice(0, 2), 16), parseInt(full.slice(2, 4), 16), parseInt(full.slice(4, 6), 16)];
 }
 

@@ -44,9 +44,7 @@ describe('dailyCap', () => {
 
     it('adds the flat premium bonus on top of the owned-item cap', () => {
         expect(dailyCap(new Set(), true)).toBe(BASE_DAILY_CAP + PREMIUM_BONUS_CHALLENGES);
-        expect(dailyCap(new Set(['theme-a', 'pack-a']), true)).toBe(
-            BASE_DAILY_CAP + 2 + PREMIUM_BONUS_CHALLENGES,
-        );
+        expect(dailyCap(new Set(['theme-a', 'pack-a']), true)).toBe(BASE_DAILY_CAP + 2 + PREMIUM_BONUS_CHALLENGES);
     });
 });
 

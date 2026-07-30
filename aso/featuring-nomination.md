@@ -10,6 +10,7 @@ Target: **first app launch**. Platform: **iPhone only** (not nominating iPad).
 ShowDown is a pocket-sized game-show collection for one player and one phone — the classic TV-quiz formats everyone grew up with, reimagined as fast, solo, offline challenges. No controllers, no Wi-Fi, no sign-up, no setup: open it and you're playing in seconds.
 
 Three mechanically distinct games launch together:
+
 - The Ladder — climb 15 questions of rising difficulty with classic lifelines.
 - The Drop — a risk-calibration game built on surprising real statistics; split your million across the answers you trust and watch the wrong bets fall. Skill, not memorization.
 - The Wheel — a press-your-luck word puzzle where greed fights safety.

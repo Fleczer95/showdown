@@ -136,8 +136,6 @@ export function winningTeam(state: GridState): number | null {
 }
 
 function updateCell(state: GridState, cellId: string, fn: (cell: GridCell) => GridCell): GridState {
-    const cells = state.cells.map((column) =>
-        column.map((cell) => (cell.id === cellId ? fn(cell) : cell)),
-    );
+    const cells = state.cells.map((column) => column.map((cell) => (cell.id === cellId ? fn(cell) : cell)));
     return { ...state, cells };
 }

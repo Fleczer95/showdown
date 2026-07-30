@@ -39,7 +39,11 @@ export const TranslationProvider = ({ children }: { children: React.ReactNode })
     const t = useCallback(
         (key: string, options?: Record<string, any>) => {
             const translation = i18n.t(key, options);
-            if (typeof translation === 'string' && translation.startsWith('[missing "') && translation.includes('translation]')) {
+            if (
+                typeof translation === 'string' &&
+                translation.startsWith('[missing "') &&
+                translation.includes('translation]')
+            ) {
                 SafeSentry.captureMessage(`Missing translation key: ${key}`, {
                     tags: { locale: language, area: 'i18n' },
                     extra: { key, options },

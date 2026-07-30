@@ -63,9 +63,5 @@ export default function SwipeBackWrapper({ children, enableLeftSwipe = false }: 
         [edgeWidth, width, enableLeftSwipe, handleGoBack],
     );
 
-    return (
-        <GestureDetector gesture={panGesture}>
-            {children}
-        </GestureDetector>
-    );
+    return <GestureDetector gesture={panGesture}>{children}</GestureDetector>;
 }

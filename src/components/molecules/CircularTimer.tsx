@@ -52,7 +52,7 @@ function CircularTimer({
     const { t: translate } = useTranslation();
     const { pulse } = useAnimationPresets();
     const { scale } = useResponsive();
-    
+
     const scaledSize = scale(size);
     const cx = scaledSize / 2;
     const cy = scaledSize / 2;

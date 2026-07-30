@@ -25,7 +25,7 @@ export interface IndexBadgeProps {
  */
 function IndexBadge({ label, accent, state = 'default', size: overrideSize, testID }: IndexBadgeProps) {
     const t = useTheme();
-    const size = overrideSize ?? (t.typography.lineHeight.xl + t.spacing.sm);
+    const size = overrideSize ?? t.typography.lineHeight.xl + t.spacing.sm;
 
     const stateFill = { correct: t.colors.success, wrong: t.colors.error, muted: t.colors.surfaceVariant };
     const fill = stateFill[state as keyof typeof stateFill] ?? accent;

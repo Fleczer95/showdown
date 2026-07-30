@@ -1,12 +1,4 @@
-import {
-    buildBoard,
-    revealCell,
-    applyResult,
-    isBoardComplete,
-    winningTeam,
-    findCell,
-    type GridState,
-} from './logic';
+import { buildBoard, revealCell, applyResult, isBoardComplete, winningTeam, findCell, type GridState } from './logic';
 import { getGridPack, type GridContentPack } from './content';
 
 const pack = getGridPack('all');

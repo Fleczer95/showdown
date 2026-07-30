@@ -32,10 +32,7 @@ export function qualifies(storedCount: number, lowestScore: number, score: numbe
  * if it has any entries, otherwise the (sparse) current month. Falls back at
  * most one month.
  */
-export function resolveDisplayedMonth(args: {
-    currentCount: number;
-    previousCount: number;
-}): 'current' | 'previous' {
+export function resolveDisplayedMonth(args: { currentCount: number; previousCount: number }): 'current' | 'previous' {
     if (args.currentCount >= ROLLOVER_THRESHOLD) return 'current';
     return args.previousCount > 0 ? 'previous' : 'current';
 }

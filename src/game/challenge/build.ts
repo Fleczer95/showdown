@@ -76,11 +76,7 @@ function freezeQuestions(
 
 // --- The Ladder -------------------------------------------------------------
 
-function freezeLadder(
-    history: History,
-    ownedIds: ReadonlySet<string>,
-    rng: () => number,
-): ChallengeQuestion[] {
+function freezeLadder(history: History, ownedIds: ReadonlySet<string>, rng: () => number): ChallengeQuestion[] {
     // Only ids are pinned, so build the run from a single locale; owned pack
     // cards merge in by difficulty exactly as solo play does.
     const ownedCards = getOwnedPackContent<LadderPackCard>('the-ladder', 'en', ownedIds);
@@ -94,11 +90,7 @@ function freezeLadder(
 
 // --- The Drop ---------------------------------------------------------------
 
-function freezeDrop(
-    history: History,
-    ownedIds: ReadonlySet<string>,
-    rng: () => number,
-): ChallengeQuestion[] {
+function freezeDrop(history: History, ownedIds: ReadonlySet<string>, rng: () => number): ChallengeQuestion[] {
     const pool: DropQuestion[] = [
         ...dropQuestions,
         ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>('the-drop', ownedIds, zipDropCard),
@@ -109,11 +101,7 @@ function freezeDrop(
 
 // --- The Wheel --------------------------------------------------------------
 
-function freezeWheel(
-    history: History,
-    ownedIds: ReadonlySet<string>,
-    rng: () => number,
-): ChallengeQuestion[] {
+function freezeWheel(history: History, ownedIds: ReadonlySet<string>, rng: () => number): ChallengeQuestion[] {
     const pool: { id: string }[] = [
         ...getPack('all').puzzles,
         ...getOwnedPackContent<{ id: string }>('the-wheel', 'en', ownedIds),

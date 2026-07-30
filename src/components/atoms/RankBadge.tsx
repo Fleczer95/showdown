@@ -27,7 +27,7 @@ export default function RankBadge({ rank }: { rank: number }) {
             ) : rank === 2 || rank === 3 ? (
                 <Icon name={Medal} size={iconSize(16)} color={rankColor} />
             ) : (
-                <Text variant="caption" weight="bold" color="textMuted">
+                <Text variant='caption' weight='bold' color='textMuted'>
                     {rank}
                 </Text>
             )}

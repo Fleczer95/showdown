@@ -58,9 +58,7 @@ function SafeContainer({
             testID={testID}
         >
             {!disableEffects && <ThemeEffects />}
-            <Animated.View style={[styles.content, animatedContentStyle]}>
-                {children}
-            </Animated.View>
+            <Animated.View style={[styles.content, animatedContentStyle]}>{children}</Animated.View>
         </View>
     );
 
@@ -68,11 +66,7 @@ function SafeContainer({
         return content;
     }
 
-    return (
-        <SwipeBackWrapper enableLeftSwipe={enableLeftSwipe}>
-            {content}
-        </SwipeBackWrapper>
-    );
+    return <SwipeBackWrapper enableLeftSwipe={enableLeftSwipe}>{content}</SwipeBackWrapper>;
 }
 
 const styles = StyleSheet.create({

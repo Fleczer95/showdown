@@ -91,8 +91,6 @@ Key file: `AuthKey_TYBAQ9XDGV.p8` (repo root, gitignored).
 Credentials and mass IAP creation script (using the new v3 Monetization API) are in the `google-play-iap` skill.
 Key file: `google-play-key.json` (repo root, gitignored).
 
-
-
 ## AI Assistant Guidelines
 
 Refer to [AGENTS.md](./AGENTS.md) for specific workflows regarding localization verification and theme effect implementation.

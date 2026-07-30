@@ -21,7 +21,7 @@ platforms** — an App Store (iOS) player competing head-to-head with a Play Sto
 Two clarifications reshaped the design during review:
 
 1. **Create-then-play, not play-then-share.** A challenge is created up front
-   from a game's setup screen, *before* anyone plays. The creator is just the
+   from a game's setup screen, _before_ anyone plays. The creator is just the
    first participant; the opponent may finish first. Results stay hidden from a
    participant until they have finished their own run.
 2. **Results require shared state.** Because each player scores on their own
@@ -59,14 +59,14 @@ via a static Universal/App Link domain. No bespoke application server.
   UUID; the result reveal reuses the ranking logic, scoring being deterministic
   given the frozen questions.
 - **Identity: a device UUID stored in MMKV**, sent with each attempt. No auth.
-  Cross-*platform* competition works (Firestore is platform-neutral);
-  cross-*device identity* is explicitly out (reinstall/data-clear = new id),
+  Cross-_platform_ competition works (Firestore is platform-neutral);
+  cross-_device identity_ is explicitly out (reinstall/data-clear = new id),
   which is the right trade-off for a friendly game and preserves the "no setup"
   pillar. Real federated sign-in (Apple + Google into Firebase Auth) is a
   possible post-MVP add-on without changing the data model.
 - **Write model / security rules.** The challenge document is **immutable after
   create**; attempts are **create-only, one doc per UUID** (`allow create:
-  if !exists(...)`), which structurally enforces one-attempt-per-device and
+if !exists(...)`), which structurally enforces one-attempt-per-device and
   blocks tampering with the round or others' scores — the strongest guarantee
   available without auth. Rules validate field shapes and size.
 - **Lifecycle.** Each record carries `expiresAt = created + 30 days`; Firestore's

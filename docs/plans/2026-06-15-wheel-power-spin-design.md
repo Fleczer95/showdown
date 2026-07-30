@@ -31,10 +31,10 @@ preserved, not removed).
   wheel only shows the result. No on-wheel preview marker (deliberately the
   harder, "by feel" variant).
 - **Fairness model:** `power → segment` is **deterministic** (same power → same
-  segment, before jitter), so the skill is learnable. The jitter is the *only*
+  segment, before jitter), so the skill is learnable. The jitter is the _only_
   randomizer of the outcome.
 - **Wheel start position:** wheel **continues from where it last stopped** (no
-  reset). This adds *visual* variety only — it does **not** randomize the
+  reset). This adds _visual_ variety only — it does **not** randomize the
   outcome, because landing is computed to an absolute segment index regardless
   of start angle.
 - **Turns:** still several decorative turns, fewer than before — `SPIN_TURNS = 3`
@@ -52,15 +52,15 @@ Add tunable constants and a force-driven spin; remove the old uniform `spin()`.
 
 ```ts
 // Tunable. Weights for |jitter| 0/1/2; sign chosen 50/50 after.
-export const JITTER_WEIGHTS = { 0: 0.30, 1: 0.50, 2: 0.20 };
-export const SPIN_TURNS = 3;     // base decorative full turns
-export const POWER_TURNS = 3;    // extra turns at max charge -> stronger spin feels faster
-export const CHARGE_MS = 800;    // one 0->1 oscillation sweep (difficulty)
+export const JITTER_WEIGHTS = { 0: 0.3, 1: 0.5, 2: 0.2 };
+export const SPIN_TURNS = 3; // base decorative full turns
+export const POWER_TURNS = 3; // extra turns at max charge -> stronger spin feels faster
+export const CHARGE_MS = 800; // one 0->1 oscillation sweep (difficulty)
 
 // power in [0,1] maps linearly across the 12 segments (~8.3% per segment).
 export function spinWithPower(power: number, rng: () => number = Math.random): SpinResult {
     const target = Math.floor(power * WHEEL.length) % WHEEL.length;
-    const jitter = sampleJitter(rng);                 // in {-2,-1,0,1,2}
+    const jitter = sampleJitter(rng); // in {-2,-1,0,1,2}
     const index = (target + jitter + WHEEL.length) % WHEEL.length;
     return { index, segment: WHEEL[index] };
 }
@@ -74,6 +74,7 @@ export function spinWithPower(power: number, rng: () => number = Math.random): S
 ## Section 2 — interaction + animation (`WheelPlayScreen.tsx`)
 
 **Charge (oscillation):** new shared value `power` (0..1).
+
 - `onPressIn`: `charging = true`; start
   `power.value = withRepeat(withTiming(1, { duration: CHARGE_MS }), -1, true)`.
 - `onPressOut`: read `power.value` (readable from JS), cancel the oscillation,
@@ -82,16 +83,14 @@ export function spinWithPower(power: number, rng: () => number = Math.random): S
 **Landing (continues from current position — no reset):**
 
 ```ts
-const segAngle   = 360 / WHEEL.length;
+const segAngle = 360 / WHEEL.length;
 const landingMod = (((-segAngle * result.index) % 360) + 360) % 360;
 const currentMod = ((rotation.value % 360) + 360) % 360;
-const forward    = (((landingMod - currentMod) % 360) + 360) % 360;
+const forward = (((landingMod - currentMod) % 360) + 360) % 360;
 const target = rotation.value + SPIN_TURNS * 360 + forward;
-rotation.value = withTiming(
-    target,
-    { duration: 3200, easing: Easing.out(Easing.poly(5)) },
-    (f) => { if (f) runOnJS(settleSpin)(result); },
-);
+rotation.value = withTiming(target, { duration: 3200, easing: Easing.out(Easing.poly(5)) }, (f) => {
+    if (f) runOnJS(settleSpin)(result);
+});
 ```
 
 `settleSpin` is unchanged — result flows into the existing `awaitGuess` /
@@ -114,15 +113,18 @@ aiming influence + jitter — a fair a11y path.
 - **Tunable constants** live at the top of `logic.ts`: `JITTER_WEIGHTS`,
   `SPIN_TURNS`, `CHARGE_MS`.
 - **Tests (`logic.test.ts`):**
-  - `spinWithPower(0)` → segment 0; force→segment mapping is monotonic.
-  - jitter with a stubbed `rng` lands on the predicted segments; index always
-    wraps within 0..11.
-  - jitter distribution matches `JITTER_WEIGHTS` (seeded statistical test).
-  - update/replace the two existing `spin()` tests (`logic.test.ts:75-82`).
+    - `spinWithPower(0)` → segment 0; force→segment mapping is monotonic.
+    - jitter with a stubbed `rng` lands on the predicted segments; index always
+      wraps within 0..11.
+    - jitter distribution matches `JITTER_WEIGHTS` (seeded statistical test).
+    - update/replace the two existing `spin()` tests (`logic.test.ts:75-82`).
 
 ## Out of scope / to test later
 
 - Tuning jitter profile (1 forgiving / 2 balanced / 3 swingy).
 - Tuning `WHEEL[]` order, `SPIN_TURNS`, `CHARGE_MS`.
 - Difficulty ramp (e.g. faster `CHARGE_MS` on later puzzles).
+
+```
+
 ```

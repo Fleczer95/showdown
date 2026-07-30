@@ -32,7 +32,9 @@ Advertising ID). **Do not re-add these, and do not "fix" the manifest by deletin
 `tools:node="remove"` lines.**
 
 ### Android — `android/app/src/main/AndroidManifest.xml`
+
 Keep these `tools:node="remove"` entries (and the `xmlns:tools` attribute on `<manifest>`):
+
 - `com.google.android.gms.permission.AD_ID` — no ads; AAID not used
 - `android.permission.ACCESS_ADSERVICES_AD_ID` and
   `android.permission.ACCESS_ADSERVICES_ATTRIBUTION` — no ads or ad attribution
@@ -44,23 +46,28 @@ Keep these `tools:node="remove"` entries (and the `xmlns:tools` attribute on `<m
   `expo.modules.audio.service.AudioRecordingService`
 
 ### Android — `firebase.json`
+
 Keep `"react-native": { "google_analytics_adid_collection_enabled": false }` (disables AAID
 collection by Firebase Analytics). Pair it with the AD_ID permission removal above.
 
 ### iOS — `ios/ShowDown/Info.plist`
+
 Do **not** re-add `NSMicrophoneUsageDescription` or `NSMotionUsageDescription` (unused
 purpose strings from `expo-audio` / `expo-sensors`). Keep `NSAllowsArbitraryLoads = false`.
 
 ### ⚠️ `expo prebuild` will silently undo all of the above
+
 These are hand-edits to the committed native projects. Running `npx expo prebuild`
 (especially `--clean`) regenerates `AndroidManifest.xml` and `Info.plist` and **drops every
 removal**, silently re-introducing the permissions. If a prebuild is ever unavoidable,
 **re-apply every item in this section afterward** (or move them into a config plugin /
 `withAndroidManifest` + `withInfoPlist`). The only prebuild-safe item is the `firebase.json`
 flag. After any build, verify:
+
 ```bash
 aapt dump permissions <app>.aab 2>/dev/null | grep -iE "ad_id|activity_recognition|media_playback|record_audio"   # must be empty
 ```
+
 Background: these capabilities come only from `createAudioPlayer` (foreground SFX in
 `src/hooks/useSound.ts`) and Firebase Analytics — never from app features. `expo-sensors`
 is not imported anywhere in `src/`.

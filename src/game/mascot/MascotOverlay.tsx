@@ -180,10 +180,7 @@ export function MascotOverlay({
 
     const bubbleAnimStyle = useAnimatedStyle(() => ({
         opacity: bubbleReveal.value,
-        transform: [
-            { translateY: (1 - bubbleReveal.value) * 10 },
-            { scale: 0.9 + bubbleReveal.value * 0.1 },
-        ],
+        transform: [{ translateY: (1 - bubbleReveal.value) * 10 }, { scale: 0.9 + bubbleReveal.value * 0.1 }],
     }));
 
     // Auto-hide a spoken bubble after a timeout (the director drops the rest).

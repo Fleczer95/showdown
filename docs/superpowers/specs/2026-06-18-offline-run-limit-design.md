@@ -37,9 +37,9 @@ record across all games:
 
 ```ts
 interface OfflineRunState {
-    day: string;          // 'YYYY-MM-DD' local day the `used` count belongs to
-    used: number;         // runs consumed from the daily allowance today
-    bonus: number;        // banked level-up runs (does NOT reset daily)
+    day: string; // 'YYYY-MM-DD' local day the `used` count belongs to
+    used: number; // runs consumed from the daily allowance today
+    bonus: number; // banked level-up runs (does NOT reset daily)
     lastBonusLevel: number; // highest level already paid out, for one-time grants
 }
 ```
@@ -86,7 +86,7 @@ grantLevelBonus(prevLevel, newLevel):
 ```
 
 - **No retroactive windfall:** on first encounter `lastBonusLevel` seeds to the
-  player's level *before* this run (`prevLevel`). An existing level-10 player
+  player's level _before_ this run (`prevLevel`). An existing level-10 player
   therefore banks nothing on contact; only levels gained after shipping pay out.
   A new player (level 1) pays from their first level-up.
 - Because every completed run flows through `recordRun`, levelling up via a

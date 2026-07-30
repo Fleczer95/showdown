@@ -63,6 +63,7 @@ compiles **all** of gRPC/Firebase and reaches the link stage. Ref: invertase/rea
 > `FirebaseFirestoreInternal` from the iOS build. Do not re-apply §2 for the current app.
 
 **Static libs + `use_modular_headers!`** (the supported RNFB path) — after §2, fails at link with:
+
 - `ld: framework 'FirebaseFirestoreInternal' not found` — Firestore builds from source
   (static lib) but a module autolink emits `-framework FirebaseFirestoreInternal`.
   No documented fix (issue #7454 unresolved); explicit `:modular_headers => true` on
@@ -72,6 +73,7 @@ compiles **all** of gRPC/Firebase and reaches the link stage. Ref: invertase/rea
   finding `Pods/Headers/Public/RNFBAppCheck/RNFBAppCheck.modulemap` during PCH compile.
 
 **`use_frameworks! :linkage => :static`** — auto-resolves both of the above, but then:
+
 - RNFBFirestore's own ObjC headers can't see React types (`RCTPromiseRejectBlock`,
   `RCTBridgeModule`). Survived both `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES`
   and `$RNFirebaseAsStaticFramework = true`. Root cause: RNFB ObjC headers reference React

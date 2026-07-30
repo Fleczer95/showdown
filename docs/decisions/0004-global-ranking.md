@@ -14,7 +14,7 @@ backed by Firestore with device-UUID identity and no auth. We now want a
 
 Constraints inherited from ADR-0003 shape every choice: no application server,
 no sign-in, identity is a device UUID in MMKV, the project runs on the Firestore
-**free (Spark) plan** (so there is *no* native TTL — expiry is a manual
+**free (Spark) plan** (so there is _no_ native TTL — expiry is a manual
 Admin-SDK script), and App Check attests the genuine app binary. A global board
 is a bigger trust and moderation surface than an ephemeral 1:1 challenge: it is
 public, persistent, and shared, with no server to validate a score.
@@ -41,7 +41,7 @@ delayed monthly rollover and an Admin-SDK script for rotation/retention.
   serverless model can't cheaply provide.
 - **Scopes.** Two tabs: **This Month** (`months/{YYYY-MM}`) and **All Time**
   (`alltime`). The month bucket is **UTC `YYYY-MM`**, and the security rule pins
-  a write to the *server's* current month, so a tampered device clock cannot
+  a write to the _server's_ current month, so a tampered device clock cannot
   write into another month.
 - **Bounded board + rotation.** We store only **top `STORE_CAP` (60)** per
   bucket and display **top `DISPLAY_SIZE` (50)**; the 10-entry buffer keeps the
@@ -60,7 +60,7 @@ delayed monthly rollover and an Admin-SDK script for rotation/retention.
   a month so a just-set score that isn't visible yet is expected.
 - **Identity & attestation.** Device UUID (`getDeviceId`), **no auth**. Integrity
   rests on **App Check enforced for Firestore** — binary attestation blocks
-  `curl`/non-app writes. *Release prerequisite:* App Check must be flipped from
+  `curl`/non-app writes. _Release prerequisite:_ App Check must be flipped from
   monitor to **Enforce** (it is service-wide, so it also covers existing
   challenge writes — verify the verified-request metric first).
 - **Security rules.** Public read; create/update only the caller's own
@@ -98,7 +98,7 @@ delayed monthly rollover and an Admin-SDK script for rotation/retention.
 
 ### Retention / hygiene (manual, Admin SDK)
 
-`scripts/cleanup-expired-challenges.mjs` (Admin SDK bypasses rules *and* App
+`scripts/cleanup-expired-challenges.mjs` (Admin SDK bypasses rules _and_ App
 Check) gains three jobs, run **monthly**: (1) **rotate** — trim each bucket to
 `STORE_CAP`; (2) **retain** — delete month buckets older than the current +
 previous 2; (3) **moderate** — `--remove <game> <uuid>` to pull a single entry.
@@ -108,10 +108,10 @@ wrong sweep is reversible.
 ## Consequences
 
 - **Residual cheat risk is accepted, honour-based**, matching ADR-0003: App
-  Check blocks `curl`/scripts, but a *modified app binary* can still post a
+  Check blocks `curl`/scripts, but a _modified app binary_ can still post a
   plausible fake or impersonated score under its own uuid. Impersonation is
   largely defanged — `no delete` + monotonic `update` mean an attacker can only
-  *raise* another uuid's score, never lower or remove it. The all-time board is
+  _raise_ another uuid's score, never lower or remove it. The all-time board is
   backstopped by the cleanup script. The real fix (federated sign-in + server
   validation) remains the post-MVP path ADR-0003 anticipated.
 - Storage stays tiny: at most ~`STORE_CAP` × 3 games × (1 all-time + a couple of
@@ -137,7 +137,7 @@ the "deliberately minimal `{nickname, score}`" shape, with these constraints:
   write point (`stripNonText` in `src/utils/nickname.ts`).
 - **Allowlisted in rules.** `isValidRankingEntry` accepts `signature` only when absent
   or one of the known slugs (kept in sync with `SIGNATURE_SLUGS`). This blocks garbage
-  strings; it cannot prove the tier was *earned*.
+  strings; it cannot prove the tier was _earned_.
 - **Residual risk unchanged in spirit.** A modified binary could write a valid-but-
   unearned slug — pure vanity, no leaderboard-integrity impact (it is not a ranking
   key), and unverifiable without a server. Same honour-based posture as the score

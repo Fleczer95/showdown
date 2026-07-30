@@ -37,6 +37,7 @@ Directory: `src/game/mascot/reactions/` (new) — the whole engine lives here, c
 - `expressions.ts` — `MascotExpression` type + the face-layer data (added to the Mascot render).
 
 Modified:
+
 - `src/game/mascot/Mascot.tsx` — add `expression` prop, swap the facial-feature group by expression.
 - `src/game/mascot/MascotOverlay.tsx` — accept + forward `expression`; add auto-hide-after-timeout for spoken bubbles.
 - `src/game/mascot/look.ts` — extend `MascotPose`/add `MascotExpression` export if colocated there.
@@ -52,17 +53,19 @@ Modified:
 ## Task 1: Event model + scope types
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/events.ts`
 - Test: `src/game/mascot/reactions/events.test.ts`
 
 **Interfaces:**
+
 - Produces:
-  - `type Surface = 'home' | 'game' | 'store' | 'progress' | 'challenge' | 'mascot' | 'other'`
-  - `type EventName = 'app-open' | 'home-focus' | 'idle' | 'run-won' | 'run-lost' | 'streak-milestone' | 'clutch' | 'all-in-survived' | 'level-up' | 'unlock' | 'look-equipped' | 'challenge-received' | 'challenge-beaten' | 'challenge-sent' | 'offline-limit'`
-  - `interface MascotScope { surface: Surface; roundId?: string; questionId?: string; navSeq: number }`
-  - `interface EventContext { gameId?: string; streak?: number; count?: number; [k: string]: string | number | boolean | undefined }`
-  - `interface MascotEvent { name: EventName; scope: MascotScope; ctx: EventContext; at: number }`
-  - `function isGameplayEvent(name: EventName): boolean` — true for `run-won|run-lost|streak-milestone|clutch|all-in-survived`.
+    - `type Surface = 'home' | 'game' | 'store' | 'progress' | 'challenge' | 'mascot' | 'other'`
+    - `type EventName = 'app-open' | 'home-focus' | 'idle' | 'run-won' | 'run-lost' | 'streak-milestone' | 'clutch' | 'all-in-survived' | 'level-up' | 'unlock' | 'look-equipped' | 'challenge-received' | 'challenge-beaten' | 'challenge-sent' | 'offline-limit'`
+    - `interface MascotScope { surface: Surface; roundId?: string; questionId?: string; navSeq: number }`
+    - `interface EventContext { gameId?: string; streak?: number; count?: number; [k: string]: string | number | boolean | undefined }`
+    - `interface MascotEvent { name: EventName; scope: MascotScope; ctx: EventContext; at: number }`
+    - `function isGameplayEvent(name: EventName): boolean` — true for `run-won|run-lost|streak-milestone|clutch|all-in-survived`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -100,10 +103,20 @@ Expected: FAIL — cannot find module `./events`.
 export type Surface = 'home' | 'game' | 'store' | 'progress' | 'challenge' | 'mascot' | 'other';
 
 export type EventName =
-    | 'app-open' | 'home-focus' | 'idle'
-    | 'run-won' | 'run-lost' | 'streak-milestone' | 'clutch' | 'all-in-survived'
-    | 'level-up' | 'unlock' | 'look-equipped'
-    | 'challenge-received' | 'challenge-beaten' | 'challenge-sent'
+    | 'app-open'
+    | 'home-focus'
+    | 'idle'
+    | 'run-won'
+    | 'run-lost'
+    | 'streak-milestone'
+    | 'clutch'
+    | 'all-in-survived'
+    | 'level-up'
+    | 'unlock'
+    | 'look-equipped'
+    | 'challenge-received'
+    | 'challenge-beaten'
+    | 'challenge-sent'
     | 'offline-limit';
 
 export interface MascotScope {
@@ -150,38 +163,40 @@ git commit -m "feat(mascot): reaction event model + scope types"
 ## Task 2: Bucket table (trigger → bucket, priority, surface, spoken?, expression)
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/expressions.ts`
 - Create: `src/game/mascot/reactions/buckets.ts`
 - Test: `src/game/mascot/reactions/buckets.test.ts`
 
 **Interfaces:**
+
 - Consumes: `EventName`, `Surface` from `./events`.
 - Produces:
-  - `expressions.ts`: `type MascotExpression = 'happy' | 'worried' | 'smug' | 'surprised' | 'neutral'`
-  - `buckets.ts`:
-    - `type BucketId` (string union, one per reaction family)
-    - `interface BucketDef { id: BucketId; priority: number; spoken: boolean; expression: MascotExpression; surfaces: Surface[] | 'all'; escalates?: boolean }`
-    - `function resolveBucket(name: EventName): BucketDef` — the single mapping. Higher `priority` wins ties.
+    - `expressions.ts`: `type MascotExpression = 'happy' | 'worried' | 'smug' | 'surprised' | 'neutral'`
+    - `buckets.ts`:
+        - `type BucketId` (string union, one per reaction family)
+        - `interface BucketDef { id: BucketId; priority: number; spoken: boolean; expression: MascotExpression; surfaces: Surface[] | 'all'; escalates?: boolean }`
+        - `function resolveBucket(name: EventName): BucketDef` — the single mapping. Higher `priority` wins ties.
 
 The v1 trigger table (author exactly this):
 
-| EventName | BucketId | priority | spoken | expression | surfaces | escalates |
-|---|---|---|---|---|---|---|
-| level-up | `level-up` | 90 | yes | happy | all | no |
-| challenge-beaten | `challenge-win` | 85 | yes | smug | challenge, home | no |
-| run-won | `run-won` | 80 | yes | happy | game | no |
-| run-lost | `run-lost` | 78 | yes | worried | game | no |
-| challenge-received | `challenge-in` | 70 | yes | surprised | challenge, home | no |
-| offline-limit | `offline-limit` | 68 | yes | worried | home | no |
-| unlock | `unlock` | 60 | yes | happy | store, home | no |
-| look-equipped | `look-equipped` | 58 | yes | smug | mascot, store | no |
-| challenge-sent | `challenge-out` | 50 | yes | happy | challenge | no |
-| streak-milestone | `streak` | 40 | no | happy | home, game | yes |
-| clutch | `clutch` | 38 | no | surprised | game | no |
-| all-in-survived | `all-in` | 36 | no | surprised | game | no |
-| home-focus | `greeting` | 20 | yes | happy | home | no |
-| app-open | `greeting` | 20 | yes | happy | home | no |
-| idle | `idle` | 5 | yes | neutral | home | no |
+| EventName          | BucketId        | priority | spoken | expression | surfaces        | escalates |
+| ------------------ | --------------- | -------- | ------ | ---------- | --------------- | --------- |
+| level-up           | `level-up`      | 90       | yes    | happy      | all             | no        |
+| challenge-beaten   | `challenge-win` | 85       | yes    | smug       | challenge, home | no        |
+| run-won            | `run-won`       | 80       | yes    | happy      | game            | no        |
+| run-lost           | `run-lost`      | 78       | yes    | worried    | game            | no        |
+| challenge-received | `challenge-in`  | 70       | yes    | surprised  | challenge, home | no        |
+| offline-limit      | `offline-limit` | 68       | yes    | worried    | home            | no        |
+| unlock             | `unlock`        | 60       | yes    | happy      | store, home     | no        |
+| look-equipped      | `look-equipped` | 58       | yes    | smug       | mascot, store   | no        |
+| challenge-sent     | `challenge-out` | 50       | yes    | happy      | challenge       | no        |
+| streak-milestone   | `streak`        | 40       | no     | happy      | home, game      | yes       |
+| clutch             | `clutch`        | 38       | no     | surprised  | game            | no        |
+| all-in-survived    | `all-in`        | 36       | no     | surprised  | game            | no        |
+| home-focus         | `greeting`      | 20       | yes    | happy      | home            | no        |
+| app-open           | `greeting`      | 20       | yes    | happy      | home            | no        |
+| idle               | `idle`          | 5        | yes    | neutral    | home            | no        |
 
 Note: `spoken: false` buckets (streak/clutch/all-in) are the rare EXPRESSION-ONLY mid-run reactions — they change the face, never open a bubble.
 
@@ -231,9 +246,20 @@ import type { EventName, Surface } from './events';
 import type { MascotExpression } from './expressions';
 
 export type BucketId =
-    | 'level-up' | 'challenge-win' | 'run-won' | 'run-lost' | 'challenge-in'
-    | 'offline-limit' | 'unlock' | 'look-equipped' | 'challenge-out'
-    | 'streak' | 'clutch' | 'all-in' | 'greeting' | 'idle';
+    | 'level-up'
+    | 'challenge-win'
+    | 'run-won'
+    | 'run-lost'
+    | 'challenge-in'
+    | 'offline-limit'
+    | 'unlock'
+    | 'look-equipped'
+    | 'challenge-out'
+    | 'streak'
+    | 'clutch'
+    | 'all-in'
+    | 'greeting'
+    | 'idle';
 
 export interface BucketDef {
     id: BucketId;
@@ -246,20 +272,45 @@ export interface BucketDef {
 
 const TABLE: Record<EventName, BucketDef> = {
     'level-up': { id: 'level-up', priority: 90, spoken: true, expression: 'happy', surfaces: 'all' },
-    'challenge-beaten': { id: 'challenge-win', priority: 85, spoken: true, expression: 'smug', surfaces: ['challenge', 'home'] },
+    'challenge-beaten': {
+        id: 'challenge-win',
+        priority: 85,
+        spoken: true,
+        expression: 'smug',
+        surfaces: ['challenge', 'home'],
+    },
     'run-won': { id: 'run-won', priority: 80, spoken: true, expression: 'happy', surfaces: ['game'] },
     'run-lost': { id: 'run-lost', priority: 78, spoken: true, expression: 'worried', surfaces: ['game'] },
-    'challenge-received': { id: 'challenge-in', priority: 70, spoken: true, expression: 'surprised', surfaces: ['challenge', 'home'] },
+    'challenge-received': {
+        id: 'challenge-in',
+        priority: 70,
+        spoken: true,
+        expression: 'surprised',
+        surfaces: ['challenge', 'home'],
+    },
     'offline-limit': { id: 'offline-limit', priority: 68, spoken: true, expression: 'worried', surfaces: ['home'] },
-    'unlock': { id: 'unlock', priority: 60, spoken: true, expression: 'happy', surfaces: ['store', 'home'] },
-    'look-equipped': { id: 'look-equipped', priority: 58, spoken: true, expression: 'smug', surfaces: ['mascot', 'store'] },
+    unlock: { id: 'unlock', priority: 60, spoken: true, expression: 'happy', surfaces: ['store', 'home'] },
+    'look-equipped': {
+        id: 'look-equipped',
+        priority: 58,
+        spoken: true,
+        expression: 'smug',
+        surfaces: ['mascot', 'store'],
+    },
     'challenge-sent': { id: 'challenge-out', priority: 50, spoken: true, expression: 'happy', surfaces: ['challenge'] },
-    'streak-milestone': { id: 'streak', priority: 40, spoken: false, expression: 'happy', surfaces: ['home', 'game'], escalates: true },
-    'clutch': { id: 'clutch', priority: 38, spoken: false, expression: 'surprised', surfaces: ['game'] },
+    'streak-milestone': {
+        id: 'streak',
+        priority: 40,
+        spoken: false,
+        expression: 'happy',
+        surfaces: ['home', 'game'],
+        escalates: true,
+    },
+    clutch: { id: 'clutch', priority: 38, spoken: false, expression: 'surprised', surfaces: ['game'] },
     'all-in-survived': { id: 'all-in', priority: 36, spoken: false, expression: 'surprised', surfaces: ['game'] },
     'home-focus': { id: 'greeting', priority: 20, spoken: true, expression: 'happy', surfaces: ['home'] },
     'app-open': { id: 'greeting', priority: 20, spoken: true, expression: 'happy', surfaces: ['home'] },
-    'idle': { id: 'idle', priority: 5, spoken: true, expression: 'neutral', surfaces: ['home'] },
+    idle: { id: 'idle', priority: 5, spoken: true, expression: 'neutral', surfaces: ['home'] },
 };
 
 export function resolveBucket(name: EventName): BucketDef {
@@ -284,15 +335,17 @@ git commit -m "feat(mascot): bucket/trigger table with priority + expression map
 ## Task 3: Line pools + escalation config
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/lines.ts`
 - Test: `src/game/mascot/reactions/lines.test.ts`
 
 **Interfaces:**
+
 - Consumes: `BucketId` from `./buckets`.
 - Produces:
-  - `interface LinePool { keys: string[]; escalation?: { thresholds: number[]; keys: string[] } }`
-  - `const LINES: Record<BucketId, LinePool>`
-  - `function poolFor(id: BucketId): LinePool`
+    - `interface LinePool { keys: string[]; escalation?: { thresholds: number[]; keys: string[] } }`
+    - `const LINES: Record<BucketId, LinePool>`
+    - `function poolFor(id: BucketId): LinePool`
 
 Each `keys` entry is an i18n key under `mascot.*`. Escalation keys are chosen by how many `ctx.count` thresholds are crossed (see Task 4). Author 3–6 keys for high-frequency buckets, 1–2 for rare ones.
 
@@ -338,21 +391,21 @@ export const LINES: Record<BucketId, LinePool> = {
     'run-lost': { keys: ['mascot.runLost.1', 'mascot.runLost.2', 'mascot.runLost.3', 'mascot.runLost.4'] },
     'challenge-in': { keys: ['mascot.challengeIn.1', 'mascot.challengeIn.2'] },
     'offline-limit': { keys: ['mascot.offlineLimit.1', 'mascot.offlineLimit.2'] },
-    'unlock': { keys: ['mascot.unlock.1', 'mascot.unlock.2'] },
+    unlock: { keys: ['mascot.unlock.1', 'mascot.unlock.2'] },
     'look-equipped': { keys: ['mascot.lookEquipped.1', 'mascot.lookEquipped.2', 'mascot.lookEquipped.3'] },
     'challenge-out': { keys: ['mascot.challengeOut.1', 'mascot.challengeOut.2'] },
     // expression-only buckets still carry keys so a future spoken experiment has copy ready
-    'streak': {
+    streak: {
         keys: ['mascot.streak.1'],
         escalation: {
             thresholds: [3, 5, 10],
             keys: ['mascot.streak.tier1', 'mascot.streak.tier2', 'mascot.streak.tier3'],
         },
     },
-    'clutch': { keys: ['mascot.clutch.1'] },
+    clutch: { keys: ['mascot.clutch.1'] },
     'all-in': { keys: ['mascot.allIn.1'] },
-    'greeting': { keys: ['mascot.greeting.1', 'mascot.greeting.2', 'mascot.greeting.3', 'mascot.greeting.4'] },
-    'idle': { keys: ['mascot.idle.1', 'mascot.idle.2', 'mascot.idle.3', 'mascot.idle.4', 'mascot.idle.5'] },
+    greeting: { keys: ['mascot.greeting.1', 'mascot.greeting.2', 'mascot.greeting.3', 'mascot.greeting.4'] },
+    idle: { keys: ['mascot.idle.1', 'mascot.idle.2', 'mascot.idle.3', 'mascot.idle.4', 'mascot.idle.5'] },
 };
 
 export function poolFor(id: BucketId): LinePool {
@@ -377,15 +430,17 @@ git commit -m "feat(mascot): line pools + streak escalation config"
 ## Task 4: Pure line selection (pool avoidance + escalation)
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/reactionSelection.ts`
 - Test: `src/game/mascot/reactions/reactionSelection.test.ts`
 
 **Interfaces:**
+
 - Consumes: `poolFor`, `LinePool` from `./lines`; `BucketId` from `./buckets`.
 - Produces:
-  - `function pickLine(bucketId: BucketId, opts: { recent: string[]; count?: number; rand?: () => number }): string`
-    - If the pool escalates and `count` is given: choose the highest escalation key whose threshold `count` meets; ignore recent-avoidance for escalation (the arc is the point).
-    - Otherwise: filter out `recent` keys; if all filtered out, use the full pool; pick via `rand()` (default `Math.random`).
+    - `function pickLine(bucketId: BucketId, opts: { recent: string[]; count?: number; rand?: () => number }): string`
+        - If the pool escalates and `count` is given: choose the highest escalation key whose threshold `count` meets; ignore recent-avoidance for escalation (the arc is the point).
+        - Otherwise: filter out `recent` keys; if all filtered out, use the full pool; pick via `rand()` (default `Math.random`).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -430,10 +485,7 @@ Expected: FAIL — cannot find module `./reactionSelection`.
 import { poolFor } from './lines';
 import type { BucketId } from './buckets';
 
-export function pickLine(
-    bucketId: BucketId,
-    opts: { recent: string[]; count?: number; rand?: () => number },
-): string {
+export function pickLine(bucketId: BucketId, opts: { recent: string[]; count?: number; rand?: () => number }): string {
     const pool = poolFor(bucketId);
     const rand = opts.rand ?? Math.random;
 
@@ -470,21 +522,23 @@ git commit -m "feat(mascot): pure line selection with repeat-avoidance + escalat
 ## Task 5: Reaction director — emit, priority, cooldown, stale-scope, guards
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/reactionDirector.ts`
 - Test: `src/game/mascot/reactions/reactionDirector.test.ts`
 
 **Interfaces:**
+
 - Consumes: everything above.
 - Produces:
-  - `interface DirectorConfig { cooldownMs: number; navQuietMs: number; recentSize: number; now: () => number }`
-  - `interface Utterance { bucketId: BucketId; expression: MascotExpression; textKey?: string; ctx: EventContext }` (`textKey` omitted for expression-only buckets)
-  - `interface DirectorState { utterance: Utterance | null; expression: MascotExpression }`
-  - `interface Blockers { timerRunning: boolean; transitioning: boolean; modalOpen: boolean; purchasePending: boolean }`
-  - `function createReactionDirector(cfg: Partial<DirectorConfig>): ReactionDirector`
-  - `ReactionDirector = { emit, getState, subscribe, setScope, setBlockers, onNavigate, onBackground, reset, rand }` where:
-    - `emit(name: EventName, ctx: EventContext): void` — resolves bucket; drops if a blocker is active, if the event surface isn't allowed for the current scope, if the event's `scope.navSeq` is stale, or if within cooldown (unless the incoming priority strictly exceeds the current utterance's and cooldown, in which case it preempts). On accept: expression always updates; spoken buckets set `utterance.textKey` and start the cooldown; the chosen key is pushed to that bucket's recent list (bounded by `recentSize`).
-    - `setScope(scope: MascotScope)`, `setBlockers(b: Partial<Blockers>)`, `onNavigate()` (bumps navSeq, records nav time, clears any visible utterance), `onBackground()` (clears utterance + expression to neutral).
-    - `subscribe(fn) => unsubscribe`, `getState()`.
+    - `interface DirectorConfig { cooldownMs: number; navQuietMs: number; recentSize: number; now: () => number }`
+    - `interface Utterance { bucketId: BucketId; expression: MascotExpression; textKey?: string; ctx: EventContext }` (`textKey` omitted for expression-only buckets)
+    - `interface DirectorState { utterance: Utterance | null; expression: MascotExpression }`
+    - `interface Blockers { timerRunning: boolean; transitioning: boolean; modalOpen: boolean; purchasePending: boolean }`
+    - `function createReactionDirector(cfg: Partial<DirectorConfig>): ReactionDirector`
+    - `ReactionDirector = { emit, getState, subscribe, setScope, setBlockers, onNavigate, onBackground, reset, rand }` where:
+        - `emit(name: EventName, ctx: EventContext): void` — resolves bucket; drops if a blocker is active, if the event surface isn't allowed for the current scope, if the event's `scope.navSeq` is stale, or if within cooldown (unless the incoming priority strictly exceeds the current utterance's and cooldown, in which case it preempts). On accept: expression always updates; spoken buckets set `utterance.textKey` and start the cooldown; the chosen key is pushed to that bucket's recent list (bounded by `recentSize`).
+        - `setScope(scope: MascotScope)`, `setBlockers(b: Partial<Blockers>)`, `onNavigate()` (bumps navSeq, records nav time, clears any visible utterance), `onBackground()` (clears utterance + expression to neutral).
+        - `subscribe(fn) => unsubscribe`, `getState()`.
 
 Key rule detail for tests: an event is accepted only when `resolveBucket(name).surfaces === 'all'` OR includes `scope.surface`.
 
@@ -519,13 +573,13 @@ describe('reactionDirector', () => {
         const now = { t: 10000 };
         const d = makeDirector(now);
         d.setScope({ surface: 'home', navSeq: 1 });
-        d.emit('home-focus', {});           // greeting, prio 20
+        d.emit('home-focus', {}); // greeting, prio 20
         const first = d.getState().utterance?.bucketId;
         expect(first).toBe('greeting');
-        now.t = 10100;                       // still within cooldown
-        d.emit('idle', {});                  // prio 5 — dropped
+        now.t = 10100; // still within cooldown
+        d.emit('idle', {}); // prio 5 — dropped
         expect(d.getState().utterance?.bucketId).toBe('greeting');
-        d.emit('level-up', {});              // prio 90 — preempts
+        d.emit('level-up', {}); // prio 90 — preempts
         expect(d.getState().utterance?.bucketId).toBe('level-up');
     });
 
@@ -559,8 +613,8 @@ describe('reactionDirector', () => {
         const now = { t: 0 };
         const d = makeDirector(now);
         d.setScope({ surface: 'home', navSeq: 1 });
-        d.onNavigate();          // records nav at t=0
-        now.t = 200;             // < navQuietMs (500)
+        d.onNavigate(); // records nav at t=0
+        now.t = 200; // < navQuietMs (500)
         d.emit('home-focus', {});
         expect(d.getState().utterance).toBeNull();
     });
@@ -657,11 +711,18 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
                 rand: config.rand,
             });
             recent[bucket.id] = [...(recent[bucket.id] ?? []), key].slice(-config.recentSize);
-            state = { utterance: { bucketId: bucket.id, expression: bucket.expression, textKey: key, ctx }, expression: bucket.expression };
+            state = {
+                utterance: { bucketId: bucket.id, expression: bucket.expression, textKey: key, ctx },
+                expression: bucket.expression,
+            };
             lastSpokenAt = now;
             lastPriority = bucket.priority;
         } else {
-            state = { ...state, utterance: { bucketId: bucket.id, expression: bucket.expression, ctx }, expression: bucket.expression };
+            state = {
+                ...state,
+                utterance: { bucketId: bucket.id, expression: bucket.expression, ctx },
+                expression: bucket.expression,
+            };
         }
         emitState();
     }
@@ -670,13 +731,23 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
         emit,
         rand: config.rand,
         getState: () => state,
-        subscribe(fn: (s: DirectorState) => void) { subs.add(fn); return () => subs.delete(fn); },
-        setScope(next: MascotScope) { scope = next; },
-        setBlockers(patch: Partial<Blockers>) { blockers = { ...blockers, ...patch }; },
+        subscribe(fn: (s: DirectorState) => void) {
+            subs.add(fn);
+            return () => subs.delete(fn);
+        },
+        setScope(next: MascotScope) {
+            scope = next;
+        },
+        setBlockers(patch: Partial<Blockers>) {
+            blockers = { ...blockers, ...patch };
+        },
         onNavigate() {
             lastNavAt = config.now();
             scope = { ...scope, navSeq: scope.navSeq + 1 };
-            if (state.utterance) { state = { ...state, utterance: null }; emitState(); }
+            if (state.utterance) {
+                state = { ...state, utterance: null };
+                emitState();
+            }
         },
         onBackground() {
             state = { utterance: null, expression: 'neutral' };
@@ -685,7 +756,9 @@ export function createReactionDirector(cfg: Partial<DirectorConfig> = {}) {
         },
         reset() {
             state = { utterance: null, expression: 'neutral' };
-            lastSpokenAt = -Infinity; lastNavAt = -Infinity; lastPriority = -Infinity;
+            lastSpokenAt = -Infinity;
+            lastNavAt = -Infinity;
+            lastPriority = -Infinity;
             for (const k of Object.keys(recent)) delete recent[k];
             emitState();
         },
@@ -712,15 +785,17 @@ git commit -m "feat(mascot): reaction director core (priority, cooldown, guards,
 ## Task 6: Idle drip scheduling
 
 **Files:**
+
 - Modify: `src/game/mascot/reactions/reactionDirector.ts`
 - Modify: `src/game/mascot/reactions/reactionDirector.test.ts`
 
 **Interfaces:**
+
 - Produces (added to `ReactionDirector`):
-  - `startIdle(): void` — begins a drip: on each `tick`, if the current surface is `home`, no blockers, and idle enabled, emit an `idle` line, then hide it after `idleShowMs`, wait `idleGapMs`, emit the next. Any `emit` of higher priority or any `onNavigate`/`onBackground` cancels the drip.
-  - `tick(): void` — advances the idle scheduler using `config.now()` (host calls it on an interval).
-  - `stopIdle(): void`.
-  - Config additions: `idleShowMs: number; idleGapMs: number`.
+    - `startIdle(): void` — begins a drip: on each `tick`, if the current surface is `home`, no blockers, and idle enabled, emit an `idle` line, then hide it after `idleShowMs`, wait `idleGapMs`, emit the next. Any `emit` of higher priority or any `onNavigate`/`onBackground` cancels the drip.
+    - `tick(): void` — advances the idle scheduler using `config.now()` (host calls it on an interval).
+    - `stopIdle(): void`.
+    - Config additions: `idleShowMs: number; idleGapMs: number`.
 
 - [ ] **Step 1: Write the failing test** (append)
 
@@ -728,14 +803,22 @@ git commit -m "feat(mascot): reaction director core (priority, cooldown, guards,
 describe('idle drip', () => {
     it('drips idle lines one at a time and hides between', () => {
         const now = { t: 0 };
-        const d = createReactionDirector({ now: () => now.t, idleShowMs: 3000, idleGapMs: 2000, cooldownMs: 0, navQuietMs: 0 });
+        const d = createReactionDirector({
+            now: () => now.t,
+            idleShowMs: 3000,
+            idleGapMs: 2000,
+            cooldownMs: 0,
+            navQuietMs: 0,
+        });
         d.setScope({ surface: 'home', navSeq: 1 });
         d.startIdle();
         d.tick(); // first line shows
         expect(d.getState().utterance?.bucketId).toBe('idle');
-        now.t = 3001; d.tick(); // past show window -> hidden
+        now.t = 3001;
+        d.tick(); // past show window -> hidden
         expect(d.getState().utterance).toBeNull();
-        now.t = 5002; d.tick(); // past gap -> next line
+        now.t = 5002;
+        d.tick(); // past gap -> next line
         expect(d.getState().utterance?.bucketId).toBe('idle');
     });
 
@@ -743,9 +826,11 @@ describe('idle drip', () => {
         const now = { t: 0 };
         const d = createReactionDirector({ now: () => now.t, cooldownMs: 0, navQuietMs: 0 });
         d.setScope({ surface: 'home', navSeq: 1 });
-        d.startIdle(); d.tick();
+        d.startIdle();
+        d.tick();
         d.onNavigate();
-        now.t = 10000; d.tick();
+        now.t = 10000;
+        d.tick();
         expect(d.getState().utterance).toBeNull();
     });
 });
@@ -761,28 +846,41 @@ Expected: FAIL — `d.startIdle is not a function`.
 Add to `DEFAULTS`: `idleShowMs: 4000, idleGapMs: 4000` and to `DirectorConfig`. Inside `createReactionDirector`, add drip state and methods:
 
 ```ts
-    let idleOn = false;
-    let idlePhase: 'show' | 'gap' = 'gap';
-    let idlePhaseUntil = 0;
+let idleOn = false;
+let idlePhase: 'show' | 'gap' = 'gap';
+let idlePhaseUntil = 0;
 
-    function stopIdle() { idleOn = false; if (state.utterance?.bucketId === 'idle') { state = { ...state, utterance: null }; emitState(); } }
-    function startIdle() { idleOn = true; idlePhase = 'gap'; idlePhaseUntil = config.now(); }
-
-    function tick() {
-        if (!idleOn) return;
-        if (scope.surface !== 'home' || anyBlocker()) return;
-        const now = config.now();
-        if (now < idlePhaseUntil) return;
-        if (idlePhase === 'gap') {
-            emit('idle', {});
-            idlePhase = 'show';
-            idlePhaseUntil = now + config.idleShowMs;
-        } else {
-            if (state.utterance?.bucketId === 'idle') { state = { ...state, utterance: null }; emitState(); }
-            idlePhase = 'gap';
-            idlePhaseUntil = now + config.idleGapMs;
-        }
+function stopIdle() {
+    idleOn = false;
+    if (state.utterance?.bucketId === 'idle') {
+        state = { ...state, utterance: null };
+        emitState();
     }
+}
+function startIdle() {
+    idleOn = true;
+    idlePhase = 'gap';
+    idlePhaseUntil = config.now();
+}
+
+function tick() {
+    if (!idleOn) return;
+    if (scope.surface !== 'home' || anyBlocker()) return;
+    const now = config.now();
+    if (now < idlePhaseUntil) return;
+    if (idlePhase === 'gap') {
+        emit('idle', {});
+        idlePhase = 'show';
+        idlePhaseUntil = now + config.idleShowMs;
+    } else {
+        if (state.utterance?.bucketId === 'idle') {
+            state = { ...state, utterance: null };
+            emitState();
+        }
+        idlePhase = 'gap';
+        idlePhaseUntil = now + config.idleGapMs;
+    }
+}
 ```
 
 Wire `stopIdle()` into `onNavigate` and `onBackground` (call it before their existing body). Add `startIdle`, `stopIdle`, `tick` to the returned object.
@@ -804,14 +902,17 @@ git commit -m "feat(mascot): interruptible idle drip scheduler"
 ## Task 7: Facial expressions in the Mascot render
 
 **Files:**
+
 - Modify: `src/game/mascot/Mascot.tsx`
 - Test: `src/game/mascot/Mascot.expression.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `MascotExpression` from `./reactions/expressions`.
 - Produces: `Mascot` and `renderMascot` accept an optional `expression?: MascotExpression` (default `'neutral'` = today's face). The four fixed facial-feature paths (brows, eyes, nose, mouth) become a function of `expression`; the recolorable body/fur/suit/mic paths and the SHADE/HILITE seam are UNCHANGED.
 
 Implementation guidance (the art): keep one `renderFace(expression)` block that returns the eyes/brows/mouth SVG for the given expression. `neutral` = the current paths verbatim. The other four vary only brows + mouth + eye shape (cheap, few nodes, palette-independent since features are the fixed dark `#1F2937`):
+
 - `happy`: raised arch brows (current), mouth = bigger upward curve.
 - `worried`: brows angled up-inward, mouth = small flat/downward curve.
 - `smug`: one brow raised, mouth = asymmetric smirk (curve up on one side).
@@ -865,6 +966,7 @@ git commit -m "feat(mascot): expression-driven face (neutral/happy/worried)"
 ## Task 8: Remaining expressions (smug, surprised)
 
 **Files:**
+
 - Modify: `src/game/mascot/Mascot.tsx`
 - Modify: `src/game/mascot/Mascot.expression.test.tsx`
 
@@ -904,10 +1006,12 @@ git commit -m "feat(mascot): smug + surprised expressions"
 ## Task 9: MascotOverlay accepts expression + auto-hides spoken bubbles
 
 **Files:**
+
 - Modify: `src/game/mascot/MascotOverlay.tsx`
 - Test: `src/game/mascot/MascotOverlay.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `MascotExpression`.
 - Produces: `MascotOverlayProps` gains `expression?: MascotExpression` (forwarded to `<Mascot>`) and `autoHideMs?: number` — when set and `message` is non-null, the overlay calls `onAutoHide?.()` after `autoHideMs`. Adds `onAutoHide?: () => void`.
 
@@ -923,7 +1027,9 @@ jest.useFakeTimers();
 it('calls onAutoHide after autoHideMs when a message is shown', () => {
     const onAutoHide = jest.fn();
     render(<MascotOverlay pose='idle' message='hi' autoHideMs={3000} onAutoHide={onAutoHide} />);
-    act(() => { jest.advanceTimersByTime(3000); });
+    act(() => {
+        jest.advanceTimersByTime(3000);
+    });
     expect(onAutoHide).toHaveBeenCalledTimes(1);
 });
 ```
@@ -962,11 +1068,13 @@ git commit -m "feat(mascot): overlay forwards expression + auto-hides spoken bub
 ## Task 10: Settings toggle `mascotChatter`
 
 **Files:**
+
 - Modify: `src/hooks/useSettings.tsx`
 - Modify: `src/screens/SettingsScreen.tsx`
 - Modify: `src/i18n/locales/en.json`, `src/i18n/locales/pl.json`
 
 **Interfaces:**
+
 - Produces: `SettingsState.mascotChatter: boolean` (default `true`), `setMascotChatter(v: boolean)` in the context, following the exact pattern of `soundEffects`.
 
 - [ ] **Step 1: Add the setting to `useSettings.tsx`**
@@ -1006,21 +1114,23 @@ git commit -m "feat(settings): mascot chatter toggle (silent-but-present when of
 ## Task 11: React provider — wire director to navigation, AppState, reduced-motion, settings
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/useMascotDirector.tsx`
 - Create: `src/game/mascot/reactions/emit.ts`
 - Test: `src/game/mascot/reactions/useMascotDirector.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `createReactionDirector`, `EventName`, `EventContext`, `Surface`.
 - Produces:
-  - `MascotDirectorProvider` (React component) — creates ONE director via `useRef`, subscribes state into React state, and:
-    - maps the current navigation route name → `Surface` and calls `director.setScope` + `director.onNavigate` on route change (bump navSeq, quiet window),
-    - listens to `AppState` `change` → `background`/`inactive` calls `director.onBackground()`,
-    - when `mascotChatter` setting is `false`, suppresses SPOKEN utterances at the HOST layer (director still tracks expression) — pass `chatter` down via context so the host hides the bubble but keeps the face,
-    - runs a `setInterval(() => director.tick(), 1000)` while mounted (idle drip clock), cleared on unmount.
-  - `useMascotEmit(): (name, ctx?) => void` — returns `director.emit` bound.
-  - `useMascotState(): { utterance, expression, chatter }` — for the host.
-  - `emit.ts`: `route-to-surface` map helper `surfaceForRoute(routeName: string): Surface`.
+    - `MascotDirectorProvider` (React component) — creates ONE director via `useRef`, subscribes state into React state, and:
+        - maps the current navigation route name → `Surface` and calls `director.setScope` + `director.onNavigate` on route change (bump navSeq, quiet window),
+        - listens to `AppState` `change` → `background`/`inactive` calls `director.onBackground()`,
+        - when `mascotChatter` setting is `false`, suppresses SPOKEN utterances at the HOST layer (director still tracks expression) — pass `chatter` down via context so the host hides the bubble but keeps the face,
+        - runs a `setInterval(() => director.tick(), 1000)` while mounted (idle drip clock), cleared on unmount.
+    - `useMascotEmit(): (name, ctx?) => void` — returns `director.emit` bound.
+    - `useMascotState(): { utterance, expression, chatter }` — for the host.
+    - `emit.ts`: `route-to-surface` map helper `surfaceForRoute(routeName: string): Surface`.
 
 - [ ] **Step 1: Write the failing test** (logic-level: route→surface mapping is the testable pure part)
 
@@ -1050,8 +1160,12 @@ Expected: FAIL — cannot find `./emit`.
 import type { Surface } from './events';
 
 const EXACT: Record<string, Surface> = {
-    Home: 'home', Store: 'store', Progress: 'progress',
-    Challenge: 'challenge', ChallengeHistory: 'challenge', Mascot: 'mascot',
+    Home: 'home',
+    Store: 'store',
+    Progress: 'progress',
+    Challenge: 'challenge',
+    ChallengeHistory: 'challenge',
+    Mascot: 'mascot',
 };
 
 export function surfaceForRoute(routeName: string): Surface {
@@ -1080,9 +1194,11 @@ git commit -m "feat(mascot): director provider wired to nav/appstate/settings + 
 ## Task 12: Dev-time i18n completeness guard
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/lines.i18n.test.ts`
 
 **Interfaces:**
+
 - Consumes: `LINES`, `en.json`, `pl.json`.
 
 This is the "fail loud if a PL key is missing" guarantee, enforced as a test (runs in CI/dev, never ships a silent EN fallback).
@@ -1098,15 +1214,15 @@ function get(obj: any, path: string): unknown {
     return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
 
-const allKeys = Array.from(
-    new Set(
-        Object.values(LINES).flatMap((p) => [...p.keys, ...(p.escalation?.keys ?? [])]),
-    ),
-);
+const allKeys = Array.from(new Set(Object.values(LINES).flatMap((p) => [...p.keys, ...(p.escalation?.keys ?? [])])));
 
 describe('mascot line i18n completeness', () => {
-    it.each(allKeys)('EN has %s', (key) => { expect(typeof get(en, key)).toBe('string'); });
-    it.each(allKeys)('PL has %s', (key) => { expect(typeof get(pl, key)).toBe('string'); });
+    it.each(allKeys)('EN has %s', (key) => {
+        expect(typeof get(en, key)).toBe('string');
+    });
+    it.each(allKeys)('PL has %s', (key) => {
+        expect(typeof get(pl, key)).toBe('string');
+    });
 });
 ```
 
@@ -1157,16 +1273,18 @@ git commit -m "feat(mascot): author EN+PL line copy + i18n completeness guard"
 ## Task 13: MascotHost — the single app-root overlay
 
 **Files:**
+
 - Create: `src/game/mascot/reactions/MascotHost.tsx`
 - Modify: `src/navigation/RootNavigator.tsx`
 
 **Interfaces:**
+
 - Consumes: `useMascotState`, `MascotOverlay`, `useTranslation`.
 - Produces: `MascotHost` — renders nothing on surfaces where the fox shouldn't sit (its visibility is driven by the current utterance/expression + surface). It:
-  - reads `{ utterance, expression, chatter }` from `useMascotState()`,
-  - resolves `message = chatter && utterance?.textKey ? t(utterance.textKey, utterance.ctx) : null`,
-  - renders `<MascotOverlay pose='idle' expression={expression} message={message} autoHideMs={BUBBLE_MS} onAutoHide={clearUtterance} anchor='bottom-right' size={120} />`,
-  - maps `run-won` → pose `cheer`, `run-lost` → pose `dismay` for the moment of that utterance (optional polish; default `idle`).
+    - reads `{ utterance, expression, chatter }` from `useMascotState()`,
+    - resolves `message = chatter && utterance?.textKey ? t(utterance.textKey, utterance.ctx) : null`,
+    - renders `<MascotOverlay pose='idle' expression={expression} message={message} autoHideMs={BUBBLE_MS} onAutoHide={clearUtterance} anchor='bottom-right' size={120} />`,
+    - maps `run-won` → pose `cheer`, `run-lost` → pose `dismay` for the moment of that utterance (optional polish; default `idle`).
 
 - [ ] **Step 1: Mount the provider + host in `RootNavigator.tsx`**
 
@@ -1175,9 +1293,7 @@ Wrap `<NavigationContainer>`'s children so the host renders ABOVE all screens. B
 ```tsx
 <NavigationContainer theme={navTheme} linking={linking}>
     <MascotDirectorProvider>
-        <Stack.Navigator /* ...unchanged... */>
-            {/* ...unchanged screens... */}
-        </Stack.Navigator>
+        <Stack.Navigator /* ...unchanged... */>{/* ...unchanged screens... */}</Stack.Navigator>
         <MascotHost />
     </MascotDirectorProvider>
 </NavigationContainer>
@@ -1206,10 +1322,12 @@ git commit -m "feat(mascot): app-root mascot host wired into the navigator"
 ## Task 14: Emit from Home + retire the bespoke home-message path
 
 **Files:**
+
 - Modify: `src/screens/HomeScreen.tsx`
 - Modify (delete usage): `src/game/mascot/homeMessages.ts` becomes unused for selection; KEEP the file only if other code imports it — otherwise remove it and its test.
 
 **Interfaces:**
+
 - Consumes: `useMascotEmit`.
 
 - [ ] **Step 1: Emit `home-focus` on focus, `offline-limit` when applicable**
@@ -1218,12 +1336,14 @@ In `HomeScreen`, replace the `useFocusEffect` that set `mascotPose`/`mascotMessa
 
 ```tsx
 const emitMascot = useMascotEmit();
-useFocusEffect(useCallback(() => {
-    emitMascot('home-focus', { streak });
-    if (remainingOfflineRuns(ownedIds, isPremium) === 0 && canUpsell(ownedIds, isPremium)) {
-        emitMascot('offline-limit', {});
-    }
-}, [emitMascot, streak, ownedIds, isPremium]));
+useFocusEffect(
+    useCallback(() => {
+        emitMascot('home-focus', { streak });
+        if (remainingOfflineRuns(ownedIds, isPremium) === 0 && canUpsell(ownedIds, isPremium)) {
+            emitMascot('offline-limit', {});
+        }
+    }, [emitMascot, streak, ownedIds, isPremium]),
+);
 ```
 
 Remove the now-dead local mascot state (`mascotPose`, `mascotMessage`, `resolveMascotMessage`, `showMascotMessage*`, `handleMascotMessagePress`) and the local `<MascotOverlay>` at the bottom of `HomeScreen` (the host renders it globally now).
@@ -1253,6 +1373,7 @@ git commit -m "refactor(mascot): Home emits events; retire bespoke home-message 
 ## Task 15: Emit run-end + expression-only mid-run from the games
 
 **Files:**
+
 - Modify: `src/game/ladder/LadderPlayScreen.tsx`
 - Modify: `src/game/drop/DropPlayScreen.tsx`
 - Modify: `src/game/wheel/WheelPlayScreen.tsx`
@@ -1260,9 +1381,11 @@ git commit -m "refactor(mascot): Home emits events; retire bespoke home-message 
 - Modify: `src/game/GameOverHeader.tsx` (optional: emit on mount)
 
 **Interfaces:**
+
 - Consumes: `useMascotEmit`.
 
 Emit rules per game (fire-and-forget; the director's guards handle timing):
+
 - On reaching the game-over/results state: `emit(won ? 'run-won' : 'run-lost', { gameId })`. (These pass the director's `game` surface + no active timer, so they speak.)
 - Set `director.setBlockers({ timerRunning: true })` while a question timer is counting and `false` at lock/reveal — expose a `useMascotBlockers()` helper from the provider that games call, OR simpler: have each game emit `streak-milestone`/`clutch`/`all-in-survived` ONLY at the safe post-reveal beat, and never emit spoken events mid-round (the trigger table already marks those three as `spoken:false`, so they can't open a bubble regardless).
 - Ladder: at a correct reveal that crosses a streak threshold, `emit('streak-milestone', { count: currentStreak })`; at a fast-correct high rung, `emit('clutch', {})`.
@@ -1304,12 +1427,14 @@ git commit -m "feat(mascot): games emit run-end + expression-only mid-run reacti
 ## Task 16: Emit economy + challenge events
 
 **Files:**
+
 - Modify: the purchase-completion path in `src/hooks/store/*` or `src/screens/store/StoreScreen.tsx`
 - Modify: `src/screens/MascotScreen.tsx` (look-equipped)
 - Modify: `src/game/progression/*` level-up path or wherever level-up is detected
 - Modify: `src/screens/ChallengeScreen.tsx` (received/beaten) and the challenge-send path
 
 **Interfaces:**
+
 - Consumes: `useMascotEmit`.
 
 Guards to honor (per Global Constraints): emit `unlock` only AFTER the purchase is confirmed (not on optimistic tap) to avoid the double-fire Codex flagged; set `purchasePending` blocker true during the transaction if the provider exposes it, or simply emit once in the single confirmed-success callback.
@@ -1332,6 +1457,7 @@ git commit -m "feat(mascot): emit economy + challenge reactions (dedup on confir
 ## Task 17: Full regression + tuning pass
 
 **Files:**
+
 - Modify: `src/game/mascot/reactions/reactionDirector.ts` (constants only, if tuning)
 
 - [ ] **Step 1: Run the whole suite**

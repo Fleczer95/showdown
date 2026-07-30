@@ -352,7 +352,5 @@ it('uses the sheet title without duplicating the Solo Leaderboard heading', () =
     fireEvent.press(screen.getByLabelText('leaderboard.view'));
 
     expect(screen.getByText('leaderboard.title')).toBeTruthy();
-    expect(mockLeaderboard).toHaveBeenLastCalledWith(
-        expect.objectContaining({ gameId: 'the-drop', showTitle: false }),
-    );
+    expect(mockLeaderboard).toHaveBeenLastCalledWith(expect.objectContaining({ gameId: 'the-drop', showTitle: false }));
 });

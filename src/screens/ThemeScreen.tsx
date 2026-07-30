@@ -73,10 +73,7 @@ export function ThemeScreen() {
                 label: t(opt.labelKey as any),
                 tokens: opt.theme,
                 isLocked,
-                lockLabel:
-                    isLocked && requiredLevel
-                        ? t('progression.levelShort', { n: requiredLevel })
-                        : undefined,
+                lockLabel: isLocked && requiredLevel ? t('progression.levelShort', { n: requiredLevel }) : undefined,
                 isEarned: opt.isEarned,
                 rewardId: opt.rewardId,
                 isSubscriber: opt.isSubscriber,

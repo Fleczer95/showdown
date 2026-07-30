@@ -40,13 +40,7 @@ function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfi
     }, [visible, setIsBlurry]);
 
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType='none'
-            statusBarTranslucent
-            onRequestClose={onCancel}
-        >
+        <Modal visible={visible} transparent animationType='none' statusBarTranslucent onRequestClose={onCancel}>
             <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.backdrop}>
                 <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} />
 

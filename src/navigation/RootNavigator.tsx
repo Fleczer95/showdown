@@ -68,34 +68,34 @@ export function RootNavigator() {
     return (
         <NavigationContainer ref={navigationRef} theme={navTheme} linking={linking}>
             <MascotDirectorProvider navigationRef={navigationRef}>
-            <Stack.Navigator
-                initialRouteName='Home'
-                screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: theme.colors.background },
-                }}
-            >
-                <Stack.Screen name='Home' component={HomeScreen} />
-                <Stack.Screen name='Settings' component={SettingsScreen} />
-                <Stack.Screen name='Theme' component={ThemeScreen} />
-                <Stack.Screen name='Store' component={StoreScreen} />
-                <Stack.Screen name='Progress' component={ProgressScreen} />
-                <Stack.Screen name='Challenge' component={ChallengeScreen} />
-                <Stack.Screen name='ChallengeHistory' component={ChallengeHistoryScreen} />
-                <Stack.Screen name='Ranking' component={RankingScreen} />
-                <Stack.Screen name='Mascot' component={MascotScreen} />
-                <Stack.Screen name='privacyPolicy' component={DocumentScreen} />
-                <Stack.Screen name='termsOfUse' component={DocumentScreen} />
-                {games.map((game) => (
-                    <Stack.Screen
-                        key={game.id}
-                        name={game.setupRoute}
-                        component={GameSetupScreen}
-                        initialParams={{ gameId: game.id }}
-                    />
-                ))}
-            </Stack.Navigator>
-            <MascotHost />
+                <Stack.Navigator
+                    initialRouteName='Home'
+                    screenOptions={{
+                        headerShown: false,
+                        contentStyle: { backgroundColor: theme.colors.background },
+                    }}
+                >
+                    <Stack.Screen name='Home' component={HomeScreen} />
+                    <Stack.Screen name='Settings' component={SettingsScreen} />
+                    <Stack.Screen name='Theme' component={ThemeScreen} />
+                    <Stack.Screen name='Store' component={StoreScreen} />
+                    <Stack.Screen name='Progress' component={ProgressScreen} />
+                    <Stack.Screen name='Challenge' component={ChallengeScreen} />
+                    <Stack.Screen name='ChallengeHistory' component={ChallengeHistoryScreen} />
+                    <Stack.Screen name='Ranking' component={RankingScreen} />
+                    <Stack.Screen name='Mascot' component={MascotScreen} />
+                    <Stack.Screen name='privacyPolicy' component={DocumentScreen} />
+                    <Stack.Screen name='termsOfUse' component={DocumentScreen} />
+                    {games.map((game) => (
+                        <Stack.Screen
+                            key={game.id}
+                            name={game.setupRoute}
+                            component={GameSetupScreen}
+                            initialParams={{ gameId: game.id }}
+                        />
+                    ))}
+                </Stack.Navigator>
+                <MascotHost />
             </MascotDirectorProvider>
         </NavigationContainer>
     );

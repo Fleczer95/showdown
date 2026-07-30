@@ -138,7 +138,7 @@ identical bundle was already uploaded.
 ## Traps — please avoid these, they cost time already
 
 1. **`sentry-cli releases files <release> list` is useless here.** Modern uploads go
-   to *artifact bundles*, which do not appear in that listing. It returns empty for
+   to _artifact bundles_, which do not appear in that listing. It returns empty for
    uploads that definitely succeeded. Do not read an empty result as a failed
    upload. Trust the build log, not that command.
 
@@ -207,11 +207,11 @@ npm run aab 2>&1 | tee /tmp/aab.log
   `android/app/build/outputs/bundle/release/app-release.aab` (115,978,881 bytes).
 - Sentry authentication was confirmed as an auth token with `org:ci` scope.
 - The source-map upload succeeded:
-  - Organization/project: `breathing-app` / `showdown`
-  - Release: `com.showdown.app@1.3.1+33`
-  - Dist: `33`
-  - Artifact bundle ID: `0ba1f393-f83a-5d67-a949-e6f738a51cff`
-  - Bundle/source-map debug ID: `2aa12c6e-4466-4030-97fb-aa78fb5bc7a3`
+    - Organization/project: `breathing-app` / `showdown`
+    - Release: `com.showdown.app@1.3.1+33`
+    - Dist: `33`
+    - Artifact bundle ID: `0ba1f393-f83a-5d67-a949-e6f738a51cff`
+    - Bundle/source-map debug ID: `2aa12c6e-4466-4030-97fb-aa78fb5bc7a3`
 - No `error: sentry-cli` lines appeared.
 - `android/app/build.gradle` still contained the Sentry `apply from:` line at
   line 84 after Expo prebuild.
@@ -270,12 +270,14 @@ defaults.
 Prebuild was run locally to capture what this injects. Two gradle files:
 
 **`android/build.gradle`** (root, buildscript dependencies):
+
 ```groovy
 classpath("io.sentry:sentry-android-gradle-plugin:5.11.0")
 ```
 
 **`android/app/build.gradle`** — `apply plugin: "io.sentry.android.gradle"` at line 1,
 plus this block appended at the end:
+
 ```groovy
 sentry {
     autoUploadProguardMapping = shouldSentryAutoUpload()
@@ -374,16 +376,16 @@ built using the `pipefail` command above.
 - The release AAB was generated at
   `android/app/build/outputs/bundle/release/app-release.aab` (115,981,894 bytes).
 - The JavaScript source-map upload still succeeded:
-  - Organization/project: `breathing-app` / `showdown`
-  - Release: `com.showdown.app@1.3.2+34`
-  - Dist: `34`
-  - Upload type: artifact bundle
-  - Artifact bundle ID: `0ba1f393-f83a-5d67-a949-e6f738a51cff`
-  - Bundle/source-map debug ID: `2aa12c6e-4466-4030-97fb-aa78fb5bc7a3`
+    - Organization/project: `breathing-app` / `showdown`
+    - Release: `com.showdown.app@1.3.2+34`
+    - Dist: `34`
+    - Upload type: artifact bundle
+    - Artifact bundle ID: `0ba1f393-f83a-5d67-a949-e6f738a51cff`
+    - Bundle/source-map debug ID: `2aa12c6e-4466-4030-97fb-aa78fb5bc7a3`
 - Native symbol upload succeeded through
   `:app:uploadSentryNativeSymbolsForRelease`:
-  - Found 112 debug information files
-  - Uploaded 112 missing debug information files
+    - Found 112 debug information files
+    - Uploaded 112 missing debug information files
 - No `error: sentry-cli` lines appeared.
 - All three expected Sentry references remained in
   `android/app/build.gradle` after prebuild: the Android Gradle Plugin at line 1,

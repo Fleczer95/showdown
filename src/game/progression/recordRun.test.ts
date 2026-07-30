@@ -135,11 +135,7 @@ describe('applyRun — challenge runs', () => {
     });
 
     it('leaves challengesPlayed untouched on a solo run', () => {
-        const { stats: next, diff } = applyRun(
-            stats(),
-            result({ gameId: 'the-ladder', rungReached: 6 }),
-            TODAY,
-        );
+        const { stats: next, diff } = applyRun(stats(), result({ gameId: 'the-ladder', rungReached: 6 }), TODAY);
         expect(next.challengesPlayed).toBe(0);
         expect(diff.newAchievements).not.toContain('challenger-bronze');
     });
@@ -170,9 +166,7 @@ describe('recordRun — level-up telemetry', () => {
         // Fresh stats + a rung-15 run: 50 floor + 100 skill + 75 breadth + feat XP
         // crosses the level-2 threshold (150), so the run levels up.
         recordRun(result({ gameId: 'the-ladder', rungReached: 15 }));
-        expect(SafeAnalytics.logEvent).toHaveBeenCalledWith(
-            expect.objectContaining({ name: 'level_up' }),
-        );
+        expect(SafeAnalytics.logEvent).toHaveBeenCalledWith(expect.objectContaining({ name: 'level_up' }));
     });
 
     it('stays silent on a run that does not level up', () => {

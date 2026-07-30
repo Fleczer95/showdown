@@ -23,6 +23,7 @@
 ### Task 1: Progression core — `challengesPlayed` stat, `challenge` flag, Challenger family
 
 **Files:**
+
 - Modify: `src/game/progression/types.ts`
 - Modify: `src/game/progression/recordRun.ts`
 - Modify: `src/game/progression/achievements.ts`
@@ -32,6 +33,7 @@
 - Test: `src/game/progression/recordRun.test.ts`
 
 **Interfaces:**
+
 - Consumes: existing `applyRun(prev, result, today)`, `defaultStats()`, `ACHIEVEMENT_FAMILIES`.
 - Produces: `GameRunResult.challenge?: boolean`; `ProgressionStats.challengesPlayed: number`; achievement ids `challenger-bronze|silver|gold`. Task 4 relies on `recordRun({ ...run, challenge: true })` incrementing the counter.
 
@@ -52,11 +54,7 @@ describe('applyRun — challenge runs', () => {
     });
 
     it('leaves challengesPlayed untouched on a solo run', () => {
-        const { stats: next, diff } = applyRun(
-            stats(),
-            result({ gameId: 'the-ladder', rungReached: 6 }),
-            TODAY,
-        );
+        const { stats: next, diff } = applyRun(stats(), result({ gameId: 'the-ladder', rungReached: 6 }), TODAY);
         expect(next.challengesPlayed).toBe(0);
         expect(diff.newAchievements).not.toContain('challenger-bronze');
     });
@@ -100,8 +98,8 @@ In `src/game/progression/types.ts`, inside `GameRunResult` after the `bankruptRe
 Inside `ProgressionStats` after the `feats` field:
 
 ```ts
-    /** Async challenge runs completed. Powers the Challenger family. */
-    challengesPlayed: number;
+/** Async challenge runs completed. Powers the Challenger family. */
+challengesPlayed: number;
 ```
 
 - [ ] **Step 4: Seed and fold the counter in recordRun.ts**
@@ -174,18 +172,22 @@ In `progression.requirement` after `"wheel-scorer": …`:
 The requirement string is rendered only in `src/components/molecules/AchievementDetailSheet.tsx:129-131`. i18n-js picks a plural form only when `count` is passed; existing families are plain strings and ignore it. Change:
 
 ```tsx
-                                                        {t(`progression.requirement.${family.family}`, {
-                                                            n: fmt(family.thresholds[i]),
-                                                        })}
+{
+    t(`progression.requirement.${family.family}`, {
+        n: fmt(family.thresholds[i]),
+    });
+}
 ```
 
 to:
 
 ```tsx
-                                                        {t(`progression.requirement.${family.family}`, {
-                                                            n: fmt(family.thresholds[i]),
-                                                            count: family.thresholds[i],
-                                                        })}
+{
+    t(`progression.requirement.${family.family}`, {
+        n: fmt(family.thresholds[i]),
+        count: family.thresholds[i],
+    });
+}
 ```
 
 - [ ] **Step 9: Typecheck and full-suite sanity**
@@ -207,6 +209,7 @@ git commit -m "feat(progression): challengesPlayed stat + Challenger achievement
 ### Task 2: Carry the full run result through ChallengeHandoff
 
 **Files:**
+
 - Modify: `src/game/challenge/ChallengeHandoff.tsx`
 - Modify: `src/game/ladder/LadderPlayScreen.tsx:244-265`
 - Modify: `src/game/drop/DropPlayScreen.tsx:275-292`
@@ -214,6 +217,7 @@ git commit -m "feat(progression): challengesPlayed stat + Challenger achievement
 - Test: `src/game/challenge/ChallengeHandoff.test.tsx` (new)
 
 **Interfaces:**
+
 - Consumes: `GameRunResult` from Task 1 (`../progression`).
 - Produces: `ChallengeResult` now `{ progress: number; score: number; run: GameRunResult }`; `ChallengeHandoff` gains a required `run` prop. Task 4 reads `result.run`.
 
@@ -232,9 +236,7 @@ const run: GameRunResult = { gameId: 'the-ladder', score: 1200, won: false, rung
 describe('ChallengeHandoff', () => {
     it('reports the full result exactly once, including the progression run', () => {
         const onComplete = jest.fn();
-        const { rerender } = render(
-            <ChallengeHandoff progress={6} score={1200} run={run} onComplete={onComplete} />,
-        );
+        const { rerender } = render(<ChallengeHandoff progress={6} score={1200} run={run} onComplete={onComplete} />);
         rerender(<ChallengeHandoff progress={6} score={1200} run={run} onComplete={onComplete} />);
         expect(onComplete).toHaveBeenCalledTimes(1);
         expect(onComplete).toHaveBeenCalledWith({ progress: 6, score: 1200, run });
@@ -301,77 +303,77 @@ export function ChallengeHandoff({
 `src/game/ladder/LadderPlayScreen.tsx` — the game-over block currently returns `ChallengeHandoff` before building `runResult`. Reorder so the same object serves both paths:
 
 ```tsx
-        // Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
-        // never reaches the board), a win clears all RUN_LENGTH rungs.
-        const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
-        const runResult: GameRunResult = {
-            gameId: GAME_ID,
-            score: breakdown.total,
-            won: run.status === 'won',
-            rungReached: reachedRung(run),
-            lifelinesUsed: run.usedLifelines.length,
-            quickWit: quickWit.current,
-        };
-        // Challenge mode hands the result to the Challenge orchestrator (submit +
-        // reveal) instead of the normal game-over board.
-        if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={correctAnswered}
-                    score={breakdown.total}
-                    run={runResult}
-                    onComplete={challenge.onComplete}
-                />
-            );
-        }
+// Questions answered correctly drives the ranking: a Q1 miss is 0 (and so
+// never reaches the board), a win clears all RUN_LENGTH rungs.
+const correctAnswered = run.status === 'won' ? RUN_LENGTH : run.currentIndex;
+const runResult: GameRunResult = {
+    gameId: GAME_ID,
+    score: breakdown.total,
+    won: run.status === 'won',
+    rungReached: reachedRung(run),
+    lifelinesUsed: run.usedLifelines.length,
+    quickWit: quickWit.current,
+};
+// Challenge mode hands the result to the Challenge orchestrator (submit +
+// reveal) instead of the normal game-over board.
+if (challenge) {
+    return (
+        <ChallengeHandoff
+            progress={correctAnswered}
+            score={breakdown.total}
+            run={runResult}
+            onComplete={challenge.onComplete}
+        />
+    );
+}
 ```
 
 `src/game/drop/DropPlayScreen.tsx` — same reorder:
 
 ```tsx
-        const breakdown = dropScore({ bank: state.bank, roundsSurvived, speed: survivalSpeed.current });
-        const runResult: GameRunResult = {
-            gameId: GAME_ID,
-            score: breakdown.total,
-            won,
-            finalBank: state.bank,
-            roundsSurvived,
-        };
-        // Challenge mode reports the result to the orchestrator instead of the board.
-        if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={roundsSurvived}
-                    score={breakdown.total}
-                    run={runResult}
-                    onComplete={challenge.onComplete}
-                />
-            );
-        }
+const breakdown = dropScore({ bank: state.bank, roundsSurvived, speed: survivalSpeed.current });
+const runResult: GameRunResult = {
+    gameId: GAME_ID,
+    score: breakdown.total,
+    won,
+    finalBank: state.bank,
+    roundsSurvived,
+};
+// Challenge mode reports the result to the orchestrator instead of the board.
+if (challenge) {
+    return (
+        <ChallengeHandoff
+            progress={roundsSurvived}
+            score={breakdown.total}
+            run={runResult}
+            onComplete={challenge.onComplete}
+        />
+    );
+}
 ```
 
 `src/game/wheel/WheelPlayScreen.tsx` — same reorder:
 
 ```tsx
-        const runResult: GameRunResult = {
-            gameId: GAME_ID,
-            score: breakdown.total,
-            won: game.status === 'over',
-            puzzlesSolved: solvedCount.current,
-            cleanPuzzles: cleanPuzzles.current,
-            bankruptRecovered: bankruptRecovered.current,
-        };
-        // Challenge mode reports the result to the orchestrator instead of the board.
-        if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={solvedCount.current}
-                    score={breakdown.total}
-                    run={runResult}
-                    onComplete={challenge.onComplete}
-                />
-            );
-        }
+const runResult: GameRunResult = {
+    gameId: GAME_ID,
+    score: breakdown.total,
+    won: game.status === 'over',
+    puzzlesSolved: solvedCount.current,
+    cleanPuzzles: cleanPuzzles.current,
+    bankruptRecovered: bankruptRecovered.current,
+};
+// Challenge mode reports the result to the orchestrator instead of the board.
+if (challenge) {
+    return (
+        <ChallengeHandoff
+            progress={solvedCount.current}
+            score={breakdown.total}
+            run={runResult}
+            onComplete={challenge.onComplete}
+        />
+    );
+}
 ```
 
 In each file the original `const runResult` declaration below the branch is removed (it moved up); everything else (GameOverView / game-over board usage of `runResult`) is untouched.
@@ -395,10 +397,12 @@ git commit -m "feat(challenge): carry the full GameRunResult through the handoff
 ### Task 3: Split RunCelebration into a reusable CelebrationCard
 
 **Files:**
+
 - Modify: `src/components/molecules/RunCelebration.tsx`
 - Test: `src/components/molecules/__tests__/RunCelebration.test.tsx` (existing — must keep passing unchanged)
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces: named export `CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent: string })` — the presentational celebration (XP bar, count-up, level flip + confetti, reward/achievement reveals, level-up analytics, review pre-prompt). Default export `RunCelebration({ result, accent })` unchanged in API and behavior. Task 4 imports `CelebrationCard`.
 
@@ -416,12 +420,12 @@ export function CelebrationCard({ diff, accent }: { diff: RecordRunDiff; accent:
 ```
 
 2. Inside it, delete the recording state and effect (diff now arrives as a prop):
-   - `const [diff, setDiff] = useState<RecordRunDiff | null>(null);`
-   - `const recorded = useRef(false);`
-   - the entire `useLayoutEffect` block that calls `recordRun(result)` (with its comment)
-   - the early return `if (!diff) return null;`
+    - `const [diff, setDiff] = useState<RecordRunDiff | null>(null);`
+    - `const recorded = useRef(false);`
+    - the entire `useLayoutEffect` block that calls `recordRun(result)` (with its comment)
+    - the early return `if (!diff) return null;`
 
-   Everything else (displayLevel seeding, level-up analytics effect, review prompt, rollover handler, JSX) stays byte-identical — it already only reads `diff`.
+    Everything else (displayLevel seeding, level-up analytics effect, review prompt, rollover handler, JSX) stays byte-identical — it already only reads `diff`.
 
 3. Add the recording wrapper above the styles, and keep the memoized default export:
 
@@ -474,10 +478,12 @@ git commit -m "refactor(celebration): split presentational CelebrationCard from 
 ### Task 4: ChallengeScreen records the run and celebrates on the results board
 
 **Files:**
+
 - Modify: `src/screens/ChallengeScreen.tsx`
 - Test: `src/screens/ChallengeScreen.test.tsx` (new)
 
 **Interfaces:**
+
 - Consumes: `ChallengeResult.run` (Task 2), `recordRun` + `challenge: true` flag (Task 1), `CelebrationCard` (Task 3).
 - Produces: user-facing behavior only.
 
@@ -736,9 +742,7 @@ describe('ChallengeScreen progression', () => {
 
     it('keeps the XP on a failed submit and does not re-record on retry', async () => {
         (getAttempt as jest.Mock).mockResolvedValue(null);
-        (submitAttempt as jest.Mock)
-            .mockRejectedValueOnce(new Error('offline'))
-            .mockResolvedValueOnce(undefined);
+        (submitAttempt as jest.Mock).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined);
 
         const screen = render(<ChallengeScreen />);
         await playThrough(screen);
@@ -768,7 +772,7 @@ describe('ChallengeScreen progression', () => {
 Note on the third test's assertion: with a single attempt the board shows the waiting state — the headline key is `challenge.waiting`, not `challenge.youWin`. Use `challenge.waiting`:
 
 ```tsx
-        await waitFor(() => screen.getByText('challenge.waiting'));
+await waitFor(() => screen.getByText('challenge.waiting'));
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -790,22 +794,22 @@ import { CelebrationCard } from '../components/molecules/RunCelebration';
 2. Add state next to the other `useState` calls:
 
 ```ts
-    const [celebrationDiff, setCelebrationDiff] = useState<RecordRunDiff | null>(null);
+const [celebrationDiff, setCelebrationDiff] = useState<RecordRunDiff | null>(null);
 ```
 
 3. Replace `handleComplete`:
 
 ```ts
-    const handleComplete = useCallback(
-        (result: ChallengeResult) => {
-            // Bank the run's XP/achievements the moment it ends, before the submit:
-            // a failed or abandoned submit never loses them, and submit retries
-            // (which re-enter submit, not this callback) can't double-record.
-            setCelebrationDiff(recordRun({ ...result.run, challenge: true }));
-            return submit(result);
-        },
-        [submit],
-    );
+const handleComplete = useCallback(
+    (result: ChallengeResult) => {
+        // Bank the run's XP/achievements the moment it ends, before the submit:
+        // a failed or abandoned submit never loses them, and submit retries
+        // (which re-enter submit, not this callback) can't double-record.
+        setCelebrationDiff(recordRun({ ...result.run, challenge: true }));
+        return submit(result);
+    },
+    [submit],
+);
 ```
 
 4. Pass the diff to the results board — change the `ResultsCard` call site:
@@ -850,7 +854,9 @@ function ResultsCard({
 and in its JSX, after the closing `</Stack>` of the attempts list and before the Home `<Button …>`:
 
 ```tsx
-                {celebrationDiff ? <CelebrationCard diff={celebrationDiff} accent={accent} /> : null}
+{
+    celebrationDiff ? <CelebrationCard diff={celebrationDiff} accent={accent} /> : null;
+}
 ```
 
 - [ ] **Step 4: Run the new tests**

@@ -27,6 +27,7 @@ Conventions confirmed in the codebase: tests are `*.test.ts` colocated, run with
 ### Task 1: Leaderboard data module (pure logic + persistence)
 
 **Files:**
+
 - Create: `src/game/leaderboard.ts`
 - Test: `src/game/leaderboard.test.ts`
 
@@ -215,6 +216,7 @@ git commit -m "feat(leaderboard): add per-game ranking logic and MMKV persistenc
 ### Task 2: i18n strings (en + pl)
 
 **Files:**
+
 - Modify: `src/i18n/locales/en.json`
 - Modify: `src/i18n/locales/pl.json`
 
@@ -267,6 +269,7 @@ git commit -m "feat(leaderboard): add en/pl strings"
 ### Task 3: Port the BottomSheet component
 
 **Files:**
+
 - Create: `src/components/molecules/BottomSheet.tsx`
 - Reference: `../../../TinyParty/src/components/organisms/BottomSheet.tsx`
 
@@ -534,6 +537,7 @@ git commit -m "feat(leaderboard): add BottomSheet component (ported from TinyPar
 ### Task 4: Reusable Leaderboard component
 
 **Files:**
+
 - Create: `src/components/molecules/Leaderboard.tsx`
 
 Behavior: on mount, read the board for `gameId`. If a `pendingScore` is supplied and it `qualifies`, render the nickname-entry flow (pre-filled with the last nickname, clearable, max 12 chars, Save disabled until the trimmed value is non-empty). On save, persist, remember the nickname, re-read the board, and highlight the new row. Otherwise render the board read-only. Empty board shows the empty-state string. The component owns per-game score formatting (ladder → "Rung N"; drop/wheel → locale-grouped number).
@@ -602,13 +606,21 @@ function Leaderboard({ gameId, pendingScore }: LeaderboardProps) {
                         style={[
                             styles.row,
                             { borderBottomColor: theme.colors.border },
-                            highlighted && { backgroundColor: theme.colors.primary + '22', borderRadius: theme.radii.sm },
+                            highlighted && {
+                                backgroundColor: theme.colors.primary + '22',
+                                borderRadius: theme.radii.sm,
+                            },
                         ]}
                     >
                         <Text variant='body' weight='bold' color='textSecondary' style={styles.rank}>
                             {i + 1}
                         </Text>
-                        <Text variant='body' weight={highlighted ? 'bold' : 'semibold'} style={styles.name} numberOfLines={1}>
+                        <Text
+                            variant='body'
+                            weight={highlighted ? 'bold' : 'semibold'}
+                            style={styles.name}
+                            numberOfLines={1}
+                        >
                             {entry.nickname}
                         </Text>
                         <Text variant='caption' color='textMuted' style={styles.date}>
@@ -710,6 +722,7 @@ git commit -m "feat(leaderboard): add reusable Leaderboard component"
 ### Task 5: Host the leaderboard in the three game-over views
 
 **Files:**
+
 - Modify: `src/game/ladder/LadderPlayScreen.tsx`
 - Modify: `src/game/wheel/WheelPlayScreen.tsx`
 - Modify: `src/game/drop/DropPlayScreen.tsx`
@@ -781,6 +794,7 @@ git commit -m "feat(leaderboard): show save/board inline on each game-over scree
 ### Task 6: Leaderboard button + bottom sheet on the setup screen
 
 **Files:**
+
 - Modify: `src/screens/GameSetupScreen.tsx`
 
 - [ ] **Step 1: Add imports and visibility state**
@@ -801,7 +815,7 @@ import Leaderboard from '../components/molecules/Leaderboard';
 Add `useState` to the React import if not present (`import React, { useState } from 'react';`) and declare state inside `GameSetupScreen`, next to the other hooks:
 
 ```tsx
-    const [showLeaderboard, setShowLeaderboard] = useState(false);
+const [showLeaderboard, setShowLeaderboard] = useState(false);
 ```
 
 - [ ] **Step 2: Add the Leaderboard button to the footer**
@@ -809,33 +823,28 @@ Add `useState` to the React import if not present (`import React, { useState } f
 Replace the footer `View` block (the one containing the single Start `Button`) so it stacks a ghost "Leaderboard" button above Start:
 
 ```tsx
-            <View
-                style={[
-                    styles.footer,
-                    { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl },
-                ]}
-            >
-                <Stack gap='sm' align='stretch'>
-                    <Button
-                        fullWidth
-                        size='lg'
-                        onPress={() => send({ type: 'START' })}
-                        style={{ backgroundColor: accent, borderColor: accent }}
-                        textColor={onAccent}
-                        icon={<Play size={20} color={onAccent} fill={onAccent} />}
-                    >
-                        {t('common.start')}
-                    </Button>
-                    <Button
-                        fullWidth
-                        variant='ghost'
-                        onPress={() => setShowLeaderboard(true)}
-                        icon={<Trophy size={18} color={theme.colors.text} />}
-                    >
-                        {t('leaderboard.view')}
-                    </Button>
-                </Stack>
-            </View>
+<View style={[styles.footer, { bottom: theme.spacing.xl, paddingHorizontal: theme.spacing.xl }]}>
+    <Stack gap='sm' align='stretch'>
+        <Button
+            fullWidth
+            size='lg'
+            onPress={() => send({ type: 'START' })}
+            style={{ backgroundColor: accent, borderColor: accent }}
+            textColor={onAccent}
+            icon={<Play size={20} color={onAccent} fill={onAccent} />}
+        >
+            {t('common.start')}
+        </Button>
+        <Button
+            fullWidth
+            variant='ghost'
+            onPress={() => setShowLeaderboard(true)}
+            icon={<Trophy size={18} color={theme.colors.text} />}
+        >
+            {t('leaderboard.view')}
+        </Button>
+    </Stack>
+</View>
 ```
 
 - [ ] **Step 3: Render the bottom sheet**
@@ -843,14 +852,14 @@ Replace the footer `View` block (the one containing the single Start `Button`) s
 Immediately after the closing `</View>` of the footer and before the closing `</SafeContainer>`, add:
 
 ```tsx
-            <BottomSheet
-                visible={showLeaderboard}
-                onClose={() => setShowLeaderboard(false)}
-                title={t('leaderboard.title')}
-                scrollable
-            >
-                <Leaderboard gameId={game.id} />
-            </BottomSheet>
+<BottomSheet
+    visible={showLeaderboard}
+    onClose={() => setShowLeaderboard(false)}
+    title={t('leaderboard.title')}
+    scrollable
+>
+    <Leaderboard gameId={game.id} />
+</BottomSheet>
 ```
 
 - [ ] **Step 4: Static checks**
@@ -877,6 +886,7 @@ Expected: type-check, lint, format-check, and Jest all pass (including the new `
 - [ ] **Step 2: Manual smoke test on a dev build**
 
 Run: `npx expo run:ios` (per CLAUDE.md — never `expo start`/Expo Go). Then verify:
+
 - Play The Ladder to game-over → nickname field is pre-filled with the last name (empty on first run), the × clears it, Save is disabled when empty, saving shows "Saved!" and highlights your row showing "Rung N".
 - Play again and score lower than 10 existing entries → no field, board shown read-only.
 - Open a game's setup screen → tap "Leaderboard" → sheet slides up from the bottom, drags down to dismiss, shows top-10 read-only.
@@ -894,6 +904,7 @@ git commit -m "fix(leaderboard): address verification findings"
 ## Self-Review
 
 **Spec coverage**
+
 - Local-only MMKV, per-game boards → Task 1 (`showdown-leaderboard`, keyed by gameId). ✓
 - Nickname entry after each game, optional, only when qualifying → Task 4 (`canEnter = qualifies(...)`) + Task 5 (inline hosts). ✓
 - Remember last nickname, reuse or clear → Task 1 (`get/setLastNickname` on shared `showdown` instance) + Task 4 (pre-filled `Input` with `clearable`). ✓

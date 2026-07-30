@@ -19,14 +19,47 @@ const Bar = ({ w, color, h = 7 }: { w: DimensionValue; color: string; h?: number
 const MockCard = ({ colors }: { colors: ThemeColors }) => {
     const { scale } = useResponsive();
     return (
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.borderLight, borderRadius: scale(14), padding: scale(10), marginBottom: scale(10) }]}>
-            <View style={[styles.cardDot, { backgroundColor: colors.primary, width: scale(18), height: scale(18), borderRadius: scale(9), marginRight: scale(10) }]} />
+        <View
+            style={[
+                styles.card,
+                {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.borderLight,
+                    borderRadius: scale(14),
+                    padding: scale(10),
+                    marginBottom: scale(10),
+                },
+            ]}
+        >
+            <View
+                style={[
+                    styles.cardDot,
+                    {
+                        backgroundColor: colors.primary,
+                        width: scale(18),
+                        height: scale(18),
+                        borderRadius: scale(9),
+                        marginRight: scale(10),
+                    },
+                ]}
+            />
             <View style={styles.cardBody}>
                 <Bar w='70%' color={colors.text} />
                 <View style={{ height: scale(5) }} />
                 <Bar w='90%' color={colors.textSecondary} h={5} />
             </View>
-            <View style={[styles.cardBadge, { backgroundColor: colors.primary + '33', width: scale(22), height: scale(10), borderRadius: scale(5), marginLeft: scale(8) }]} />
+            <View
+                style={[
+                    styles.cardBadge,
+                    {
+                        backgroundColor: colors.primary + '33',
+                        width: scale(22),
+                        height: scale(10),
+                        borderRadius: scale(5),
+                        marginLeft: scale(8),
+                    },
+                ]}
+            />
         </View>
     );
 };
@@ -47,7 +80,10 @@ export function ThemePreview({ tokens }: { tokens: Theme }) {
 
     return (
         <View
-            style={[styles.frame, { width, height, borderRadius: radius, backgroundColor: colors.background, borderColor: colors.border }]}
+            style={[
+                styles.frame,
+                { width, height, borderRadius: radius, backgroundColor: colors.background, borderColor: colors.border },
+            ]}
         >
             <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents='none'>
                 {LEAF_THEMES.has(tokens.id) && <LeafEffect width={width} height={height} color={colors.primary} />}
@@ -57,7 +93,18 @@ export function ThemePreview({ tokens }: { tokens: Theme }) {
             <View style={[styles.content, { padding: scale(16) }]} pointerEvents='none'>
                 {/* Header */}
                 <View style={styles.header}>
-                    <View style={[styles.headerIcon, { backgroundColor: colors.primary, width: scale(26), height: scale(26), borderRadius: scale(8), marginRight: scale(10) }]} />
+                    <View
+                        style={[
+                            styles.headerIcon,
+                            {
+                                backgroundColor: colors.primary,
+                                width: scale(26),
+                                height: scale(26),
+                                borderRadius: scale(8),
+                                marginRight: scale(10),
+                            },
+                        ]}
+                    />
                     <View style={styles.headerText}>
                         <Bar w='80%' color={colors.text} h={9} />
                         <View style={{ height: scale(5) }} />
@@ -91,8 +138,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    headerIcon: {
-    },
+    headerIcon: {},
     headerText: {
         flex: 1,
     },
@@ -101,11 +147,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
     },
-    cardDot: {
-    },
+    cardDot: {},
     cardBody: {
         flex: 1,
     },
-    cardBadge: {
-    },
+    cardBadge: {},
 });

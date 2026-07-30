@@ -47,7 +47,11 @@ describe('markSynced + listPending', () => {
     it('lists unsynced bests and clears them once synced', () => {
         recordBestIfHigher(GAME, 'alltime', 500, MONTH);
         recordBestIfHigher(GAME, 'month', 500, MONTH);
-        expect(listPending().map((p) => p.scope).sort()).toEqual(['alltime', 'month']);
+        expect(
+            listPending()
+                .map((p) => p.scope)
+                .sort(),
+        ).toEqual(['alltime', 'month']);
 
         markSynced(GAME, 'alltime');
         expect(listPending()).toEqual([{ game: GAME, scope: 'month', score: 500, monthId: MONTH }]);

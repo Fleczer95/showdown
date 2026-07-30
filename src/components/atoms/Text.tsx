@@ -59,8 +59,7 @@ function Text({
     const fontKey =
         weight === 'bold' ? 'bold' : weight === 'semibold' ? 'semibold' : weight === 'medium' ? 'medium' : 'regular';
     const isDisplay = variant === 'display' || variant === 'heading';
-    const fontFamily =
-        (isDisplay ? t.typography.fontFamily?.display : undefined) ?? t.typography.fontFamily?.[fontKey];
+    const fontFamily = (isDisplay ? t.typography.fontFamily?.display : undefined) ?? t.typography.fontFamily?.[fontKey];
 
     const textStyle = useMemo(
         () => [

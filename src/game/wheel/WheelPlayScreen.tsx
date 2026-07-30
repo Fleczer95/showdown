@@ -190,23 +190,26 @@ export default function WheelPlayScreen({
     // Bank a solved puzzle (typed correctly or board fully revealed) after the
     // shared reveal beat. `solvedState` must already be a correct/complete board;
     // its phrase is used to drive the win path through `solve`.
-    const finishSolvedPuzzle = useCallback((solvedState: GameState) => {
-        // Bank cash earns a speed bonus (puzzle shown → solved), plus a
-        // clean-solve bonus if no vowel was bought for this puzzle.
-        const seconds = (Date.now() - decisionStartedAt.current) / 1000;
-        speedTotal.current += speedBonus(solvedState.roundCash, seconds);
-        solvedCount.current += 1;
-        if (!boughtVowel.current) cleanPuzzles.current += 1;
-        if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
-        const next = solve(solvedState, currentPuzzle(solvedState).phrase);
-        play('correct');
-        haptics.notification();
-        setStatus('✓');
-        setSolveMode(false);
-        setSpinValue(0);
-        setPhase('resolving');
-        setPendingNext(next);
-    }, [play, haptics]);
+    const finishSolvedPuzzle = useCallback(
+        (solvedState: GameState) => {
+            // Bank cash earns a speed bonus (puzzle shown → solved), plus a
+            // clean-solve bonus if no vowel was bought for this puzzle.
+            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+            speedTotal.current += speedBonus(solvedState.roundCash, seconds);
+            solvedCount.current += 1;
+            if (!boughtVowel.current) cleanPuzzles.current += 1;
+            if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
+            const next = solve(solvedState, currentPuzzle(solvedState).phrase);
+            play('correct');
+            haptics.notification();
+            setStatus('✓');
+            setSolveMode(false);
+            setSpinValue(0);
+            setPhase('resolving');
+            setPendingNext(next);
+        },
+        [play, haptics],
+    );
 
     const settleSpin = useCallback(
         (result: SpinResult) => {
@@ -453,11 +456,7 @@ export default function WheelPlayScreen({
         // Challenge mode reports the result to the orchestrator instead of the board.
         if (challenge) {
             return (
-                <ChallengeHandoff
-                    progress={solvedCount.current}
-                    run={runResult}
-                    onComplete={challenge.onComplete}
-                />
+                <ChallengeHandoff progress={solvedCount.current} run={runResult} onComplete={challenge.onComplete} />
             );
         }
         // The Wheel classifies its own outcome for the host: a solved/banked run
@@ -471,8 +470,8 @@ export default function WheelPlayScreen({
                     {
                         paddingHorizontal: t.spacing.xl,
                         paddingTop: t.spacing.xl,
-                        paddingBottom: Math.max(insets.bottom, t.spacing.xl) + t.spacing.xxl
-                    }
+                        paddingBottom: Math.max(insets.bottom, t.spacing.xl) + t.spacing.xxl,
+                    },
                 ]}
                 keyboardShouldPersistTaps='handled'
             >
@@ -610,7 +609,17 @@ export default function WheelPlayScreen({
                                             }
                                             if (tok.kind === 'fixed') {
                                                 return (
-                                                    <View key={ci} style={[styles.slotBox, { minWidth: scale(24), height: scale(40), marginHorizontal: scale(1) }]}>
+                                                    <View
+                                                        key={ci}
+                                                        style={[
+                                                            styles.slotBox,
+                                                            {
+                                                                minWidth: scale(24),
+                                                                height: scale(40),
+                                                                marginHorizontal: scale(1),
+                                                            },
+                                                        ]}
+                                                    >
                                                         <Text variant='heading' weight='bold' color={accent}>
                                                             {tok.ch}
                                                         </Text>
@@ -693,15 +702,18 @@ export default function WheelPlayScreen({
                         style={styles.centerRegion}
                     >
                         <Stack gap='sm' align='center'>
-                            <View style={[
-                                styles.pointer, 
-                                { borderTopColor: accent, borderLeftWidth: scale(10), borderRightWidth: scale(10), borderTopWidth: scale(18) },
-                            ]} />
-                            <Animated.View style={[
-                                styles.wheel, 
-                                { width: wheelSize, height: wheelSize }, 
-                                wheelStyle
-                            ]}>
+                            <View
+                                style={[
+                                    styles.pointer,
+                                    {
+                                        borderTopColor: accent,
+                                        borderLeftWidth: scale(10),
+                                        borderRightWidth: scale(10),
+                                        borderTopWidth: scale(18),
+                                    },
+                                ]}
+                            />
+                            <Animated.View style={[styles.wheel, { width: wheelSize, height: wheelSize }, wheelStyle]}>
                                 <WheelGraphic accent={accent} size={wheelSize} />
                             </Animated.View>
                             <View style={[styles.statusSlot, { minHeight: scale(32) }]}>
@@ -751,9 +763,22 @@ export default function WheelPlayScreen({
                         </Stack>
                     ) : (
                         <Stack gap='sm'>
-                            <View style={[styles.powerTrack, { backgroundColor: t.colors.surfaceVariant, height: scale(14), borderRadius: scale(7) }]}>
+                            <View
+                                style={[
+                                    styles.powerTrack,
+                                    {
+                                        backgroundColor: t.colors.surfaceVariant,
+                                        height: scale(14),
+                                        borderRadius: scale(7),
+                                    },
+                                ]}
+                            >
                                 <Animated.View
-                                    style={[styles.powerFill, powerBarStyle, { backgroundColor: accent, borderRadius: scale(7) }]}
+                                    style={[
+                                        styles.powerFill,
+                                        powerBarStyle,
+                                        { backgroundColor: accent, borderRadius: scale(7) },
+                                    ]}
                                 />
                             </View>
                             <Pressable

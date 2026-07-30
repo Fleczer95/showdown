@@ -961,8 +961,7 @@
         "mapTitle": "Mapa poziomów",
         "achievementsTitle": "Osiągnięcia",
         "gameServices": {
-            "achievements": "Osiągnięcia",
-            "leaderboards": "Rankingi"
+            "open": "Zobacz w %{platform}"
         },
         "achievementsCount": "%{n} z %{m}",
         "reserved": "Wkrótce więcej",

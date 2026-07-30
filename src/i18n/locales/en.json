@@ -961,8 +961,7 @@
         "mapTitle": "Level Map",
         "achievementsTitle": "Achievements",
         "gameServices": {
-            "achievements": "Achievements",
-            "leaderboards": "Leaderboards"
+            "open": "View in %{platform}"
         },
         "achievementsCount": "%{n} of %{m}",
         "reserved": "More soon",

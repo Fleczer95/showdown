@@ -14,6 +14,8 @@ import { initSentry, Sentry } from './src/utils/sentry/init';
 import { initFirebase } from './src/utils/firebase/init';
 import { initAppCheck } from './src/utils/firebase/appCheck';
 import { retryPending } from './src/game/ranking/push';
+import { syncGameServices } from './src/services/gameServices';
+import { loadStats } from './src/game/progression';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -31,6 +33,9 @@ void initAppCheck()
     .then((ready) => (ready ? retryPending() : undefined))
     .catch(() => undefined);
 initFirebase();
+// Replay earned achievements/best scores to Game Center / Play Games once per
+// launch — idempotent, digest-throttled, and a no-op when signed out.
+void syncGameServices(loadStats());
 
 function PremiumThemeGate() {
     const { themeId, setTheme } = useThemeActions();

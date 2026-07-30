@@ -9,6 +9,7 @@ import { SafeAnalytics } from '../../utils/firebase/init';
 import { ACHIEVEMENTS, achievementsUnlocked, detectFeats } from './achievements';
 import type { GameRunResult, ProgressionStats, RecordRunDiff } from './types';
 import { grantLevelBonus } from '../offline/limit';
+import { syncGameServices } from '../../services/gameServices';
 
 /** Fresh state for a player who has never played. */
 export function defaultStats(): ProgressionStats {
@@ -125,6 +126,9 @@ export function localDate(date: Date = new Date()): string {
 export function recordRun(result: GameRunResult): RecordRunDiff {
     const { stats, diff } = applyRun(loadStats(), result, localDate());
     store.set(STATS_KEY, JSON.stringify(stats));
+    // Mirror to Game Center / Play Games — fire-and-forget, idempotent, and a
+    // no-op when the native bridge is absent or the player isn't signed in.
+    void syncGameServices(stats);
     // Level-up telemetry lives at the recording seam so every run reports it —
     // solo or challenge, whether or not the celebration UI ever gets displayed.
     if (diff.leveledUp) {

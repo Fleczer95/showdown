@@ -241,7 +241,9 @@ async function removeEntry(db, game, uuid, dryRun, backup) {
         const ref = periodRef.collection(ENTRIES).doc(uuid);
         const snap = await ref.get();
         if (!snap.exists) continue;
-        console.log(`  remove ${game}/${periodRef.id}/${uuid} (nickname: ${snap.get('nickname')})${dryRun ? ' (dry run)' : ''}`);
+        console.log(
+            `  remove ${game}/${periodRef.id}/${uuid} (nickname: ${snap.get('nickname')})${dryRun ? ' (dry run)' : ''}`,
+        );
         if (dryRun) continue;
         backupSnap(backup, snap);
         await ref.delete();

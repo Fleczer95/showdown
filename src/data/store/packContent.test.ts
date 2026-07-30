@@ -31,11 +31,9 @@ describe('getOwnedPackContent', () => {
 });
 
 describe('getOwnedPackContentBilingual', () => {
-    it('zips each pack\'s parallel en/pl arrays via the provided combiner', () => {
+    it("zips each pack's parallel en/pl arrays via the provided combiner", () => {
         mockPlayable.mockReturnValue(['pack-a']);
-        mockContent.mockImplementation((_id, locale) =>
-            (locale === 'en' ? [{ t: 'one' }] : [{ t: 'jeden' }]) as never,
-        );
+        mockContent.mockImplementation((_id, locale) => (locale === 'en' ? [{ t: 'one' }] : [{ t: 'jeden' }]) as never);
 
         const zip = (en: { t: string }, pl: { t: string }) => ({ en: en.t, pl: pl.t });
         expect(getOwnedPackContentBilingual('the-drop', new Set(['pack-a']), zip)).toEqual([

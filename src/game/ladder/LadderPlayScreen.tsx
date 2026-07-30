@@ -255,13 +255,7 @@ export default function LadderPlayScreen({
         // Challenge mode hands the result to the Challenge orchestrator (submit +
         // reveal) instead of the normal game-over board.
         if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={correctAnswered}
-                    run={runResult}
-                    onComplete={challenge.onComplete}
-                />
-            );
+            return <ChallengeHandoff progress={correctAnswered} run={runResult} onComplete={challenge.onComplete} />;
         }
         return (
             <GameOverView
@@ -288,12 +282,26 @@ export default function LadderPlayScreen({
             <Stack gap='lg' style={tabletColumn}>
                 <Stack gap='sm'>
                     <Stack direction='horizontal' justify='between' align='center'>
-                        <View style={[styles.counterPill, { backgroundColor: hexToRgba(accent, 0.16), paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs }]}>
+                        <View
+                            style={[
+                                styles.counterPill,
+                                {
+                                    backgroundColor: hexToRgba(accent, 0.16),
+                                    paddingHorizontal: theme.spacing.md,
+                                    paddingVertical: theme.spacing.xs,
+                                },
+                            ]}
+                        >
                             <Text variant='overline' color={accent} weight='bold' style={{ flexShrink: 1 }}>
                                 {`${t('game.the-ladder.active.question', { number: run.currentIndex + 1 })} / ${RUN_LENGTH}`}
                             </Text>
                         </View>
-                        <Button variant='ghost' size={isTablet ? 'md' : 'sm'} style={{ flexShrink: 1 }} onPress={() => setShowLeaveConfirm(true)}>
+                        <Button
+                            variant='ghost'
+                            size={isTablet ? 'md' : 'sm'}
+                            style={{ flexShrink: 1 }}
+                            onPress={() => setShowLeaveConfirm(true)}
+                        >
                             {t('game.the-ladder.active.leave')}
                         </Button>
                     </Stack>
@@ -359,11 +367,7 @@ export default function LadderPlayScreen({
                 </Stack>
 
                 {audience ? (
-                    <AudienceResult
-                        percentages={audience}
-                        accent={accent}
-                        reduceMotion={reduceMotion}
-                    />
+                    <AudienceResult percentages={audience} accent={accent} reduceMotion={reduceMotion} />
                 ) : null}
 
                 <Stack gap='sm'>
@@ -462,10 +466,7 @@ function AnswerOption({
     useEffect(() => {
         if (isLocked && !reduceMotion) {
             pulse.value = withRepeat(
-                withSequence(
-                    withTiming(1.03, { duration: PULSE_HALF_MS }),
-                    withTiming(1, { duration: PULSE_HALF_MS }),
-                ),
+                withSequence(withTiming(1.03, { duration: PULSE_HALF_MS }), withTiming(1, { duration: PULSE_HALF_MS })),
                 -1,
                 false,
             );
@@ -488,7 +489,12 @@ function AnswerOption({
             >
                 <Stack direction='horizontal' gap='md' align='center' justify='between'>
                     <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                        <IndexBadge label={letter} accent={accent} state={badgeState} size={theme.typography.lineHeight.xl + theme.spacing.xs} />
+                        <IndexBadge
+                            label={letter}
+                            accent={accent}
+                            state={badgeState}
+                            size={theme.typography.lineHeight.xl + theme.spacing.xs}
+                        />
                         <Text variant='body' weight='semibold' style={styles.answerText}>
                             {label}
                         </Text>
@@ -605,8 +611,24 @@ function AudienceResult({
                 <Stack gap='sm'>
                     {rows.map((row, order) => (
                         <Stack key={row.index} direction='horizontal' gap='sm' align='center'>
-                            <View style={[styles.audienceBadge, { backgroundColor: accent, borderRadius: theme.radii.md, width: badgeSize, height: badgeSize }]}>
-                                <Text variant='body' weight='bold' color={readableOn(accent)} align='center' style={{ lineHeight: badgeSize }}>
+                            <View
+                                style={[
+                                    styles.audienceBadge,
+                                    {
+                                        backgroundColor: accent,
+                                        borderRadius: theme.radii.md,
+                                        width: badgeSize,
+                                        height: badgeSize,
+                                    },
+                                ]}
+                            >
+                                <Text
+                                    variant='body'
+                                    weight='bold'
+                                    color={readableOn(accent)}
+                                    align='center'
+                                    style={{ lineHeight: badgeSize }}
+                                >
                                     {String.fromCharCode(65 + row.index)}
                                 </Text>
                             </View>
@@ -664,7 +686,11 @@ function AudienceBar({
     return (
         <View style={[styles.audienceTrack, { backgroundColor: track, height: scale(12), borderRadius: scale(6) }]}>
             <Animated.View
-                style={[styles.audienceFill, fillStyle, { backgroundColor: color, opacity: leading ? 1 : 0.5, borderRadius: scale(6) }]}
+                style={[
+                    styles.audienceFill,
+                    fillStyle,
+                    { backgroundColor: color, opacity: leading ? 1 : 0.5, borderRadius: scale(6) },
+                ]}
             />
         </View>
     );
@@ -691,7 +717,11 @@ function GameOverView({
     const theme = useTheme();
 
     return (
-        <ScrollView style={styles.flex} contentContainerStyle={[styles.center, { padding: theme.spacing.xl }]} keyboardShouldPersistTaps='handled'>
+        <ScrollView
+            style={styles.flex}
+            contentContainerStyle={[styles.center, { padding: theme.spacing.xl }]}
+            keyboardShouldPersistTaps='handled'
+        >
             <GameOverCard gameId={GAME_ID}>
                 {({ accent, onAccent }) => (
                     <>

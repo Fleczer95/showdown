@@ -16,7 +16,7 @@
 - i18n keys must be added to BOTH `src/i18n/locales/en.json` and `src/i18n/locales/pl.json`. Interpolation syntax is `%{name}`.
 - One global counter across all four games. Bonus balance never resets daily; daily `used` resets on local day-roll.
 - Bonus is spent ONLY after the daily allowance is exhausted.
-- No retroactive windfall: `lastBonusLevel` seeds to the player's level *before* the first recorded run.
+- No retroactive windfall: `lastBonusLevel` seeds to the player's level _before_ the first recorded run.
 - Tunables, named constants in `limit.ts`: `BASE_DAILY_RUNS = 5`, `BONUS_RUNS_PER_LEVEL = 3`, premium `+1` per item.
 
 ---
@@ -24,24 +24,26 @@
 ### Task 1: Offline run-limit module (pure reducers + MMKV wrapper)
 
 **Files:**
+
 - Create: `src/game/offline/limit.ts`
 - Test: `src/game/offline/limit.test.ts`
 
 **Interfaces:**
+
 - Consumes: `premiumItemsOwned(owned: ReadonlySet<string>): number` and `canUpsell(owned: ReadonlySet<string>): boolean` from `../challenge/limit`.
 - Produces:
-  - `interface OfflineRunState { day: string; used: number; bonus: number; lastBonusLevel: number }`
-  - `BASE_DAILY_RUNS: number`, `BONUS_RUNS_PER_LEVEL: number`
-  - Pure: `dailyAllowance(owned: ReadonlySet<string>): number`
-  - Pure: `effectiveUsed(state: OfflineRunState, today: string): number`
-  - Pure: `remaining(state: OfflineRunState, owned: ReadonlySet<string>, today: string): number`
-  - Pure: `consume(state: OfflineRunState, owned: ReadonlySet<string>, today: string): { state: OfflineRunState; ok: boolean }`
-  - Pure: `grantBonus(state: OfflineRunState, prevLevel: number, newLevel: number, today: string): OfflineRunState`
-  - Pure: `defaultOfflineState(today: string): OfflineRunState`
-  - Impure: `canStartOfflineRun(owned: ReadonlySet<string>): boolean`
-  - Impure: `remainingOfflineRuns(owned: ReadonlySet<string>): number`
-  - Impure: `consumeOfflineRun(owned: ReadonlySet<string>): boolean`
-  - Impure: `grantLevelBonus(prevLevel: number, newLevel: number): number` (returns runs granted this call)
+    - `interface OfflineRunState { day: string; used: number; bonus: number; lastBonusLevel: number }`
+    - `BASE_DAILY_RUNS: number`, `BONUS_RUNS_PER_LEVEL: number`
+    - Pure: `dailyAllowance(owned: ReadonlySet<string>): number`
+    - Pure: `effectiveUsed(state: OfflineRunState, today: string): number`
+    - Pure: `remaining(state: OfflineRunState, owned: ReadonlySet<string>, today: string): number`
+    - Pure: `consume(state: OfflineRunState, owned: ReadonlySet<string>, today: string): { state: OfflineRunState; ok: boolean }`
+    - Pure: `grantBonus(state: OfflineRunState, prevLevel: number, newLevel: number, today: string): OfflineRunState`
+    - Pure: `defaultOfflineState(today: string): OfflineRunState`
+    - Impure: `canStartOfflineRun(owned: ReadonlySet<string>): boolean`
+    - Impure: `remainingOfflineRuns(owned: ReadonlySet<string>): number`
+    - Impure: `consumeOfflineRun(owned: ReadonlySet<string>): boolean`
+    - Impure: `grantLevelBonus(prevLevel: number, newLevel: number): number` (returns runs granted this call)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -323,11 +325,13 @@ git commit -m "feat(offline): daily solo-run limit with banked level-up bonus ru
 ### Task 2: Grant bonus runs at the recordRun seam
 
 **Files:**
+
 - Modify: `src/game/progression/types.ts` (add `bonusRunsGranted` to `RecordRunDiff`)
 - Modify: `src/game/progression/recordRun.ts` (call `grantLevelBonus` in the impure `recordRun`)
 - Test: `src/game/progression/recordRun.test.ts` (add a case)
 
 **Interfaces:**
+
 - Consumes: `grantLevelBonus(prevLevel: number, newLevel: number): number` from `../offline/limit`.
 - Produces: `RecordRunDiff.bonusRunsGranted: number`.
 
@@ -381,16 +385,16 @@ import { grantLevelBonus } from '../offline/limit';
 In `applyRun`, in the returned `diff` object, add the field (pure reducer always reports 0 — the grant is a side effect):
 
 ```ts
-    const diff: RecordRunDiff = {
-        xpGained: stats.lifetimeXp - beforeXp,
-        lifetimeXp: stats.lifetimeXp,
-        leveledUp: finalLevel > previousLevel,
-        previousLevel,
-        level: finalLevel,
-        newRewards,
-        newAchievements,
-        bonusRunsGranted: 0,
-    };
+const diff: RecordRunDiff = {
+    xpGained: stats.lifetimeXp - beforeXp,
+    lifetimeXp: stats.lifetimeXp,
+    leveledUp: finalLevel > previousLevel,
+    previousLevel,
+    level: finalLevel,
+    newRewards,
+    newAchievements,
+    bonusRunsGranted: 0,
+};
 ```
 
 Replace the impure `recordRun` body so it performs the grant and reports the real total:
@@ -425,11 +429,13 @@ git commit -m "feat(progression): bank offline bonus runs on level-up via record
 ### Task 3: Gate the Start button, show remaining, add the limit sheet
 
 **Files:**
+
 - Modify: `src/screens/GameSetupScreen.tsx`
 - Modify: `src/i18n/locales/en.json`
 - Modify: `src/i18n/locales/pl.json`
 
 **Interfaces:**
+
 - Consumes: `canStartOfflineRun`, `remainingOfflineRuns`, `consumeOfflineRun`, `canUpsell` from `../game/offline/limit`.
 - Produces: no new exports (screen-local behavior).
 
@@ -478,20 +484,20 @@ import { canStartOfflineRun, remainingOfflineRuns, consumeOfflineRun } from '../
 After the existing `createdToday` state declaration, add offline-runs state:
 
 ```ts
-    const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
-    const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds));
+const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
+const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds));
 ```
 
 In the existing `useFocusEffect` callback, refresh `runsLeft` alongside the others:
 
 ```ts
-    useFocusEffect(
-        useCallback(() => {
-            setCreatedToday(countCreatedToday());
-            setCoverage(poolCoverage(gameId, ownedIds));
-            setRunsLeft(remainingOfflineRuns(ownedIds));
-        }, [gameId, ownedIds]),
-    );
+useFocusEffect(
+    useCallback(() => {
+        setCreatedToday(countCreatedToday());
+        setCoverage(poolCoverage(gameId, ownedIds));
+        setRunsLeft(remainingOfflineRuns(ownedIds));
+    }, [gameId, ownedIds]),
+);
 ```
 
 - [ ] **Step 4: Add the start handler**
@@ -499,18 +505,18 @@ In the existing `useFocusEffect` callback, refresh `runsLeft` alongside the othe
 Add this handler near `onCreateChallenge` (it gates, consumes, then starts):
 
 ```ts
-    // Solo play is daily-capped (offline limit). At zero, open the limit/upsell
-    // sheet instead of starting; otherwise spend one run and begin the session.
-    const onStart = () => {
-        if (!canStartOfflineRun(ownedIds)) {
-            SafeAnalytics.logEvent({ name: 'offline_limit_hit', params: { game: game.id } });
-            setOfflineLimitSheet(true);
-            return;
-        }
-        consumeOfflineRun(ownedIds);
-        setRunsLeft(remainingOfflineRuns(ownedIds));
-        send({ type: 'START' });
-    };
+// Solo play is daily-capped (offline limit). At zero, open the limit/upsell
+// sheet instead of starting; otherwise spend one run and begin the session.
+const onStart = () => {
+    if (!canStartOfflineRun(ownedIds)) {
+        SafeAnalytics.logEvent({ name: 'offline_limit_hit', params: { game: game.id } });
+        setOfflineLimitSheet(true);
+        return;
+    }
+    consumeOfflineRun(ownedIds);
+    setRunsLeft(remainingOfflineRuns(ownedIds));
+    send({ type: 'START' });
+};
 ```
 
 - [ ] **Step 5: Wire the Start button to the handler + label + dim**
@@ -518,20 +524,20 @@ Add this handler near `onCreateChallenge` (it gates, consumes, then starts):
 Replace the Start `Button` (the one with `onPress={() => send({ type: 'START' })}`) so it uses `onStart`, shows the remaining count, and dims at zero:
 
 ```tsx
-                    <Button
-                        fullWidth
-                        size='lg'
-                        onPress={onStart}
-                        style={{
-                            backgroundColor: accent,
-                            borderColor: accent,
-                            opacity: runsLeft <= 0 ? 0.55 : 1,
-                        }}
-                        textColor={onAccent}
-                        icon={<Play size={20} color={onAccent} fill={onAccent} />}
-                    >
-                        {runsLeft <= 0 ? t('common.start') : t('offline.startWithCount', { count: runsLeft })}
-                    </Button>
+<Button
+    fullWidth
+    size='lg'
+    onPress={onStart}
+    style={{
+        backgroundColor: accent,
+        borderColor: accent,
+        opacity: runsLeft <= 0 ? 0.55 : 1,
+    }}
+    textColor={onAccent}
+    icon={<Play size={20} color={onAccent} fill={onAccent} />}
+>
+    {runsLeft <= 0 ? t('common.start') : t('offline.startWithCount', { count: runsLeft })}
+</Button>
 ```
 
 - [ ] **Step 6: Add the offline-limit BottomSheet**
@@ -539,36 +545,32 @@ Replace the Start `Button` (the one with `onPress={() => send({ type: 'START' })
 After the existing challenge `limitSheet` `BottomSheet` (the one titled `t('challenge.limit.title')`), add a sibling sheet. Reuse `canUpsell` already imported from `../game/challenge/limit`:
 
 ```tsx
-            <BottomSheet
-                visible={offlineLimitSheet}
-                onClose={() => setOfflineLimitSheet(false)}
-                title={t('offline.limit.title')}
+<BottomSheet visible={offlineLimitSheet} onClose={() => setOfflineLimitSheet(false)} title={t('offline.limit.title')}>
+    <Stack gap='md' align='stretch'>
+        <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
+            {t('offline.limit.body')}
+        </Text>
+        {canUpsell(ownedIds) && (
+            <Button
+                variant='primary'
+                fullWidth
+                onPress={() => {
+                    setOfflineLimitSheet(false);
+                    navigation.navigate('Store');
+                }}
             >
-                <Stack gap='md' align='stretch'>
-                    <Text variant='body' color='textSecondary' align='center' style={styles.limitBody}>
-                        {t('offline.limit.body')}
-                    </Text>
-                    {canUpsell(ownedIds) && (
-                        <Button
-                            variant='primary'
-                            fullWidth
-                            onPress={() => {
-                                setOfflineLimitSheet(false);
-                                navigation.navigate('Store');
-                            }}
-                        >
-                            {t('offline.limit.cta')}
-                        </Button>
-                    )}
-                    <Button
-                        variant={canUpsell(ownedIds) ? 'ghost' : 'primary'}
-                        fullWidth
-                        onPress={() => setOfflineLimitSheet(false)}
-                    >
-                        {t('offline.limit.dismiss')}
-                    </Button>
-                </Stack>
-            </BottomSheet>
+                {t('offline.limit.cta')}
+            </Button>
+        )}
+        <Button
+            variant={canUpsell(ownedIds) ? 'ghost' : 'primary'}
+            fullWidth
+            onPress={() => setOfflineLimitSheet(false)}
+        >
+            {t('offline.limit.dismiss')}
+        </Button>
+    </Stack>
+</BottomSheet>
 ```
 
 - [ ] **Step 7: Type-check and lint**
@@ -593,11 +595,13 @@ git commit -m "feat(offline): gate solo Start on the daily run limit with upsell
 ### Task 4: Surface the +N runs reward in the celebration
 
 **Files:**
+
 - Modify: `src/components/molecules/RunCelebration.tsx`
 - Modify: `src/i18n/locales/en.json`
 - Modify: `src/i18n/locales/pl.json`
 
 **Interfaces:**
+
 - Consumes: `RecordRunDiff.bonusRunsGranted` (from Task 2).
 - Produces: no new exports.
 
@@ -623,14 +627,16 @@ In `src/i18n/locales/pl.json`, inside the `"progression"` block, after its `"lev
 In `src/components/molecules/RunCelebration.tsx`, directly after the `diff.leveledUp` block (the one rendering `progression.levelUp` with the `ArrowUpCircle` icon), add:
 
 ```tsx
-                {diff.bonusRunsGranted > 0 ? (
-                    <Stack direction='horizontal' gap='xs' align='center'>
-                        <Icon name={Sparkles} size={16} color={accent} />
-                        <Text variant='caption' weight='bold' color={accent}>
-                            {t('progression.bonusRuns', { n: diff.bonusRunsGranted })}
-                        </Text>
-                    </Stack>
-                ) : null}
+{
+    diff.bonusRunsGranted > 0 ? (
+        <Stack direction='horizontal' gap='xs' align='center'>
+            <Icon name={Sparkles} size={16} color={accent} />
+            <Text variant='caption' weight='bold' color={accent}>
+                {t('progression.bonusRuns', { n: diff.bonusRunsGranted })}
+            </Text>
+        </Stack>
+    ) : null;
+}
 ```
 
 `Sparkles` is already imported in this file; no new import needed.
@@ -663,7 +669,7 @@ Expected: no errors.
 
 ## Notes for the implementer
 
-- **Why the grant lives in `recordRun`, not the screen:** every finished run — solo *or* challenge — flows through `recordRun`. Banking the bonus there means levelling up in any mode rewards solo runs, and `lastBonusLevel` keeps grants one-time even if `recordRun` is somehow called twice.
+- **Why the grant lives in `recordRun`, not the screen:** every finished run — solo _or_ challenge — flows through `recordRun`. Banking the bonus there means levelling up in any mode rewards solo runs, and `lastBonusLevel` keeps grants one-time even if `recordRun` is somehow called twice.
 - **Why `consume` only at the Start button:** challenge play reuses the same play screens but never presses Start, so it must never spend a solo run. It keeps its own create-limit (`challenge/limit.ts`).
 - **No retroactive windfall:** `defaultOfflineState` sets `lastBonusLevel: -1`; the first `grantBonus` seeds it to that run's `prevLevel`. An existing level-20 player therefore banks nothing on contact — only levels gained afterward pay out.
 - **Tuning:** `BASE_DAILY_RUNS` and `BONUS_RUNS_PER_LEVEL` are the two dials. Solo play is the core loop, so start generous and tighten with data.

@@ -69,7 +69,9 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
                 },
             ]}
         >
-            {GameIcon ? <Icon name={GameIcon} size={iconSize(24)} color={active ? readableOn(accent) : accent} /> : null}
+            {GameIcon ? (
+                <Icon name={GameIcon} size={iconSize(24)} color={active ? readableOn(accent) : accent} />
+            ) : null}
             <Text variant='caption' weight='bold' color={active ? readableOn(accent) : 'text'} numberOfLines={1}>
                 {t(`game.${game}.name`)}
             </Text>
@@ -88,7 +90,7 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
         <View
             style={[
                 styles.row,
-                { 
+                {
                     paddingVertical: theme.spacing.md,
                     paddingHorizontal: theme.spacing.md,
                     gap: theme.spacing.md,
@@ -106,7 +108,6 @@ function BoardRow({ rank, entry }: { rank: number; entry: RankingEntry }) {
             ]}
         >
             <RankBadge rank={rank} />
-
 
             <View style={[styles.name, { gap: scale(6) }]}>
                 <Text variant='body' weight='semibold' numberOfLines={1} style={styles.nameText}>
@@ -140,10 +141,10 @@ function BestChip({
         <View
             style={[
                 styles.chip,
-                { 
+                {
                     gap: theme.spacing.md,
                     padding: scale(14),
-                    borderRadius: theme.radii.lg, 
+                    borderRadius: theme.radii.lg,
                     backgroundColor: hexToRgba(theme.colors.primary, 0.1),
                     borderColor: hexToRgba(theme.colors.primary, 0.3),
                     borderWidth: 1,
@@ -159,11 +160,7 @@ function BestChip({
                 </Text>
             </View>
             {!best.synced && syncing ? (
-                <View
-                    accessible
-                    accessibilityLabel={t('ranking.syncing')}
-                    style={[styles.retry, { gap: scale(6) }]}
-                >
+                <View accessible accessibilityLabel={t('ranking.syncing')} style={[styles.retry, { gap: scale(6) }]}>
                     <ActivityIndicator size='sm' accessibilityLabel={t('ranking.syncing')} />
                     <Text variant='caption' weight='bold' color='primary'>
                         {t('ranking.syncing')}
@@ -367,62 +364,62 @@ export function RankingScreen() {
                     entering={reduceMotion ? undefined : FadeIn.duration(250)}
                     style={styles.contentArea}
                 >
-                {status === 'loading' ? (
-                    <View style={[styles.centered, { gap: theme.spacing.md }]}>
-                        <ActivityIndicator />
-                    </View>
-                ) : status === 'offline' || status === 'error' ? (
-                    <View style={[styles.centered, { gap: theme.spacing.md }]}>
-                        <Icon name={WifiOff} size={iconSize(36)} color={theme.colors.textMuted} />
-                        <Text variant='body' weight='bold' align='center'>
-                            {t(status === 'error' ? 'ranking.error' : 'ranking.offline')}
-                        </Text>
-                        <Text variant='caption' color='textSecondary' align='center'>
-                            {t(status === 'error' ? 'ranking.errorDesc' : 'ranking.offlineDesc')}
-                        </Text>
-                        <Button
-                            variant='secondary'
-                            onPress={load}
-                            accessibilityLabel={t('ranking.loadRetry')}
-                            icon={<Icon name={RefreshCw} size={iconSize(18)} color={theme.colors.text} />}
-                        >
-                            {t('ranking.loadRetry')}
-                        </Button>
-                    </View>
-                ) : (
-                    <FlatList
-                        data={board ?? []}
-                        keyExtractor={(_, i) => `${i}`}
-                        renderItem={({ item, index }) => <BoardRow rank={index + 1} entry={item} />}
-                        ListEmptyComponent={
-                            <Text
-                                variant='body'
-                                color='textMuted'
-                                align='center'
-                                style={{ marginTop: theme.spacing.xl }}
-                            >
-                                {t('ranking.empty')}
+                    {status === 'loading' ? (
+                        <View style={[styles.centered, { gap: theme.spacing.md }]}>
+                            <ActivityIndicator />
+                        </View>
+                    ) : status === 'offline' || status === 'error' ? (
+                        <View style={[styles.centered, { gap: theme.spacing.md }]}>
+                            <Icon name={WifiOff} size={iconSize(36)} color={theme.colors.textMuted} />
+                            <Text variant='body' weight='bold' align='center'>
+                                {t(status === 'error' ? 'ranking.error' : 'ranking.offline')}
                             </Text>
-                        }
-                        ListFooterComponent={
-                            <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.lg }}>
-                                <Text variant='caption' color='textMuted'>
-                                    {t('ranking.updatesNote')}
+                            <Text variant='caption' color='textSecondary' align='center'>
+                                {t(status === 'error' ? 'ranking.errorDesc' : 'ranking.offlineDesc')}
+                            </Text>
+                            <Button
+                                variant='secondary'
+                                onPress={load}
+                                accessibilityLabel={t('ranking.loadRetry')}
+                                icon={<Icon name={RefreshCw} size={iconSize(18)} color={theme.colors.text} />}
+                            >
+                                {t('ranking.loadRetry')}
+                            </Button>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={board ?? []}
+                            keyExtractor={(_, i) => `${i}`}
+                            renderItem={({ item, index }) => <BoardRow rank={index + 1} entry={item} />}
+                            ListEmptyComponent={
+                                <Text
+                                    variant='body'
+                                    color='textMuted'
+                                    align='center'
+                                    style={{ marginTop: theme.spacing.xl }}
+                                >
+                                    {t('ranking.empty')}
                                 </Text>
-                                <Text variant='caption' color='textMuted'>
-                                    {t('ranking.rolloverNote')}
-                                </Text>
-                                {best && !best.synced ? (
+                            }
+                            ListFooterComponent={
+                                <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.lg }}>
                                     <Text variant='caption' color='textMuted'>
-                                        {t('ranking.connectivityNote')}
+                                        {t('ranking.updatesNote')}
                                     </Text>
-                                ) : null}
-                            </View>
-                        }
-                        contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
-                        showsVerticalScrollIndicator={false}
-                    />
-                )}
+                                    <Text variant='caption' color='textMuted'>
+                                        {t('ranking.rolloverNote')}
+                                    </Text>
+                                    {best && !best.synced ? (
+                                        <Text variant='caption' color='textMuted'>
+                                            {t('ranking.connectivityNote')}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                            }
+                            contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}
+                            showsVerticalScrollIndicator={false}
+                        />
+                    )}
                 </Animated.View>
             </View>
         </SafeContainer>

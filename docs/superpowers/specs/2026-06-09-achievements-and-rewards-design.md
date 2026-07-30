@@ -22,8 +22,8 @@ A **hybrid** of two complementary systems:
 
 - A finite **Level Map** — the spine. It unifies the three otherwise-disconnected games
   under one cumulative track and is the home for all earn-only cosmetics.
-- Discrete **achievement medals** — beside the map. The map rewards *volume*; achievements
-  reward *specific skill and breadth*.
+- Discrete **achievement medals** — beside the map. The map rewards _volume_; achievements
+  reward _specific skill and breadth_.
 
 Each achievement grants a **badge + XP**. Exclusive themes/sounds live **only** on map
 nodes (0 flagship exceptions in v1). Players reach cosmetics by playing (volume → XP →
@@ -37,7 +37,7 @@ would make the map measure "how much Drop did you play." So XP is its own tunabl
 decoupled from the per-game `score`.
 
 `lifetimeXp` is **monotonic** (only grows) and **never spendable** — it cannot be bought,
-so the IAP store and the progression track never touch. Lifetime XP *is* the balance.
+so the IAP store and the progression track never touch. Lifetime XP _is_ the balance.
 
 ### Per-run XP (floor + skill + breadth)
 
@@ -51,9 +51,9 @@ runXp(result) = FLOOR
   still climb.
 - **Skill** — `0..SKILL_CAP`, scaled by each game's own normalized result so games are
   comparable:
-  - Ladder: `rungReached / 15`
-  - Drop: `finalBank / 1_000_000`
-  - Wheel: `puzzlesSolved / 3`
+    - Ladder: `rungReached / 15`
+    - Drop: `finalBank / 1_000_000`
+    - Wheel: `puzzlesSolved / 3`
 - **Breadth** — `BREADTH_BONUS` for the **first play of each distinct game per local
   day** (all three in a day → 3 × bonus). The lever that makes people try a game they
   ignore.
@@ -69,7 +69,7 @@ Mirroring `src/data/store/resolver.ts`: persist only **raw stats**; compute the 
 - `unlockedRewards(lifetimeXp, MAP)` → set of unlocked cosmetic ids.
 - `achievementsUnlocked(stats)` → set of completed achievement ids.
 
-Because ownership is *derived from* monotonic state (not fired once on a threshold
+Because ownership is _derived from_ monotonic state (not fired once on a threshold
 cross), **extending the map or adding achievements later is purely additive and
 retroactive** — a returning player whose `lifetimeXp` already qualifies instantly owns
 the new nodes. **No migration code, ever.** This is the whole reason the map can be
@@ -83,19 +83,19 @@ extended over time.
   L15 a multi-week goal.
 - **Cosmetics decoupled from level count.** Most nodes carry a badge + an XP/confetti
   beat. Exclusive earn-only themes sit on a few milestone nodes only.
-  - v1 commits **2 earned themes**: **L8** (mid) and **L15** (capstone).
-  - **L5 / L11 / L14** are **reserved** nodes — filled with new earned themes/sounds in
-    later updates (auto-granted retroactively to anyone already past them).
+    - v1 commits **2 earned themes**: **L8** (mid) and **L15** (capstone).
+    - **L5 / L11 / L14** are **reserved** nodes — filled with new earned themes/sounds in
+      later updates (auto-granted retroactively to anyone already past them).
 
 ### Curve (cumulative XP to reach each level)
 
-| Lv | XP | Lv | XP | Lv | XP |
-|----|------|----|-------|----|--------------------|
-| 1  | 0    | 6  | 1,800 | 11 | 8,500  ◇reserved    |
-| 2  | 150  | 7  | 2,600 | 12 | 11,000             |
-| 3  | 400  | 8  | 3,600 ✦theme | 13 | 14,000      |
-| 4  | 750  | 9  | 4,900 | 14 | 17,500 ◇reserved   |
-| 5  | 1,200 ◇reserved | 10 | 6,500 | 15 | 22,000 ✦capstone theme |
+| Lv  | XP              | Lv  | XP           | Lv  | XP                     |
+| --- | --------------- | --- | ------------ | --- | ---------------------- |
+| 1   | 0               | 6   | 1,800        | 11  | 8,500 ◇reserved        |
+| 2   | 150             | 7   | 2,600        | 12  | 11,000                 |
+| 3   | 400             | 8   | 3,600 ✦theme | 13  | 14,000                 |
+| 4   | 750             | 9   | 4,900        | 14  | 17,500 ◇reserved       |
+| 5   | 1,200 ◇reserved | 10  | 6,500        | 15  | 22,000 ✦capstone theme |
 
 Paces to ~Level 3–4 in the first session, L15 ≈ 50+ engaged days at casual pace.
 
@@ -106,18 +106,18 @@ Mix of tiered families (for cumulative axes where a ladder helps) and one-off fe
 
 ### Tiered families (Bronze / Silver / Gold) — the retention drip
 
-| Family | Tiers |
-|---|---|
-| Contestant (runs played) | 10 / 50 / 200 |
-| On a Roll (consecutive-day streak) | 3 / 7 / 30 |
-| Regular (distinct days played) | 5 / 15 / 40 |
-| Winner (wins, any game) | 5 / 25 / 100 |
-| Big Scorer (single-run points) | 5k / 20k / 50k |
+| Family                             | Tiers          |
+| ---------------------------------- | -------------- |
+| Contestant (runs played)           | 10 / 50 / 200  |
+| On a Roll (consecutive-day streak) | 3 / 7 / 30     |
+| Regular (distinct days played)     | 5 / 15 / 40    |
+| Winner (wins, any game)            | 5 / 25 / 100   |
+| Big Scorer (single-run points)     | 5k / 20k / 50k |
 
 ### One-offs — skill & breadth feats
 
-- **Triple Threat** — play all 3 games in one day *(breadth)*
-- **Well-Rounded** — win each of the 3 games at least once *(breadth)*
+- **Triple Threat** — play all 3 games in one day _(breadth)_
+- **Well-Rounded** — win each of the 3 games at least once _(breadth)_
 - **To the Top** — reach Rung 15 on the Ladder
 - **Spotless** — win a Ladder run using zero lifelines
 - **Survivor** — survive all 9 Drop rounds
@@ -130,7 +130,7 @@ Mix of tiered families (for cumulative axes where a ladder helps) and one-off fe
 XP payouts: one-off **200**; tiers **Bronze 100 / Silver 250 / Gold 500**.
 
 **0 flagship exceptions in v1** — no achievement carries its own exclusive cosmetic; all
-cosmetics are on the map. Revisit pinning a theme to *Clean Sweep* in a later update once
+cosmetics are on the map. Revisit pinning a theme to _Clean Sweep_ in a later update once
 theme supply grows (trivial + retroactive under the derived design).
 
 ## Module & integration
@@ -187,18 +187,18 @@ Two of these (lifelines, vowels) already exist in the unified-scoring breakdown.
 
 ## Constants (starting values — all in `progression/constants.ts`)
 
-| Constant | Value |
-|---|---|
-| Run XP floor | 50 |
-| Skill cap | 100 |
-| Breadth bonus (per game, per local day) | 75 |
-| Achievement XP — one-off | 200 |
-| Achievement XP — tiers | 100 / 250 / 500 |
-| Levels (v1) | 15 |
-| Level curve | 0 → 22,000 cumulative (see table) |
-| Earned theme nodes (v1) | L8, L15 |
-| Reserved nodes | L5, L11, L14 |
-| Progression MMKV store | `showdown-progression` |
+| Constant                                | Value                             |
+| --------------------------------------- | --------------------------------- |
+| Run XP floor                            | 50                                |
+| Skill cap                               | 100                               |
+| Breadth bonus (per game, per local day) | 75                                |
+| Achievement XP — one-off                | 200                               |
+| Achievement XP — tiers                  | 100 / 250 / 500                   |
+| Levels (v1)                             | 15                                |
+| Level curve                             | 0 → 22,000 cumulative (see table) |
+| Earned theme nodes (v1)                 | L8, L15                           |
+| Reserved nodes                          | L5, L11, L14                      |
+| Progression MMKV store                  | `showdown-progression`            |
 
 All tunable from real session data without touching logic.
 
@@ -214,7 +214,7 @@ All tunable from real session data without touching logic.
 
 - Spendable currency / buying levels (XP is earn-only, never spendable).
 - A level system replacing achievements (the two coexist).
-- Flagship achievement → direct exclusive cosmetic (deferred; revisit for *Clean Sweep*).
+- Flagship achievement → direct exclusive cosmetic (deferred; revisit for _Clean Sweep_).
 - Home-as-map (the map ships on its own Progress screen first).
 - Anti-tamper on local-date streaks.
 - Sound rewards (reserved map nodes only; tokens land later).

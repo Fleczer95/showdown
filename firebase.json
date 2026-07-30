@@ -1,11 +1,11 @@
 {
-  "react-native": {
-    "google_analytics_adid_collection_enabled": false
-  },
-  "firestore": {
-    "database": "(default)",
-    "location": "eur3",
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  }
+    "react-native": {
+        "google_analytics_adid_collection_enabled": false
+    },
+    "firestore": {
+        "database": "(default)",
+        "location": "eur3",
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    }
 }

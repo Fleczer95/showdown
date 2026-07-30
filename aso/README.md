@@ -7,15 +7,15 @@ Google Play fields, one file per field. Generated from the app's actual content
 
 ## Files per locale
 
-| File | Apple field | Google Play field | Limit |
-|------|-------------|-------------------|-------|
-| `name.txt` | App Name | Title | 30 (Apple) / 50 (Play) |
-| `subtitle.txt` | Subtitle | — | 30 |
-| `short-description.txt` | — | Short description | 80 (Play) |
-| `keywords.txt` | Keywords (comma-sep, no spaces) | — (Play has no field) | 100 |
-| `promotional-text.txt` | Promotional Text (editable anytime) | — | 170 |
-| `description.txt` | Description | Full description | 4000 |
-| `whats-new.txt` | What's New | Release notes | 4000 |
+| File                    | Apple field                         | Google Play field     | Limit                  |
+| ----------------------- | ----------------------------------- | --------------------- | ---------------------- |
+| `name.txt`              | App Name                            | Title                 | 30 (Apple) / 50 (Play) |
+| `subtitle.txt`          | Subtitle                            | —                     | 30                     |
+| `short-description.txt` | —                                   | Short description     | 80 (Play)              |
+| `keywords.txt`          | Keywords (comma-sep, no spaces)     | — (Play has no field) | 100                    |
+| `promotional-text.txt`  | Promotional Text (editable anytime) | —                     | 170                    |
+| `description.txt`       | Description                         | Full description      | 4000                   |
+| `whats-new.txt`         | What's New                          | Release notes         | 4000                   |
 
 Run `python3 aso/validate.py` to check every file against its limit.
 
@@ -30,6 +30,7 @@ Run `python3 aso/validate.py` to check every file against its limit.
 - **Marketing URL:** `https://lebene.pl` (optional)
 
 ## Notes
+
 - Apple keywords: no spaces after commas, singular forms (Apple auto-matches plurals),
   no words already in name/subtitle (those are indexed), no competitor brand names.
 - Polish copy is native, grounded in the in-app translations (Drabina, Plansza, Koło, Zrzut).

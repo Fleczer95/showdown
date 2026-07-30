@@ -6,16 +6,14 @@ const sourceById = new Map(ALL_PACK.rungs.flat().map((q) => [q.id, q]));
 
 describe('buildLocalizedRungs', () => {
     it.each(['en', 'pl'] as const)(
-        'keeps each question\'s correct answer aligned with the content bank (%s)',
+        "keeps each question's correct answer aligned with the content bank (%s)",
         (lang) => {
             for (const question of buildLocalizedRungs(lang).flat()) {
                 const source = sourceById.get(question.id);
                 expect(source).toBeDefined();
                 // The option the loader marks correct must be the bank's real
                 // correct option, localized — not whatever sits at index 0.
-                expect(question.options[question.correctIndex]).toBe(
-                    source!.options[source!.correctIndex][lang],
-                );
+                expect(question.options[question.correctIndex]).toBe(source!.options[source!.correctIndex][lang]);
             }
         },
     );
@@ -24,7 +22,11 @@ describe('buildLocalizedRungs', () => {
         // The bank places correct answers across positions 0–3. If the loader
         // collapsed every correctIndex to 0 (the original bug), this set would
         // be {0}.
-        const indices = new Set(buildLocalizedRungs('en').flat().map((q) => q.correctIndex));
+        const indices = new Set(
+            buildLocalizedRungs('en')
+                .flat()
+                .map((q) => q.correctIndex),
+        );
         expect(indices.size).toBeGreaterThan(1);
     });
 

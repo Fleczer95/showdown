@@ -189,12 +189,12 @@ function analyze() {
     const pluralSuffixes = ['zero', 'one', 'two', 'few', 'many', 'other'];
     const requiredPlurals = {
         en: ['one', 'other'],
-        pl: ['one', 'few', 'many', 'other']
+        pl: ['one', 'few', 'many', 'other'],
     };
 
     const getPluralGroups = (keys) => {
         const groups = new Set();
-        keys.forEach(k => {
+        keys.forEach((k) => {
             if (k.endsWith('.other') && keys.includes(k.replace(/\.other$/, '.one'))) {
                 groups.add(k.replace(/\.other$/, ''));
             }
@@ -209,30 +209,30 @@ function analyze() {
 
         const currentKeys = keysByLocale[file.locale];
         const currentKeySet = new Set(currentKeys);
-        
+
         const missing = [];
         const extra = [];
         const localeReqPlurals = requiredPlurals[file.locale] || ['one', 'other'];
 
         // Check for missing keys based on base keys
-        baseKeys.forEach(k => {
+        baseKeys.forEach((k) => {
             const lastDot = k.lastIndexOf('.');
             const group = lastDot !== -1 ? k.substring(0, lastDot) : '';
             const suffix = lastDot !== -1 ? k.substring(lastDot + 1) : '';
             const isPluralBase = basePluralGroups.has(group) && pluralSuffixes.includes(suffix);
-            
+
             if (isPluralBase) {
                 return; // Handled in group check
             }
-            
+
             if (!currentKeySet.has(k)) {
                 missing.push(k);
             }
         });
 
         // Check plural groups
-        basePluralGroups.forEach(group => {
-            localeReqPlurals.forEach(suffix => {
+        basePluralGroups.forEach((group) => {
+            localeReqPlurals.forEach((suffix) => {
                 const reqKey = `${group}.${suffix}`;
                 if (!currentKeySet.has(reqKey)) {
                     missing.push(`${reqKey} (required plural)`);
@@ -241,15 +241,15 @@ function analyze() {
         });
 
         // Check for extra keys
-        currentKeys.forEach(k => {
+        currentKeys.forEach((k) => {
             const lastDot = k.lastIndexOf('.');
             const group = lastDot !== -1 ? k.substring(0, lastDot) : '';
             const suffix = lastDot !== -1 ? k.substring(lastDot + 1) : '';
-            
+
             if (basePluralGroups.has(group) && pluralSuffixes.includes(suffix)) {
                 return; // Valid plural extension
             }
-            
+
             if (!baseKeySet.has(k)) {
                 extra.push(k);
             }
@@ -305,10 +305,10 @@ function analyze() {
     console.log('='.repeat(50));
 
     const missingBaseKeys = Array.from(usedKeys).filter((k) => !baseKeySet.has(k));
-    
+
     // Filter out keys that are objects or plurals in the JSON (e.g., used 'key' in code, but JSON has 'key.one' and 'key.other')
-    const definitelyMissing = missingBaseKeys.filter(k => {
-        const isPluralOrObject = baseKeys.some(baseKey => baseKey.startsWith(k + '.'));
+    const definitelyMissing = missingBaseKeys.filter((k) => {
+        const isPluralOrObject = baseKeys.some((baseKey) => baseKey.startsWith(k + '.'));
         return !isPluralOrObject;
     });
 

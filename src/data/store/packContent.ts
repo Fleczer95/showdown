@@ -12,11 +12,7 @@ import { getPackContent, getPlayablePackIds } from './catalog';
  * packs + owned premium packs). Used by games that localize content up front
  * (The Ladder, The Wheel). Returns an empty array when nothing is owned.
  */
-export function getOwnedPackContent<TCard>(
-    gameId: string,
-    locale: string,
-    ownedIds: ReadonlySet<string>,
-): TCard[] {
+export function getOwnedPackContent<TCard>(gameId: string, locale: string, ownedIds: ReadonlySet<string>): TCard[] {
     return getPlayablePackIds(gameId, ownedIds).flatMap((id) => getPackContent<TCard>(id, locale));
 }
 
@@ -39,9 +35,7 @@ export function getOwnedPackContentBilingual<TMono, TCard>(
         const en = getPackContent<TMono>(id, 'en');
         const pl = getPackContent<TMono>(id, 'pl');
         if (en.length !== pl.length) {
-            console.warn(
-                `[packContent] Skipping pack "${id}": en/pl length mismatch (${en.length} vs ${pl.length}).`,
-            );
+            console.warn(`[packContent] Skipping pack "${id}": en/pl length mismatch (${en.length} vs ${pl.length}).`);
             return [];
         }
         return en.map((card, i) => zip(card, pl[i]));

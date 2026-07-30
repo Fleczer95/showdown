@@ -43,12 +43,7 @@ export function SettingsScreen() {
     return (
         <SafeContainer edges={['top', 'bottom']} enableLeftSwipe>
             {/* Header */}
-            <View
-                style={[
-                    styles.header,
-                    { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md },
-                ]}
-            >
+            <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
                 <IconButton
                     icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
                     onPress={handleBack}
@@ -136,10 +131,7 @@ export function SettingsScreen() {
                                     {t('screen.settings.labels.soundEffects')}
                                 </Text>
                             </Stack>
-                            <Switch
-                                value={settings.soundEffects}
-                                onValueChange={settings.setSoundEffects}
-                            />
+                            <Switch value={settings.soundEffects} onValueChange={settings.setSoundEffects} />
                         </View>
 
                         <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
@@ -149,10 +141,7 @@ export function SettingsScreen() {
                                     {t('screen.settings.labels.hapticFeedback')}
                                 </Text>
                             </Stack>
-                            <Switch
-                                value={settings.hapticFeedback}
-                                onValueChange={settings.setHapticFeedback}
-                            />
+                            <Switch value={settings.hapticFeedback} onValueChange={settings.setHapticFeedback} />
                         </View>
 
                         <View style={[styles.row, { paddingVertical: theme.spacing.sm }]}>
@@ -162,10 +151,7 @@ export function SettingsScreen() {
                                     {t('screen.settings.labels.mascotChatter')}
                                 </Text>
                             </Stack>
-                            <Switch
-                                value={settings.mascotChatter}
-                                onValueChange={settings.setMascotChatter}
-                            />
+                            <Switch value={settings.mascotChatter} onValueChange={settings.setMascotChatter} />
                         </View>
                     </Stack>
 
@@ -236,10 +222,7 @@ export function SettingsScreen() {
                     <Stack
                         gap='sm'
                         align='center'
-                        style={[
-                            styles.footer,
-                            { marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl },
-                        ]}
+                        style={[styles.footer, { marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }]}
                     >
                         <Text variant='caption' color={theme.colors.textMuted}>
                             © 2026 ShowDown Games

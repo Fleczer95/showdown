@@ -16,11 +16,13 @@ entirely and replaced by [[The Drop]].
 ## Terms
 
 ### The Ladder
+
 A solo trivia climb: one player ascends a 15-question curve of increasing
 difficulty (Millionaire-style). Outcome is the [[Rung]] reached. Assisted by
 [[Lifeline]]s.
 
-### The Grid *(deferred post-MVP)*
+### The Grid _(deferred post-MVP)_
+
 A solo category-board trivia game (Jeopardy-style): the player clears a grid of
 fixed-value clues, scoring points for correct answers. No wagering. When built,
 it will use **ABCD multiple-choice** answers so scoring is objective and
@@ -29,6 +31,7 @@ unverifiable). Differentiated from [[The Ladder]] by structure: pick-your-order
 board with no elimination, vs. an escalating climb with [[Lifeline]]s.
 
 ### The Drop
+
 A solo confidence/allocation game (Money-Drop-style). The player holds a [[Bank]]
 and, each round, sees one 4-option multiple-choice question and must place the
 **entire bank** across **1–3 of the options** (never all four). Each covered
@@ -41,6 +44,7 @@ the skill is risk calibration on surprising **real statistics**. Replaces the
 cut Opinion Poll.
 
 ### The Wheel
+
 A solo word-puzzle **press-your-luck** game (Wheel-of-Fortune-style). Across
 **3 puzzles**, the player spins for a cash value, guesses consonants (a correct
 consonant adds value × occurrences to [[Round Cash]]; a wrong consonant just
@@ -51,22 +55,26 @@ the puzzle with nothing banked. Score = total banked across the 3 puzzles. The
 tension is greed vs. safety — keep spinning for more, or solve to lock it in.
 
 ### Round Cash
+
 The unbanked cash a player is accumulating on the current [[The Wheel]] puzzle.
 Built by correct consonants, spent on vowels, wiped by Bankrupt, and converted to
 permanent score only by a correct solve.
 
-### Async Challenge *(post-MVP)*
+### Async Challenge _(post-MVP)_
+
 The social/competitive layer that replaces local multiplayer: a player shares a
 result via URL/deep link so a friend can attempt to beat that score. (Design
 doc: "shared deep links that challenge a specific score.")
 
 ### Challenge Record
+
 The immutable online record behind an [[Async Challenge]]. It freezes the game,
 the ordered question ids, the creator's identity, expiry time, and the creator's
 mascot look. It is the shared contract both devices use to play the same
 challenge and show the same creator presentation.
 
 ### Rematch
+
 A directed 1:1 follow-up [[Async Challenge]] between exactly the two participants
 who completed the previous challenge. It creates a new [[Challenge Record]] with
 fresh questions rather than adding another attempt to the previous record. Each
@@ -75,11 +83,14 @@ invited player discovers it when the app next synchronises, without a promise of
 a system notification.
 
 ### Rung
+
 The 1-based position a player has reached on [[The Ladder]]. Reaching rung 15
 is a win.
 
 ### Lifeline
+
 A one-use assist in [[The Ladder]]:
+
 - **50:50** — hides two of the wrong options.
 - **Ask the Studio** — reveals a hint / a vote distribution favouring the answer.
 - **Skip** — swaps the current question for a **different question at the same
@@ -88,11 +99,13 @@ A one-use assist in [[The Ladder]]:
   question content to carry spare questions per difficulty level to swap in.)
 
 ### Bank
+
 The pool a player carries between rounds in [[The Drop]]. Starts at **1,000,000**,
 held as **40 bundles of 25,000** (the placement unit). Can only stay flat or
 shrink. The final bank is the player's score.
 
 ### Minimum Stake
+
 The smallest amount placeable on a covered option in [[The Drop]]: **one 25,000
 bundle**. Because the [[Bank]] is always a whole number of bundles, the number of
 options coverable in a round is `min(3, bundles held)` — at 2 bundles you can
@@ -100,6 +113,7 @@ cover at most 2 options, at 1 bundle you are forced all-in. No fractional edge
 cases.
 
 ### Question History
+
 A per-game record of how many times each question has been shown, persisted on
 the device. Selection is biased toward the **least-shown** questions so a game
 cycles through its whole pool before repeating any — and once all are equal, the
@@ -107,6 +121,7 @@ pool reshuffles. Count-based (not boolean "used" flags), so it self-cycles with
 no explicit reset. Each question needs a stable id to be tracked.
 
 ### Gated Secret
+
 Each game hides its answer (Grid: the clue's answer; Poll: the survey answers;
 Wheel: the phrase) behind a deliberate reveal/match/solve. In solo play this
 keeps the player from seeing the answer before attempting it; self-judging

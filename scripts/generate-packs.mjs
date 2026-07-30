@@ -75,12 +75,14 @@ Modes:
 // ---------------------------------------------------------------------------
 
 function kebabCase(text) {
-    return String(text)
-        .toLowerCase()
-        .normalize('NFKD')
-        .replace(/\p{Diacritic}/gu, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'pack';
+    return (
+        String(text)
+            .toLowerCase()
+            .normalize('NFKD')
+            .replace(/\p{Diacritic}/gu, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'pack'
+    );
 }
 
 // Fixed difficulty count for the ladder game type.
@@ -108,10 +110,7 @@ async function generateItems(type, topic, count, locale) {
         const items = [];
         for (let i = 1; i <= LADDER_QUESTIONS; i++) {
             items.push({
-                prompt: t(
-                    `Sample ${topic} question ${i}`,
-                    `Przykładowe pytanie ${i} o temacie ${topic}`,
-                ),
+                prompt: t(`Sample ${topic} question ${i}`, `Przykładowe pytanie ${i} o temacie ${topic}`),
                 options: [
                     t(`Answer A for ${topic} #${i}`, `Odpowiedź A dla ${topic} #${i}`),
                     t(`Answer B for ${topic} #${i}`, `Odpowiedź B dla ${topic} #${i}`),
@@ -135,21 +134,12 @@ async function generateItems(type, topic, count, locale) {
             for (let r = 1; r <= cluesPerCategory; r++) {
                 clues.push({
                     value: r * 100,
-                    clue: t(
-                        `Sample ${topic} clue ${c}-${r}`,
-                        `Przykładowa wskazówka ${c}-${r} o temacie ${topic}`,
-                    ),
-                    answer: t(
-                        `Sample ${topic} answer ${c}-${r}`,
-                        `Przykładowa odpowiedź ${c}-${r} o temacie ${topic}`,
-                    ),
+                    clue: t(`Sample ${topic} clue ${c}-${r}`, `Przykładowa wskazówka ${c}-${r} o temacie ${topic}`),
+                    answer: t(`Sample ${topic} answer ${c}-${r}`, `Przykładowa odpowiedź ${c}-${r} o temacie ${topic}`),
                 });
             }
             categories.push({
-                name: t(
-                    `${topic} category ${c}`,
-                    `${topic} kategoria ${c}`,
-                ),
+                name: t(`${topic} category ${c}`, `${topic} kategoria ${c}`),
                 clues,
             });
         }
@@ -161,10 +151,7 @@ async function generateItems(type, topic, count, locale) {
         const surveys = [];
         for (let s = 1; s <= count; s++) {
             surveys.push({
-                question: t(
-                    `Sample ${topic} survey ${s}`,
-                    `Przykładowa ankieta ${s} o temacie ${topic}`,
-                ),
+                question: t(`Sample ${topic} survey ${s}`, `Przykładowa ankieta ${s} o temacie ${topic}`),
                 answers: [
                     { text: t(`Top answer ${s}`, `Najczęstsza odpowiedź ${s}`), count: 40 },
                     { text: t(`Second answer ${s}`, `Druga odpowiedź ${s}`), count: 30 },
@@ -181,14 +168,8 @@ async function generateItems(type, topic, count, locale) {
         const puzzles = [];
         for (let p = 1; p <= count; p++) {
             puzzles.push({
-                phrase: t(
-                    `Sample ${topic} phrase ${p}`,
-                    `Przykładowe hasło ${p} o temacie ${topic}`,
-                ),
-                category: t(
-                    `${topic} category`,
-                    `${topic} kategoria`,
-                ),
+                phrase: t(`Sample ${topic} phrase ${p}`, `Przykładowe hasło ${p} o temacie ${topic}`),
+                category: t(`${topic} category`, `${topic} kategoria`),
             });
         }
         return puzzles;
@@ -213,9 +194,8 @@ async function generatePack(type, topic, slug, count) {
         throw new Error(`Invalid --type "${type}". Must be one of: ${GAME_TYPES.join(', ')}`);
     }
 
-    const effectiveCount = type === 'ladder'
-        ? LADDER_QUESTIONS
-        : (Number.isInteger(count) && count > 0 ? count : DEFAULT_COUNTS[type]);
+    const effectiveCount =
+        type === 'ladder' ? LADDER_QUESTIONS : Number.isInteger(count) && count > 0 ? count : DEFAULT_COUNTS[type];
 
     const enItems = await generateItems(type, topic, effectiveCount, 'en');
     const plItems = await generateItems(type, topic, effectiveCount, 'pl');

@@ -4,17 +4,20 @@
 > Branch: `mascotte`. Another agent should be able to continue from here.
 
 ## Status legend
+
 - [ ] not started · [~] in progress · [x] done · [!] blocked (needs user/device)
 
 ---
 
 ## ▶ Resume prompts — run ONE in a fresh session per phase
+
 Start each phase in a NEW session (keeps context lean). Paste the next phase's prompt.
 Every prompt assumes the agent will: read both docs, follow the `executing-plans` skill,
 update this file after each step, run `tsc --noEmit` + eslint, and STOP for review before
 committing. Mark the phase done here + commit at the end of each session.
 
 **Phase 1 — data model & v2 invariants:**
+
 > Continue the Showdown mascot build, Phase 1. Read `docs/plans/2026-06-30-mascot-design.md`
 > (spec) and `docs/plans/2026-06-30-mascot-design.PROGRESS.md` (progress). Phase 0 gate
 > passed. Implement Phase 1 only: the `MascotSkinDefinition` type + `src/data/store/mascotSkins.ts`
@@ -24,6 +27,7 @@ committing. Mark the phase done here + commit at the end of each session.
 > `ChallengeRecord` payload. Save progress after each step; stop for my review before committing.
 
 **Phase 2 — customizer UI:**
+
 > Continue the Showdown mascot build, Phase 2. Read both mascot docs. Phase 1 is committed.
 > Build the customizer screen that replaces `MascotPocScreen` behind the `Mascot` route:
 > full-screen live fox via `renderMascot`/`Mascot` (`src/game/mascot/Mascot.tsx`), tap-region
@@ -36,10 +40,12 @@ committing. Mark the phase done here + commit at the end of each session.
 >
 > Phase-2 notes (from Phase 1): `mascotSkins` is NOT in `STORE_CATALOG` yet (Phase 3), so derive a
 > swatch's locked/unlocked state from the bundle's `unlocks` array (`src/data/store/mascotSkins.ts`)
-> + `DEFAULT_LOOK`, NOT from catalog ownership resolution. The buy path + i18n store copy are Phase 3 —
-> Phase 2 only SHOWS locked swatches with a badge, it does not make them purchasable.
+>
+> - `DEFAULT_LOOK`, NOT from catalog ownership resolution. The buy path + i18n store copy are Phase 3 —
+>   Phase 2 only SHOWS locked swatches with a badge, it does not make them purchasable.
 
 **Phase 3 — store / billing integration:**
+
 > Continue the Showdown mascot build, Phase 3. Read both mascot docs. Wire the buy path: a
 > locked purchasable swatch routes through the EXISTING react-native-iap + `MMKVPurchaseAdapter`
 > plumbing to buy `com.showdown.mascot_skinpack` (do NOT rebuild billing), and surface the pack
@@ -47,36 +53,40 @@ committing. Mark the phase done here + commit at the end of each session.
 > before committing.
 
 **Phase 4 — progression deep-link (scroll-to-anchor):**
+
 > Continue the Showdown mascot build, Phase 4. Read `docs/plans/2026-06-30-mascot-design.md` (spec) and
 > `docs/plans/2026-06-30-mascot-design.PROGRESS.md` (progress). Phase 3 is committed (`795241c`) on branch
 > `mascotte`. Build Phase 4 only — the progression deep-link for EARNED mascot colors (plan §5 + §8):
 >
 > SCOPED FACTS (already verified — don't re-derive):
->   - The scroll-to-anchor ALREADY EXISTS. `ProgressScreen` reads `route.params?.focusRewardId`, maps it
->     to a level via `LEVEL_MAP`, and `scrollRef.current?.scrollTo({ y })` (ProgressScreen.tsx ~L132-147).
->     So this phase is mostly WIRING — `MascotScreen` navigates `('Progress', { focusRewardId })`, the same
->     pattern `ThemeScreen` uses for earned themes. Confirm the target level also gets a visual HIGHLIGHT
->     (not just scroll); if highlight is missing, add it.
->   - There are currently ZERO earned colors. The placeholder palette in `src/game/mascot/look.ts` is 3
->     colors/slot; defaults = slot[0]; ALL 8 non-defaults are in the purchasable bundle (`mascotSkins.unlocks`).
->     So Phase 4 must INTRODUCE the earned element(s): a new colorId NOT in `mascotSkins.unlocks`, mapped to a
->     `rewardId` + level in progression. ⛔ DECISION NEEDED FROM USER UP FRONT: which earned element (e.g. a
->     gold mic), at which level / `rewardId`. ASK before building. (Palette is placeholder until §8 final art,
->     so the specific color may be a stand-in — but wire the mechanism against a real `rewardId`.)
+>
+> - The scroll-to-anchor ALREADY EXISTS. `ProgressScreen` reads `route.params?.focusRewardId`, maps it
+>   to a level via `LEVEL_MAP`, and `scrollRef.current?.scrollTo({ y })` (ProgressScreen.tsx ~L132-147).
+>   So this phase is mostly WIRING — `MascotScreen` navigates `('Progress', { focusRewardId })`, the same
+>   pattern `ThemeScreen` uses for earned themes. Confirm the target level also gets a visual HIGHLIGHT
+>   (not just scroll); if highlight is missing, add it.
+> - There are currently ZERO earned colors. The placeholder palette in `src/game/mascot/look.ts` is 3
+>   colors/slot; defaults = slot[0]; ALL 8 non-defaults are in the purchasable bundle (`mascotSkins.unlocks`).
+>   So Phase 4 must INTRODUCE the earned element(s): a new colorId NOT in `mascotSkins.unlocks`, mapped to a
+>   `rewardId` + level in progression. ⛔ DECISION NEEDED FROM USER UP FRONT: which earned element (e.g. a
+>   gold mic), at which level / `rewardId`. ASK before building. (Palette is placeholder until §8 final art,
+>   so the specific color may be a stand-in — but wire the mechanism against a real `rewardId`.)
 >
 > STEPS:
->   1. Add the earned mascot element(s) in `src/game/progression/` (NEVER sold; mirror
->      `src/game/progression/themes.ts`). Keep them OUT of `mascotSkins.unlocks` so they don't read as buyable.
->   2. In `MascotScreen`, split locked-swatch behavior: locked PURCHASABLE → existing Phase-3 buy path
->      (`purchaseItem`); locked EARNED → `navigation.navigate('Progress', { focusRewardId })`.
->   3. Resolve earned-unlock state from `useProgression().unlockedRewards` (like `ThemeScreen`); map each
->      earned colorId → its `rewardId`/level. Earned-but-unlocked colors equip like any owned color.
->   4. Ensure `ProgressScreen` scrolls to AND highlights the target level for the mascot `focusRewardId`.
+>
+> 1. Add the earned mascot element(s) in `src/game/progression/` (NEVER sold; mirror
+>    `src/game/progression/themes.ts`). Keep them OUT of `mascotSkins.unlocks` so they don't read as buyable.
+> 2. In `MascotScreen`, split locked-swatch behavior: locked PURCHASABLE → existing Phase-3 buy path
+>    (`purchaseItem`); locked EARNED → `navigation.navigate('Progress', { focusRewardId })`.
+> 3. Resolve earned-unlock state from `useProgression().unlockedRewards` (like `ThemeScreen`); map each
+>    earned colorId → its `rewardId`/level. Earned-but-unlocked colors equip like any owned color.
+> 4. Ensure `ProgressScreen` scrolls to AND highlights the target level for the mascot `focusRewardId`.
 >
 > Save progress after each step; run `tsc --noEmit` + eslint + prettier + `npm run i18n:check`; stop for my
 > review before committing.
 
 **Phase 5 — placement (Home + Results):**
+
 > Continue the Showdown mascot build, Phase 5. Read both mascot docs. Build a self-contained
 > mascot overlay component (slid in via a Reanimated transform), mount it on Home (intro/idle,
 > showing the equipped look), and on each game's Results screen have the screen classify its own
@@ -84,12 +94,14 @@ committing. Mark the phase done here + commit at the end of each session.
 > each step; stop for review before committing.
 
 **Phase 6 — real art:**
+
 > Continue the Showdown mascot build, Phase 6. Read both mascot docs. Replace the primitive PoC
 > shapes with the hand-cleaned multi-region SVG fox (same regions `fur`/`suit`/`accent`/`mic` +
 > shading overlays) across the 4 poses; apply the node ceiling from the Phase 0 perf read. Then
 > delete the throwaway `src/game/mascot/poc/` folder. Save progress after each step; stop for review.
 
 **Phase 7 — IAP provisioning (LAST — only after the final color list is confirmed):**
+
 > Continue the Showdown mascot build, Phase 7. Read both mascot docs. PREREQUISITE: the final per-slot
 > color list (plan §8) must be locked — do NOT provision before the palette is confirmed, since the
 > $2.99 bundle's value is "unlock all premium swatches" and the swatch set must be final. Provision the
@@ -101,6 +113,7 @@ committing. Mark the phase done here + commit at the end of each session.
 > — create drafts only, STOP for review before submitting for App Review / activating.
 
 ## Codebase facts established (so next agent doesn't re-derive)
+
 - All native deps present: `react-native-svg` 15.12.1, `reanimated` ~4.1.1,
   `gesture-handler` ~2.28.0, `react-native-mmkv` 4.3.1, `react-native-iap` ^14.4.46,
   `@shopify/react-native-skia` 2.2.12.
@@ -115,18 +128,20 @@ committing. Mark the phase done here + commit at the end of each session.
 
 ---
 
-## Phase 0 — Sequencing Gate: throwaway recolor PoC  ⟵ DO FIRST (plan §2)
+## Phase 0 — Sequencing Gate: throwaway recolor PoC ⟵ DO FIRST (plan §2)
+
 Prove fill-override + pose transitions end-to-end with PRIMITIVE shapes before real art.
 Files (all under `src/game/mascot/poc/` — delete the folder when gate passes):
-  - `palette.ts` — `MascotSlot`/`MascotPose`/`LookMap` types, 3-color placeholder
-    palette/slot, stable string colorIds (§7.1), `resolveSlotColor` w/ default fallback (§7.3).
-  - `MascotPoc.tsx` — primitive-shape fox, named fills + shading overlays, 4 Reanimated
-    poses; exports `renderMascot(look, pose)` prototyping the §7.2 signature.
-  - `MascotPocScreen.tsx` — dev harness: pose switcher + per-slot swatches.
-Wiring (TEMP, `__DEV__`-gated, marked for removal with PoC):
-  - `navigation/types.ts` `MascotPoc: undefined` route.
-  - `navigation/RootNavigator.tsx` `{__DEV__ ? <Stack.Screen MascotPoc/> : null}`.
-  - `screens/HomeScreen.tsx` `__DEV__` Mic IconButton in header → navigate('MascotPoc').
+
+- `palette.ts` — `MascotSlot`/`MascotPose`/`LookMap` types, 3-color placeholder
+  palette/slot, stable string colorIds (§7.1), `resolveSlotColor` w/ default fallback (§7.3).
+- `MascotPoc.tsx` — primitive-shape fox, named fills + shading overlays, 4 Reanimated
+  poses; exports `renderMascot(look, pose)` prototyping the §7.2 signature.
+- `MascotPocScreen.tsx` — dev harness: pose switcher + per-slot swatches.
+  Wiring (TEMP, `__DEV__`-gated, marked for removal with PoC):
+- `navigation/types.ts` `MascotPoc: undefined` route.
+- `navigation/RootNavigator.tsx` `{__DEV__ ? <Stack.Screen MascotPoc/> : null}`.
+- `screens/HomeScreen.tsx` `__DEV__` Mic IconButton in header → navigate('MascotPoc').
 - [x] PoC component: layered SVG, named fills + semi-transparent shading overlays.
 - [x] 4 poses `intro|idle|cheer|dismay` via Reanimated (pop/shake-slump/breathe/slide-in),
       respects `useReducedMotion`.
@@ -137,18 +152,21 @@ Wiring (TEMP, `__DEV__`-gated, marked for removal with PoC):
       GATE PASSED → Phase 1 unblocked. (Perf felt fine; formal node ceiling still TBD at art.)
 
 ### Entry-point relocation (user request, 2026-06-30)
-Mic-on-Home dev entry REMOVED. Mascot now has a permanent Settings row, mirroring Themes:
-  - Route renamed `MascotPoc` → **`Mascot`** (no longer `__DEV__`-gated) in
-    `navigation/types.ts` + `RootNavigator.tsx`; still renders `MascotPocScreen`
-    as a placeholder until the Phase 2 customizer replaces it.
-  - `screens/SettingsScreen.tsx`: new disclosure row in the Appearance section
-    (Drama icon) under Theme → `navigation.navigate('Mascot')`.
-  - i18n `screen.settings.labels.mascot` added to `en.json` ("Mascot") + `pl.json`
-    ("Maskotka"). NOTE: locale JSON files are NOT prettier-formatted in this repo
-    (pre-existing) — match the 16-space indent, do NOT run prettier --write on them.
-  - `screens/HomeScreen.tsx` reverted (Mic import + dev IconButton removed).
 
-## Phase 1 — Data model & v2-locked invariants (§5, §7)  ⟵ AWAITING REVIEW (uncommitted)
+Mic-on-Home dev entry REMOVED. Mascot now has a permanent Settings row, mirroring Themes:
+
+- Route renamed `MascotPoc` → **`Mascot`** (no longer `__DEV__`-gated) in
+  `navigation/types.ts` + `RootNavigator.tsx`; still renders `MascotPocScreen`
+  as a placeholder until the Phase 2 customizer replaces it.
+- `screens/SettingsScreen.tsx`: new disclosure row in the Appearance section
+  (Drama icon) under Theme → `navigation.navigate('Mascot')`.
+- i18n `screen.settings.labels.mascot` added to `en.json` ("Mascot") + `pl.json`
+  ("Maskotka"). NOTE: locale JSON files are NOT prettier-formatted in this repo
+  (pre-existing) — match the 16-space indent, do NOT run prettier --write on them.
+- `screens/HomeScreen.tsx` reverted (Mic import + dev IconButton removed).
+
+## Phase 1 — Data model & v2-locked invariants (§5, §7) ⟵ AWAITING REVIEW (uncommitted)
+
 - [x] `MascotSkinDefinition` type (`src/data/store/types.ts`, added to `CatalogEntry` union) +
       `src/data/store/mascotSkins.ts` catalog (single bundle SKU `com.showdown.mascot_skinpack`,
       $2.99 fallback). `unlocks` = every non-default palette colorId.
@@ -161,22 +179,26 @@ Mic-on-Home dev entry REMOVED. Mascot now has a permanent Settings row, mirrorin
 - [x] Static checks: `tsc --noEmit` clean, eslint clean, prettier clean, 34/34 store tests pass.
 
 ### Structural decision (flag for review)
+
 The renderer was PROMOTED OUT of throwaway `poc/` so permanent consumers (Phase 2 customizer,
 Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 6:
-  - `src/game/mascot/look.ts` — canonical palette/types/`resolveSlotColor` (was `poc/palette.ts`).
-  - `src/game/mascot/Mascot.tsx` — `Mascot` component + `renderMascot()` (was `poc/MascotPoc.tsx`),
-    SVG moved VERBATIM (device-verified art unchanged; still placeholder primitives until Phase 6).
-  - DELETED `poc/palette.ts` + `poc/MascotPoc.tsx`. `poc/MascotPocScreen.tsx` stays as the dev
-    harness (now imports `../look` + `../Mascot`); Phase 2 replaces it, Phase 6 deletes the folder.
-  - Phase 6 now just swaps the SVG shapes in `Mascot.tsx` + removes the leftover harness.
+
+- `src/game/mascot/look.ts` — canonical palette/types/`resolveSlotColor` (was `poc/palette.ts`).
+- `src/game/mascot/Mascot.tsx` — `Mascot` component + `renderMascot()` (was `poc/MascotPoc.tsx`),
+  SVG moved VERBATIM (device-verified art unchanged; still placeholder primitives until Phase 6).
+- DELETED `poc/palette.ts` + `poc/MascotPoc.tsx`. `poc/MascotPocScreen.tsx` stays as the dev
+  harness (now imports `../look` + `../Mascot`); Phase 2 replaces it, Phase 6 deletes the folder.
+- Phase 6 now just swaps the SVG shapes in `Mascot.tsx` + removes the leftover harness.
 
 ### Deferred to Phase 3 (noted so it isn't missed)
-  - `mascotSkins` is NOT yet in `STORE_CATALOG` (catalog.ts) — keeps the unprovisioned SKU from
-    being queried before the buy path exists. Phase 3 adds `...mascotSkins` + the `screen.store.item.
-    mascot_skinpack.*` / `screen.store.feature.mascot_skinpack_*` i18n copy (en.json + pl.json).
-  - `mascot-skinpack` IAP product is NOT yet provisioned on either store (Phase 3).
 
-## Phase 2 — Customizer UI (§5)  ⟵ AWAITING REVIEW (uncommitted)
+- `mascotSkins` is NOT yet in `STORE_CATALOG` (catalog.ts) — keeps the unprovisioned SKU from
+  being queried before the buy path exists. Phase 3 adds `...mascotSkins` + the `screen.store.item.
+mascot_skinpack.*` / `screen.store.feature.mascot_skinpack_*` i18n copy (en.json + pl.json).
+- `mascot-skinpack` IAP product is NOT yet provisioned on either store (Phase 3).
+
+## Phase 2 — Customizer UI (§5) ⟵ AWAITING REVIEW (uncommitted)
+
 - [x] Full-screen live fox; tap region OR slot button opens bottom sheet.
 - [x] Slide-up sheet — REUSED existing `BottomSheet.tsx` (gesture-handler + reanimated), not rebuilt.
 - [x] Mascot scales down (0.78) / lifts up (`-scale(56)`) when sheet opens; spring, respects reduced-motion.
@@ -186,6 +208,7 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
 - [x] Static checks: tsc clean, eslint clean, prettier (TS only) clean, i18n en/pl 459/459 synced.
 
 ### Decisions / notes (flag for review)
+
 - New screen `src/screens/MascotScreen.tsx` (sits with the other screens, not in `poc/`). `RootNavigator`
   now points the `Mascot` route at it; the old `MascotPocScreen` import is gone, so the throwaway
   `src/game/mascot/poc/` folder is now ORPHANED (no remaining importers) — Phase 6 still deletes it.
@@ -203,7 +226,8 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
   no prettier on locales). `screen.settings.labels.mascot` row already routed here from Phase 0.
 - Customizer renders the fox in `idle` pose only (pose switching was a PoC-harness concern, not a Phase 2 req).
 
-## Phase 3 — Store / billing integration (§5)  ⟵ AWAITING REVIEW (uncommitted)
+## Phase 3 — Store / billing integration (§5) ⟵ AWAITING REVIEW (uncommitted)
+
 - [x] Registered `...mascotSkins` into `STORE_CATALOG` (`catalog.ts`); ownership now resolves via the
       real catalog path (`resolveEntryState` + `purchasedItemIds`), matching the theme pattern.
 - [x] Buy path wired in `MascotScreen`: a tapped locked swatch OR locked preset routes through the
@@ -221,6 +245,7 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
       34/34 store tests pass.
 
 ### Decisions / notes (flag for review)
+
 - **Testable in DEV without provisioning.** `USE_MOCK_IAP` is on under `__DEV__`, so tapping a locked
   swatch runs the mock `PurchaseEngine.purchaseItem` (1.5s → marks owned). The buy path can be exercised
   end-to-end on-device in a dev build right now. The REAL-store path needs the `com.showdown.mascot_skinpack`
@@ -238,9 +263,11 @@ Phase 5 Home/Results, v2 challenge) never import from a folder deleted in Phase 
 - **Pre-existing:** `src/screens/store/StoreScreen.tsx` was already not prettier-clean before this phase
   (verified via stash) — left as-is per surgical-changes rule; my 3-line edit conforms.
 
-## Phase 4 — Progression deep-link, scroll-to-anchor (§5, §8 — pulled into v1)  ⟵ AWAITING REVIEW (uncommitted)
+## Phase 4 — Progression deep-link, scroll-to-anchor (§5, §8 — pulled into v1) ⟵ AWAITING REVIEW (uncommitted)
+
 USER DECISION (2026-06-30): earned element = **Platinum mic** (`mic.platinum`, reward `mascot-mic-platinum`,
 hex #E5E4E2 stand-in) at **Level 35**.
+
 - [x] Earned mascot elements in `src/game/progression/` (never sold). New `mascotColors.ts` mirrors `themes.ts`/
       `signatures.ts`: `PROGRESSION_MASCOT_COLORS` binds rewardId→{slot,colorId,titleKey}; `EARNED_MASCOT_COLOR_IDS`
       set. Exported from `progression/index.ts`. New swatch `mic.platinum` appended to `MASCOT_PALETTE.mic` in
@@ -250,7 +277,7 @@ hex #E5E4E2 stand-in) at **Level 35**.
 - [x] Locked earned swatch → navigate to progression map, highlight target level. `MascotScreen` lock derivation
       now splits: earned color locked iff `!unlockedRewards.has(reward)` (via `useProgression`), purchasable color
       locked via the bundle path. New `handleLocked()` dispatch: earned → `navigation.navigate('Progress',
-      { focusRewardId })` (ThemeScreen pattern, `as any`), purchasable → existing `buyColor`. `equipColor` +
+{ focusRewardId })` (ThemeScreen pattern, `as any`), purchasable → existing `buyColor`. `equipColor` +
       `applyPreset` both route through it. Earned-but-unlocked colors equip like any owned color.
 - [x] Anchor-scroll + highlight in `ProgressScreen`. Scroll + `FocusGlow` halo ALREADY worked for any rewardId
       (gated on `node.level === focusLevel`, derived from `LEVEL_MAP` — no change needed). Added the mascot reward
@@ -260,6 +287,7 @@ hex #E5E4E2 stand-in) at **Level 35**.
       on locales). tsc clean, eslint clean, prettier clean (TS), i18n:check ✅, 34/34 store tests pass.
 
 ### Decisions / notes (flag for review)
+
 - **Earned color is a 4th mic swatch.** `mic` slot now has 4 colors (gold=default, silver+rose=bundle,
   platinum=earned); other slots still 3. Hex #E5E4E2 is a stand-in until §8 final art — the rewardId/level/colorId
   are permanent (§7.1), only the hex changes at art time.
@@ -271,7 +299,8 @@ hex #E5E4E2 stand-in) at **Level 35**.
 - **No new earned PRESET.** The existing 4 presets don't reference `mic.platinum`, so a preset's locked color is
   always purchasable → `handleLocked` still routes presets to buy. Mechanism is preset-agnostic if one is added later.
 
-## Phase 5 — Placement (§4)  ⟵ AWAITING REVIEW (uncommitted)
+## Phase 5 — Placement (§4) ⟵ AWAITING REVIEW (uncommitted)
+
 - [x] Self-contained overlay component `src/game/mascot/MascotOverlay.tsx`: absolutely-positioned,
       `pointerEvents='none'`, reads `getEquippedLook()` and renders `Mascot` via a `pose` prop. Slides in
       from the anchored edge via a Reanimated `translateX` spring; re-reads the look + replays the slide on
@@ -310,6 +339,7 @@ hex #E5E4E2 stand-in) at **Level 35**.
       `MascotOverlay.tsx` prettier-clean, i18n:check ✅ (no new keys — text quips stay deferred to §6).
 
 ### Decisions / notes (flag for review)
+
 - **Scope = 3 live games.** Grid/Poll routes were retired with the solo pivot (`data/games.ts`, `playScreens.ts`),
   so only the-wheel/the-ladder/the-drop have reachable Results. The spec's Grid (score threshold) / Poll
   (closeness-to-crowd) classifiers have no screen to live on; Drop already embodies the "by score threshold" rule.
@@ -325,7 +355,8 @@ hex #E5E4E2 stand-in) at **Level 35**.
   the inner ScrollView at its original indent to stay surgical in the already-dirty files.
 - **No persistent in-play host, no text quips** — both deferred per §4/§6; this phase is Home + Results only.
 
-## Phase 6 — Real art (§2, after PoC perf budget set)  ⟵ AWAITING REVIEW (uncommitted)
+## Phase 6 — Real art (§2, after PoC perf budget set) ⟵ AWAITING REVIEW (uncommitted)
+
 - [x] Hand-authored multi-region SVG fox host replaces the placeholder primitives in `Mascot.tsx`.
       Same 4 named base regions recolored from the look map (the seam intact): `fur` (head/ears/tail/paw),
       `suit` (jacket/lapels/raised sleeve), `accent` (necktie), `mic` (grille head). SHADE/HILITE overlays
@@ -346,6 +377,7 @@ hex #E5E4E2 stand-in) at **Level 35**.
       i18n:check ✅ (no key changes — text quips stay deferred §6).
 
 ### Decisions / notes (flag for review)
+
 - **Pure hand-authored vector, no AI raster step.** The §2 pipeline says "AI generates a concept raster, then
   hand-clean to SVG." No raster generator is wired into this environment, so the deliverable was authored
   directly as clean react-native-svg `Path`/`Polygon`/`Ellipse` geometry — which IS the "hand-cleaned
@@ -386,24 +418,26 @@ hex #E5E4E2 stand-in) at **Level 35**.
   Iterated through: curved SHADE strokes (still read as shadow) → bordered two-hand "A" arms (`OUTLINE`
   border added) → arms still read as thin outlined "cord/noodles" because same-colour-on-same-colour only
   shows the border. Grilled the direction and locked a **one-handed host pose**:
-  1. **New `OUTLINE` (`rgba(0,0,0,0.32)`) border on the suit** — the jacket SILHOUETTE + the ARM only (NOT
-     the lapels: the lapel triangle edges read as stray diagonal lines on the chest, so they stay
-     borderless). A NOT-recolored overlay (darkens any resolved suit colour, same seam rule as SHADE/HILITE).
-  2. **One-handed pose** (user decision): ONE chunky right arm (solid `suit` + `OUTLINE` border) from the
-     shoulder down to a single paw that grips the mic. Left shoulder is plain (balanced by the tail). No
-     cross-body arm → the tie stays fully visible.
-  3. **Tonal separation is what makes it read as a limb:** a `HILITE` overlay down the raised forearm makes
-     it a LIGHTER tone than the flat jacket, so its whole body reads as a rounded arm in front of the torso,
-     not just an outline. (The border alone was insufficient on same-colour geometry.)
-  4. **Mic held low at collar** (user decision), right of the tie: ball `(126,150) r15`, so the full smile
-     is clear above it and the tie is clear to its left. Removed the second forearm + second paw + its
-     crease. `HIT_ZONES` mic rect re-fitted to `{x:110,y:135,w:42,h:50}`. Node count still under the 52
-     ceiling. tsc/eslint/prettier all clean.
+    1. **New `OUTLINE` (`rgba(0,0,0,0.32)`) border on the suit** — the jacket SILHOUETTE + the ARM only (NOT
+       the lapels: the lapel triangle edges read as stray diagonal lines on the chest, so they stay
+       borderless). A NOT-recolored overlay (darkens any resolved suit colour, same seam rule as SHADE/HILITE).
+    2. **One-handed pose** (user decision): ONE chunky right arm (solid `suit` + `OUTLINE` border) from the
+       shoulder down to a single paw that grips the mic. Left shoulder is plain (balanced by the tail). No
+       cross-body arm → the tie stays fully visible.
+    3. **Tonal separation is what makes it read as a limb:** a `HILITE` overlay down the raised forearm makes
+       it a LIGHTER tone than the flat jacket, so its whole body reads as a rounded arm in front of the torso,
+       not just an outline. (The border alone was insufficient on same-colour geometry.)
+    4. **Mic held low at collar** (user decision), right of the tie: ball `(126,150) r15`, so the full smile
+       is clear above it and the tie is clear to its left. Removed the second forearm + second paw + its
+       crease. `HIT_ZONES` mic rect re-fitted to `{x:110,y:135,w:42,h:50}`. Node count still under the 52
+       ceiling. tsc/eslint/prettier all clean.
 
 ## Phase 7 — IAP provisioning (LAST; gated on the final color list — §5, §8)
+
 > Code-side commerce shipped in Phase 3; only the store-side product is missing. Do this LAST because
 > the bundle sells "unlock ALL premium swatches" — the swatch set must be frozen first (Phase 6 art +
 > §8 final palette). Until then the SKU stays unprovisioned and the buy path is dev-only (mock IAP).
+
 - [x] Confirm final per-slot color list is locked (prerequisite).
 - [x] App Store Connect: non-consumable `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`, `com.showdown.mascot_plum` (~$0.99) DRAFT (`app-store-connect-api` skill).
 - [x] Google Play: managed product `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`, `com.showdown.mascot_plum` (~$0.99) DRAFT (`google-play-iap` skill).
@@ -411,11 +445,13 @@ hex #E5E4E2 stand-in) at **Level 35**.
 - [x] Drafts only — STOP for review before submitting / activating (outward-facing store mutations).
 
 ## Deferred (not v1): jackpot pose, between-rounds host, text quips (EN/PL),
+
 ## patterns/costume overlays.
 
 ---
 
 ## Log
+
 - 2026-06-30: Created progress file. Reviewed plan + codebase. Starting Phase 0 PoC.
 - 2026-06-30: Phase 0 PoC BUILT + static-checked. Blocked on real-device verify (user).
   Note for Phase 2: a reusable `src/components/molecules/BottomSheet.tsx` already exists
@@ -477,9 +513,9 @@ hex #E5E4E2 stand-in) at **Level 35**.
 - 2026-07-01: Phase 6 REFINEMENT (arms/hands/mic, user feedback ×4). Curved the two stiff straight forearms
   into bent-elbow `C` paths; re-seated the arms shoulder→paw (inside the jacket silhouette); removed the stray
   left-edge jacket-shadow sliver; nudged the mic assembly +10 right/+5 down so it clears the smile (paws +9/+3
-  + creases to keep cupping it); re-fitted the mic `HIT_ZONES` rect. Device-verified on iPhone 16e sim — full
-  smile now visible, arms read relaxed, no stray shadow. tsc/eslint/prettier/i18n all clean. AWAITING USER
-  REVIEW before commit.
+    - creases to keep cupping it); re-fitted the mic `HIT_ZONES` rect. Device-verified on iPhone 16e sim — full
+      smile now visible, arms read relaxed, no stray shadow. tsc/eslint/prettier/i18n all clean. AWAITING USER
+      REVIEW before commit.
 - 2026-07-01: Phase 7 STARTED. User revised plan to sell costumes independently instead of a single bundle.
   Split `com.showdown.mascot_skinpack` into `com.showdown.mascot_arctic`, `com.showdown.mascot_emerald`,
   and `com.showdown.mascot_plum` (~$0.99 each). Final palette confirmed (keeping existing placeholder colors).

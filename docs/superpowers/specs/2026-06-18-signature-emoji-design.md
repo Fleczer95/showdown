@@ -32,11 +32,11 @@ desert" on the Level Map (today only levels 15 and 30 grant a reward; levels 1�
 - No app-wide emoji → SVG migration and no SVG library adoption. This feature only builds
   the `Glyph` seam those will plug into, and routes signature rendering through it (see
   Render abstraction).
-  - **Update (2026-06-18):** the migration has since landed through this exact seam.
-    `Glyph` now renders bundled **Microsoft Fluent Emoji (3D)** art (PNG, MIT) for the app's
-    9 emojis via `src/components/atoms/glyphAssets.ts`, falling back to the OS text glyph for
-    anything unmapped. The game-title emoji (`games.ts`) were routed through `Glyph` too. No
-    call site or wire format changed — the chosen art is raster images, not an SVG library.
+    - **Update (2026-06-18):** the migration has since landed through this exact seam.
+      `Glyph` now renders bundled **Microsoft Fluent Emoji (3D)** art (PNG, MIT) for the app's
+      9 emojis via `src/components/atoms/glyphAssets.ts`, falling back to the OS text glyph for
+      anything unmapped. The game-title emoji (`games.ts`) were routed through `Glyph` too. No
+      call site or wire format changed — the chosen art is raster images, not an SVG library.
 
 ## Background — two boards
 
@@ -79,7 +79,7 @@ Instead it introduces a single shared presentational atom:
 
 ```tsx
 // src/components/atoms/Glyph.tsx — the ONE place an emoji becomes pixels.
-function Glyph({ emoji, size }: { emoji: string; size?: number }): JSX.Element
+function Glyph({ emoji, size }: { emoji: string; size?: number }): JSX.Element;
 ```
 
 - **v1 internals:** render the emoji character as `<Text style={{ fontSize: size }}>`.
@@ -91,7 +91,7 @@ text render and a codepoint-based SVG library understand. Every signature render
 through `<Glyph>`. The atom is shared infrastructure: the future migration reuses it for all
 other emoji (game emoji, etc.).
 
-**Scope:** this feature only *creates* `Glyph` and routes signature rendering through it.
+**Scope:** this feature only _creates_ `Glyph` and routes signature rendering through it.
 Migrating pre-existing emoji (e.g. `games.ts`) to `<Glyph>`, and adopting the SVG library, are
 explicitly **out of scope** here — but `Glyph` is the seam they will plug into. Routing the
 existing game emoji through `Glyph` is a trivial, optional follow-up, not part of this plan.
@@ -103,13 +103,13 @@ New module `src/game/progression/signatures.ts`, sibling to `themes.ts`:
 ```ts
 export interface Signature {
     /** Reward id — matches a LEVEL_MAP node `rewardId` and `unlockedRewards()`. */
-    id: string;            // e.g. 'signature-spark'
+    id: string; // e.g. 'signature-spark'
     /** Stable ASCII slug stored on board entries (the id without the 'signature-' prefix). */
-    slug: string;          // e.g. 'spark'
+    slug: string; // e.g. 'spark'
     /** v1 presentation: the emoji the slug resolves to. Swap to an SVG component later. */
-    emoji: string;         // e.g. '⚡'
-    titleKey: string;      // e.g. 'progression.signatures.spark'
-    level: number;         // the LEVEL_MAP node it is bound to
+    emoji: string; // e.g. '⚡'
+    titleKey: string; // e.g. 'progression.signatures.spark'
+    level: number; // the LEVEL_MAP node it is bound to
 }
 
 export const SIGNATURES: readonly Signature[];
@@ -128,8 +128,8 @@ export const SIGNATURE_SLUGS: readonly string[];
 highest-level signature whose node has been reached (`lifetimeXp >= node.xp`), or `undefined`
 below the first signature tier. `signatureEmoji(slug)` maps a stored slug back to its emoji
 **character**; that character is then handed to `<Glyph>`, which is the single place a glyph
-becomes pixels. So there are exactly two seams: the emoji character is *defined* once (in
-`SIGNATURES`) and *rendered* once (in `Glyph`).
+becomes pixels. So there are exactly two seams: the emoji character is _defined_ once (in
+`SIGNATURES`) and _rendered_ once (in `Glyph`).
 
 ### Binding to the Level Map
 
@@ -143,16 +143,16 @@ Signatures occupy currently-empty nodes; the two existing theme rewards are unch
 Because the displayed signature is always the highest earned, the emoji visibly upgrades
 as the player climbs.
 
-| Level | Reward id | Slug (wire) | Emoji (v1 render) |
-|-------|-----------|-------------|-------------------|
-| 5  | `signature-sprout`   | `sprout` | 🌱 |
-| 10 | `signature-spark`    | `spark`  | ⚡ |
-| 15 | `theme-champion`     | —        | *(unchanged theme)* |
-| 20 | `signature-fire`     | `fire`   | 🔥 |
-| 25 | `signature-gem`      | `gem`    | 💎 |
-| 30 | `theme-legend`       | —        | *(unchanged theme)* |
-| 40 | `signature-star`     | `star`   | 🌟 |
-| 50 | `signature-crown`    | `crown`  | 👑 |
+| Level | Reward id          | Slug (wire) | Emoji (v1 render)   |
+| ----- | ------------------ | ----------- | ------------------- |
+| 5     | `signature-sprout` | `sprout`    | 🌱                  |
+| 10    | `signature-spark`  | `spark`     | ⚡                  |
+| 15    | `theme-champion`   | —           | _(unchanged theme)_ |
+| 20    | `signature-fire`   | `fire`      | 🔥                  |
+| 25    | `signature-gem`    | `gem`       | 💎                  |
+| 30    | `theme-legend`     | —           | _(unchanged theme)_ |
+| 40    | `signature-star`   | `star`      | 🌟                  |
+| 50    | `signature-crown`  | `crown`     | 👑                  |
 
 (Slugs and levels are stable; the emoji column is just the v1 presentation and can change
 without touching stored data.)
@@ -184,24 +184,24 @@ written before this feature ships).
 The signature must mean something, so it is never sourced from user input:
 
 1. **Nicknames become text-only.** Add an emoji/symbol stripper applied to:
-   - the public challenge/ranking nickname at its single write point
-     (`src/game/challenge/nickname.ts` `setChallengeNickname`, alongside the existing
-     `containsProfanity` gate); and
-   - the local leaderboard nickname input (`Leaderboard.tsx` / `leaderboard.ts`
-     `saveScore`).
-   The stripper keeps letters (incl. diacritics), digits, spaces, and basic punctuation,
-   and removes emoji/pictographic symbols. Net effect: the **only** emoji that can appear
-   on a row is the app-set signature.
+    - the public challenge/ranking nickname at its single write point
+      (`src/game/challenge/nickname.ts` `setChallengeNickname`, alongside the existing
+      `containsProfanity` gate); and
+    - the local leaderboard nickname input (`Leaderboard.tsx` / `leaderboard.ts`
+      `saveScore`).
+      The stripper keeps letters (incl. diacritics), digits, spaces, and basic punctuation,
+      and removes emoji/pictographic symbols. Net effect: the **only** emoji that can appear
+      on a row is the app-set signature.
 2. **Firestore security rules.** Update the rankings entry rule to:
-   - accept `signature` only when absent, empty, or a member of the known
-     `SIGNATURE_SLUGS` allowlist (plain ASCII slugs — easy to validate in rules); and
-   - keep `nickname` a plain string (length-bounded as today).
+    - accept `signature` only when absent, empty, or a member of the known
+      `SIGNATURE_SLUGS` allowlist (plain ASCII slugs — easy to validate in rules); and
+    - keep `nickname` a plain string (length-bounded as today).
 
-   A hacked client still cannot claim a signature **through the app** (it is derived), and
-   the allowlist blocks arbitrary strings. A modified client could still write a valid-but-
-   unearned slug; this is accepted residual risk — pure vanity, identical in spirit to the
-   already-trusted free-text nickname, and unverifiable on the Spark plan. Documented in the
-   ADR-0004 amendment. The cleanup script's `--remove` remains the moderation backstop.
+    A hacked client still cannot claim a signature **through the app** (it is derived), and
+    the allowlist blocks arbitrary strings. A modified client could still write a valid-but-
+    unearned slug; this is accepted residual risk — pure vanity, identical in spirit to the
+    already-trusted free-text nickname, and unverifiable on the Spark plan. Documented in the
+    ADR-0004 amendment. The cleanup script's `--remove` remains the moderation backstop.
 
 ## Rendering surfaces
 
@@ -221,11 +221,11 @@ Every surface renders the glyph via `<Glyph emoji={signatureEmoji(slug)} />` —
 4. **Achievements tab — Signatures collection (new).** Add a third section below
    "Challenges" and "Feats" in the Achievements tab. Reuse the **exact** Feats grid
    pattern (`styles.grid` + the badge `Card`):
-   - **Earned:** the emoji (via `<Glyph>`) shown in full color, label = signature
-     title, sublabel = unlock level.
-   - **Locked:** identical to a locked Feat — greyed `Lock` icon with the card at
-     `opacity: 0.55`, showing the unlock level (e.g. "Level 25").
-   Section header uses a new i18n key `progression.signaturesTitle`.
+    - **Earned:** the emoji (via `<Glyph>`) shown in full color, label = signature
+      title, sublabel = unlock level.
+    - **Locked:** identical to a locked Feat — greyed `Lock` icon with the card at
+      `opacity: 0.55`, showing the unlock level (e.g. "Level 25").
+      Section header uses a new i18n key `progression.signaturesTitle`.
 
 ## i18n
 

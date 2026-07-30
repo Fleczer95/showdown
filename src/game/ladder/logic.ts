@@ -62,11 +62,7 @@ function shuffleOptions(q: LadderQuestion, rng: () => number): LadderQuestion {
  * Within each rung, `history` orders candidates least-shown-first so the
  * least-seen question is shown and Skip pulls the next-least-seen.
  */
-export function buildRun(
-    rungPool: LadderQuestion[][],
-    history: History,
-    rng: () => number = Math.random,
-): LadderRun {
+export function buildRun(rungPool: LadderQuestion[][], history: History, rng: () => number = Math.random): LadderRun {
     if (rungPool.length < RUN_LENGTH) {
         throw new Error(`Need at least ${RUN_LENGTH} rungs, got ${rungPool.length}`);
     }
@@ -88,9 +84,7 @@ export function buildRun(
         );
         usedCurrentIds.add(ordered[pickIndex].id);
         const current = shuffleOptions(ordered[pickIndex], rng);
-        const alternates = ordered
-            .filter((_, i) => i !== pickIndex)
-            .map((q) => shuffleOptions(q, rng));
+        const alternates = ordered.filter((_, i) => i !== pickIndex).map((q) => shuffleOptions(q, rng));
         return { current, alternates };
     });
     return {
@@ -148,9 +142,7 @@ export function consumeLifeline(run: LadderRun, lifeline: Lifeline): LadderRun {
  */
 export function fiftyFiftyHidden(run: LadderRun, rng: () => number = Math.random): number[] {
     const question = currentQuestion(run);
-    const wrong = question.options
-        .map((_, i) => i)
-        .filter((i) => i !== question.correctIndex);
+    const wrong = question.options.map((_, i) => i).filter((i) => i !== question.correctIndex);
     return shuffle(wrong, rng).slice(0, 2);
 }
 
@@ -190,11 +182,7 @@ function toPercentages(shares: number[]): number[] {
  * wrong answer can occasionally edge out the correct one. Deterministic with a
  * seeded rng.
  */
-export function audienceVote(
-    run: LadderRun,
-    hidden: number[] = [],
-    rng: () => number = Math.random,
-): number[] {
+export function audienceVote(run: LadderRun, hidden: number[] = [], rng: () => number = Math.random): number[] {
     const question = currentQuestion(run);
     const optionCount = question.options.length;
     const live = question.options.map((_, i) => i).filter((i) => !hidden.includes(i));
@@ -241,9 +229,7 @@ export function skipQuestion(run: LadderRun, rng: () => number = Math.random): L
     // alternates are already ordered least-shown-first; take the next one.
     const [next, ...remaining] = rung.alternates;
     const swapped = shuffleOptions(next, rng);
-    const rungs = run.rungs.map((r, i) =>
-        i === run.currentIndex ? { current: swapped, alternates: remaining } : r,
-    );
+    const rungs = run.rungs.map((r, i) => (i === run.currentIndex ? { current: swapped, alternates: remaining } : r));
     return { ...run, rungs, usedLifelines: [...run.usedLifelines, 'skip'] };
 }
 

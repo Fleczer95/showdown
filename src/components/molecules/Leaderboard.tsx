@@ -89,14 +89,14 @@ function Leaderboard({ gameId, showTitle = true, pendingScore, pendingProgress }
                 const highlighted = entry.timestamp === savedTimestamp;
                 const sig = signatureEmoji(entry.signature);
                 const isTop3 = rank <= 3;
-                
+
                 return (
                     <Animated.View
                         key={`${entry.timestamp}-${i}`}
                         entering={reduceMotion ? undefined : FadeInDown.delay(i * 50).duration(400)}
                         style={[
                             styles.row,
-                            { 
+                            {
                                 paddingVertical: theme.spacing.md,
                                 paddingHorizontal: theme.spacing.md,
                                 gap: theme.spacing.md,
@@ -114,7 +114,6 @@ function Leaderboard({ gameId, showTitle = true, pendingScore, pendingProgress }
                     >
                         <RankBadge rank={rank} />
 
-
                         <View style={[styles.nameCol, { gap: scale(2) }]}>
                             <View style={[styles.nameLine, { gap: scale(6) }]}>
                                 <Text
@@ -131,9 +130,14 @@ function Leaderboard({ gameId, showTitle = true, pendingScore, pendingProgress }
                                 {formatProgress(entry.progress)}
                             </Text>
                         </View>
-                        
-                        <Stack align="end" gap="xs">
-                            <Text variant='body' weight='bold' style={styles.score} color={isTop3 ? 'text' : 'textSecondary'}>
+
+                        <Stack align='end' gap='xs'>
+                            <Text
+                                variant='body'
+                                weight='bold'
+                                style={styles.score}
+                                color={isTop3 ? 'text' : 'textSecondary'}
+                            >
                                 {formatScore(entry.score)}
                             </Text>
                             <Text variant='caption' color='textMuted' style={styles.date}>
@@ -150,12 +154,7 @@ function Leaderboard({ gameId, showTitle = true, pendingScore, pendingProgress }
     return (
         <Animated.View entering={reduceMotion ? undefined : FadeIn.duration(300)} style={styles.container}>
             {showTitle ? (
-                <Text
-                    variant='subheading'
-                    weight='bold'
-                    align='center'
-                    style={{ marginBottom: theme.spacing.md }}
-                >
+                <Text variant='subheading' weight='bold' align='center' style={{ marginBottom: theme.spacing.md }}>
                     {t('leaderboard.title')}
                 </Text>
             ) : null}
@@ -179,9 +178,19 @@ function Leaderboard({ gameId, showTitle = true, pendingScore, pendingProgress }
                 ) : null}
 
                 {canEnter ? (
-                    <Animated.View entering={FadeInDown.delay(200)} style={{ padding: theme.spacing.lg, marginTop: theme.spacing.sm, backgroundColor: hexToRgba(accent, 0.05), borderRadius: theme.radii.lg, borderColor: hexToRgba(accent, 0.2), borderWidth: 1 }}>
+                    <Animated.View
+                        entering={FadeInDown.delay(200)}
+                        style={{
+                            padding: theme.spacing.lg,
+                            marginTop: theme.spacing.sm,
+                            backgroundColor: hexToRgba(accent, 0.05),
+                            borderRadius: theme.radii.lg,
+                            borderColor: hexToRgba(accent, 0.2),
+                            borderWidth: 1,
+                        }}
+                    >
                         <Stack gap='sm' align='stretch'>
-                            <Text variant="caption" weight="bold" color={accent} align="center">
+                            <Text variant='caption' weight='bold' color={accent} align='center'>
                                 {isBestRecord ? t('leaderboard.newHighScore') : t('leaderboard.greatScore')}
                             </Text>
                             <Input

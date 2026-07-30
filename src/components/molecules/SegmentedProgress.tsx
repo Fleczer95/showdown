@@ -24,10 +24,20 @@ const SEGMENTS_DEFAULT = 12;
  * can be partially filled. Shared by the Home level bar and the Progress screen so
  * both render level progress identically.
  */
-function SegmentedProgress({ progress, segments = SEGMENTS_DEFAULT, color, style, accessibilityLabel }: SegmentedProgressProps) {
+function SegmentedProgress({
+    progress,
+    segments = SEGMENTS_DEFAULT,
+    color,
+    style,
+    accessibilityLabel,
+}: SegmentedProgressProps) {
     const theme = useTheme();
     const { scale } = useResponsive();
-    const fillColor = color ? (color in theme.colors ? theme.colors[color as ColorToken] : color) : theme.colors.primary;
+    const fillColor = color
+        ? color in theme.colors
+            ? theme.colors[color as ColorToken]
+            : color
+        : theme.colors.primary;
     const trackColor = hexToRgba(fillColor, 0.2);
 
     const clamped = Math.max(0, Math.min(1, progress));
@@ -45,7 +55,15 @@ function SegmentedProgress({ progress, segments = SEGMENTS_DEFAULT, color, style
         >
             {Array.from({ length: segments }).map((_, i) => {
                 if (i < fullPips) {
-                    return <View key={i} style={[styles.pip, { height: scale(8), backgroundColor: fillColor, shadowColor: fillColor }]} />;
+                    return (
+                        <View
+                            key={i}
+                            style={[
+                                styles.pip,
+                                { height: scale(8), backgroundColor: fillColor, shadowColor: fillColor },
+                            ]}
+                        />
+                    );
                 }
                 if (i === fullPips && partial > 0) {
                     return (
@@ -53,7 +71,12 @@ function SegmentedProgress({ progress, segments = SEGMENTS_DEFAULT, color, style
                             <View
                                 style={[
                                     styles.partial,
-                                    { height: scale(8), width: `${partial * 100}%`, backgroundColor: fillColor, shadowColor: fillColor },
+                                    {
+                                        height: scale(8),
+                                        width: `${partial * 100}%`,
+                                        backgroundColor: fillColor,
+                                        shadowColor: fillColor,
+                                    },
                                 ]}
                             />
                         </View>

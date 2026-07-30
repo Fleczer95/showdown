@@ -81,12 +81,7 @@ export function DocumentScreen() {
                 ]}
             >
                 <Animated.View style={animatedStyle}>
-                    <Card
-                        style={[
-                            styles.contentCard,
-                            { marginTop: theme.spacing.sm, padding: theme.spacing.xl },
-                        ]}
-                    >
+                    <Card style={[styles.contentCard, { marginTop: theme.spacing.sm, padding: theme.spacing.xl }]}>
                         {!!subtitle && (
                             <Text
                                 variant='body'
@@ -117,11 +112,7 @@ export function DocumentScreen() {
                                             ]}
                                         >
                                             {section.listItems.map((item: string, itemIndex: number) => (
-                                                <Text
-                                                    key={itemIndex}
-                                                    variant='body'
-                                                    color={theme.colors.textSecondary}
-                                                >
+                                                <Text key={itemIndex} variant='body' color={theme.colors.textSecondary}>
                                                     • {item}
                                                 </Text>
                                             ))}

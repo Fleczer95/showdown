@@ -42,9 +42,9 @@ Scope decisions made during brainstorming:
   begins and stores the returned `RecordRunDiff` in state
   (`celebrationDiff`). `ChallengeHandoff`'s ref guard already guarantees
   `onComplete` fires exactly once per run, so:
-  - a failed submit / retry loop cannot double-record (retries re-enter
-    `submit`, not `handleComplete`'s record step);
-  - quitting at the retry screen keeps the earned XP.
+    - a failed submit / retry loop cannot double-record (retries re-enter
+      `submit`, not `handleComplete`'s record step);
+    - quitting at the retry screen keeps the earned XP.
 - Full parity applies through the existing `applyRun` reducer: run XP,
   `winsByGame` (the game's own win condition, same as offline),
   `bestScoreByGame`, per-run feats, streak dates (`datesPlayed`),
@@ -61,12 +61,13 @@ Scope decisions made during brainstorming:
 - New tiered family in `ACHIEVEMENT_FAMILIES`
   (`src/game/progression/achievements.ts`):
 
-  ```ts
-  { family: 'challenger', axis: (s) => s.challengesPlayed ?? 0, thresholds: [1, 10, 30] }
-  ```
+    ```ts
+    { family: 'challenger', axis: (s) => s.challengesPlayed ?? 0, thresholds: [1, 10, 30] }
+    ```
 
-  Bronze at 1 doubles as the "first challenge" moment. Tier XP comes from the
-  existing `ACHIEVEMENT_XP_TIERS`, paid into the same `lifetimeXp` spine.
+    Bronze at 1 doubles as the "first challenge" moment. Tier XP comes from the
+    existing `ACHIEVEMENT_XP_TIERS`, paid into the same `lifetimeXp` spine.
+
 - i18n: add `progression.family.challenger` to **both** `en` and `pl`
   (localization verification per AGENTS.md). The family appears automatically
   in the Progress screen's tiered-family list.
@@ -74,14 +75,14 @@ Scope decisions made during brainstorming:
 ## 4. Celebration UI
 
 - Split `RunCelebration` (`src/components/molecules/RunCelebration.tsx`):
-  - `CelebrationCard({ diff, accent })` — presentational: XP rise bar,
-    count-up stats (XP gained, bonus runs), level flip + confetti + haptics,
-    reward and achievement reveals, level-up analytics events, and the review
-    pre-prompt. All of it is diff-driven and fires once per mounted diff.
-  - `RunCelebration({ result, accent })` — the existing offline entry point:
-    records the run exactly once (unchanged ref-guarded `recordRun` call) and
-    renders `CelebrationCard` with the diff. Public API and offline behavior
-    unchanged.
+    - `CelebrationCard({ diff, accent })` — presentational: XP rise bar,
+      count-up stats (XP gained, bonus runs), level flip + confetti + haptics,
+      reward and achievement reveals, level-up analytics events, and the review
+      pre-prompt. All of it is diff-driven and fires once per mounted diff.
+    - `RunCelebration({ result, accent })` — the existing offline entry point:
+      records the run exactly once (unchanged ref-guarded `recordRun` call) and
+      renders `CelebrationCard` with the diff. Public API and offline behavior
+      unchanged.
 - `ChallengeScreen` renders `CelebrationCard` in the **results** phase
   (including the "waiting for opponent" state), below the ranked board, only
   when `celebrationDiff` is set — i.e. only in the session where the run just

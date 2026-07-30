@@ -20,13 +20,42 @@ export interface ThemeSwatchProps {
     testID?: string;
 }
 
-const Bar = ({ w, color, h = 4, scale }: { w: DimensionValue; color: string; h?: number; scale: (v: number) => number }) => (
-    <View style={{ width: w, height: scale(h), borderRadius: scale(h) / 2, backgroundColor: color }} />
-);
+const Bar = ({
+    w,
+    color,
+    h = 4,
+    scale,
+}: {
+    w: DimensionValue;
+    color: string;
+    h?: number;
+    scale: (v: number) => number;
+}) => <View style={{ width: w, height: scale(h), borderRadius: scale(h) / 2, backgroundColor: color }} />;
 
 /** A single Home-style game card: accent medallion · two text lines · CTA pill. */
-const GameRow = ({ colors, accent, lines, scale }: { colors: ThemeColors; accent: string; lines: 1 | 2; scale: (v: number) => number }) => (
-    <View style={[styles.mockCard, { backgroundColor: colors.surface, borderColor: colors.borderLight, borderRadius: scale(7), padding: scale(5), gap: scale(5) }]}>
+const GameRow = ({
+    colors,
+    accent,
+    lines,
+    scale,
+}: {
+    colors: ThemeColors;
+    accent: string;
+    lines: 1 | 2;
+    scale: (v: number) => number;
+}) => (
+    <View
+        style={[
+            styles.mockCard,
+            {
+                backgroundColor: colors.surface,
+                borderColor: colors.borderLight,
+                borderRadius: scale(7),
+                padding: scale(5),
+                gap: scale(5),
+            },
+        ]}
+    >
         <View style={[{ backgroundColor: accent, width: scale(14), height: scale(14), borderRadius: scale(5) }]} />
         <View style={styles.mockCardBody}>
             <Bar w='75%' color={colors.text} h={3} scale={scale} />
@@ -37,7 +66,9 @@ const GameRow = ({ colors, accent, lines, scale }: { colors: ThemeColors; accent
                 </>
             ) : null}
         </View>
-        <View style={[{ backgroundColor: accent + '2E', width: scale(9), height: scale(9), borderRadius: scale(4.5) }]} />
+        <View
+            style={[{ backgroundColor: accent + '2E', width: scale(9), height: scale(9), borderRadius: scale(4.5) }]}
+        />
     </View>
 );
 
@@ -52,8 +83,26 @@ const MiniMockup = ({ colors, scale }: { colors: ThemeColors; scale: (v: number)
         <View style={styles.mockHeader}>
             <Bar w='42%' color={colors.primary} h={7} scale={scale} />
             <View style={[styles.mockHeaderIcons, { gap: scale(3) }]}>
-                <View style={[{ backgroundColor: colors.textMuted, width: scale(5), height: scale(5), borderRadius: scale(2.5) }]} />
-                <View style={[{ backgroundColor: colors.textMuted, width: scale(5), height: scale(5), borderRadius: scale(2.5) }]} />
+                <View
+                    style={[
+                        {
+                            backgroundColor: colors.textMuted,
+                            width: scale(5),
+                            height: scale(5),
+                            borderRadius: scale(2.5),
+                        },
+                    ]}
+                />
+                <View
+                    style={[
+                        {
+                            backgroundColor: colors.textMuted,
+                            width: scale(5),
+                            height: scale(5),
+                            borderRadius: scale(2.5),
+                        },
+                    ]}
+                />
             </View>
         </View>
 
@@ -61,15 +110,32 @@ const MiniMockup = ({ colors, scale }: { colors: ThemeColors; scale: (v: number)
         <View
             style={[
                 styles.mockLevelBar,
-                { backgroundColor: colors.primary + '1A', borderColor: colors.primary + '2E', gap: scale(4), paddingHorizontal: scale(4), paddingVertical: scale(3) },
+                {
+                    backgroundColor: colors.primary + '1A',
+                    borderColor: colors.primary + '2E',
+                    gap: scale(4),
+                    paddingHorizontal: scale(4),
+                    paddingVertical: scale(3),
+                },
             ]}
         >
-            <View style={[{ backgroundColor: colors.primary, width: scale(12), height: scale(6), borderRadius: scale(3) }]} />
+            <View
+                style={[
+                    { backgroundColor: colors.primary, width: scale(12), height: scale(6), borderRadius: scale(3) },
+                ]}
+            />
             <View style={[styles.mockPips, { gap: scale(2) }]}>
                 {[0, 1, 2, 3, 4].map((i) => (
                     <View
                         key={i}
-                        style={[{ backgroundColor: i < 3 ? colors.primary : colors.borderLight, flex: 1, height: scale(4), borderRadius: scale(2) }]}
+                        style={[
+                            {
+                                backgroundColor: i < 3 ? colors.primary : colors.borderLight,
+                                flex: 1,
+                                height: scale(4),
+                                borderRadius: scale(2),
+                            },
+                        ]}
                     />
                 ))}
             </View>
@@ -115,14 +181,36 @@ function ThemeSwatch({ tokens, label, selected, locked, lockLabel, onPress, test
                 </View>
 
                 {selected && (
-                    <View style={[styles.badge, { backgroundColor: theme.colors.primary, top: scale(4), right: scale(4), width: scale(18), height: scale(18), borderRadius: scale(9) }]}>
+                    <View
+                        style={[
+                            styles.badge,
+                            {
+                                backgroundColor: theme.colors.primary,
+                                top: scale(4),
+                                right: scale(4),
+                                width: scale(18),
+                                height: scale(18),
+                                borderRadius: scale(9),
+                            },
+                        ]}
+                    >
                         <Check size={iconSize(13)} color={theme.colors.onPrimary} strokeWidth={3} />
                     </View>
                 )}
 
                 {locked && (
                     <View style={styles.lockOverlay}>
-                        <View style={[styles.lockPill, { backgroundColor: theme.colors.overlay + 'CC', gap: scale(4), paddingHorizontal: scale(8), paddingVertical: scale(4) }]}>
+                        <View
+                            style={[
+                                styles.lockPill,
+                                {
+                                    backgroundColor: theme.colors.overlay + 'CC',
+                                    gap: scale(4),
+                                    paddingHorizontal: scale(8),
+                                    paddingVertical: scale(4),
+                                },
+                            ]}
+                        >
                             <Lock size={iconSize(12)} color='#FFFFFF' />
                             {lockLabel ? (
                                 <Text variant='caption' weight='bold' color='#FFFFFF'>

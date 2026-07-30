@@ -31,7 +31,7 @@ unbuildable asset pipeline.
 - **Art pipeline:** AI generates a **concept raster only**. The actual deliverable
   is a **hand-cleaned, multi-region SVG** with the named fills above. AI does not
   produce rigged/layered/recolorable assets — treat SVG cleanup as the real art task.
-- **Cross-pose consistency:** the 3–4 poses must be the *same* fox with the *same*
+- **Cross-pose consistency:** the 3–4 poses must be the _same_ fox with the _same_
   regions; draw them from one reference and clean by hand. AI drifts between gens.
 
 ### Sequencing gate (do this first)
@@ -50,11 +50,11 @@ fill-override and pose transitions end-to-end. Only then invest in real art.
   slide-in intro).
 - **The mascot is dumb.** It only knows the 4 states. Each game's **Results screen
   classifies its own outcome** into `cheer | dismay` and tells the mascot:
-  - Wheel: jackpot → cheer, bankrupt → dismay
-  - Ladder: banked → cheer, busted → dismay
-  - Grid/Drop: by score threshold
-  - Poll: by closeness-to-crowd
-  Games stay the authority on what "good" means for them.
+    - Wheel: jackpot → cheer, bankrupt → dismay
+    - Ladder: banked → cheer, busted → dismay
+    - Grid/Drop: by score threshold
+    - Poll: by closeness-to-crowd
+      Games stay the authority on what "good" means for them.
 
 ## 4. Placement
 
@@ -78,7 +78,7 @@ fill-override and pose transitions end-to-end. Only then invest in real art.
 ### Customizer UX
 
 - The live fox fills the screen.
-- Tapping a **region on the fox** *or* an explicit **slot button** (both — small
+- Tapping a **region on the fox** _or_ an explicit **slot button** (both — small
   regions like the mic are hard to hit, and buttons aid accessibility) slides up a
   **bottom sheet** of that slot's colors.
 - **When the sheet opens, the mascot scales down or translates upwards slightly** so the whole fox remains visible during recoloring.
@@ -119,18 +119,18 @@ fill-override and pose transitions end-to-end. Only then invest in real art.
   with variation + selection. Ships with the between-rounds feature, not v1.
 - Patterns / costume swaps (pattern overlay path; the per-slot model already
   accommodates it).
-- *(Earned-element deep-link to level was pulled into v1)*
+- _(Earned-element deep-link to level was pulled into v1)_
 
 ## 7. v2-enabling invariants — **locked in v1**
 
-The v2 idea (challenge recipient sees the *sender's* mascot) requires these now, or
+The v2 idea (challenge recipient sees the _sender's_ mascot) requires these now, or
 v2 becomes a rewrite. All are near-free if done up front.
 
 1. **Stable string color IDs.** A look serializes to `{ slot: colorId }`; these IDs
    travel in the ADR-0003 challenge payload (Firestore doc / share link). Never
    renumber them.
 2. **Ownership-agnostic render path.** A pure `renderMascot(lookMap, pose)` that
-   draws *any* valid look map. Ownership gates only **equipping your own** mascot,
+   draws _any_ valid look map. Ownership gates only **equipping your own** mascot,
    never **displaying** one. The challenge screen calls the same render with the
    sender's map.
 3. **Unknown-ID fallback.** A recipient on an older app version (or lacking a newer

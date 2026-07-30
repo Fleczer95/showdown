@@ -286,19 +286,16 @@ export default function DropPlayScreen({
         };
         // Challenge mode reports the result to the orchestrator instead of the board.
         if (challenge) {
-            return (
-                <ChallengeHandoff
-                    progress={roundsSurvived}
-                    run={runResult}
-                    onComplete={challenge.onComplete}
-                />
-            );
+            return <ChallengeHandoff progress={roundsSurvived} run={runResult} onComplete={challenge.onComplete} />;
         }
         return (
             <View style={styles.container}>
                 <ScrollView
                     style={styles.container}
-                    contentContainerStyle={[styles.gameOverContent, { paddingHorizontal: t.spacing.xl, paddingBottom: t.spacing.xxl }]}
+                    contentContainerStyle={[
+                        styles.gameOverContent,
+                        { paddingHorizontal: t.spacing.xl, paddingBottom: t.spacing.xxl },
+                    ]}
                     keyboardShouldPersistTaps='handled'
                 >
                     <GameOverCard gameId={GAME_ID}>
@@ -370,57 +367,71 @@ export default function DropPlayScreen({
     return (
         <View style={styles.container}>
             {/* Top fixed content */}
-            <View style={[styles.staticHeader, { borderBottomColor: t.colors.border, paddingHorizontal: t.spacing.md, paddingBottom: t.spacing.md }]}>
+            <View
+                style={[
+                    styles.staticHeader,
+                    {
+                        borderBottomColor: t.colors.border,
+                        paddingHorizontal: t.spacing.md,
+                        paddingBottom: t.spacing.md,
+                    },
+                ]}
+            >
                 <Stack gap='lg' style={tabletColumn}>
                     {/* Header */}
-                    <Stack direction='horizontal' justify='between' align='center' style={[styles.header, { paddingHorizontal: t.spacing.md + 2 }]}>
-                    <Stack gap='xs'>
-                        <Text variant='overline' weight='bold' color={accent}>
-                            {translate('game.the-drop.header.round', {
-                                current: state.round + 1,
-                                total: TOTAL_ROUNDS,
-                            })}
-                        </Text>
-                        <Text variant='heading' weight='bold' color={accent}>
-                            {formatMoney(state.bank)}
-                        </Text>
+                    <Stack
+                        direction='horizontal'
+                        justify='between'
+                        align='center'
+                        style={[styles.header, { paddingHorizontal: t.spacing.md + 2 }]}
+                    >
+                        <Stack gap='xs'>
+                            <Text variant='overline' weight='bold' color={accent}>
+                                {translate('game.the-drop.header.round', {
+                                    current: state.round + 1,
+                                    total: TOTAL_ROUNDS,
+                                })}
+                            </Text>
+                            <Text variant='heading' weight='bold' color={accent}>
+                                {formatMoney(state.bank)}
+                            </Text>
+                        </Stack>
+                        <Stack gap='xs' align='end'>
+                            <Text variant='overline' weight='bold' color={accent}>
+                                {translate('game.the-drop.header.toPlace')}
+                            </Text>
+                            <Text
+                                variant='subheading'
+                                weight='bold'
+                                color={remaining === 0 ? t.colors.success : t.colors.text}
+                            >
+                                {formatMoney(remaining)}
+                            </Text>
+                        </Stack>
                     </Stack>
-                    <Stack gap='xs' align='end'>
-                        <Text variant='overline' weight='bold' color={accent}>
-                            {translate('game.the-drop.header.toPlace')}
-                        </Text>
-                        <Text
-                            variant='subheading'
-                            weight='bold'
-                            color={remaining === 0 ? t.colors.success : t.colors.text}
-                        >
-                            {formatMoney(remaining)}
-                        </Text>
-                    </Stack>
-                </Stack>
 
-                <ProgressBar
-                    progress={(state.round + (phase === 'reveal' ? 1 : 0)) / TOTAL_ROUNDS}
-                    color={accent}
-                    glowColor={accent}
-                    height={10}
-                />
+                    <ProgressBar
+                        progress={(state.round + (phase === 'reveal' ? 1 : 0)) / TOTAL_ROUNDS}
+                        color={accent}
+                        glowColor={accent}
+                        height={10}
+                    />
 
-                {/* Question */}
-                <Animated.View key={question.id} entering={reduceMotion ? undefined : springEnter()}>
-                    <Card variant='elevated' padding='md' gap='sm' style={glow}>
-                        <AccentTab color={accent} />
-                        <Text variant='subheading' weight='bold' align='center'>
-                            {question.prompt[lang]}
+                    {/* Question */}
+                    <Animated.View key={question.id} entering={reduceMotion ? undefined : springEnter()}>
+                        <Card variant='elevated' padding='md' gap='sm' style={glow}>
+                            <AccentTab color={accent} />
+                            <Text variant='subheading' weight='bold' align='center'>
+                                {question.prompt[lang]}
+                            </Text>
+                        </Card>
+                    </Animated.View>
+
+                    {phase === 'allocating' && (
+                        <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
+                            {translate('game.the-drop.active.instruction', { count: maxCover, max: maxCover })}
                         </Text>
-                    </Card>
-                </Animated.View>
-
-                {phase === 'allocating' && (
-                    <Text variant='caption' weight='medium' align='center' color={t.colors.textSecondary}>
-                        {translate('game.the-drop.active.instruction', { count: maxCover, max: maxCover })}
-                    </Text>
-                )}
+                    )}
                 </Stack>
             </View>
 
@@ -628,10 +639,7 @@ function DropOption({
     ]);
 
     const cardStyle = useAnimatedStyle(() => ({
-        transform: [
-            { scaleX: isTablet ? 1 : scale.value },
-            { scaleY: scale.value }
-        ]
+        transform: [{ scaleX: isTablet ? 1 : scale.value }, { scaleY: scale.value }],
     }));
     const textStyle = useAnimatedStyle(() => ({
         opacity: textOpacity.value,
@@ -689,10 +697,24 @@ function DropOption({
         <Animated.View entering={reduceMotion ? undefined : springEnter(index * 70)} style={cardStyle}>
             <Card variant='outlined' padding='md' style={{ borderColor, opacity: cardOpacity }}>
                 <Stack gap='sm'>
-                    <Stack direction='horizontal' justify='between' align='center' style={[styles.optionHeader, { paddingHorizontal: t.spacing.md }]}>
+                    <Stack
+                        direction='horizontal'
+                        justify='between'
+                        align='center'
+                        style={[styles.optionHeader, { paddingHorizontal: t.spacing.md }]}
+                    >
                         <Stack direction='horizontal' gap='md' align='center' flex={1}>
-                            <IndexBadge label={prefix} accent={accent} state={badgeState} size={t.typography.lineHeight.xl + t.spacing.xs} />
-                            <Text variant='body' weight='semibold' style={[styles.optionText, { marginRight: t.spacing.md }]}>
+                            <IndexBadge
+                                label={prefix}
+                                accent={accent}
+                                state={badgeState}
+                                size={t.typography.lineHeight.xl + t.spacing.xs}
+                            />
+                            <Text
+                                variant='body'
+                                weight='semibold'
+                                style={[styles.optionText, { marginRight: t.spacing.md }]}
+                            >
                                 {label}
                             </Text>
                         </Stack>
@@ -766,21 +788,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    content: {
-    },
+    content: {},
     staticHeader: {
         borderBottomWidth: 1,
     },
     optionsScroll: {
         flex: 1,
     },
-    optionsContent: {
-    },
+    optionsContent: {},
     footer: {
         borderTopWidth: 1,
     },
-    header: {
-    },
+    header: {},
     gameOverContent: {
         flexGrow: 1,
         justifyContent: 'center',

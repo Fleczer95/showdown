@@ -37,7 +37,13 @@ function PerksList({ accent }: { accent: string }) {
         <View
             style={[
                 styles.perks,
-                { padding: scale(20), gap: theme.spacing.lg, backgroundColor: accent + '12', borderColor: accent + '30', borderRadius: theme.radii.lg },
+                {
+                    padding: scale(20),
+                    gap: theme.spacing.lg,
+                    backgroundColor: accent + '12',
+                    borderColor: accent + '30',
+                    borderRadius: theme.radii.lg,
+                },
             ]}
         >
             {PERK_KEYS.map((key, i) => {
@@ -95,7 +101,17 @@ function PlanCard({
                     </Text>
                 </View>
                 {isAnnual && (
-                    <View style={[styles.saveBadge, { paddingHorizontal: scale(10), paddingVertical: scale(6), borderRadius: scale(10), backgroundColor: theme.colors.success + '1F' }]}>
+                    <View
+                        style={[
+                            styles.saveBadge,
+                            {
+                                paddingHorizontal: scale(10),
+                                paddingVertical: scale(6),
+                                borderRadius: scale(10),
+                                backgroundColor: theme.colors.success + '1F',
+                            },
+                        ]}
+                    >
                         <Text variant='caption' weight='bold' color={theme.colors.success}>
                             {t('screen.store.premium.bestValue')}
                         </Text>
@@ -119,8 +135,7 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
     // (the footer floats over the scroll, mirroring the game-setup screen).
     const [footerHeight, setFooterHeight] = useState(0);
 
-    const priceFor = (plan: SubscriptionPlan): string =>
-        subscriptionPriceByPlanId[plan.id] ?? plan.fallbackPrice;
+    const priceFor = (plan: SubscriptionPlan): string => subscriptionPriceByPlanId[plan.id] ?? plan.fallbackPrice;
 
     const onSubscribe = async () => {
         // `false` means the purchase never launched (e.g. the store product
@@ -186,7 +201,12 @@ export function PremiumPlans({ tabletColumn }: { tabletColumn?: StyleProp<ViewSt
                         <View
                             style={[
                                 styles.activeNotice,
-                                { padding: scale(18), borderRadius: 9999, backgroundColor: theme.colors.success + '12', borderColor: theme.colors.success + '2E' },
+                                {
+                                    padding: scale(18),
+                                    borderRadius: 9999,
+                                    backgroundColor: theme.colors.success + '12',
+                                    borderColor: theme.colors.success + '2E',
+                                },
                             ]}
                         >
                             <Check size={iconSize(20)} color={theme.colors.success} />
@@ -292,8 +312,7 @@ const styles = StyleSheet.create({
     scroll: {
         flex: 1,
     },
-    scrollContent: {
-    },
+    scrollContent: {},
     footer: {
         position: 'absolute',
         left: 0,
@@ -324,17 +343,14 @@ const styles = StyleSheet.create({
     previewWrap: {
         alignItems: 'center',
     },
-    planPressable: {
-    },
+    planPressable: {},
     planCard: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    planText: {
-    },
-    saveBadge: {
-    },
+    planText: {},
+    saveBadge: {},
     activeNotice: {
         flexDirection: 'row',
         alignItems: 'center',

@@ -68,14 +68,7 @@ function SelectionList({
         };
     }, [isGrid, scale, theme]);
 
-    const {
-        iconBoxRadius,
-        iconContainerOverride,
-        checkSize,
-        gridCheckSize,
-        gridItemHeight,
-        dividerInset,
-    } = metrics;
+    const { iconBoxRadius, iconContainerOverride, checkSize, gridCheckSize, gridItemHeight, dividerInset } = metrics;
 
     return (
         <View style={[styles.container, { paddingHorizontal: theme.spacing.lg }]} testID={testID}>
@@ -111,9 +104,7 @@ function SelectionList({
                                         styles.item,
                                         isGrid ? styles.gridItem : styles.listItem,
                                         {
-                                            backgroundColor: isActive
-                                                ? theme.colors.primary + '10'
-                                                : 'transparent',
+                                            backgroundColor: isActive ? theme.colors.primary + '10' : 'transparent',
                                             borderRadius: theme.radii.lg,
                                             borderWidth: isGrid ? 2 : 0,
                                             borderColor: isActive ? theme.colors.primary : 'transparent',
@@ -134,10 +125,7 @@ function SelectionList({
                             >
                                 <View
                                     pointerEvents='none'
-                                    style={[
-                                        styles.itemContent,
-                                        isGrid && (styles.gridItemContent as ViewStyle),
-                                    ]}
+                                    style={[styles.itemContent, isGrid && (styles.gridItemContent as ViewStyle)]}
                                 >
                                     {IconComponent && (
                                         <Icon
@@ -145,9 +133,7 @@ function SelectionList({
                                             size={iconSize(isGrid ? 32 : 24)}
                                             color={isActive ? theme.colors.primary : theme.colors.textSecondary}
                                             backgroundColor={
-                                                isActive
-                                                    ? theme.colors.primary + '15'
-                                                    : theme.colors.borderLight + '40'
+                                                isActive ? theme.colors.primary + '15' : theme.colors.borderLight + '40'
                                             }
                                             borderRadius={iconBoxRadius}
                                             containerStyle={
@@ -227,11 +213,7 @@ function SelectionList({
                                                 },
                                             ]}
                                         >
-                                            <Check
-                                                size={iconSize(10)}
-                                                color={theme.colors.onPrimary}
-                                                strokeWidth={3}
-                                            />
+                                            <Check size={iconSize(10)} color={theme.colors.onPrimary} strokeWidth={3} />
                                         </View>
                                     )}
                                 </View>
@@ -248,11 +230,7 @@ function SelectionList({
                                             },
                                         ]}
                                     >
-                                        <Check
-                                            size={iconSize(14)}
-                                            color={theme.colors.onPrimary}
-                                            strokeWidth={3}
-                                        />
+                                        <Check size={iconSize(14)} color={theme.colors.onPrimary} strokeWidth={3} />
                                     </View>
                                 )}
                             </Pressable>

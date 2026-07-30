@@ -57,9 +57,7 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
  * plans), so the queried list differs per platform.
  */
 export const SUBSCRIPTION_SKUS: string[] =
-    Platform.OS === 'android'
-        ? [GOOGLE_SUBSCRIPTION_ID]
-        : SUBSCRIPTION_PLANS.map((plan) => plan.appleSku);
+    Platform.OS === 'android' ? [GOOGLE_SUBSCRIPTION_ID] : SUBSCRIPTION_PLANS.map((plan) => plan.appleSku);
 
 /**
  * Every product id that signals an active subscription in
@@ -123,9 +121,7 @@ export function resolveSubscriptionPrice(
 ): string | undefined {
     if (Platform.OS === 'android') {
         const product = products.find((p) => p.id === GOOGLE_SUBSCRIPTION_ID);
-        const offer = product?.subscriptionOfferDetailsAndroid?.find(
-            (o) => o.basePlanId === plan.googleBasePlanId,
-        );
+        const offer = product?.subscriptionOfferDetailsAndroid?.find((o) => o.basePlanId === plan.googleBasePlanId);
         const phases = offer?.pricingPhases.pricingPhaseList ?? [];
         return phases[phases.length - 1]?.formattedPrice;
     }

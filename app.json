@@ -1,107 +1,92 @@
 {
-  "expo": {
-    "name": "ShowDown",
-    "slug": "showdown",
-    "version": "1.3.2",
-    "scheme": "showdown",
-    "icon": "./assets/icon.png",
-    "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#1A1A2E"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.showdown.app",
-      "buildNumber": "34",
-      "googleServicesFile": "./GoogleService-Info.plist",
-      "associatedDomains": [
-        "applinks:showdown.lebene.pl"
-      ],
-      "infoPlist": {
-        "CFBundleName": "ShowDown"
-      },
-      "config": {
-        "usesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "edgeToEdgeEnabled": true,
-      "package": "com.showdown.app",
-      "googleServicesFile": "./google-services.json",
-      "permissions": [
-        "com.android.vending.BILLING"
-      ],
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "monochromeImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1A1A2E"
-      },
-      "versionCode": 34,
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "https",
-              "host": "showdown.lebene.pl",
-              "pathPrefix": "/c"
+    "expo": {
+        "name": "ShowDown",
+        "slug": "showdown",
+        "version": "1.3.2",
+        "scheme": "showdown",
+        "icon": "./assets/icon.png",
+        "orientation": "portrait",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "splash": {
+            "backgroundColor": "#1A1A2E"
+        },
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.showdown.app",
+            "buildNumber": "34",
+            "googleServicesFile": "./GoogleService-Info.plist",
+            "associatedDomains": ["applinks:showdown.lebene.pl"],
+            "infoPlist": {
+                "CFBundleName": "ShowDown"
+            },
+            "config": {
+                "usesNonExemptEncryption": false
             }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+        },
+        "android": {
+            "edgeToEdgeEnabled": true,
+            "package": "com.showdown.app",
+            "googleServicesFile": "./google-services.json",
+            "permissions": ["com.android.vending.BILLING"],
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "monochromeImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#1A1A2E"
+            },
+            "versionCode": 34,
+            "intentFilters": [
+                {
+                    "action": "VIEW",
+                    "autoVerify": true,
+                    "data": [
+                        {
+                            "scheme": "https",
+                            "host": "showdown.lebene.pl",
+                            "pathPrefix": "/c"
+                        }
+                    ],
+                    "category": ["BROWSABLE", "DEFAULT"]
+                }
+            ]
+        },
+        "plugins": [
+            "expo-localization",
+            "@react-native-firebase/app",
+            "@react-native-firebase/app-check",
+            [
+                "expo-audio",
+                {
+                    "microphonePermission": false
+                }
+            ],
+            "expo-asset",
+            [
+                "@sentry/react-native/expo",
+                {
+                    "organization": "breathing-app",
+                    "project": "showdown",
+                    "experimental_android": {
+                        "enableAndroidGradlePlugin": true,
+                        "includeNativeSources": false
+                    }
+                }
+            ],
+            [
+                "./plugins/withAndroidBackupAndCompliance.cjs",
+                {
+                    "mmkvStoreIds": ["showdown-progression", "showdown-settings", "showdown-profile"]
+                }
+            ],
+            [
+                "./plugins/withIosMMKVBackupPolicy.cjs",
+                {
+                    "mmkvStoreIds": ["showdown-progression", "showdown-settings", "showdown-profile"]
+                }
+            ]
+        ],
+        "extra": {
+            "sentryDsn": "https://8cacf301cd3ad357974428f5e981422a@o4510449415553024.ingest.de.sentry.io/4511477176926288"
         }
-      ]
-    },
-    "plugins": [
-      "expo-localization",
-      "@react-native-firebase/app",
-      "@react-native-firebase/app-check",
-      [
-        "expo-audio",
-        {
-          "microphonePermission": false
-        }
-      ],
-      "expo-asset",
-      [
-        "@sentry/react-native/expo",
-        {
-          "organization": "breathing-app",
-          "project": "showdown",
-          "experimental_android": {
-            "enableAndroidGradlePlugin": true,
-            "includeNativeSources": false
-          }
-        }
-      ],
-      [
-        "./plugins/withAndroidBackupAndCompliance.cjs",
-        {
-          "mmkvStoreIds": [
-            "showdown-progression",
-            "showdown-settings",
-            "showdown-profile"
-          ]
-        }
-      ],
-      [
-        "./plugins/withIosMMKVBackupPolicy.cjs",
-        {
-          "mmkvStoreIds": [
-            "showdown-progression",
-            "showdown-settings",
-            "showdown-profile"
-          ]
-        }
-      ]
-    ],
-    "extra": {
-      "sentryDsn": "https://8cacf301cd3ad357974428f5e981422a@o4510449415553024.ingest.de.sentry.io/4511477176926288"
     }
-  }
 }

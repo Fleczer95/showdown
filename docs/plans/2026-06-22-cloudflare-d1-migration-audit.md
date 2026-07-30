@@ -29,67 +29,64 @@ specific numbers). The hard part — edge App Check JWT verification — is stru
 correct. **But the plan is not execution-ready.** It silently drops the entire
 server-side validation layer that `firestore.rules` enforces today, loses the
 `signature` feature's data, and still points at the wrong App Check key endpoint.
-None of these are "domain changes" — keeping them is *fidelity* to current behavior.
+None of these are "domain changes" — keeping them is _fidelity_ to current behavior.
 
 ## Authoritative facts (verified against Google docs)
 
 Source: <https://firebase.google.com/docs/app-check/custom-resource-backend>
 
-| Item | Correct value | Plan status |
-| --- | --- | --- |
-| JWKS endpoint | `https://firebaseappcheck.googleapis.com/v1/jwks` | ❌ **Wrong** — uses `…/v1/projects/{projectNumber}/keys`. Fails closed → every request 403s. |
-| `iss` claim | `https://firebaseappcheck.googleapis.com/{project_number}` | ✅ Correct |
-| `aud` claim | array containing `projects/{project_number}` | ✅ Correct (the recent `aud` fix was right) |
+| Item          | Correct value                                              | Plan status                                                                                  |
+| ------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| JWKS endpoint | `https://firebaseappcheck.googleapis.com/v1/jwks`          | ❌ **Wrong** — uses `…/v1/projects/{projectNumber}/keys`. Fails closed → every request 403s. |
+| `iss` claim   | `https://firebaseappcheck.googleapis.com/{project_number}` | ✅ Correct                                                                                   |
+| `aud` claim   | array containing `projects/{project_number}`               | ✅ Correct (the recent `aud` fix was right)                                                  |
 
 ## Assessment of the six prior fixes
 
-| # | Fix | Verdict |
-| --- | --- | --- |
-| 1 | `wrangler d1 create` | 🟡 Good but incomplete — missing the schema-apply step (`wrangler d1 execute … --file=./server/schema.sql`). |
-| 2 | `aud` → projectNumber + enforce App Check on reads | 🟢 Both correct. **But** the real blocker (JWKS endpoint, same function) was missed. |
-| 3 | Dev URL routing (`__DEV__`/localhost) | ⤬ **Revert** — out of scope; use a single prod URL. |
-| 4 | `PRAGMA foreign_keys = ON` per request | 🔴 Risky — D1 enforces FKs by default; an unsupported runtime PRAGMA would 500 *every* request. Verify or drop. |
-| 5 | `fetchWithAppCheck` (403 → refresh → retry once) | 🟢 Good pattern. Caveat: keep server *validation* failures on 400/422 so they don't trigger a pointless token refresh. |
-| 6 | `global.fetch` + app-check Jest mocks | 🟡 Mock scaffolding only — the existing test *cases* (Firestore `Timestamp` assertions in `challenge/store.test.ts`) still need rewriting; `push.test.ts` mocks `./store` wholesale and needs no fetch mock. |
+| #   | Fix                                                | Verdict                                                                                                                                                                                                      |
+| --- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `wrangler d1 create`                               | 🟡 Good but incomplete — missing the schema-apply step (`wrangler d1 execute … --file=./server/schema.sql`).                                                                                                 |
+| 2   | `aud` → projectNumber + enforce App Check on reads | 🟢 Both correct. **But** the real blocker (JWKS endpoint, same function) was missed.                                                                                                                         |
+| 3   | Dev URL routing (`__DEV__`/localhost)              | ⤬ **Revert** — out of scope; use a single prod URL.                                                                                                                                                          |
+| 4   | `PRAGMA foreign_keys = ON` per request             | 🔴 Risky — D1 enforces FKs by default; an unsupported runtime PRAGMA would 500 _every_ request. Verify or drop.                                                                                              |
+| 5   | `fetchWithAppCheck` (403 → refresh → retry once)   | 🟢 Good pattern. Caveat: keep server _validation_ failures on 400/422 so they don't trigger a pointless token refresh.                                                                                       |
+| 6   | `global.fetch` + app-check Jest mocks              | 🟡 Mock scaffolding only — the existing test _cases_ (Firestore `Timestamp` assertions in `challenge/store.test.ts`) still need rewriting; `push.test.ts` mocks `./store` wholesale and needs no fetch mock. |
 
 ## Blockers — must resolve before executing
 
 Each preserves existing behavior or fixes a correctness bug. None changes domain logic.
 
 - **B1 — Fix the JWKS endpoint** to `https://firebaseappcheck.googleapis.com/v1/jwks`.
-  Gates the entire migration. *(correctness)*
+  Gates the entire migration. _(correctness)_
 - **B2 — Port server-side validation from `firestore.rules` into the Worker.** This is
   the largest gap. App Check proves "a genuine app sent this," not that the payload is
-  honest. Required checks (all enforced today):
-  - **Challenge:** key allowlist `[lang, game, questions, createdBy, expiresAt]`;
-    `lang ∈ {en, pl}`; `game` string ≤ 40; `questions` list, size 1–50;
-    `createdBy.uuid` ≤ 64, `createdBy.nickname` ≤ 24; `expiresAt < now + 31d`
-    (no near-immortal docs); reject duplicate id (immutable-after-create).
-  - **Attempt:** key allowlist `[nickname, progress, score, timestamp]`; `nickname`
-    ≤ 24; `progress` int; `score` number; `timestamp` int; parent challenge must
-    exist; exactly one per device UUID.
-  - **Ranking entry:** key allowlist `[nickname, score, signature?]`; `nickname`
-    1–24; **`score` 0–1,000,000,000** (the MAX_SCORE cap that stops one write
-    pinning #1 on the never-resetting all-time board); `signature ∈ {sprout, spark,
-    fire, gem, star, crown}`; `game ∈ {the-ladder, the-drop, the-wheel}`; `period ==
-    'alltime'` **or** `YYYY-MM` equal to the **server-clock** UTC year/month;
-    best-only update (`new.score ≥ stored.score`). *(behavior fidelity)*
+  honest. Required checks (all enforced today): - **Challenge:** key allowlist `[lang, game, questions, createdBy, expiresAt]`;
+  `lang ∈ {en, pl}`; `game` string ≤ 40; `questions` list, size 1–50;
+  `createdBy.uuid` ≤ 64, `createdBy.nickname` ≤ 24; `expiresAt < now + 31d`
+  (no near-immortal docs); reject duplicate id (immutable-after-create). - **Attempt:** key allowlist `[nickname, progress, score, timestamp]`; `nickname`
+  ≤ 24; `progress` int; `score` number; `timestamp` int; parent challenge must
+  exist; exactly one per device UUID. - **Ranking entry:** key allowlist `[nickname, score, signature?]`; `nickname`
+  1–24; **`score` 0–1,000,000,000** (the MAX*SCORE cap that stops one write
+  pinning #1 on the never-resetting all-time board); `signature ∈ {sprout, spark,
+fire, gem, star, crown}`; `game ∈ {the-ladder, the-drop, the-wheel}`; `period ==
+'alltime'` **or** `YYYY-MM` equal to the **server-clock** UTC year/month;
+  best-only update (`new.score ≥ stored.score`). *(behavior fidelity)\_
 - **B3 — Restore `signature` end-to-end** — add the column to the `rankings` schema,
   the `INSERT`, and the `getBoard` `SELECT`. It is stored and rendered
-  (`signatureEmoji`) today; dropping it is data loss + a broken feature. *(fidelity)*
+  (`signatureEmoji`) today; dropping it is data loss + a broken feature. _(fidelity)_
 - **B4 — Clean one-attempt-per-device rejection** — a duplicate attempt must surface
-  as "already played," not a 500 → client "offline". *(fidelity)*
-- **B5 — Verify or remove the per-request `PRAGMA foreign_keys`** (B-fix #4 risk). *(correctness)*
+  as "already played," not a 500 → client "offline". _(fidelity)_
+- **B5 — Verify or remove the per-request `PRAGMA foreign_keys`** (B-fix #4 risk). _(correctness)_
 - **B6 — Revert dev URL routing** to a single prod constant pointing at
-  `https://play.showdown.lebene.pl`. *(scope)*
+  `https://play.showdown.lebene.pl`. _(scope)_
 - **B7 — Use `crypto.randomUUID()` for challenge IDs** instead of `Math.random()` —
   IDs are capability URLs; weak/guessable ones invite enumeration and collisions.
-  *(robustness — included now per request)*
-- **B8 — Add the schema-apply step** to provisioning (`wrangler d1 execute`). *(completeness)*
+  _(robustness — included now per request)_
+- **B8 — Add the schema-apply step** to provisioning (`wrangler d1 execute`). _(completeness)_
 - **B9 — Write real test cases, TDD-style.** Port the existing `challenge/store.test.ts`
-  and ranking store behavior to the `fetch` layer and assert it *first* — offline/timeout
+  and ranking store behavior to the `fetch` layer and assert it _first_ — offline/timeout
   → `OfflineError`, 403 → `BlockedError`, 404 → `null`, and the new `fetchWithAppCheck`
-  retry path. "Behaves identically" must be proven, not asserted. *(fidelity)*
+  retry path. "Behaves identically" must be proven, not asserted. _(fidelity)_
 
 > **Structure note:** keep `OfflineError` / `BlockedError` / `withTimeout` exported from
 > `challenge/store.ts` exactly as today — `ranking/store.ts` and `push.ts` import them,

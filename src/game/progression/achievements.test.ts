@@ -70,7 +70,7 @@ describe('achievementsUnlocked — tiered families', () => {
         ).toBe(true);
     });
 
-    it('per-game Scorer families unlock on that game\'s best run, calibrated per scale', () => {
+    it("per-game Scorer families unlock on that game's best run, calibrated per scale", () => {
         const ladder = achievementsUnlocked(stats({ bestScoreByGame: { 'the-ladder': 15000 } }));
         expect(ladder.has('ladder-scorer-silver')).toBe(true);
         expect(ladder.has('ladder-scorer-gold')).toBe(false);

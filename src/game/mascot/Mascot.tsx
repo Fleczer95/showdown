@@ -77,37 +77,79 @@ function renderFace(expression: MascotExpression) {
             return (
                 <>
                     <Path d='M70,73 Q80,67 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                    <Path d='M130,73 Q120,67 110,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M130,73 Q120,67 110,73'
+                        stroke={SHADE}
+                        strokeWidth='3.5'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                     {eyes(9, 10)}
                     {nose}
-                    <Path d='M100,124 L100,130 M84,131 Q100,147 116,131' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M100,124 L100,130 M84,131 Q100,147 116,131'
+                        stroke={FEATURE}
+                        strokeWidth='3'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                 </>
             );
         case 'worried':
             return (
                 <>
                     <Path d='M70,75 Q80,70 90,69' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                    <Path d='M130,75 Q120,70 110,69' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M130,75 Q120,70 110,69'
+                        stroke={SHADE}
+                        strokeWidth='3.5'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                     {eyes(9, 10)}
                     {nose}
-                    <Path d='M100,124 L100,130 M88,137 Q100,131 112,137' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M100,124 L100,130 M88,137 Q100,131 112,137'
+                        stroke={FEATURE}
+                        strokeWidth='3'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                 </>
             );
         case 'smug':
             return (
                 <>
                     <Path d='M70,73 Q80,68 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                    <Path d='M130,67 Q120,63 110,69' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M130,67 Q120,63 110,69'
+                        stroke={SHADE}
+                        strokeWidth='3.5'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                     {eyes(9, 8)}
                     {nose}
-                    <Path d='M100,124 L100,130 M87,134 Q100,139 115,128' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M100,124 L100,130 M87,134 Q100,139 115,128'
+                        stroke={FEATURE}
+                        strokeWidth='3'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                 </>
             );
         case 'surprised':
             return (
                 <>
                     <Path d='M70,66 Q80,63 90,66' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                    <Path d='M130,66 Q120,63 110,66' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M130,66 Q120,63 110,66'
+                        stroke={SHADE}
+                        strokeWidth='3.5'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                     {eyes(10, 12)}
                     {nose}
                     <Ellipse cx='100' cy='135' rx='5' ry='6' fill={FEATURE} />
@@ -118,10 +160,22 @@ function renderFace(expression: MascotExpression) {
             return (
                 <>
                     <Path d='M70,73 Q80,67 90,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
-                    <Path d='M130,73 Q120,67 110,73' stroke={SHADE} strokeWidth='3.5' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M130,73 Q120,67 110,73'
+                        stroke={SHADE}
+                        strokeWidth='3.5'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                     {eyes(9, 10)}
                     {nose}
-                    <Path d='M100,124 L100,130 M88,132 Q100,140 112,132' stroke={FEATURE} strokeWidth='3' strokeLinecap='round' fill='none' />
+                    <Path
+                        d='M100,124 L100,130 M88,132 Q100,140 112,132'
+                        stroke={FEATURE}
+                        strokeWidth='3'
+                        strokeLinecap='round'
+                        fill='none'
+                    />
                 </>
             );
     }
@@ -248,12 +302,20 @@ export function Mascot({ look, pose, size = 240, expression = 'neutral' }: Masco
                 <Path
                     d='M60,182 C30,186 18,164 20,138 C22,118 38,110 48,116 C40,124 40,140 48,156 C54,170 62,176 68,178 Z'
                     fill={fur}
-                    stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round'
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
                 />
                 {/* cream fox tail tip — SOLID (never ghosts) + bounded inside the curl so it
                     can't spill onto the background. Caps the whole END of the curl (the last
                     third); the inner separation is a soft curve, not a straight cut. */}
-                <Path d='M21,137 C23,119 38,111 47,116 C44,122 41,129 41,139 C34,145 27,144 21,137 Z' fill='#F8E6CE' stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round' />
+                <Path
+                    d='M21,137 C23,119 38,111 47,116 C44,122 41,129 41,139 C34,145 27,144 21,137 Z'
+                    fill='#F8E6CE'
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
+                />
                 {/* darker base where the tail tucks behind the body — gives the curl depth */}
                 <Path d='M52,168 C58,176 64,180 68,178 L60,182 C54,180 50,174 52,168 Z' fill={SHADE} />
 
@@ -276,13 +338,31 @@ export function Mascot({ look, pose, size = 240, expression = 'neutral' }: Masco
                 <Polygon points='90,132 110,132 100,146' fill={HILITE} />
 
                 {/* ---- ACCENT tie ---- */}
-                <Path d='M100,138 L108,146 L106,156 L112,194 L100,202 L88,194 L94,156 L92,146 Z' fill={accent} stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round' />
+                <Path
+                    d='M100,138 L108,146 L106,156 L112,194 L100,202 L88,194 L94,156 L92,146 Z'
+                    fill={accent}
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
+                />
                 <Polygon points='100,156 112,194 100,202' fill={SHADE} />
 
                 {/* ---- EARS (fur) — full rounded-triangular fox ears (convex sides, soft tip);
                     both bottom corners tuck inside the head so there's no protruding flap/notch ---- */}
-                <Path d='M60,74 C51,58 48,42 54,34 C58,30 63,32 66,42 C70,54 78,62 86,66 Z' fill={fur} stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round' />
-                <Path d='M140,74 C149,58 152,42 146,34 C142,30 137,32 134,42 C130,54 122,62 114,66 Z' fill={fur} stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round' />
+                <Path
+                    d='M60,74 C51,58 48,42 54,34 C58,30 63,32 66,42 C70,54 78,62 86,66 Z'
+                    fill={fur}
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
+                />
+                <Path
+                    d='M140,74 C149,58 152,42 146,34 C142,30 137,32 134,42 C130,54 122,62 114,66 Z'
+                    fill={fur}
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
+                />
                 {/* inner ear (rounded triangle inset) */}
                 <Path d='M60,66 C54,54 55,44 60,40 C64,48 72,58 80,64 Z' fill={SHADE} />
                 <Path d='M140,66 C146,54 145,44 140,40 C136,48 128,58 120,64 Z' fill={SHADE} />
@@ -291,7 +371,9 @@ export function Mascot({ look, pose, size = 240, expression = 'neutral' }: Masco
                 <Path
                     d='M100,50 C82,48 60,54 54,74 C48,90 48,102 56,110 C66,126 80,136 100,144 C120,136 134,126 144,110 C152,102 152,90 146,74 C140,54 118,48 100,50 Z'
                     fill={fur}
-                    stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round'
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
                 />
                 {/* muzzle/snout highlight — a narrow teardrop that juts down (fox snout) */}
                 <Path
@@ -337,7 +419,9 @@ export function Mascot({ look, pose, size = 240, expression = 'neutral' }: Masco
                 <Path
                     d='M114,170 C112,162 120,157 127,161 C133,164 133,173 128,177 C122,181 116,177 114,170 Z'
                     fill={fur}
-                    stroke={OUTLINE} strokeWidth='2' strokeLinejoin='round'
+                    stroke={OUTLINE}
+                    strokeWidth='2'
+                    strokeLinejoin='round'
                 />
                 {/* finger creases so the paw reads as a gripping hand */}
                 <Path

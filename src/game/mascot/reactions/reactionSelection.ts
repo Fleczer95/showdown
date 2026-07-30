@@ -1,10 +1,7 @@
 import { poolFor } from './lines';
 import type { BucketId } from './buckets';
 
-export function pickLine(
-    bucketId: BucketId,
-    opts: { recent: string[]; count?: number; rand?: () => number },
-): string {
+export function pickLine(bucketId: BucketId, opts: { recent: string[]; count?: number; rand?: () => number }): string {
     const pool = poolFor(bucketId);
     const rand = opts.rand ?? Math.random;
 

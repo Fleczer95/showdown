@@ -180,8 +180,12 @@ identical bundle was already uploaded.
   test. `org:ci` cannot delete it; needs a UI delete. Harmless, 0 events.
 - **App Check failures** (`SHOWDOWN-C` / `SHOWDOWN-D`) are still live on build
   `1.3.2+34` — separate outstanding work (iOS App Attest + enforce flip).
-- **`1.3.2+34` exists in Sentry but in no branch or tag** in this repo. Something
-  shipped from a tree that is not in git. Worth tracking down, separately.
+
+**Correction (2026-07-30):** an earlier revision of this doc claimed `1.3.2+34`
+"exists in Sentry but in no branch or tag", implying something shipped from an
+untracked tree. That was wrong — it is commit `c95e1e2` on `main`, which bumped
+`1.3.1/33` to `1.3.2/34`. The original check used `git log --all` against a stale
+local `main` without fetching first. Nothing untracked was shipped.
 
 ---
 

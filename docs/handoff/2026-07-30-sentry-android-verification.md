@@ -182,3 +182,55 @@ identical bundle was already uploaded.
   `1.3.2+34` — separate outstanding work (iOS App Attest + enforce flip).
 - **`1.3.2+34` exists in Sentry but in no branch or tag** in this repo. Something
   shipped from a tree that is not in git. Worth tracking down, separately.
+
+---
+
+## Verification results (2026-07-30)
+
+Android release verification was run on branch
+`fix/sentry-crash-fixes-and-sourcemaps` using:
+
+```bash
+set -o pipefail
+npm run aab 2>&1 | tee /tmp/aab.log
+```
+
+### Result
+
+- `npm run aab` succeeded with exit code 0 (`BUILD SUCCESSFUL in 5m 18s`; 839
+  actionable tasks executed).
+- The release AAB was generated at
+  `android/app/build/outputs/bundle/release/app-release.aab` (115,978,881 bytes).
+- Sentry authentication was confirmed as an auth token with `org:ci` scope.
+- The source-map upload succeeded:
+  - Organization/project: `breathing-app` / `showdown`
+  - Release: `com.showdown.app@1.3.1+33`
+  - Dist: `33`
+  - Artifact bundle ID: `0ba1f393-f83a-5d67-a949-e6f738a51cff`
+  - Bundle/source-map debug ID: `2aa12c6e-4466-4030-97fb-aa78fb5bc7a3`
+- No `error: sentry-cli` lines appeared.
+- `android/app/build.gradle` still contained the Sentry `apply from:` line at
+  line 84 after Expo prebuild.
+- The built AAB contained none of the restricted permissions listed in
+  `AGENTS.md` (`AD_ID`, activity recognition, media playback foreground service,
+  or record audio).
+- Expo prebuild caused only line-ending status noise in
+  `android/app/src/main/AndroidManifest.xml` and `android/sentry.properties`; an
+  ignore-EOL diff confirmed no substantive content changes.
+
+### Native debug-symbol finding
+
+Native Android debug symbols were **not uploaded**. The log contained no
+`Found N debug information files` or `Uploaded N ... debug information` block.
+
+Root cause: the current `@sentry/react-native/expo` configuration enables the
+React Native source-map integration, but the Sentry Android Gradle Plugin is
+opt-in in `@sentry/react-native@7.2.0`. `app.json` does not set
+`experimental_android.enableAndroidGradlePlugin`, so generated Gradle files do
+not apply `io.sentry.android.gradle` and have no `uploadNativeSymbols` /
+`autoUploadNativeSymbols` configuration.
+
+Therefore, Android JavaScript source-map upload is verified and working for
+`1.3.1+33`, but native Android symbol upload remains an open follow-up. Enable
+and configure the Sentry Android Gradle Plugin, then repeat this release-build
+verification to close it.

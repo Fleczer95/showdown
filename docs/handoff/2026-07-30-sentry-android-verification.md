@@ -358,3 +358,62 @@ Interim workaround if you need a release out regardless:
 3. Did JS source-map upload still appear, with what `Release` / `Dist`?
 4. Total build duration vs round 1's 5m18s.
 5. Any `error: sentry-cli` lines, or the line-1 ordering hazard above.
+
+---
+
+## Round 2 verification results (2026-07-30)
+
+Round 2 was verified on Linux with an Android SDK and a `Pixel_6_API_33`
+emulator. Dependencies were refreshed with `npm ci`, then the release bundle was
+built using the `pipefail` command above.
+
+### Build and uploads
+
+- `npm run aab` succeeded with exit code 0 (`BUILD SUCCESSFUL in 5m 39s`; 842
+  actionable tasks executed). This was 21 seconds slower than Round 1.
+- The release AAB was generated at
+  `android/app/build/outputs/bundle/release/app-release.aab` (115,981,894 bytes).
+- The JavaScript source-map upload still succeeded:
+  - Organization/project: `breathing-app` / `showdown`
+  - Release: `com.showdown.app@1.3.2+34`
+  - Dist: `34`
+  - Upload type: artifact bundle
+  - Artifact bundle ID: `0ba1f393-f83a-5d67-a949-e6f738a51cff`
+  - Bundle/source-map debug ID: `2aa12c6e-4466-4030-97fb-aa78fb5bc7a3`
+- Native symbol upload succeeded through
+  `:app:uploadSentryNativeSymbolsForRelease`:
+  - Found 112 debug information files
+  - Uploaded 112 missing debug information files
+- No `error: sentry-cli` lines appeared.
+- All three expected Sentry references remained in
+  `android/app/build.gradle` after prebuild: the Android Gradle Plugin at line 1,
+  `sentry.gradle` around line 85, and the `sentry { }` block around line 209.
+- Applying `io.sentry.android.gradle` before `com.android.application` emitted
+  the anticipated ordering warning, but it was non-fatal: the plugin configured
+  its release tasks and completed the native upload. No ordering patch is needed
+  based on this build.
+- The built AAB contained none of the restricted permissions listed in
+  `AGENTS.md`.
+- Expo prebuild again caused only line-ending status noise in
+  `android/app/src/main/AndroidManifest.xml` and `android/sentry.properties`; an
+  ignore-EOL diff confirmed no substantive changes.
+
+### AAB emulator smoke test
+
+The exact release AAB was converted into device-specific split APKs with Google
+Bundletool 1.18.3, signed with the configured upload key, and installed on a
+`Pixel_6_API_33` emulator.
+
+- Installed package: `com.showdown.app`
+- Installed version: `1.3.2` (`versionCode=34`)
+- Cold launch succeeded and the app was manually inspected in the visible
+  emulator.
+- Sentry initialized with the production DE-region DSN.
+- The Sentry NDK integration loaded and the app showed no startup crash.
+
+This verifies the release build, artifact uploads, AAB installation, and normal
+startup. It does **not** constitute a controlled end-to-end symbolication test:
+the production binary has no callable JS/native test-crash endpoint. Proving the
+rendered stack traces would require a separate diagnostic build that emits an
+identifiable JS exception and native crash, followed by inspection of those
+events in Sentry with event-reading access.

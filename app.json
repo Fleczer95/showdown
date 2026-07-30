@@ -72,7 +72,11 @@
         "@sentry/react-native/expo",
         {
           "organization": "breathing-app",
-          "project": "showdown"
+          "project": "showdown",
+          "experimental_android": {
+            "enableAndroidGradlePlugin": true,
+            "includeNativeSources": false
+          }
         }
       ],
       [

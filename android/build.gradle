@@ -6,6 +6,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
+        classpath("io.sentry:sentry-android-gradle-plugin:5.11.0")
         classpath 'com.google.gms:google-services:4.4.1'
     classpath('com.android.tools.build:gradle')
     classpath('com.facebook.react:react-native-gradle-plugin')

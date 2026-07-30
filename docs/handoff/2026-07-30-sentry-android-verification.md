@@ -238,3 +238,123 @@ Therefore, Android JavaScript source-map upload is verified and working for
 `1.3.1+33`, but native Android symbol upload remains an open follow-up. Enable
 and configure the Sentry Android Gradle Plugin, then repeat this release-build
 verification to close it.
+
+---
+
+# ROUND 2: verify native Android symbol upload
+
+**Added 2026-07-30, same branch.** The Sentry Android Gradle Plugin is now enabled
+in response to the finding above. **This has NOT been verified on any machine** —
+it cannot be, on the Mac this was authored on (no Android SDK). Round 1's JS
+source-map result stands; this is strictly additive on top of it.
+
+Also note the branch has since **merged `main`, so the version is now `1.3.2` /
+build `34`**, not `1.3.1+33`. Expect uploads to target
+`com.showdown.app@1.3.2+34`, dist `34`.
+
+## What changed
+
+`app.json` — the Sentry plugin now carries:
+
+```json
+"experimental_android": {
+  "enableAndroidGradlePlugin": true,
+  "includeNativeSources": false
+}
+```
+
+`includeNativeSources` is deliberately `false` so third-party native source (Skia,
+Reanimated internals) is not shipped to Sentry. Everything else stays at plugin
+defaults.
+
+Prebuild was run locally to capture what this injects. Two gradle files:
+
+**`android/build.gradle`** (root, buildscript dependencies):
+```groovy
+classpath("io.sentry:sentry-android-gradle-plugin:5.11.0")
+```
+
+**`android/app/build.gradle`** — `apply plugin: "io.sentry.android.gradle"` at line 1,
+plus this block appended at the end:
+```groovy
+sentry {
+    autoUploadProguardMapping = shouldSentryAutoUpload()
+    includeProguardMapping = true
+    dexguardEnabled = false
+    uploadNativeSymbols = shouldSentryAutoUpload()
+    autoUploadNativeSymbols = shouldSentryAutoUpload()
+    includeNativeSources = false
+    includeSourceContext = false
+    tracingInstrumentation { enabled = false }
+    autoInstallation { enabled = false }
+}
+```
+
+Both `tracingInstrumentation` and `autoInstallation` are **off**, so this is
+upload-only — no bytecode rewriting, no runtime behaviour change, no implicit
+dependencies. Every upload is gated behind `shouldSentryAutoUpload()`, so
+`SENTRY_DISABLE_AUTO_UPLOAD=true` still disables all of it.
+
+There are now **three** Sentry references in `android/app/build.gradle`: the AGP at
+line 1, `apply from: … sentry.gradle` around line 85 (JS source maps, round 1), and
+the `sentry { }` block near line 209. All three are expected.
+
+## Verify
+
+```bash
+git pull
+npm ci
+set -o pipefail
+npm run aab 2>&1 | tee /tmp/aab-native.log; echo "EXIT: $?"
+```
+
+Then:
+
+```bash
+grep -nE "Found [0-9]+ debug information|Uploaded [0-9]+ .*debug information|uploadNative|artifact bundle|Release:|Dist:|error: sentry-cli|BUILD SUCCESSFUL|BUILD FAILED" /tmp/aab-native.log
+```
+
+### Success criteria
+
+1. `BUILD SUCCESSFUL` and `EXIT: 0`.
+2. **JS source maps still work** (must not regress from round 1) — an
+   `Upload type: artifact bundle` block with `Release: com.showdown.app@1.3.2+34`
+   and `Dist: 34`.
+3. **Native symbols now upload** — a `Found N debug information files` /
+   `Uploaded N missing debug information file` block, or a
+   `:app:sentryUploadNativeSymbolsForRelease`-style task running successfully.
+4. No `error: sentry-cli` lines.
+5. All three Sentry references still present after prebuild:
+   `grep -n "sentry\|Sentry" android/app/build.gradle`
+
+### Expect this to be slower and heavier
+
+Native debug symbols for Skia, Hermes, Reanimated and MMKV/Nitro are large —
+plausibly hundreds of MB. Round 1 built in 5m18s; this will be longer, and the
+upload itself may take a while. That is expected, not a hang.
+
+## Known hazard, please check if the build fails
+
+`apply plugin: "io.sentry.android.gradle"` is injected at **line 1, before**
+`apply plugin: "com.android.application"`. That is what the official Expo plugin
+generates, but if Gradle complains about the Android extension being unavailable or
+the plugin failing to configure, try moving the Sentry apply line to just after
+`com.android.application` and rebuild. Report it if so — it means the generated
+output needs a patch in `scripts/patch-build-gradle.js` to survive prebuild.
+
+## If it breaks, this is cheap to revert
+
+Remove the `experimental_android` block from `app.json`, re-run
+`npx expo prebuild --platform android --no-install`, and Android is back to
+round 1's verified JS-only state. Round 1's result does not depend on this.
+
+Interim workaround if you need a release out regardless:
+`SENTRY_DISABLE_AUTO_UPLOAD=true npm run aab`.
+
+## Report back
+
+1. `BUILD SUCCESSFUL`? Exit code from the `pipefail` run above.
+2. Did native symbol upload appear, and how many files?
+3. Did JS source-map upload still appear, with what `Release` / `Dist`?
+4. Total build duration vs round 1's 5m18s.
+5. Any `error: sentry-cli` lines, or the line-1 ordering hazard above.

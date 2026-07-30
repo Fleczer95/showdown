@@ -61,8 +61,24 @@
       "expo-localization",
       "@react-native-firebase/app",
       "@react-native-firebase/app-check",
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ],
       "expo-asset",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "breathing-app",
+          "project": "showdown",
+          "experimental_android": {
+            "enableAndroidGradlePlugin": true,
+            "includeNativeSources": false
+          }
+        }
+      ],
       [
         "./plugins/withAndroidBackupAndCompliance.cjs",
         {

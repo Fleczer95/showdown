@@ -429,7 +429,10 @@ export function ChallengeScreen() {
     // The play screen wired to the frozen deck. Memoised on the record so it is
     // built once and isn't reset by unrelated re-renders during the run.
     const playElement = useMemo(() => {
-        if (!record) return null;
+        // Resolving reads content by id and throws when this build lacks it, so it must
+        // not run before `load` has vetted the record — `phase` is only 'playing' after
+        // the `missingContentIds` gate passed.
+        if (phase !== 'playing' || !record) return null;
         const owned = ownedQuestionIds(record.game, ownedIds);
         const base = { ownedIds: owned, onComplete: handleComplete };
         switch (record.game) {
@@ -452,7 +455,7 @@ export function ChallengeScreen() {
             default:
                 return null;
         }
-    }, [record, ownedIds, locale, handleComplete, exit]);
+    }, [phase, record, ownedIds, locale, handleComplete, exit]);
 
     if (phase === 'playing' && playElement) {
         return <SafeContainer edges={['top']}>{playElement}</SafeContainer>;

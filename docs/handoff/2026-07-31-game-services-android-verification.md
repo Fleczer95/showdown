@@ -5,6 +5,40 @@
 **Goal:** get `modules/game-services` to compile and actually work on Android. iOS is
 verified end to end; the Kotlin has never been through a compiler.
 
+## Status update — 2026-07-31
+
+Android compilation and the first device check are now verified on Linux/WSL with
+Android SDK 36, Kotlin 2.1.20, and the existing `Pixel_6_PlayStore_API33` emulator.
+
+- `npx expo prebuild --platform android --no-install` and `npm run prebuild` completed.
+  The native permission/service removals required by `AGENTS.md` survived the run and
+  were absent from the packaged APK.
+- Expo autolinking resolved `game-services` to
+  `expo.modules.gameservices.GameServicesModule`.
+- `./gradlew :app:assembleDebug` completed successfully (561 tasks). In particular,
+  `:game-services:compileDebugKotlin` passed against
+  `com.google.android.gms:play-services-games-v2:21.0.0`, confirming every API called
+  out in the compile-risk checklist below, including `unlockImmediate` and
+  `submitScoreImmediate`.
+- The packaged resource `string/game_services_project_id` resolves to
+  `381435458877`. The final APK contains none of `AD_ID`, `ACTIVITY_RECOGNITION`,
+  `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, or `RECORD_AUDIO`.
+- A fresh emulator install cold-started successfully. The app stayed alive, loaded
+  its JavaScript bundle, showed no Play Games sign-in prompt, and logged no fatal,
+  `GameServicesModule`, or `NoActivityException` error. Device check 1 therefore
+  passes.
+- Device checks 2–6 remain pending. The emulator was wiped to make room for the APK
+  and currently has no Google account. Register the debug SHA-1 below in Play Games
+  Services and sign a licensed tester into the emulator before continuing:
+
+  ```text
+  FD:F4:D1:F0:D1:0E:E1:E6:96:CC:1A:D5:55:77:54:ED:2E:9B:88:8C
+  ```
+
+For emulator installation, an `x86_64`-only debug APK was also built with
+`-PreactNativeArchitectures=x86_64`; this reduced the APK from 266 MB to 90 MB. The
+full four-ABI debug APK had already assembled successfully before that optimization.
+
 ---
 
 ## Why this exists

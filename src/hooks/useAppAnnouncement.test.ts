@@ -136,6 +136,21 @@ describe('useAppAnnouncement', () => {
         expect(mockCheck).not.toHaveBeenCalled();
     });
 
+    it('shows no sheet when the release ships an empty highlight list', async () => {
+        mockReadWhatsNew.mockReturnValue('0.0.1');
+        const highlights = WHATS_NEW.highlights;
+        WHATS_NEW.highlights = [];
+
+        try {
+            const { result } = renderHook(() => useAppAnnouncement());
+
+            await waitFor(() => expect(markWhatsNewSeen).toHaveBeenCalledWith(APP_VERSION));
+            expect(result.current.announcement).toBeNull();
+        } finally {
+            WHATS_NEW.highlights = highlights;
+        }
+    });
+
     it('stays quiet on a patch that ships no notes, but still advances the key', async () => {
         mockReadWhatsNew.mockReturnValue('0.0.1');
         WHATS_NEW.version = '0.0.9'; // notes belong to some other build

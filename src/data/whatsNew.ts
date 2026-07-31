@@ -2,9 +2,16 @@
  * The current version's highlights, shown once after the player updates.
  *
  * Only ONE entry exists at a time — there is deliberately no changelog history
- * to maintain. `version` must match `APP_VERSION` (app.json) for the sheet to
- * appear; when it does not, the sheet stays quiet and the seen-version key is
- * advanced silently (see services/appUpdate/seenVersions).
+ * to maintain.
+ *
+ * Nothing here is load-bearing: the sheet appears only when `version` matches
+ * `APP_VERSION` (app.json) AND `highlights` is non-empty. Any other state — a
+ * stale version, an emptied list, a release nobody wrote notes for — simply
+ * means no sheet. It is never an error, and the seen-version key is advanced
+ * either way so a later release is not suppressed.
+ *
+ * Leaving `highlights` empty is therefore the supported way to ship a release
+ * with no what's-new sheet at all.
  *
  * Updated as part of the release ritual — see the `release-notes` skill.
  */

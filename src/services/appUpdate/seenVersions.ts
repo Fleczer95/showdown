@@ -31,12 +31,15 @@ export type WhatsNewDecision = 'seed' | 'show' | 'bump' | 'none';
 export function decideWhatsNew(
     seenVersion: string | undefined,
     appVersion: string,
-    notesVersion: string,
+    /** The version the bundled notes describe, or null when this build ships none. */
+    notesVersion: string | null,
     hasPriorUse: boolean = false,
 ): WhatsNewDecision {
     if (seenVersion === undefined && !hasPriorUse) return 'seed';
     if (seenVersion === appVersion) return 'none';
-    return notesVersion === appVersion ? 'show' : 'bump';
+    // No notes for this build — nothing to show, but still record the version
+    // so the next release with notes is not mistaken for an old one.
+    return notesVersion !== null && notesVersion === appVersion ? 'show' : 'bump';
 }
 
 /**

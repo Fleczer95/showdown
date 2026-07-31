@@ -30,6 +30,13 @@ describe('decideWhatsNew', () => {
         expect(decideWhatsNew('1.4.0', '1.4.1', '1.4.0')).toBe('bump');
     });
 
+    // A release can legitimately ship no notes at all. That must be quiet, not
+    // an error, and must still advance the key.
+    it('bumps silently when the build ships no notes at all', () => {
+        expect(decideWhatsNew('1.3.1', '1.4.0', null)).toBe('bump');
+        expect(decideWhatsNew(undefined, '1.4.0', null, true)).toBe('bump');
+    });
+
     it('does nothing when the player has already seen this version', () => {
         expect(decideWhatsNew('1.4.0', '1.4.0', '1.4.0')).toBe('none');
     });

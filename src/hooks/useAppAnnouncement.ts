@@ -51,7 +51,10 @@ export function useAppAnnouncement(): { announcement: Announcement; dismiss: () 
         if (decidedThisLaunch) return;
         decidedThisLaunch = true;
 
-        const decision = decideWhatsNew(readWhatsNewSeen(), APP_VERSION, WHATS_NEW.version, loadStats().runsPlayed > 0);
+        // An empty highlight list means this release ships no notes. That is a
+        // supported state, not a failure: no sheet, no error, just a quiet bump.
+        const notesVersion = WHATS_NEW.highlights.length > 0 ? WHATS_NEW.version : null;
+        const decision = decideWhatsNew(readWhatsNewSeen(), APP_VERSION, notesVersion, loadStats().runsPlayed > 0);
 
         // 'seed' (fresh install) and 'bump' (a patch with no notes) both record
         // the version and stay quiet — and skip the store check, because a build

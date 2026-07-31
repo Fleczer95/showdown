@@ -169,7 +169,9 @@ CTA.
   platforms in lockstep; if that ever stops being true, this check needs a
   second source.
 - **`whatsNew.ts` must be updated every release** or the sheet silently stops
-  appearing. It fails quiet, which is safe but easy to forget, so the
-  `/release-notes` skill gains a step that writes the new version's highlights
-  into `whatsNew.ts` and the matching `en.json` / `pl.json` keys as part of the
-  existing release ritual.
+  appearing. This is deliberate: no notes means no sheet, never an error, so a
+  release with nothing worth announcing can ship an empty `highlights` list. The
+  cost is that forgetting looks identical to choosing, so the `/release-notes`
+  skill gains a step that writes the new version's highlights into `whatsNew.ts`
+  and the matching `en.json` / `pl.json` keys, and `whatsNew.test.ts` logs a
+  warning naming the mismatch rather than failing the build.

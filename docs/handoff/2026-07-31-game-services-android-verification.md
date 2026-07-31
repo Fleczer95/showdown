@@ -31,9 +31,9 @@ Android SDK 36, Kotlin 2.1.20, and the existing `Pixel_6_PlayStore_API33` emulat
   and currently has no Google account. Register the debug SHA-1 below in Play Games
   Services and sign a licensed tester into the emulator before continuing:
 
-  ```text
-  FD:F4:D1:F0:D1:0E:E1:E6:96:CC:1A:D5:55:77:54:ED:2E:9B:88:8C
-  ```
+    ```text
+    FD:F4:D1:F0:D1:0E:E1:E6:96:CC:1A:D5:55:77:54:ED:2E:9B:88:8C
+    ```
 
 For emulator installation, an `x86_64`-only debug APK was also built with
 `-PreactNativeArchitectures=x86_64`; this reduced the APK from 266 MB to 90 MB. The

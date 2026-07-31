@@ -952,13 +952,13 @@
         "starLabel": "Oceń na %{n} z 5 gwiazdek"
     },
     "appUpdate": {
-        "title": "Nowa wersja jest gotowa",
-        "body": "Nie próżnowaliśmy. Pobierz najnowszy ShowDown — to zajmie chwilę.",
+        "title": "Gotowy na nową wersję?",
+        "body": "Nie próżnowaliśmy. Pobranie najnowszego ShowDown zajmie tylko chwilę.",
         "cta": "Aktualizuj",
         "later": "Nie teraz"
     },
     "whatsNew": {
-        "title": "Co nowego w %{version}",
+        "title": "Chcesz zobaczyć, co nowego w %{version}?",
         "cta": "Zagrajmy",
         "1_4_0": {
             "gameCenter": "Osiągnięcia i rankingi — 34 odznaki i tabela najlepszych wyników w każdej grze.",

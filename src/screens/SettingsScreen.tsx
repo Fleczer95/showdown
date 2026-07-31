@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, ChevronRight, Palette, Volume2, Smartphone, Drama, MessageCircle } from 'lucide-react-native';
@@ -14,7 +14,9 @@ import { useTheme, useThemeActions, themeRegistry } from '../theme';
 import { useTranslation } from '../i18n';
 import { useSettings } from '../hooks/useSettings';
 import { useResponsive } from '../responsive/useResponsive';
-import { FULL_VERSION_STRING } from '../utils/version';
+import { APP_VERSION, FULL_VERSION_STRING } from '../utils/version';
+import AnnouncementSheet from '../components/molecules/AnnouncementSheet';
+import { WHATS_NEW } from '../data/whatsNew';
 
 /**
  * Settings screen. Allows users to customize themes, timers, sounds,
@@ -27,6 +29,10 @@ export function SettingsScreen() {
     const { themeId } = useThemeActions();
     const settings = useSettings();
     const { scale, tabletColumn, iconSize } = useResponsive();
+
+    // Dev-only: cycle the two announcement sheets on demand. They are
+    // once-per-version by design, so there is otherwise no way to look at them.
+    const [preview, setPreview] = useState<'whatsNew' | 'update' | null>(null);
 
     const handleBack = () => navigation.goBack();
 
@@ -194,6 +200,23 @@ export function SettingsScreen() {
                             </Text>
                         </View>
 
+                        {__DEV__ ? (
+                            <Pressable
+                                style={[styles.linkButton, { paddingVertical: theme.spacing.sm }]}
+                                onPress={() =>
+                                    setPreview((current) =>
+                                        current === null ? 'whatsNew' : current === 'whatsNew' ? 'update' : null,
+                                    )
+                                }
+                                haptic='light'
+                                accessibilityRole='button'
+                            >
+                                <Text variant='body' color={theme.colors.primary}>
+                                    {`Preview announcement: ${preview ?? 'off'}`}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+
                         <Pressable
                             style={[styles.linkButton, { paddingVertical: theme.spacing.sm }]}
                             onPress={() => navigation.navigate('privacyPolicy' as any)}
@@ -230,6 +253,28 @@ export function SettingsScreen() {
                     </Stack>
                 </Stack>
             </ScrollView>
+
+            {/* Dev-only preview. Bypasses the hook entirely, so the once-per-version
+                ledger in deviceStore is never touched by looking at the sheets. */}
+            {__DEV__ && preview ? (
+                <AnnouncementSheet
+                    visible
+                    title={preview === 'update' ? t('appUpdate.title') : t('whatsNew.title', { version: APP_VERSION })}
+                    body={preview === 'update' ? t('appUpdate.body') : undefined}
+                    highlights={
+                        preview === 'whatsNew'
+                            ? WHATS_NEW.highlights.map((highlight) => ({
+                                  emoji: highlight.emoji,
+                                  label: t(highlight.key),
+                              }))
+                            : undefined
+                    }
+                    ctaLabel={preview === 'update' ? t('appUpdate.cta') : t('whatsNew.cta')}
+                    dismissLabel={preview === 'update' ? t('appUpdate.later') : undefined}
+                    onPressCta={() => setPreview(null)}
+                    onClose={() => setPreview(null)}
+                />
+            ) : null}
         </SafeContainer>
     );
 }

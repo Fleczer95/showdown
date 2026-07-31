@@ -7,6 +7,7 @@ import Text from '../atoms/Text';
 import { Mascot } from '../../game/mascot/Mascot';
 import { getEquippedLook } from '../../game/mascot/equippedLook';
 import { useResponsive } from '../../responsive/useResponsive';
+import { useTheme } from '../../theme';
 
 export interface AnnouncementHighlight {
     emoji: string;
@@ -25,6 +26,49 @@ export interface AnnouncementSheetProps {
     dismissLabel?: string;
     onClose: () => void;
     testID?: string;
+}
+
+/**
+ * The mascot's speech bubble, tail pointing down at the fox below it — the same
+ * shape the host uses on Home, so the sheet reads as the mascot talking rather
+ * than the app announcing. Sits on `surfaceVariant` because the sheet itself is
+ * already `surface`.
+ *
+ * The tail must meet a straight run of the bubble's edge. Stacked above the fox
+ * the bubble is wide, so its bottom edge has plenty of straight run between the
+ * `radii.xl` corners. Beside the fox it does not: a single-line bubble is only
+ * ~55px tall, so a 24px radius rounds the whole left edge away and the tail's
+ * rotated square strands itself outside the outline.
+ */
+function SpeechBubble({ text }: { text: string }) {
+    const theme = useTheme();
+
+    return (
+        <View
+            style={[
+                styles.bubble,
+                {
+                    backgroundColor: theme.colors.surfaceVariant,
+                    borderColor: theme.colors.borderLight,
+                    borderRadius: theme.radii.xl,
+                    shadowColor: theme.colors.shadow,
+                },
+            ]}
+        >
+            <Text variant='subheading' weight='bold' align='center'>
+                {text}
+            </Text>
+            <View
+                style={[
+                    styles.bubbleTail,
+                    {
+                        backgroundColor: theme.colors.surfaceVariant,
+                        borderColor: theme.colors.borderLight,
+                    },
+                ]}
+            />
+        </View>
+    );
 }
 
 /**
@@ -52,20 +96,19 @@ function AnnouncementSheet({
     return (
         <BottomSheet visible={visible} onClose={onClose} testID={testID} scrollable>
             <Stack gap='lg' align='center'>
-                <View pointerEvents='none'>
-                    <Mascot look={getEquippedLook()} pose='cheer' size={scale(120)} expression='happy' />
-                </View>
-
-                <Stack gap='xs' align='center'>
-                    <Text variant='subheading' weight='bold' align='center'>
-                        {title}
-                    </Text>
-                    {body ? (
-                        <Text variant='body' color='textSecondary' align='center'>
-                            {body}
-                        </Text>
-                    ) : null}
+                {/* The fox asks; the sheet answers below. */}
+                <Stack gap='md' align='center'>
+                    <SpeechBubble text={title} />
+                    <View pointerEvents='none'>
+                        <Mascot look={getEquippedLook()} pose='cheer' size={scale(110)} expression='happy' />
+                    </View>
                 </Stack>
+
+                {body ? (
+                    <Text variant='body' color='textSecondary' align='center'>
+                        {body}
+                    </Text>
+                ) : null}
 
                 {highlights?.length ? (
                     <Stack gap='md' style={styles.fullWidth}>
@@ -82,7 +125,7 @@ function AnnouncementSheet({
                     </Stack>
                 ) : null}
 
-                <Stack gap='sm' align='center' style={styles.fullWidth}>
+                <Stack gap='sm' align='stretch' style={styles.fullWidth}>
                     <Button variant='primary' fullWidth onPress={onPressCta}>
                         {ctaLabel}
                     </Button>
@@ -100,6 +143,29 @@ function AnnouncementSheet({
 const styles = StyleSheet.create({
     fullWidth: {
         width: '100%',
+    },
+    bubble: {
+        borderWidth: 1,
+        maxWidth: 300,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+    // A rotated square peeking out of the bubble's bottom edge. At 45° the
+    // bottom-right corner points down, so only those two borders are drawn and
+    // the inner half is hidden by the bubble's own fill — it reads as a tail.
+    bubbleTail: {
+        position: 'absolute',
+        alignSelf: 'center',
+        width: 14,
+        height: 14,
+        bottom: -8,
+        borderRightWidth: 1,
+        borderBottomWidth: 1,
+        transform: [{ rotate: '45deg' }],
     },
     // Let long highlight copy wrap instead of pushing the emoji off the row.
     highlightLabel: {

@@ -25,6 +25,8 @@ export interface AnnouncementSheetProps {
     /** When set, renders an explicit dismiss button below the CTA. */
     dismissLabel?: string;
     onClose: () => void;
+    /** Fires once the sheet has finished animating away and is gone. */
+    onDismissComplete?: () => void;
     testID?: string;
 }
 
@@ -89,12 +91,19 @@ function AnnouncementSheet({
     onPressCta,
     dismissLabel,
     onClose,
+    onDismissComplete,
     testID,
 }: AnnouncementSheetProps) {
     const { scale } = useResponsive();
 
     return (
-        <BottomSheet visible={visible} onClose={onClose} testID={testID} scrollable>
+        <BottomSheet
+            visible={visible}
+            onClose={onClose}
+            onDismissComplete={onDismissComplete}
+            testID={testID}
+            scrollable
+        >
             <Stack gap='lg' align='center'>
                 {/* The fox asks; the sheet answers below. */}
                 <Stack gap='md' align='center'>

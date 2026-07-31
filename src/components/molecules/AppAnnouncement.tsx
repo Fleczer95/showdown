@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import AnnouncementSheet from './AnnouncementSheet';
-import { useAppAnnouncement } from '../../hooks/useAppAnnouncement';
+import { useAppAnnouncement, type Announcement } from '../../hooks/useAppAnnouncement';
 import { WHATS_NEW } from '../../data/whatsNew';
 import { openStoreListing } from '../../services/appUpdate/updateCheck';
 import { APP_VERSION } from '../../utils/version';
@@ -15,15 +15,29 @@ function AppAnnouncement() {
     const { t } = useTranslation();
     const { announcement, dismiss } = useAppAnnouncement();
 
+    // BottomSheet animates itself out over ~250ms, but only while it is still in
+    // the tree. Dropping to null the instant the hook clears would tear it out
+    // mid-animation and the sheet would blink away. Hold the last announcement
+    // so it can render with visible={false}, and let it go once it reports it
+    // has finished leaving.
+    const [leaving, setLeaving] = useState<Announcement>(null);
+    useEffect(() => {
+        if (announcement) setLeaving(announcement);
+    }, [announcement]);
+
+    const shown = announcement ?? leaving;
+    const visible = announcement !== null;
+    const handleDismissComplete = useCallback(() => setLeaving(null), []);
+
     const handleUpdate = useCallback(() => {
         dismiss();
         void openStoreListing();
     }, [dismiss]);
 
-    if (announcement?.kind === 'whatsNew') {
+    if (shown?.kind === 'whatsNew') {
         return (
             <AnnouncementSheet
-                visible
+                visible={visible}
                 testID='whats-new-sheet'
                 title={t('whatsNew.title', { version: APP_VERSION })}
                 highlights={WHATS_NEW.highlights.map((highlight) => ({
@@ -33,14 +47,15 @@ function AppAnnouncement() {
                 ctaLabel={t('whatsNew.cta')}
                 onPressCta={dismiss}
                 onClose={dismiss}
+                onDismissComplete={handleDismissComplete}
             />
         );
     }
 
-    if (announcement?.kind === 'update') {
+    if (shown?.kind === 'update') {
         return (
             <AnnouncementSheet
-                visible
+                visible={visible}
                 testID='update-available-sheet'
                 title={t('appUpdate.title')}
                 body={t('appUpdate.body')}
@@ -48,6 +63,7 @@ function AppAnnouncement() {
                 onPressCta={handleUpdate}
                 dismissLabel={t('appUpdate.later')}
                 onClose={dismiss}
+                onDismissComplete={handleDismissComplete}
             />
         );
     }

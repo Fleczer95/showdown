@@ -24,6 +24,16 @@ jest.mock('../services/appUpdate/updateCheck', () => ({
     openStoreListing: jest.fn(),
 }));
 
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: () => mockIsFocused,
+}));
+
+let mockRunsPlayed = 0;
+jest.mock('../game/progression', () => ({
+    loadStats: () => ({ runsPlayed: mockRunsPlayed }),
+}));
+
 jest.mock('../services/appUpdate/seenVersions', () => ({
     ...jest.requireActual('../services/appUpdate/seenVersions'),
     readWhatsNewSeen: jest.fn(),
@@ -41,6 +51,8 @@ describe('useAppAnnouncement', () => {
         jest.clearAllMocks();
         resetAppAnnouncementForTests();
         WHATS_NEW.version = APP_VERSION;
+        mockIsFocused = true;
+        mockRunsPlayed = 0;
         mockCheck.mockResolvedValue(null);
         mockReadWhatsNew.mockReturnValue(APP_VERSION);
         mockReadUpdate.mockReturnValue(undefined);
@@ -54,6 +66,64 @@ describe('useAppAnnouncement', () => {
         await waitFor(() => expect(markWhatsNewSeen).toHaveBeenCalledWith(APP_VERSION));
         expect(result.current.announcement).toBeNull();
         expect(mockCheck).not.toHaveBeenCalled();
+    });
+
+    it('shows notes to an existing player upgrading into the debut build', async () => {
+        mockReadWhatsNew.mockReturnValue(undefined); // key cannot exist before this feature
+        mockRunsPlayed = 12; // ...but this player has been here a while
+
+        const { result } = renderHook(() => useAppAnnouncement());
+
+        await waitFor(() => expect(result.current.announcement).toEqual({ kind: 'whatsNew' }));
+        expect(markWhatsNewSeen).toHaveBeenCalledWith(APP_VERSION);
+    });
+
+    it('does not show the update sheet if the player left Home while the lookup was in flight', async () => {
+        let resolveCheck: (value: { available: boolean; storeVersion: string }) => void = () => {};
+        mockCheck.mockReturnValue(
+            new Promise((resolve) => {
+                resolveCheck = resolve;
+            }),
+        );
+
+        const { result, rerender } = renderHook(() => useAppAnnouncement());
+        await waitFor(() => expect(mockCheck).toHaveBeenCalled());
+
+        // The player opens a game. useIsFocused flips and Home re-renders.
+        mockIsFocused = false;
+        rerender({});
+
+        await act(async () => {
+            resolveCheck({ available: true, storeVersion: '9.9.9' });
+        });
+
+        expect(result.current.announcement).toBeNull();
+        expect(markUpdatePromptSeen).not.toHaveBeenCalled();
+    });
+
+    it('still offers the prompt on a later launch after being skipped for focus', async () => {
+        let resolveCheck: (value: { available: boolean; storeVersion: string }) => void = () => {};
+        mockCheck.mockReturnValue(
+            new Promise((resolve) => {
+                resolveCheck = resolve;
+            }),
+        );
+
+        const first = renderHook(() => useAppAnnouncement());
+        await waitFor(() => expect(mockCheck).toHaveBeenCalled());
+        mockIsFocused = false;
+        first.rerender({});
+        await act(async () => {
+            resolveCheck({ available: true, storeVersion: '9.9.9' });
+        });
+
+        // Next launch: the latch was released, so the check runs again.
+        mockIsFocused = true;
+        mockCheck.mockResolvedValue({ available: true, storeVersion: '9.9.9' });
+        const second = renderHook(() => useAppAnnouncement());
+
+        await waitFor(() => expect(second.result.current.announcement).toEqual({ kind: 'update' }));
+        expect(markUpdatePromptSeen).toHaveBeenCalledWith('9.9.9');
     });
 
     it('shows what is new after an update and marks it seen immediately', async () => {

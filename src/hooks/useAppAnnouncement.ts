@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { WHATS_NEW } from '../data/whatsNew';
+import { loadStats } from '../game/progression';
 import { checkStoreVersion } from '../services/appUpdate/updateCheck';
 import {
     decideWhatsNew,
@@ -36,11 +38,20 @@ export function resetAppAnnouncementForTests(): void {
 export function useAppAnnouncement(): { announcement: Announcement; dismiss: () => void } {
     const [announcement, setAnnouncement] = useState<Announcement>(null);
 
+    // The store lookup is async. Home stays mounted when another route is pushed
+    // and a native Modal renders above whatever is on screen, so a late result
+    // could drop the sheet on top of a run, a purchase, or a challenge. Read
+    // focus through a ref so the callback sees the value at resolve time, not
+    // the one captured when the effect ran.
+    const isFocused = useIsFocused();
+    const focusedRef = useRef(isFocused);
+    focusedRef.current = isFocused;
+
     useEffect(() => {
         if (decidedThisLaunch) return;
         decidedThisLaunch = true;
 
-        const decision = decideWhatsNew(readWhatsNewSeen(), APP_VERSION, WHATS_NEW.version);
+        const decision = decideWhatsNew(readWhatsNewSeen(), APP_VERSION, WHATS_NEW.version, loadStats().runsPlayed > 0);
 
         // 'seed' (fresh install) and 'bump' (a patch with no notes) both record
         // the version and stay quiet — and skip the store check, because a build
@@ -54,6 +65,12 @@ export function useAppAnnouncement(): { announcement: Announcement; dismiss: () 
         let active = true;
         void checkStoreVersion().then((result) => {
             if (!active || !result) return;
+            // Left Home while the lookup was in flight: show nothing and mark
+            // nothing, so the prompt is still available on the next launch.
+            if (!focusedRef.current) {
+                decidedThisLaunch = false;
+                return;
+            }
             if (!shouldPromptUpdate(readUpdatePromptSeen(), result.storeVersion)) return;
             markUpdatePromptSeen(result.storeVersion);
             setAnnouncement({ kind: 'update' });

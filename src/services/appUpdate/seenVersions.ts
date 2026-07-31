@@ -16,12 +16,25 @@ export const UPDATE_PROMPT_SEEN_KEY = 'updatePromptSeenVersion';
  */
 export type WhatsNewDecision = 'seed' | 'show' | 'bump' | 'none';
 
+/**
+ * An absent key means one of two very different things: a genuinely fresh
+ * install, or an existing player upgrading into the first build that ships this
+ * feature — the key cannot exist in any earlier release. Treating both as fresh
+ * would silently suppress the notes for every existing player on the debut
+ * release, which is precisely the audience the sheet is for.
+ *
+ * `hasPriorUse` breaks the tie: it is true when the install carries progression
+ * from before, which a first launch cannot. An upgrading player who never
+ * played is still counted as fresh — they have nothing to be caught up on
+ * either, so the outcome is right for the wrong reason and harmless.
+ */
 export function decideWhatsNew(
     seenVersion: string | undefined,
     appVersion: string,
     notesVersion: string,
+    hasPriorUse: boolean = false,
 ): WhatsNewDecision {
-    if (seenVersion === undefined) return 'seed';
+    if (seenVersion === undefined && !hasPriorUse) return 'seed';
     if (seenVersion === appVersion) return 'none';
     return notesVersion === appVersion ? 'show' : 'bump';
 }

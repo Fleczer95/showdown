@@ -3,6 +3,19 @@ import { decideWhatsNew, shouldPromptUpdate } from './seenVersions';
 describe('decideWhatsNew', () => {
     it('seeds on a fresh install so a new player is never shown notes', () => {
         expect(decideWhatsNew(undefined, '1.4.0', '1.4.0')).toBe('seed');
+        expect(decideWhatsNew(undefined, '1.4.0', '1.4.0', false)).toBe('seed');
+    });
+
+    // The key cannot exist in any release before this feature shipped, so on the
+    // debut build every existing player reads `undefined` too. Without the
+    // prior-use signal they would all be seeded and nobody would ever see the
+    // notes for the very release that introduces them.
+    it('shows notes to an existing player upgrading into the first build with this feature', () => {
+        expect(decideWhatsNew(undefined, '1.4.0', '1.4.0', true)).toBe('show');
+    });
+
+    it('bumps silently for an upgrading player when the debut build ships no notes', () => {
+        expect(decideWhatsNew(undefined, '1.4.1', '1.4.0', true)).toBe('bump');
     });
 
     it('shows notes after an update when an entry matches this build', () => {

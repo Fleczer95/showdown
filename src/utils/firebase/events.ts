@@ -22,6 +22,9 @@ export type RoundEndReason = 'timeout' | 'target_reached' | 'manual';
 export type ExitPoint = 'back_button' | 'home_button' | 'app_background_timeout';
 export type DocType = 'privacy_policy' | 'terms_of_use';
 
+/** `unauthenticated` is ordinary (no Game Center account); `incomplete` is not. */
+export type GameServicesSyncOutcome = 'delivered' | 'unauthenticated' | 'incomplete';
+
 /** Lifelines available in The Ladder. */
 export type Lifeline = 'fifty_fifty' | 'ask_the_studio' | 'skip_question';
 
@@ -168,6 +171,10 @@ export type AnalyticsEvent =
     | { name: 'challenge_limit_hit'; params: { game: string } }
     | { name: 'rematch_created'; params: { game: string } }
     | { name: 'offline_limit_hit'; params: { game: string } }
+    // --- Game services (Game Center / Play Games) ---
+    // Every failure path in the sync is a deliberate silent no-op, so this is the
+    // only way to tell "synced" apart from "never sent anything".
+    | { name: 'game_services_sync'; params: { outcome: GameServicesSyncOutcome; failed: number } }
     // --- Settings events ---
     | { name: 'language_changed'; params: { from_locale: string; to_locale: string } }
     | { name: 'theme_changed'; params: { theme_id: string; is_premium: boolean } }

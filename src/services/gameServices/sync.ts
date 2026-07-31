@@ -22,6 +22,8 @@ import {
     unlockAchievement,
 } from '../../../modules/game-services';
 import { platformAchievementId, platformLeaderboardId } from './ids';
+import { SafeAnalytics } from '../../utils/firebase/init';
+import { SafeSentry } from '../../utils/sentry/init';
 
 const store = createMMKV({ id: 'showdown-game-services' });
 const DIGEST_KEY = 'digest';
@@ -51,24 +53,43 @@ export async function syncGameServices(stats: ProgressionStats): Promise<void> {
     if (store.getString(DIGEST_KEY) === digest) return;
     // A player with no progress gets no platform session opened on their behalf.
     if (!hasAnythingToSend(stats)) return;
-    if (!(await beginAuthentication())) return;
+    if (!(await beginAuthentication())) {
+        // Ordinary for a player with no Game Center account — tracked because a
+        // sudden all-sessions version of it means the store config broke.
+        SafeAnalytics.logEvent({ name: 'game_services_sync', params: { outcome: 'unauthenticated', failed: 0 } });
+        return;
+    }
 
-    let allDelivered = true;
+    let failed = 0;
 
     for (const localId of achievementsUnlocked(stats)) {
         const id = platformAchievementId(localId);
         // An unprovisioned id can never be delivered, so it must not hold the
         // digest hostage — `ids.test.ts` guards against one appearing by accident.
         if (!id) continue;
-        allDelivered = (await unlockAchievement(id)) && allDelivered;
+        if (!(await unlockAchievement(id))) failed += 1;
     }
 
     for (const gameId of RANKED_GAMES) {
         const score = stats.bestScoreByGame[gameId] ?? 0;
         const id = platformLeaderboardId(gameId);
         if (!id || score <= 0) continue;
-        allDelivered = (await submitScore(id, score)) && allDelivered;
+        if (!(await submitScore(id, score))) failed += 1;
     }
 
-    if (allDelivered) store.set(DIGEST_KEY, digest);
+    if (failed === 0) {
+        store.set(DIGEST_KEY, digest);
+        SafeAnalytics.logEvent({ name: 'game_services_sync', params: { outcome: 'delivered', failed: 0 } });
+        return;
+    }
+
+    // Signed in, yet the platform refused writes. This is the one outcome that is
+    // neither expected nor self-announcing: the digest stays unwritten, so it will
+    // replay quietly on every launch and every run until something changes.
+    SafeAnalytics.logEvent({ name: 'game_services_sync', params: { outcome: 'incomplete', failed } });
+    SafeSentry.captureMessage('Game services sync incomplete', {
+        level: 'warning',
+        tags: { area: 'game-services' },
+        extra: { failed },
+    });
 }

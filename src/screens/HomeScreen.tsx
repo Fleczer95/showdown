@@ -19,6 +19,7 @@ import { games, GAME_ICONS, type Game } from '../data/games';
 import { useProgression } from '../hooks/useProgression';
 import Pressable from '../components/atoms/HapticPressable';
 import SegmentedProgress from '../components/molecules/SegmentedProgress';
+import AppAnnouncement from '../components/molecules/AppAnnouncement';
 import { useMascotEmit } from '../game/mascot/reactions/useMascotDirector';
 import { canUpsell } from '../game/challenge/limit';
 import { remainingOfflineRuns } from '../game/offline/limit';
@@ -436,6 +437,8 @@ export function HomeScreen() {
                     </View>
                 </View>
             </View>
+
+            <AppAnnouncement />
         </SafeContainer>
     );
 }

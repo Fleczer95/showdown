@@ -38,6 +38,11 @@ jest.mock('react-native-svg', () => {
     };
 });
 
+jest.mock('../components/molecules/AppAnnouncement', () => ({
+    __esModule: true,
+    default: () => null,
+}));
+
 jest.mock('../responsive/SafeContainer', () => ({
     __esModule: true,
     default: ({ children }: { children: React.ReactNode }) => <MockView>{children}</MockView>,

@@ -20,17 +20,27 @@ primary button. Neither ever blocks.
 - **Store credentials cannot ship in the app.** The App Store Connect and Google
   Play Developer APIs both require a signed JWT from a private key
   (`AuthKey_TYBAQ9XDGV.p8`, `google-play-key.json`). Bundling either would hand
-  out publishing credentials. The store-facing check therefore uses the public
-  paths only: Apple's iTunes Search API and Google's Play Core in-app-updates
-  API, both via `expo-in-app-updates`.
+  out publishing credentials. The check therefore uses a public path only:
+  Apple's iTunes Search API.
+- **One HTTP lookup serves both platforms.** iOS and Android always ship
+  together, so the App Store version is the release marker for the pair. Google
+  publishes no equivalent endpoint, and the Play listing no longer reliably
+  exposes a version.
+- **No native module.** `expo-in-app-updates` was implemented and then removed.
+  Its Android half (Play Core) is genuinely native — a bound-service call into
+  the Play Store app, not an HTTP request, so it cannot be replicated in JS. Its
+  iOS half is only a `URLSession` GET to the iTunes Search API, and its podspec
+  demands iOS 16.4 against this app's 15.1 floor, so CocoaPods silently skipped
+  the pod and every iOS check would have failed closed — a working build with a
+  dead feature. Keeping a native path on one platform and an HTTP path on the
+  other means two mechanisms to keep in sync for one boolean, only one of which
+  is verifiable on this machine. Rejected in favour of a single lookup.
 - **Release notes are bundled in the app, not fetched.** The remote check
   answers exactly one question — "is there a newer version?" — and returns a
-  version identifier. All human-readable copy lives in the bundle.
-- **The CTA opens the store listing** rather than driving Play Core's
-  `startUpdate()`. One code path on both platforms, works in dev builds, and
-  avoids the flexible-update download/`completeUpdate` state machine. The cost
-  is Android's update-without-leaving-the-app; detection still goes through Play
-  Core, so it stays accurate about what Play will serve that specific device.
+  version string. All human-readable copy lives in the bundle.
+- **The CTA opens the store listing** for the current platform. One code path,
+  works in dev builds, and avoids Play Core's flexible-update
+  download/`completeUpdate` state machine.
 - **Cold start on Home only.** No foreground re-check, no post-run slot. At most
   one interruption per version, and never during a run, a purchase, a challenge
   deep link, or the review prompt.
@@ -39,13 +49,13 @@ primary button. Neither ever blocks.
 
 ## 1. Units
 
-| Unit                                             | Responsibility                                                                                            |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `src/services/appUpdate/updateCheck.ts`          | Wraps `expo-in-app-updates`. `checkStoreVersion()` → `{ available, storeVersion } \| null`. Never throws. |
-| `src/services/appUpdate/seenVersions.ts`         | The once-per-version ledger in `deviceStore` + the pure gating decision.                                  |
-| `src/data/whatsNew.ts`                           | Current version's highlights: `{ version, highlights: [{ emoji, key }] }`.                                |
-| `src/components/molecules/AnnouncementSheet.tsx` | One presentational sheet over the existing `BottomSheet`. Both flows render it.                           |
-| `src/hooks/useAppAnnouncement.ts`                | Orchestrator. Decides which sheet (if any) Home shows, and mounts it.                                     |
+| Unit                                             | Responsibility                                                                                  |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `src/services/appUpdate/updateCheck.ts`          | The iTunes lookup. `checkStoreVersion()` → `{ available, storeVersion } \| null`. Never throws. |
+| `src/services/appUpdate/seenVersions.ts`         | The once-per-version ledger in `deviceStore` + the pure gating decision.                        |
+| `src/data/whatsNew.ts`                           | Current version's highlights: `{ version, highlights: [{ emoji, key }] }`.                      |
+| `src/components/molecules/AnnouncementSheet.tsx` | One presentational sheet over the existing `BottomSheet`. Both flows render it.                 |
+| `src/hooks/useAppAnnouncement.ts`                | Orchestrator. Decides which sheet (if any) Home shows, and mounts it.                           |
 
 The gating logic is a pure function of stored state and inputs, so the entire
 behaviour matrix is unit-testable without a native module or a renderer.
@@ -93,18 +103,22 @@ on show is the only way "exactly once" is actually true.
 
 ## 3. Platform details
 
-- Android's `storeVersion` is a **versionCode number**; iOS's is a **semver
-  string**. The ledger stores whatever came back, as a string, and compares for
-  equality only. It never parses or orders version identifiers, so there is no
-  cross-platform version-math bug class.
+- `checkStoreVersion()` has **no platform branch** — one `fetch` of
+  `itunes.apple.com/lookup?bundleId=com.showdown.app`, both platforms. A test
+  asserts the two behave identically. The US storefront resolves the bundle ID,
+  so no `country` parameter is needed (verified 2026-07-31).
+- The store version is a **semver string**, compared with `isNewerVersion()` —
+  a segment-wise numeric compare, so `1.10.0` correctly beats `1.9.0`. The
+  _ledger_ still only ever compares stored versions for equality.
+- The lookup is CDN-cached, so the request carries a timestamp and
+  `cache: 'no-store'`, and aborts after 5s — a hung request must not surface a
+  sheet minutes later, over whatever the player is doing by then.
 - CTA → `Linking.openURL` with `itms-apps://apps.apple.com/app/id6774886649`
   (iOS) and `market://details?id=com.showdown.app` (Android), falling back to
-  the `https://` form when the scheme will not open.
-- `app.json` gains `ios.infoPlist.AppStoreID: "6774886649"`. No
-  `AppStoreCountry` — the US storefront resolves the bundle ID, verified
-  2026-07-31.
-- `expo-in-app-updates` is a native module: `expo run:ios` / `expo run:android`,
-  never Expo Go (per CLAUDE.md).
+  the `https://` form when the scheme will not open. This is the only
+  platform-specific code in the feature, and it is a URL constant, not logic.
+- **No new dependency and no native code**, so no prebuild and no rebuild —
+  the feature runs in the existing dev client.
 
 ## 4. Error handling
 
@@ -120,9 +134,12 @@ check is an expected state, not an incident.
   already-seen, check failure.
 - **Component** (`AnnouncementSheet.test.tsx`): highlights render, CTA fires,
   each dismiss path calls back.
-- `expo-in-app-updates` gets a `jest.setup.js` mock alongside the existing
-  native module mocks.
-- New i18n keys verified with `npm run i18n:check`.
+- The lookup is tested against a mocked `global.fetch` — no network, no native
+  module, no platform-specific harness.
+- New i18n keys verified with `npm run i18n:check`. The `whatsNew.<version>.*`
+  keys are referenced dynamically through `WHATS_NEW`, so the checker lists them
+  as possibly-unused, exactly like the existing `progression.family.*` and
+  `offline.limit.bullets.*` families. That is expected; do not delete them.
 
 ## 6. Visual pass
 
@@ -136,13 +153,21 @@ CTA.
 
 ## 7. Known costs, accepted
 
-- **iTunes lookup is CDN-cached** and can lag a few hours behind an iOS release,
-  so an iOS player may occasionally hear about a new version slightly late.
-  Accepted as the price of a store-driven check over a self-hosted manifest.
-  Play Core has no such lag — it is authoritative per device.
-- **Play Core only reports updates for Play-installed builds.** Real Android
-  verification needs internal app sharing, and this Mac has no Android SDK, so
-  the Android half must be verified on the machine that can build it.
+- **iTunes lookup is CDN-cached** and can lag a few hours behind a release, so
+  players may hear about a new version slightly late. Accepted as the price of a
+  store-driven check over a self-hosted manifest that would need publishing on
+  every release.
+- **Staged Play rollouts can prompt Android users early.** If a release rolls
+  out to a percentage, a device that is not yet eligible may still be told an
+  update exists; tapping through shows "Open" rather than "Update" in Play.
+  Mild, and the once-per-version cap means no repeat nagging. Release timing
+  works in our favour here: Apple review is the slow step, so the App Store
+  usually learns of a release _after_ Play, making skew late rather than early.
+- **Divergent store versions would mislead Android.** An iOS-only hotfix (say a
+  rejection forcing 1.4.1 on iOS alone) would prompt Android toward a version
+  Play will never have. This rests on the existing practice of releasing both
+  platforms in lockstep; if that ever stops being true, this check needs a
+  second source.
 - **`whatsNew.ts` must be updated every release** or the sheet silently stops
   appearing. It fails quiet, which is safe but easy to forget, so the
   `/release-notes` skill gains a step that writes the new version's highlights

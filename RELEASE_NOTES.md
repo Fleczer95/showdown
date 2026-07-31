@@ -8,6 +8,8 @@
 - [EN] Achievements and leaderboards in Game Center (iOS) and Google Play Games (Android) — 34 achievements and 3 best-score leaderboards, one per game. Everything earned before this update counts immediately.
 - [PL] Nowy wpis w zakładce Osiągnięcia otwiera systemowy panel platformy, gdzie widać odznaki i miejsca w rankingach.
 - [EN] A new entry in the Achievements tab opens the platform's own dashboard, with badges and leaderboard standings.
+- [PL] Lisek informuje o nowej wersji gry, a po aktualizacji pokazuje, co się zmieniło. Każdy komunikat pojawia się najwyżej raz na wersję i zamyka go dotknięcie poza okienkiem, przeciągnięcie w dół albo przycisk.
+- [EN] The fox mentions when a new version is out, and shows what changed after you update. Each message appears at most once per version and closes with a tap outside, a swipe down, or a button.
 
 ### Fixed
 

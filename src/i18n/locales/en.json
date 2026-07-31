@@ -951,6 +951,20 @@
         "later": "Maybe later",
         "starLabel": "Rate %{n} of 5 stars"
     },
+    "appUpdate": {
+        "title": "A new version is ready",
+        "body": "We've been busy. Grab the latest ShowDown — it only takes a moment.",
+        "cta": "Update now",
+        "later": "Not now"
+    },
+    "whatsNew": {
+        "title": "What's new in %{version}",
+        "cta": "Let's play",
+        "1_4_0": {
+            "gameCenter": "Achievements and leaderboards — 34 badges and a best-score board for every game.",
+            "fixes": "Fixed two bugs that could close the game unexpectedly."
+        }
+    },
     "progression": {
         "title": "Progress",
         "levelShort": "Lv %{n}",

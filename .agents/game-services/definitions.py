@@ -209,7 +209,7 @@ LEADERBOARDS = [
 if __name__ == "__main__":
     achs = achievements()
     total = sum(a["points"] for a in achs)
-    assert len(achs) == 31, len(achs)
+    assert len(achs) == 34, len(achs)
     assert total <= 1000, total
     for a in achs:
         for loc in ("en", "pl"):

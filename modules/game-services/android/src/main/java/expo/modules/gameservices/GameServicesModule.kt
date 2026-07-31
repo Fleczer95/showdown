@@ -4,26 +4,25 @@ import android.app.Activity
 import com.google.android.gms.games.PlayGames
 import com.google.android.gms.games.PlayGamesSdk
 import expo.modules.kotlin.Promise
-import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 private const val RC_ACHIEVEMENT_UI = 9003
-private const val RC_LEADERBOARD_UI = 9004
-
-private class NoActivityException : CodedException("NO_ACTIVITY", "No current activity", null)
-
-private class UiUnavailableException(cause: Throwable?) :
-    CodedException("UI_UNAVAILABLE", cause?.message ?: "Games UI unavailable", cause)
 
 /**
  * Thin bridge over Play Games Services v2. Sign-in is automatic (the SDK attempts
- * it at initialize); everything here is fire-and-forget-safe — the JS layer treats
- * any rejection as a soft no-op.
+ * it at initialize), so `beginAuthentication` only reports what the SDK settled on.
+ *
+ * Reporting calls use the *Immediate* variants, whose Task actually resolves with
+ * the outcome — the fire-and-forget `unlock`/`submitScore` cannot tell a caller
+ * that the write was dropped, which would let the JS sync mark unsent state as
+ * delivered. The Activity is captured once up front: re-reading it inside a
+ * listener throws if the player has since backgrounded the game, and that throw
+ * would escape outside the promise.
  */
 class GameServicesModule : Module() {
-    private val activity: Activity
-        get() = appContext.currentActivity ?: throw NoActivityException()
+    private val activityOrNull: Activity?
+        get() = appContext.currentActivity
 
     override fun definition() = ModuleDefinition {
         Name("GameServices")
@@ -39,6 +38,16 @@ class GameServicesModule : Module() {
         }
 
         AsyncFunction("isAuthenticated") { promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
+            PlayGames.getGamesSignInClient(activity)
+                .isAuthenticated
+                .addOnSuccessListener { promise.resolve(it.isAuthenticated) }
+                .addOnFailureListener { promise.resolve(false) }
+        }
+
+        // v2 signs in on its own at startup, so there is nothing extra to kick off.
+        AsyncFunction("beginAuthentication") { promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
             PlayGames.getGamesSignInClient(activity)
                 .isAuthenticated
                 .addOnSuccessListener { promise.resolve(it.isAuthenticated) }
@@ -46,6 +55,7 @@ class GameServicesModule : Module() {
         }
 
         AsyncFunction("signIn") { promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
             PlayGames.getGamesSignInClient(activity)
                 .signIn()
                 .addOnSuccessListener { promise.resolve(it.isAuthenticated) }
@@ -53,44 +63,36 @@ class GameServicesModule : Module() {
         }
 
         AsyncFunction("unlockAchievement") { id: String, promise: Promise ->
-            // unlock() is queued client-side and idempotent; no result to await.
-            PlayGames.getAchievementsClient(activity).unlock(id)
-            promise.resolve(null)
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
+            PlayGames.getAchievementsClient(activity)
+                .unlockImmediate(id)
+                .addOnSuccessListener { promise.resolve(true) }
+                .addOnFailureListener { promise.resolve(false) }
         }
 
         AsyncFunction("submitScore") { leaderboardId: String, score: Double, promise: Promise ->
-            PlayGames.getLeaderboardsClient(activity).submitScore(leaderboardId, score.toLong())
-            promise.resolve(null)
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
+            PlayGames.getLeaderboardsClient(activity)
+                .submitScoreImmediate(leaderboardId, score.toLong())
+                .addOnSuccessListener { promise.resolve(true) }
+                .addOnFailureListener { promise.resolve(false) }
         }
 
         AsyncFunction("showAchievements") { promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
             PlayGames.getAchievementsClient(activity)
                 .achievementsIntent
                 .addOnSuccessListener { intent ->
-                    activity.startActivityForResult(intent, RC_ACHIEVEMENT_UI)
-                    promise.resolve(null)
+                    // The player may have left while the intent was loading.
+                    val live = activityOrNull
+                    if (live == null) {
+                        promise.resolve(false)
+                    } else {
+                        live.startActivityForResult(intent, RC_ACHIEVEMENT_UI)
+                        promise.resolve(true)
+                    }
                 }
-                .addOnFailureListener { promise.reject(UiUnavailableException(it)) }
-        }
-
-        AsyncFunction("showLeaderboards") { promise: Promise ->
-            PlayGames.getLeaderboardsClient(activity)
-                .allLeaderboardsIntent
-                .addOnSuccessListener { intent ->
-                    activity.startActivityForResult(intent, RC_LEADERBOARD_UI)
-                    promise.resolve(null)
-                }
-                .addOnFailureListener { promise.reject(UiUnavailableException(it)) }
-        }
-
-        AsyncFunction("showLeaderboard") { leaderboardId: String, promise: Promise ->
-            PlayGames.getLeaderboardsClient(activity)
-                .getLeaderboardIntent(leaderboardId)
-                .addOnSuccessListener { intent ->
-                    activity.startActivityForResult(intent, RC_LEADERBOARD_UI)
-                    promise.resolve(null)
-                }
-                .addOnFailureListener { promise.reject(UiUnavailableException(it)) }
+                .addOnFailureListener { promise.resolve(false) }
         }
     }
 }

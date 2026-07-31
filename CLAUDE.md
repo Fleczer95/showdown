@@ -86,6 +86,11 @@ A solo game-show collection for a single phone: four "legally distinct" TV-quiz 
 Credentials, endpoints, and IAP bulk-creation script are in the `app-store-connect-api` skill.
 Key file: `AuthKey_TYBAQ9XDGV.p8` (repo root, gitignored).
 
+## Game Center / Play Games Services
+
+Achievement + leaderboard definitions (one source of truth for both stores) and the
+two provisioning scripts are in the `game-services` skill.
+
 ## Google Play Developer API
 
 Credentials and mass IAP creation script (using the new v3 Monetization API) are in the `google-play-iap` skill.

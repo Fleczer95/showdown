@@ -120,8 +120,6 @@ def write_outputs(ach_ids, lb_ids):
         "// Maps local achievement / game ids to the opaque ids Google assigns when the",
         "// Play Games Services configuration is created.",
         "",
-        f"export const PLAY_GAMES_PROJECT_ID = '{APPLICATION_ID}';",
-        "",
         "export const PLAY_GAMES_ACHIEVEMENT_IDS: Record<string, string> = {",
     ]
     lines += [f"    '{k}': '{v}'," for k, v in ach_ids.items()]

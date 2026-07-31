@@ -1,6 +1,6 @@
 ---
 name: game-services
-description: 'Game Center + Google Play Games Services provisioning for ShowDown. Covers the definitions module (31 achievements + 3 leaderboards mirrored from src/game/progression), the ASC Game Center script, the Play Games Configuration API script, badge image generation, and the ids captured into app code. Use when: adding/renaming achievements or leaderboards, re-running store provisioning, Game Center, Play Games, gamesConfiguration API.'
+description: 'Game Center + Google Play Games Services provisioning for ShowDown. Covers the definitions module (34 achievements + 3 leaderboards mirrored from src/game/progression), the ASC Game Center script, the Play Games Configuration API script, badge image generation, and the ids captured into app code. Use when: adding/renaming achievements or leaderboards, re-running store provisioning, Game Center, Play Games, gamesConfiguration API.'
 source: showdown (custom)
 ---
 
@@ -13,7 +13,7 @@ Store-side mirror of the in-app progression achievements (see
 
 | File                    | Purpose                                                                    |
 | ----------------------- | -------------------------------------------------------------------------- |
-| `definitions.py`        | Single source of truth: 31 achievements + 3 leaderboards, EN/PL, points    |
+| `definitions.py`        | Single source of truth: 34 achievements + 3 leaderboards, EN/PL, points    |
 | `gen_images.py`         | Renders 512×512 badge PNGs into `images/` (used by Game Center)           |
 | `create_game_center.py` | ASC API: gameCenterDetail, achievements, localizations, images, leaderboards |
 | `create_play_games.py`  | Games Configuration API: achievements + leaderboards, writes generated ids |

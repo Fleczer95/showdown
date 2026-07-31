@@ -2,8 +2,6 @@
 // Maps local achievement / game ids to the opaque ids Google assigns when the
 // Play Games Services configuration is created.
 
-export const PLAY_GAMES_PROJECT_ID = '381435458877';
-
 export const PLAY_GAMES_ACHIEVEMENT_IDS: Record<string, string> = {
     'contestant-bronze': 'CgkIverM-owLEAIQAA',
     'contestant-silver': 'CgkIverM-owLEAIQAQ',

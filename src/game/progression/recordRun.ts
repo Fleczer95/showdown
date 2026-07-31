@@ -9,7 +9,9 @@ import { SafeAnalytics } from '../../utils/firebase/init';
 import { ACHIEVEMENTS, achievementsUnlocked, detectFeats } from './achievements';
 import type { GameRunResult, ProgressionStats, RecordRunDiff } from './types';
 import { grantLevelBonus } from '../offline/limit';
-import { syncGameServices } from '../../services/gameServices';
+// The concrete module, not the barrel: the barrel now reads stats back from
+// here to sync right after a sign-in, and going through it would be a cycle.
+import { syncGameServices } from '../../services/gameServices/sync';
 
 /** Fresh state for a player who has never played. */
 export function defaultStats(): ProgressionStats {

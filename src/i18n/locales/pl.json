@@ -960,6 +960,9 @@
         "maxLevel": "Osiągnięto najwyższy poziom",
         "mapTitle": "Mapa poziomów",
         "achievementsTitle": "Osiągnięcia",
+        "gameServices": {
+            "open": "Zobacz w %{platform}"
+        },
         "achievementsCount": "%{n} z %{m}",
         "reserved": "Wkrótce więcej",
         "rewardTheme": "Motyw",

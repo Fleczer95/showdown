@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -26,6 +26,8 @@ import {
     Brush,
     Zap,
     RotateCcw,
+    ChevronRight,
+    Gamepad2,
     type LucideIcon,
 } from 'lucide-react-native';
 import type { RootStackParamList } from '../navigation/types';
@@ -45,6 +47,7 @@ import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
 import { useProgression } from '../hooks/useProgression';
+import { gameServicesAvailable, openAchievementsUi } from '../services/gameServices';
 import {
     LEVEL_MAP,
     ACHIEVEMENTS,
@@ -56,6 +59,9 @@ import {
 } from '../game/progression';
 
 type ProgressTab = 'map' | 'achievements';
+
+/** The platform's own brand name — never localized, and never our own wording. */
+const GAME_SERVICES_PLATFORM = Platform.OS === 'ios' ? 'Game Center' : 'Google Play Games';
 
 /** A distinctive sticker per one-off achievement (Sparkles is the locked-grid fallback). */
 const ONEOFF_ICONS: Record<string, LucideIcon> = {
@@ -458,6 +464,26 @@ export function ProgressScreen() {
                                 );
                             })}
                         </View>
+
+                        {/* Platform dashboard last: it has its own achievements/leaderboards
+                            tabs, so one branded entry beats duplicating that navigation. */}
+                        {gameServicesAvailable && (
+                            <Pressable onPress={() => void openAchievementsUi()}>
+                                <Card variant='outlined' padding='md' style={{ minHeight: scale(44) }}>
+                                    <Stack direction='horizontal' gap='sm' align='center' justify='between'>
+                                        <Stack direction='horizontal' gap='sm' align='center'>
+                                            <Icon name={Gamepad2} size={iconSize(18)} color={accent} />
+                                            <Text variant='caption' weight='semibold'>
+                                                {t('progression.gameServices.open', {
+                                                    platform: GAME_SERVICES_PLATFORM,
+                                                })}
+                                            </Text>
+                                        </Stack>
+                                        <Icon name={ChevronRight} size={iconSize(18)} color={theme.colors.textMuted} />
+                                    </Stack>
+                                </Card>
+                            </Pressable>
+                        )}
                     </Stack>
                 )}
             </ScrollView>

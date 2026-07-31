@@ -960,6 +960,9 @@
         "maxLevel": "Top level reached",
         "mapTitle": "Level Map",
         "achievementsTitle": "Achievements",
+        "gameServices": {
+            "open": "View in %{platform}"
+        },
         "achievementsCount": "%{n} of %{m}",
         "reserved": "More soon",
         "rewardTheme": "Theme",

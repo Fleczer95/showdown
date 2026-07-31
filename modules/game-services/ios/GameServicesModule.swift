@@ -33,6 +33,10 @@ public class GameServicesModule: Module {
     private var authWaiters: [Promise] = []
     /// True between assigning the handler and its terminal callback.
     private var authInFlight = false
+    /// Identifies the current attempt. A callback or timeout left over from an
+    /// earlier attempt would otherwise settle whichever attempt is running now —
+    /// cancelling a sign-in the player just started.
+    private var authGeneration = 0
     /// Set only for the duration of an explicit sign-in, so a sheet GameKit raises
     /// on its own initiative is never presented behind the player's back.
     private var mayPresentSignIn = false
@@ -57,10 +61,13 @@ public class GameServicesModule: Module {
         guard !authInFlight else { return }
 
         authInFlight = true
+        authGeneration += 1
+        let generation = authGeneration
+
         // Re-assigning restarts authentication, which is how a failed attempt
         // (offline at launch, say) becomes retryable without a process restart.
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, _ in
-            guard let self else { return }
+            guard let self, generation == self.authGeneration else { return }
             if let sheet = viewController {
                 self.pendingAuthViewController = sheet
                 self.presentPendingSheet()
@@ -70,7 +77,7 @@ public class GameServicesModule: Module {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + authTimeout) { [weak self] in
-            guard let self, self.authInFlight else { return }
+            guard let self, self.authInFlight, generation == self.authGeneration else { return }
             self.settleAuth(GKLocalPlayer.local.isAuthenticated)
         }
     }

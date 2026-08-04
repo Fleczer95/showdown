@@ -269,8 +269,55 @@ def provision_leaderboards(detail):
     print("leaderboards done")
 
 
+def provision_releases(detail):
+    """Attach every achievement/leaderboard to the editable app version.
+
+    Creating the resources is not enough: until a release record exists, GameKit
+    rejects every report and the dashboard shows nothing. Apple only accepts
+    releases while an editable (not yet released) Game Center enabled version
+    exists, so this step has to be re-run for the version that ships them.
+    """
+    targets = [
+        ("gameCenterAchievementReleases", "gameCenterAchievement", "gameCenterAchievements",
+         f"{BASE}/v1/gameCenterDetails/{detail}/gameCenterAchievements"),
+        ("gameCenterLeaderboardReleases", "gameCenterLeaderboard", "gameCenterLeaderboards",
+         f"{BASE}/v1/gameCenterDetails/{detail}/gameCenterLeaderboards"),
+    ]
+    created = skipped = 0
+    for release_type, relationship, resource_type, list_url in targets:
+        for item in get_all(list_url, {"limit": 200}):
+            vendor = item["attributes"]["vendorIdentifier"]
+            releases = get_all(f"{BASE}/v1/{resource_type}/{item['id']}/releases", {"limit": 200})
+            if releases:
+                skipped += 1
+                continue
+            body = {
+                "data": {
+                    "type": release_type,
+                    "relationships": {
+                        relationship: {"data": {"type": resource_type, "id": item["id"]}},
+                        "gameCenterDetail": {"data": {"type": "gameCenterDetails", "id": detail}},
+                    },
+                }
+            }
+            r = requests.post(f"{BASE}/v1/{release_type}", headers=headers(), json=body)
+            if r.status_code != 201:
+                if "NO_VERSIONS_ELIGIBLE_FOR_GAME_CENTER_RELEASE" in r.text:
+                    print(
+                        "\n! No editable Game Center enabled version in App Store Connect.\n"
+                        "  Releases can only be attached to a version that has not shipped yet.\n"
+                        "  Create the next version (with Game Center enabled), then re-run."
+                    )
+                    return
+                die(f"release {vendor}", r)
+            created += 1
+            print(f"released {vendor}")
+    print(f"releases: {created} created, {skipped} already released")
+
+
 if __name__ == "__main__":
     detail = ensure_detail()
     provision_achievements(detail)
     provision_leaderboards(detail)
+    provision_releases(detail)
     print("Game Center provisioning complete.")

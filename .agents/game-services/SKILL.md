@@ -15,7 +15,7 @@ Store-side mirror of the in-app progression achievements (see
 | ----------------------- | -------------------------------------------------------------------------- |
 | `definitions.py`        | Single source of truth: 34 achievements + 3 leaderboards, EN/PL, points    |
 | `gen_images.py`         | Renders 512×512 badge PNGs into `images/` (used by Game Center)           |
-| `create_game_center.py` | ASC API: gameCenterDetail, achievements, localizations, images, leaderboards |
+| `create_game_center.py` | ASC API: gameCenterDetail, achievements, localizations, images, leaderboards, releases |
 | `create_play_games.py`  | Games Configuration API: achievements + leaderboards, writes generated ids |
 
 Both provisioning scripts are idempotent (list-first, skip existing) — safe to re-run.
@@ -47,3 +47,5 @@ Both provisioning scripts are idempotent (list-first, skip existing) — safe to
 | Play Games leaderboard format | `scoreFormat` is flat: `{"numberFormatType": "NUMERIC", "numDecimalPlaces": 0}` (no `numberFormat` nesting) |
 | Play Games icons | No longer uploadable via API (no `imageConfigurations` resource) — add manually in Play Console if desired |
 | Publishing | Play Games configs are drafts until "Sprawdź i opublikuj" in Play Console; GC config ships with the next app release |
+| GC releases (**required**) | Creating achievements is not enough — each needs a `gameCenterAchievementReleases` / `gameCenterLeaderboardReleases` record, or GameKit rejects every report and the dashboard is empty. Relationships are `gameCenterAchievement` + `gameCenterDetail` (**not** `gameCenterAppVersion`). |
+| GC release timing | Releases are only accepted while an **editable** (unshipped) Game Center enabled version exists — otherwise `STATE_ERROR.NO_VERSIONS_ELIGIBLE_FOR_GAME_CENTER_RELEASE`. Run `create_game_center.py` *before* the version goes live; 1.4.0 shipped without them and needed a follow-up version. |

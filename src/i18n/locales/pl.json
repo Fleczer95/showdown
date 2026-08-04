@@ -959,11 +959,7 @@
     },
     "whatsNew": {
         "title": "Chcesz zobaczyć, co nowego w %{version}?",
-        "cta": "Zagrajmy",
-        "1_4_0": {
-            "gameCenter": "Osiągnięcia i rankingi — 34 odznaki i tabela najlepszych wyników w każdej grze.",
-            "fixes": "Naprawiliśmy dwa błędy, przez które gra potrafiła się zamknąć."
-        }
+        "cta": "Zagrajmy"
     },
     "progression": {
         "title": "Postępy",

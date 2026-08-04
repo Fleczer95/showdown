@@ -1,5 +1,36 @@
 # Release Notes
 
+## [1.4.1] - 2026-08-04
+
+### Fixed
+
+- [PL] Osiągnięcia i rankingi zapowiedziane w 1.4.0 nie pokazywały się w Game Center na iOS — panel był pusty, a zdobyte odznaki nie trafiały na konto. Wszystko, co zdobyłeś wcześniej, pojawi się przy pierwszym uruchomieniu. Androida ten błąd nie dotyczył.
+- [EN] The achievements and leaderboards announced in 1.4.0 never appeared in Game Center on iOS — the dashboard was empty and earned badges were not recorded. Everything earned before this update appears on first launch. Android was unaffected.
+
+### App Store
+
+<!-- PL -->
+
+[Wersja: 1.4.1]
+Osiągnięcia i rankingi z poprzedniej aktualizacji nie pokazywały się w Game Center. Już się pokazują — razem ze wszystkim, co zdobyłeś wcześniej. Nic nie przepadło.
+
+<!-- EN -->
+
+Version 1.4.1
+The achievements and leaderboards from the last update weren't showing up in Game Center. Now they are — along with everything you had already earned. Nothing was lost.
+
+### Google Play
+
+<!-- PL -->
+
+[Wersja: 1.4.1]
+Poprawki wewnętrzne i optymalizacja.
+
+<!-- EN -->
+
+Version 1.4.1
+Internal improvements and optimizations.
+
 ## [1.4.0] - 2026-07-31
 
 ### Added

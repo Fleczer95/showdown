@@ -959,11 +959,7 @@
     },
     "whatsNew": {
         "title": "Want to see what's new in %{version}?",
-        "cta": "Let's play",
-        "1_4_0": {
-            "gameCenter": "Achievements and leaderboards — 34 badges and a best-score board for every game.",
-            "fixes": "Fixed two bugs that could close the game unexpectedly."
-        }
+        "cta": "Let's play"
     },
     "progression": {
         "title": "Progress",

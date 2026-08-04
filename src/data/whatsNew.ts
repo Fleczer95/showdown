@@ -27,9 +27,8 @@ export interface WhatsNewEntry {
 }
 
 export const WHATS_NEW: WhatsNewEntry = {
-    version: '1.4.0',
-    highlights: [
-        { emoji: '🏆', key: 'whatsNew.1_4_0.gameCenter' },
-        { emoji: '🐛', key: 'whatsNew.1_4_0.fixes' },
-    ],
+    version: '1.4.1',
+    // Nothing changed inside the app: 1.4.1 exists only to carry the Game Center
+    // configuration live. There is no sheet to show for that.
+    highlights: [],
 };

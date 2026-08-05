@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Fredoka_700Bold } from '@expo-google-fonts/fredoka';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
@@ -17,6 +17,7 @@ import { retryPending } from './src/game/ranking/push';
 import { syncGameServices } from './src/services/gameServices';
 import { loadStats, saveStats } from './src/game/progression';
 import { restoreFromCloud } from './src/services/gameServices/cloudSave';
+import { beginAuthentication } from './modules/game-services';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -41,15 +42,23 @@ void syncGameServices(loadStats());
 // replace — a second device that played offline must not lose those runs. A
 // failure resolves to null and leaves local state exactly as it was, so this can
 // never block or corrupt startup.
-void restoreFromCloud(loadStats())
-    .then((merged) => {
-        if (!merged) return;
-        saveStats(merged);
-        // The merge may have crossed achievement or best-score thresholds that this
-        // device never saw, so re-run the platform sync over the union.
-        return syncGameServices(merged);
-    })
-    .catch(() => undefined);
+//
+// Android only, and it authenticates first rather than riding on the sync above:
+// that call returns early when there is nothing to send, which is exactly the
+// fresh-install case cloud save exists for. On iOS this would also initialize
+// Game Center on a blank install, which the native module deliberately avoids.
+if (Platform.OS === 'android') {
+    void beginAuthentication()
+        .then((signedIn) => (signedIn ? restoreFromCloud(loadStats()) : null))
+        .then((merged) => {
+            if (!merged) return;
+            saveStats(merged);
+            // The merge may have crossed achievement or best-score thresholds this
+            // device never saw, so re-run the platform sync over the union.
+            return syncGameServices(merged);
+        })
+        .catch(() => undefined);
+}
 
 function PremiumThemeGate() {
     const { themeId, setTheme } = useThemeActions();

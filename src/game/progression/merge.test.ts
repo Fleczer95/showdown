@@ -36,18 +36,38 @@ describe('mergeStats', () => {
         });
     });
 
-    it('sums wins per game — wins on two devices are genuinely additive', () => {
+    it('maxes wins per game rather than summing', () => {
         const a = stats({ winsByGame: { 'the-ladder': 3 } });
         const b = stats({ winsByGame: { 'the-ladder': 2, 'the-drop': 1 } });
-        expect(mergeStats(a, b).winsByGame).toEqual({ 'the-ladder': 5, 'the-drop': 1 });
+        expect(mergeStats(a, b).winsByGame).toEqual({ 'the-ladder': 3, 'the-drop': 1 });
     });
 
-    it('sums the run and challenge counters', () => {
+    it('maxes the run and challenge counters', () => {
         const a = stats({ runsPlayed: 10, challengesPlayed: 2 });
         const b = stats({ runsPlayed: 4, challengesPlayed: 1 });
         const merged = mergeStats(a, b);
-        expect(merged.runsPlayed).toBe(14);
-        expect(merged.challengesPlayed).toBe(3);
+        expect(merged.runsPlayed).toBe(10);
+        expect(merged.challengesPlayed).toBe(2);
+    });
+
+    // The restore path merges local state with a cloud slot holding the SAME
+    // history. Summing any counter here doubles it on every launch (10 → 20 → 40),
+    // which silently corrupts levels and achievements. Idempotence is the guard.
+    it('is idempotent — repeated restores of the same history change nothing', () => {
+        const start = stats({
+            lifetimeXp: 3600,
+            runsPlayed: 10,
+            winsByGame: { 'the-ladder': 4 },
+            challengesPlayed: 2,
+            bestScoreByGame: { 'the-ladder': 8000 },
+            datesPlayed: ['2026-08-01', '2026-08-02'],
+            feats: ['spotless'],
+        });
+
+        let local = start;
+        for (let launch = 0; launch < 5; launch++) local = mergeStats(local, { ...local });
+
+        expect(local).toEqual(start);
     });
 
     it("keeps the later day and only that day's gameIds", () => {

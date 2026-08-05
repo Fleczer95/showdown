@@ -26,16 +26,26 @@ describe('restoreFromCloud', () => {
         native.readCloudSave.mockResolvedValue(JSON.stringify({ ...defaultStats(), runsPlayed: 3 }));
 
         await restoreFromCloud({ ...defaultStats(), runsPlayed: 2 });
-        expect(native.writeCloudSave).toHaveBeenCalledWith(expect.stringContaining('"runsPlayed":5'));
+        expect(native.writeCloudSave).toHaveBeenCalledWith(expect.stringContaining('"runsPlayed":3'));
     });
 
-    it('treats a partial remote payload as zeros, never doubling local counters', async () => {
+    it('treats a partial remote payload as zeros, never lowering local counters', async () => {
         // An older app version wrote a slot without challengesPlayed.
         native.readCloudSave.mockResolvedValue(JSON.stringify({ lifetimeXp: 100, runsPlayed: 1 }));
 
         const merged = await restoreFromCloud({ ...defaultStats(), runsPlayed: 4, challengesPlayed: 2 });
-        expect(merged?.runsPlayed).toBe(5);
+        expect(merged?.runsPlayed).toBe(4);
         expect(merged?.challengesPlayed).toBe(2);
+    });
+
+    // Guards the whole restore path, not just the merge: a device that keeps
+    // relaunching must end up exactly where it started.
+    it('does not inflate anything when the slot holds the same history as local', async () => {
+        const local = { ...defaultStats(), runsPlayed: 10, winsByGame: { 'the-ladder': 4 }, lifetimeXp: 3600 };
+        native.readCloudSave.mockResolvedValue(JSON.stringify(local));
+
+        const merged = await restoreFromCloud(local);
+        expect(merged).toEqual(local);
     });
 
     it('returns null when the slot is empty', async () => {

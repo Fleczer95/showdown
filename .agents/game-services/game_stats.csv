@@ -1,0 +1,8 @@
+stat_id,event_label,property_label,aggregation,filter,display_name_en,display_name_pl,description_en,description_pl,icon_filename
+runs_played,runCompleted,,COUNT,,Runs played,Rozegrane gry,Every run you finish across all three shows.,Każda ukończona gra we wszystkich trzech teleturniejach.,runs_played.png
+wins,runCompleted,,COUNT,isWinner = true,Wins,Wygrane,Runs you finished as a winner.,Gry zakończone wygraną.,wins.png
+best_score,runCompleted,score,MAX,,Best score,Najlepszy wynik,Your highest single-run score.,Twój najwyższy wynik w jednej grze.,best_score.png
+highest_rung,runCompleted,rungReached,MAX,gameId = the-ladder,Highest rung,Najwyższy szczebel,The furthest you have climbed The Ladder.,Najdalej jak zaszedłeś w Drabinie.,highest_rung.png
+lifelines_used,runCompleted,lifelinesUsed,SUM,,Lifelines used,Użyte koła ratunkowe,Total lifelines you have spent.,Łączna liczba wykorzystanych kół ratunkowych.,lifelines_used.png
+challenges_played,runCompleted,,COUNT,isChallenge = true,Challenges played,Rozegrane wyzwania,Runs played as an async challenge against a friend.,Gry rozegrane jako wyzwanie dla znajomego.,challenges_played.png
+level,progressUpdate,currentProgress,MAX,,Level,Poziom,Your level on the ShowDown Level Map.,Twój poziom na mapie postępu ShowDown.,level.png

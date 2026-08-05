@@ -101,6 +101,17 @@ export function grantBonus(
     };
 }
 
+/**
+ * Raise the "already paid out" watermark without granting anything. Cloud restore
+ * can lift a device's level by a dozen steps at once, and those level-ups were
+ * already paid on the device that earned them — without this, the next level-up
+ * here would settle the whole gap a second time.
+ */
+export function seedBonus(state: OfflineRunState, level: number): OfflineRunState {
+    if (state.lastBonusLevel >= level) return state;
+    return { ...state, lastBonusLevel: level };
+}
+
 // --- Persistence -----------------------------------------------------------
 
 const store = createMMKV({ id: 'showdown-offline-runs' });
@@ -136,6 +147,13 @@ export function consumeOfflineRun(owned: ReadonlySet<string>, isPremium = false)
     const { state, ok } = consume(loadState(), owned, localDate());
     if (ok) saveState(state);
     return ok;
+}
+
+/** Mark levels up to `level` as already paid, persisting. Grants nothing. */
+export function seedBonusLevel(level: number): void {
+    const before = loadState();
+    const after = seedBonus(before, level);
+    if (after !== before) saveState(after);
 }
 
 /** Bank bonus runs for a level-up, persisting. Returns runs granted this call. */

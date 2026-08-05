@@ -15,7 +15,8 @@ import { initFirebase } from './src/utils/firebase/init';
 import { initAppCheck } from './src/utils/firebase/appCheck';
 import { retryPending } from './src/game/ranking/push';
 import { syncGameServices } from './src/services/gameServices';
-import { loadStats, saveStats } from './src/game/progression';
+import { loadStats, saveStats, level } from './src/game/progression';
+import { seedBonusLevel } from './src/game/offline/limit';
 import { restoreAndPersist } from './src/services/gameServices/cloudSave';
 import { beginAuthentication } from './modules/game-services';
 import { AnalyticsProviders } from './src/hooks/analytics';
@@ -51,9 +52,15 @@ if (Platform.OS === 'android') {
     void beginAuthentication()
         .then((signedIn) => (signedIn ? restoreAndPersist(loadStats, saveStats) : null))
         .then((merged) => {
+            if (!merged) return;
+            // A restore can lift this device a dozen levels in one step, and those
+            // level-ups were already paid out in banked runs on the device that
+            // earned them. Mark them settled so the next level-up here pays for
+            // one level, not for the whole restored gap.
+            seedBonusLevel(level(merged.lifetimeXp));
             // The merge may have crossed achievement or best-score thresholds this
             // device never saw, so re-run the platform sync over the union.
-            if (merged) return syncGameServices(merged);
+            return syncGameServices(merged);
         })
         .catch(() => undefined);
 }

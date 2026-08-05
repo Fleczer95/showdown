@@ -3,11 +3,19 @@ package expo.modules.gameservices
 import android.app.Activity
 import com.google.android.gms.games.PlayGames
 import com.google.android.gms.games.PlayGamesSdk
+import com.google.android.gms.games.SnapshotsClient
+import com.google.android.gms.games.snapshot.SnapshotMetadataChange
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 private const val RC_ACHIEVEMENT_UI = 9003
+
+/** Single cloud-save slot. Versioned so a future format change can migrate cleanly. */
+private const val SNAPSHOT_NAME = "showdown-progression-v1"
+
+/** Platform hard limit on snapshot data. Guarded, never assumed. */
+private const val MAX_SNAPSHOT_BYTES = 3 * 1024 * 1024
 
 /**
  * Thin bridge over Play Games Services v2. Sign-in is automatic (the SDK attempts
@@ -75,6 +83,50 @@ class GameServicesModule : Module() {
             PlayGames.getLeaderboardsClient(activity)
                 .submitScoreImmediate(leaderboardId, score.toLong())
                 .addOnSuccessListener { promise.resolve(true) }
+                .addOnFailureListener { promise.resolve(false) }
+        }
+
+        // Cloud save. The payload is opaque here — merging is JS's job (see
+        // src/game/progression/merge.ts), so this stays a dumb transport.
+        // MOST_RECENTLY_MODIFIED is lossy on its own, but safe here: JS always
+        // merges what it reads into local state and writes the union straight back,
+        // so the losing side's progress is recovered on the next read.
+        AsyncFunction("readCloudSave") { promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(null)
+            PlayGames.getSnapshotsClient(activity)
+                .open(SNAPSHOT_NAME, true, SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED)
+                .addOnSuccessListener { result ->
+                    val snapshot = result.data
+                    if (snapshot == null) {
+                        promise.resolve(null)
+                    } else {
+                        val bytes = snapshot.snapshotContents.readFully()
+                        promise.resolve(if (bytes.isEmpty()) null else String(bytes, Charsets.UTF_8))
+                    }
+                }
+                .addOnFailureListener { promise.resolve(null) }
+        }
+
+        AsyncFunction("writeCloudSave") { payload: String, promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
+            val bytes = payload.toByteArray(Charsets.UTF_8)
+            // A silent truncation would corrupt a player's save, so refuse instead.
+            if (bytes.size > MAX_SNAPSHOT_BYTES) return@AsyncFunction promise.resolve(false)
+            val client = PlayGames.getSnapshotsClient(activity)
+            client
+                .open(SNAPSHOT_NAME, true, SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED)
+                .addOnSuccessListener { result ->
+                    val snapshot = result.data
+                    if (snapshot == null) {
+                        promise.resolve(false)
+                    } else {
+                        snapshot.snapshotContents.writeBytes(bytes)
+                        client
+                            .commitAndClose(snapshot, SnapshotMetadataChange.Builder().build())
+                            .addOnSuccessListener { promise.resolve(true) }
+                            .addOnFailureListener { promise.resolve(false) }
+                    }
+                }
                 .addOnFailureListener { promise.resolve(false) }
         }
 

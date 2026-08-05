@@ -15,6 +15,8 @@ interface GameServicesNativeModule {
     unlockAchievement(id: string): Promise<boolean>;
     submitScore(leaderboardId: string, score: number): Promise<boolean>;
     showAchievements(): Promise<boolean>;
+    readCloudSave(): Promise<string | null>;
+    writeCloudSave(payload: string): Promise<boolean>;
 }
 
 const native = requireOptionalNativeModule<GameServicesNativeModule>('GameServices');
@@ -63,4 +65,23 @@ export function submitScore(leaderboardId: string, score: number): Promise<boole
 /** Opens the platform dashboard. Resolves false when it can't be shown. */
 export function showAchievements(): Promise<boolean> {
     return soft((m) => m.showAchievements());
+}
+
+/**
+ * Reads the cloud save slot (Play Saved Games; always null on iOS). Null also
+ * covers "no slot yet", "not signed in" and "call failed" — all cases where the
+ * caller must keep local state rather than treat the cloud as authoritative.
+ */
+export async function readCloudSave(): Promise<string | null> {
+    if (!native) return null;
+    try {
+        return await native.readCloudSave();
+    } catch {
+        return null;
+    }
+}
+
+/** Writes the cloud save slot. Resolves false when it didn't land, so the caller retries. */
+export function writeCloudSave(payload: string): Promise<boolean> {
+    return soft((m) => m.writeCloudSave(payload));
 }

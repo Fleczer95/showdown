@@ -1,0 +1,89 @@
+import { mergeStats } from './merge';
+import { defaultStats } from './recordRun';
+import type { ProgressionStats } from './types';
+
+const stats = (over: Partial<ProgressionStats>): ProgressionStats => ({ ...defaultStats(), ...over });
+
+describe('mergeStats', () => {
+    it('takes the higher lifetimeXp', () => {
+        expect(mergeStats(stats({ lifetimeXp: 500 }), stats({ lifetimeXp: 1200 })).lifetimeXp).toBe(1200);
+    });
+
+    it('maxes lifetimeXp rather than summing, so a re-merge is idempotent', () => {
+        const a = stats({ lifetimeXp: 500 });
+        expect(mergeStats(mergeStats(a, a), a).lifetimeXp).toBe(500);
+    });
+
+    it('unions the date set without duplicates and keeps it sorted', () => {
+        const a = stats({ datesPlayed: ['2026-08-01', '2026-08-03'] });
+        const b = stats({ datesPlayed: ['2026-08-02', '2026-08-03'] });
+        expect(mergeStats(a, b).datesPlayed).toEqual(['2026-08-01', '2026-08-02', '2026-08-03']);
+    });
+
+    it('unions feats', () => {
+        const a = stats({ feats: ['spotless'] });
+        const b = stats({ feats: ['survivor', 'spotless'] });
+        expect(mergeStats(a, b).feats.sort()).toEqual(['spotless', 'survivor']);
+    });
+
+    it('maxes per-game bests key by key, keeping keys only one side has', () => {
+        const a = stats({ bestScoreByGame: { 'the-ladder': 8000, 'the-drop': 100 } });
+        const b = stats({ bestScoreByGame: { 'the-ladder': 5000, 'the-wheel': 900 } });
+        expect(mergeStats(a, b).bestScoreByGame).toEqual({
+            'the-ladder': 8000,
+            'the-drop': 100,
+            'the-wheel': 900,
+        });
+    });
+
+    it('sums wins per game — wins on two devices are genuinely additive', () => {
+        const a = stats({ winsByGame: { 'the-ladder': 3 } });
+        const b = stats({ winsByGame: { 'the-ladder': 2, 'the-drop': 1 } });
+        expect(mergeStats(a, b).winsByGame).toEqual({ 'the-ladder': 5, 'the-drop': 1 });
+    });
+
+    it('sums the run and challenge counters', () => {
+        const a = stats({ runsPlayed: 10, challengesPlayed: 2 });
+        const b = stats({ runsPlayed: 4, challengesPlayed: 1 });
+        const merged = mergeStats(a, b);
+        expect(merged.runsPlayed).toBe(14);
+        expect(merged.challengesPlayed).toBe(3);
+    });
+
+    it("keeps the later day and only that day's gameIds", () => {
+        const a = stats({ today: '2026-08-04', todayGameIds: ['the-ladder'] });
+        const b = stats({ today: '2026-08-05', todayGameIds: ['the-drop'] });
+        expect(mergeStats(a, b).today).toBe('2026-08-05');
+        expect(mergeStats(a, b).todayGameIds).toEqual(['the-drop']);
+    });
+
+    it('unions todayGameIds when both sides are on the same day', () => {
+        const a = stats({ today: '2026-08-05', todayGameIds: ['the-ladder'] });
+        const b = stats({ today: '2026-08-05', todayGameIds: ['the-drop'] });
+        expect(mergeStats(a, b).todayGameIds.sort()).toEqual(['the-drop', 'the-ladder']);
+    });
+
+    it('is commutative on every field', () => {
+        const a = stats({
+            lifetimeXp: 900,
+            runsPlayed: 5,
+            winsByGame: { 'the-ladder': 2 },
+            datesPlayed: ['2026-08-01'],
+            today: '2026-08-05',
+            todayGameIds: ['the-ladder'],
+            bestScoreByGame: { 'the-ladder': 8000 },
+            feats: ['spotless'],
+        });
+        const b = stats({
+            lifetimeXp: 400,
+            runsPlayed: 3,
+            winsByGame: { 'the-drop': 1 },
+            datesPlayed: ['2026-08-02'],
+            today: '2026-08-05',
+            todayGameIds: ['the-drop'],
+            bestScoreByGame: { 'the-wheel': 900 },
+            feats: ['survivor'],
+        });
+        expect(mergeStats(a, b)).toEqual(mergeStats(b, a));
+    });
+});

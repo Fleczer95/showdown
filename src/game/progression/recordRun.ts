@@ -15,6 +15,7 @@ import { defaultStats } from './defaults';
 import { syncGameServices } from '../../services/gameServices/sync';
 // Same reason as above: the concrete module, not the barrel.
 import { pushToCloud } from '../../services/gameServices/cloudSave';
+import { reportRunStats } from '../../services/gameServices/stats';
 
 // Lives in its own module so cloud save can reach the zero state without importing
 // this one (which imports cloud save in turn). Re-exported so every existing
@@ -132,6 +133,9 @@ export function recordRun(result: GameRunResult): RecordRunDiff {
     // Mirror to the Play Saved Games slot. A failed push costs nothing: the next
     // run replays it, and restore merges rather than replaces either way.
     void pushToCloud(stats);
+    // Report Game Stats. Purely a reporting surface — a dropped event costs a data
+    // point on the Gamer profile, never player progress.
+    void reportRunStats(result, stats);
     // Level-up telemetry lives at the recording seam so every run reports it —
     // solo or challenge, whether or not the celebration UI ever gets displayed.
     if (diff.leveledUp) {

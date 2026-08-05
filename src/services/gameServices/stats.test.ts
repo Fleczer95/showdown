@@ -1,5 +1,11 @@
-import { runCompletedEvent, progressUpdateEvent } from './stats';
+import { runCompletedEvent, progressUpdateEvent, reportRunStats } from './stats';
 import { defaultStats } from '../../game/progression/defaults';
+
+jest.mock('../../../modules/game-services', () => ({
+    recordStatsEvent: jest.fn().mockResolvedValue(true),
+}));
+
+const native = jest.requireMock('../../../modules/game-services');
 
 describe('runCompletedEvent', () => {
     it('carries the properties every console stat aggregates over', () => {
@@ -47,5 +53,17 @@ describe('progressUpdateEvent', () => {
 
     it('reports level 1 for a fresh player', () => {
         expect(progressUpdateEvent(defaultStats()).properties.currentProgress).toBe(1);
+    });
+});
+
+describe('reportRunStats', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('sends both events for one finished run', async () => {
+        await reportRunStats({ gameId: 'the-ladder', score: 8000, won: true }, { ...defaultStats(), lifetimeXp: 400 });
+
+        expect(native.recordStatsEvent).toHaveBeenCalledTimes(2);
+        expect(native.recordStatsEvent).toHaveBeenCalledWith('runCompleted', expect.objectContaining({ score: 8000 }));
+        expect(native.recordStatsEvent).toHaveBeenCalledWith('progressUpdate', { currentProgress: 3 });
     });
 });

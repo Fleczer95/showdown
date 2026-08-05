@@ -7,6 +7,7 @@
 // event against the console schema and silently drops mismatches, so a missing
 // property would cost the player that stat with no error anywhere.
 
+import { recordStatsEvent } from '../../../modules/game-services';
 import { level } from '../../game/progression/map';
 import type { GameRunResult, ProgressionStats } from '../../game/progression/types';
 
@@ -36,4 +37,16 @@ export function progressUpdateEvent(stats: ProgressionStats): StatsEvent {
         name: 'progressUpdate',
         properties: { currentProgress: level(stats.lifetimeXp) },
     };
+}
+
+/**
+ * Report both events for a finished run. Called from the progression seam so every
+ * run reports exactly once, and both events go together — the progress update is
+ * what keeps the Level stat honest even for a run that changed nothing else.
+ */
+export async function reportRunStats(result: GameRunResult, stats: ProgressionStats): Promise<void> {
+    const run = runCompletedEvent(result);
+    const progress = progressUpdateEvent(stats);
+    await recordStatsEvent(run.name, run.properties);
+    await recordStatsEvent(progress.name, progress.properties);
 }

@@ -17,6 +17,7 @@ interface GameServicesNativeModule {
     showAchievements(): Promise<boolean>;
     readCloudSave(): Promise<string | null>;
     writeCloudSave(payload: string): Promise<boolean>;
+    recordStatsEvent(name: string, properties: Record<string, string | number | boolean>): Promise<boolean>;
 }
 
 const native = requireOptionalNativeModule<GameServicesNativeModule>('GameServices');
@@ -84,4 +85,16 @@ export async function readCloudSave(): Promise<string | null> {
 /** Writes the cloud save slot. Resolves false when it didn't land, so the caller retries. */
 export function writeCloudSave(payload: string): Promise<boolean> {
     return soft((m) => m.writeCloudSave(payload));
+}
+
+/**
+ * Records a Game Stats event (Play Games only; always false on iOS). Fire-and-
+ * forget: stats are a reporting surface, so a dropped event costs a data point,
+ * never player progress.
+ */
+export function recordStatsEvent(
+    name: string,
+    properties: Record<string, string | number | boolean>,
+): Promise<boolean> {
+    return soft((m) => m.recordStatsEvent(name, properties));
 }

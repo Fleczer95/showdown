@@ -3,6 +3,7 @@ package expo.modules.gameservices
 import android.app.Activity
 import com.google.android.gms.games.PlayGames
 import com.google.android.gms.games.PlayGamesSdk
+import com.google.android.gms.games.PlayerGameEvent
 import com.google.android.gms.games.SnapshotsClient
 import com.google.android.gms.games.snapshot.SnapshotMetadataChange
 import expo.modules.kotlin.Promise
@@ -84,6 +85,33 @@ class GameServicesModule : Module() {
                 .submitScoreImmediate(leaderboardId, score.toLong())
                 .addOnSuccessListener { promise.resolve(true) }
                 .addOnFailureListener { promise.resolve(false) }
+        }
+
+        // Game Stats. PGS validates every event against the console schema and
+        // drops mismatches silently, so the shaping lives in JS
+        // (src/services/gameServices/stats.ts) where it is unit-tested. Numbers
+        // arrive from JS as Double and are narrowed to Long: the console schema
+        // declares these properties as integers.
+        AsyncFunction("recordStatsEvent") { name: String, properties: Map<String, Any>, promise: Promise ->
+            val activity = activityOrNull ?: return@AsyncFunction promise.resolve(false)
+            try {
+                val builder = PlayerGameEvent.Builder(name)
+                for ((key, value) in properties) {
+                    when (value) {
+                        is Boolean -> builder.addProperty(key, value)
+                        is Number -> builder.addProperty(key, value.toLong())
+                        else -> builder.addProperty(key, value.toString())
+                    }
+                }
+                val client = PlayGames.getGameStatsClient(activity)
+                client.recordEvent(builder.build())
+                // Events buffer locally until this is called; without it a player
+                // who never returns would never have their last runs counted.
+                client.requestEventsUpload()
+                promise.resolve(true)
+            } catch (_: Throwable) {
+                promise.resolve(false)
+            }
         }
 
         // Cloud save. The payload is opaque here — merging is JS's job (see

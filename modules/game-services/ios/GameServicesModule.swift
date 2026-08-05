@@ -150,6 +150,11 @@ public class GameServicesModule: Module {
             ) { error in promise.resolve(error == nil) }
         }
 
+        // Game Stats is a Play Games Services feature with no Game Center analogue.
+        AsyncFunction("recordStatsEvent") { (_: String, _: [String: Any], promise: Promise) in
+            promise.resolve(false)
+        }
+
         // Play Saved Games is Android-only. These stubs exist so the JS surface
         // needs no platform branches; iOS progression lives in local MMKV and is
         // mirrored to Game Center by the sync layer.

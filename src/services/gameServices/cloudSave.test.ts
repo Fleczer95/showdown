@@ -1,4 +1,4 @@
-import { restoreFromCloud, pushToCloud } from './cloudSave';
+import { restoreFromCloud, restoreAndPersist, pushToCloud } from './cloudSave';
 import { defaultStats } from '../../game/progression/defaults';
 
 jest.mock('../../../modules/game-services', () => ({
@@ -66,6 +66,41 @@ describe('restoreFromCloud', () => {
         native.readCloudSave.mockResolvedValue('"just a string"');
 
         expect(await restoreFromCloud({ ...defaultStats(), lifetimeXp: 400 })).toBeNull();
+    });
+});
+
+describe('restoreAndPersist', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        native.writeCloudSave.mockResolvedValue(true);
+    });
+
+    it('keeps a run that lands while the cloud read is in flight', async () => {
+        let persisted = { ...defaultStats(), lifetimeXp: 400, runsPlayed: 4 };
+        const load = jest.fn(() => persisted);
+        const save = jest.fn((s: typeof persisted) => {
+            persisted = s;
+        });
+
+        // The read resolves only after a run has already been recorded locally.
+        native.readCloudSave.mockImplementation(async () => {
+            persisted = { ...persisted, lifetimeXp: 500, runsPlayed: 5 };
+            return JSON.stringify({ ...defaultStats(), lifetimeXp: 300, runsPlayed: 3 });
+        });
+
+        const result = await restoreAndPersist(load, save);
+
+        expect(result?.lifetimeXp).toBe(500);
+        expect(result?.runsPlayed).toBe(5);
+        expect(persisted.lifetimeXp).toBe(500);
+    });
+
+    it('persists nothing when there was no usable slot', async () => {
+        const save = jest.fn();
+        native.readCloudSave.mockResolvedValue(null);
+
+        expect(await restoreAndPersist(() => defaultStats(), save)).toBeNull();
+        expect(save).not.toHaveBeenCalled();
     });
 });
 

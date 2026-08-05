@@ -61,3 +61,25 @@ export async function restoreFromCloud(local: ProgressionStats): Promise<Progres
     await pushToCloud(merged);
     return merged;
 }
+
+/**
+ * Restore and persist in one step, reading local state twice: once as merge input
+ * and once at write time. That second read is the point — the cloud round-trip is
+ * slow enough for a run to land while it is in flight, and writing a merge built
+ * from pre-flight state would erase that run. Merging again is free because
+ * mergeStats is idempotent.
+ *
+ * Takes its persistence as callbacks: recordRun imports this module, so importing
+ * its store back would be a cycle.
+ */
+export async function restoreAndPersist(
+    load: () => ProgressionStats,
+    save: (stats: ProgressionStats) => void,
+): Promise<ProgressionStats | null> {
+    const merged = await restoreFromCloud(load());
+    if (!merged) return null;
+
+    const current = mergeStats(load(), merged);
+    save(current);
+    return current;
+}

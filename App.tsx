@@ -16,7 +16,7 @@ import { initAppCheck } from './src/utils/firebase/appCheck';
 import { retryPending } from './src/game/ranking/push';
 import { syncGameServices } from './src/services/gameServices';
 import { loadStats, saveStats } from './src/game/progression';
-import { restoreFromCloud } from './src/services/gameServices/cloudSave';
+import { restoreAndPersist } from './src/services/gameServices/cloudSave';
 import { beginAuthentication } from './modules/game-services';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
@@ -49,13 +49,11 @@ void syncGameServices(loadStats());
 // Game Center on a blank install, which the native module deliberately avoids.
 if (Platform.OS === 'android') {
     void beginAuthentication()
-        .then((signedIn) => (signedIn ? restoreFromCloud(loadStats()) : null))
+        .then((signedIn) => (signedIn ? restoreAndPersist(loadStats, saveStats) : null))
         .then((merged) => {
-            if (!merged) return;
-            saveStats(merged);
             // The merge may have crossed achievement or best-score thresholds this
             // device never saw, so re-run the platform sync over the union.
-            return syncGameServices(merged);
+            if (merged) return syncGameServices(merged);
         })
         .catch(() => undefined);
 }

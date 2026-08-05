@@ -15,7 +15,8 @@ import { initFirebase } from './src/utils/firebase/init';
 import { initAppCheck } from './src/utils/firebase/appCheck';
 import { retryPending } from './src/game/ranking/push';
 import { syncGameServices } from './src/services/gameServices';
-import { loadStats } from './src/game/progression';
+import { loadStats, saveStats } from './src/game/progression';
+import { restoreFromCloud } from './src/services/gameServices/cloudSave';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -36,6 +37,19 @@ initFirebase();
 // Replay earned achievements/best scores to Game Center / Play Games once per
 // launch — idempotent, digest-throttled, and a no-op when signed out.
 void syncGameServices(loadStats());
+// Pull the Play Saved Games slot and merge it into local progress. Merge, never
+// replace — a second device that played offline must not lose those runs. A
+// failure resolves to null and leaves local state exactly as it was, so this can
+// never block or corrupt startup.
+void restoreFromCloud(loadStats())
+    .then((merged) => {
+        if (!merged) return;
+        saveStats(merged);
+        // The merge may have crossed achievement or best-score thresholds that this
+        // device never saw, so re-run the platform sync over the union.
+        return syncGameServices(merged);
+    })
+    .catch(() => undefined);
 
 function PremiumThemeGate() {
     const { themeId, setTheme } = useThemeActions();

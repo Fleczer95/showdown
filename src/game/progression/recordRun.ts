@@ -9,24 +9,17 @@ import { SafeAnalytics } from '../../utils/firebase/init';
 import { ACHIEVEMENTS, achievementsUnlocked, detectFeats } from './achievements';
 import type { GameRunResult, ProgressionStats, RecordRunDiff } from './types';
 import { grantLevelBonus } from '../offline/limit';
+import { defaultStats } from './defaults';
 // The concrete module, not the barrel: the barrel now reads stats back from
 // here to sync right after a sign-in, and going through it would be a cycle.
 import { syncGameServices } from '../../services/gameServices/sync';
+// Same reason as above: the concrete module, not the barrel.
+import { pushToCloud } from '../../services/gameServices/cloudSave';
 
-/** Fresh state for a player who has never played. */
-export function defaultStats(): ProgressionStats {
-    return {
-        lifetimeXp: 0,
-        runsPlayed: 0,
-        winsByGame: {},
-        datesPlayed: [],
-        today: '',
-        todayGameIds: [],
-        bestScoreByGame: {},
-        feats: [],
-        challengesPlayed: 0,
-    };
-}
+// Lives in its own module so cloud save can reach the zero state without importing
+// this one (which imports cloud save in turn). Re-exported so every existing
+// caller — and the progression barrel — keeps working unchanged.
+export { defaultStats } from './defaults';
 
 const ACHIEVEMENT_XP = new Map(ACHIEVEMENTS.map((a) => [a.id, a.xp]));
 
@@ -116,6 +109,11 @@ export function loadStats(): ProgressionStats {
     }
 }
 
+/** Persist raw stats. Exported for cloud-save restore, which writes a merged state. */
+export function saveStats(stats: ProgressionStats): void {
+    store.set(STATS_KEY, JSON.stringify(stats));
+}
+
 /** Device's local calendar date as YYYY-MM-DD. */
 export function localDate(date: Date = new Date()): string {
     const y = date.getFullYear();
@@ -127,10 +125,13 @@ export function localDate(date: Date = new Date()): string {
 /** Impure entry point: record a finished run and persist. Returns the diff. */
 export function recordRun(result: GameRunResult): RecordRunDiff {
     const { stats, diff } = applyRun(loadStats(), result, localDate());
-    store.set(STATS_KEY, JSON.stringify(stats));
+    saveStats(stats);
     // Mirror to Game Center / Play Games — fire-and-forget, idempotent, and a
     // no-op when the native bridge is absent or the player isn't signed in.
     void syncGameServices(stats);
+    // Mirror to the Play Saved Games slot. A failed push costs nothing: the next
+    // run replays it, and restore merges rather than replaces either way.
+    void pushToCloud(stats);
     // Level-up telemetry lives at the recording seam so every run reports it —
     // solo or challenge, whether or not the celebration UI ever gets displayed.
     if (diff.leveledUp) {

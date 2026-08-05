@@ -35,7 +35,7 @@ changed). The plan's Task 3 code blocks are superseded by what is on the branch.
 - **Saved Games API is free.** No Google Cloud charges for saved game data.
 - **targetSdk 36** (Expo 54 default). Consequence: Android 16 **ignores orientation restrictions on displays ≥ sw600dp**. Phones (< sw600dp) keep the portrait lock. This is why no manifest change is needed for large screens — only layout work.
 - **This Mac has no Android SDK.** Every task below that needs a device build must be executed on a machine with the SDK, or via EAS. Jest-level tasks run anywhere.
-- **Earned cosmetics stay out of `STORE_CATALOG`** — reward offers must not contaminate IAP SKUs or `is_paying_user` analytics.
+- **Earned cosmetics stay out of `STORE_CATALOG`.** Narrowed by the Task 10 spike: Play *requires* reward items to exist as one-time products, so reward SKUs are unavoidable. What must hold instead is that owning a reward SKU never marks a player as paying — `is_paying_user` and premium gating key off real purchases only.
 - **Bilingual copy:** every new user-visible string lands in both `src/i18n/locales/en.json` and `pl.json`.
 
 ## Reference documentation
@@ -934,40 +934,77 @@ to grant and do not touch `STORE_CATALOG`: banked bonus runs (`src/game/offline/
 signatures, and earned themes. Offers should draw from these — never from IAP SKUs,
 or `is_paying_user` analytics get contaminated.
 
-### Task 10: Doc spike — how offers are redeemed
+### Task 10: Doc spike — how offers are redeemed — **DONE 2026-08-05**
 
-- [ ] **Step 1: Read the reward offers documentation**
+- [x] **Step 1: Read the reward offers documentation**
 
-Start from https://developer.android.com/games/guidelines and follow to the Play
-Games reward offers pages. Establish concretely: are offers granted purely
-Console-side against a Quest, or must the client redeem and honor them? This
-determines whether Task 11 is Console configuration or Console plus client work.
+Source: https://developer.android.com/games/rewards
 
-- [ ] **Step 2: Record the answer in this plan**
+- [x] **Step 2: Record the answer**
 
-Write the finding directly under this step, then size Task 11 accordingly. Do not
-start Task 11 before this is answered — the two possible shapes differ by roughly
-a day of work.
+**It is Console configuration AND client work, and the client half is Play Billing —
+not the progression seams this plan assumed.** The findings, in the order they matter:
 
-### Task 11: Configure two single-use offers
+1. **Rewards must be one-time products.** They are created in Console under
+   *Monetize with Play → Products → One-time products*, then an offer is attached to
+   one. There is no path that grants a reward without a SKU existing.
+2. **The client must run the out-of-app purchase flow via the Play Billing Library.**
+   On start and on foreground: `queryPurchasesAsync()` → verify → grant the
+   entitlement → notify the player → `acknowledgePurchase()`. An unacknowledged
+   reward is not delivered.
+3. **This applies even to developers not using Play Billing for payments** — the SKUs
+   and the PBL integration are mandatory purely to distribute rewards.
+4. **Players have 3 days** after completing the Quest to open the game and claim.
+5. **Creating, managing, and testing rewards only opens 2026-09-01** — and the
+   deadline is 2026-09-30. That is a **30-day window** for all of it.
 
-- [ ] **Step 1: Pick the two rewards**
+**Consequences for this plan, both of which invalidate earlier assumptions:**
 
-Proposal, both meaningful and both already implemented as grantable state:
-1. **5 banked bonus runs** — the existing level-up bonus, granted via `grantLevelBonus`.
-2. **An earned signature** — an existing `SIGNATURES` entry, granted early rather than at its level gate.
+- The Global Constraint "earned cosmetics stay out of `STORE_CATALOG`" **cannot hold
+  for reward items** — Google requires them to be one-time products. The constraint
+  has to narrow to: reward SKUs exist in Play, but must not be treated as *paid*
+  purchases in-app. `is_paying_user` and any premium gating must key off actual
+  purchases, not off owning a reward SKU.
+- Task 11's proposed rewards (banked bonus runs, an early signature) are still the
+  right *content*, but each now needs a matching one-time product and an entitlement
+  branch in the existing `react-native-iap` purchase handling — not a call to
+  `grantLevelBonus`.
 
-- [ ] **Step 2: Configure the Quest and the two offers in Console**
+**Revised sizing:** roughly a day of client work (PBL query/acknowledge path plus the
+non-paying entitlement branch), gated behind a Console step that cannot even be
+tested before 2026-09-01. The realistic risk is the window, not the code.
 
-Bind each offer to a Quest whose completion is achievable by every player at least
-once. Add EN and PL copy for both.
+### Task 11: Configure two single-use offers (reshaped by the Task 10 spike)
 
-- [ ] **Step 3: Implement the grant path if the spike says the client must honor offers**
+- [ ] **Step 1: Pick the two rewards and create their one-time products**
 
-Route the grant through the existing progression seams rather than adding a parallel
-entitlement system.
+Content proposal, both meaningful and both already expressible as grantable state:
+1. **5 banked bonus runs** — the offline-limit currency (`src/game/offline/limit.ts`).
+2. **An earned signature** — an existing `SIGNATURES` entry, granted ahead of its level gate.
 
-- [ ] **Step 4: Verify end to end on a device build, then commit**
+Each needs a one-time product in Console (*Monetize with Play → Products → One-time
+products*) with EN and PL copy. They are reward SKUs, never sold.
+
+- [ ] **Step 2: Attach an offer to each product and bind it to a Quest**
+
+The Quest must be completable by every player at least once.
+
+- [ ] **Step 3: Add the out-of-app purchase flow**
+
+On start and on foreground, query outstanding purchases through the existing
+`react-native-iap` integration, grant the entitlement, notify the player, and
+acknowledge. An unacknowledged reward never reaches the player.
+
+- [ ] **Step 4: Keep reward SKUs out of the paying-user signal**
+
+The entitlement branch must grant the item without marking the player as paying.
+Verify `is_paying_user` and premium gating are unaffected by owning a reward SKU —
+this is the one place where reward SKUs could contaminate monetization analytics.
+
+- [ ] **Step 5: Verify end to end on a device build, then commit**
+
+Note: rewards cannot be created or tested before **2026-09-01**, and the milestone
+is **2026-09-30**. Steps 3 and 4 can and should be written before that window opens.
 
 ---
 

@@ -3,8 +3,8 @@ package expo.modules.gameservices
 import android.app.Activity
 import com.google.android.gms.games.PlayGames
 import com.google.android.gms.games.PlayGamesSdk
-import com.google.android.gms.games.PlayerGameEvent
 import com.google.android.gms.games.SnapshotsClient
+import com.google.android.gms.games.playergameevent.PlayerGameEvent
 import com.google.android.gms.games.snapshot.SnapshotMetadataChange
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
@@ -128,8 +128,16 @@ class GameServicesModule : Module() {
                     if (snapshot == null) {
                         promise.resolve(null)
                     } else {
-                        val bytes = snapshot.snapshotContents.readFully()
-                        promise.resolve(if (bytes.isEmpty()) null else String(bytes, Charsets.UTF_8))
+                        // readFully() declares IOException. Kotlin does not force the
+                        // catch, and an unhandled throw here escapes the listener and
+                        // takes the app down — a corrupt slot must degrade to "no
+                        // cloud save", never to a crash on launch.
+                        try {
+                            val bytes = snapshot.snapshotContents.readFully()
+                            promise.resolve(if (bytes.isEmpty()) null else String(bytes, Charsets.UTF_8))
+                        } catch (_: Throwable) {
+                            promise.resolve(null)
+                        }
                     }
                 }
                 .addOnFailureListener { promise.resolve(null) }

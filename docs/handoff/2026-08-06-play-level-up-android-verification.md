@@ -8,10 +8,27 @@ and actually work on a device, so Level Up Phases 1 and 2 can be called done.
 
 ## Blocking prerequisite
 
-**Saved Games must be enabled in Play Console before any of this can work:**
-Play Console → Play Games Services → Configuration → enable **Saved Games**.
-Without it every `SnapshotsClient` call fails and the cloud-save checks below are
-untestable. This is Phase 0 Step 2 of the plan and nobody has done it yet.
+**Saved Games must be enabled in Play Console before any of this can work.** Without
+it every `SnapshotsClient` call fails and the cloud-save checks below are untestable.
+This is Phase 0 Step 2 of the plan and nobody has done it yet.
+
+Start from the app dashboard —
+
+```
+https://play.google.com/console/u/0/developers/8291209362117111057/app/4974544417577616151/app-dashboard
+```
+
+— then: **Grow users → Play Games Services → Setup and management → Configuration →
+Edit properties**, turn **Saved Games** to **ON**, and **Save**.
+
+**Do not build and test immediately after flipping it.** Activation takes **up to 24
+hours** to propagate, and a device hitting it early fails in a way that reads exactly
+like a bug in the bridge — you will spend the afternoon debugging working code. To test
+the same day, clear the cached configuration on the test device:
+
+```
+Settings → Apps → Google Play services → Manage Space → Clear All Data
+```
 
 ## Why this exists
 

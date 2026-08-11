@@ -17,7 +17,8 @@ import { retryPending } from './src/game/ranking/push';
 import { syncGameServices } from './src/services/gameServices';
 import { loadStats, saveStats, level } from './src/game/progression';
 import { seedBonusLevel } from './src/game/offline/limit';
-import { restoreAndPersist } from './src/services/gameServices/cloudSave';
+import { restoreAndPersist, type RestoreOutcome } from './src/services/gameServices/cloudSave';
+import { trackRestore } from './src/services/gameServices/restoreSignal';
 import { beginAuthentication } from './modules/game-services';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
@@ -49,20 +50,26 @@ void syncGameServices(loadStats());
 // fresh-install case cloud save exists for. On iOS this would also initialize
 // Game Center on a blank install, which the native module deliberately avoids.
 if (Platform.OS === 'android') {
-    void beginAuthentication()
-        .then((signedIn) => (signedIn ? restoreAndPersist(loadStats, saveStats) : null))
-        .then((merged) => {
-            if (!merged) return;
+    const attempt = beginAuthentication()
+        .then((signedIn) =>
+            signedIn ? restoreAndPersist(loadStats, saveStats) : ({ status: 'none' } as RestoreOutcome),
+        )
+        .then(async (outcome): Promise<RestoreOutcome> => {
+            if (outcome.status !== 'restored') return outcome;
             // A restore can lift this device a dozen levels in one step, and those
             // level-ups were already paid out in banked runs on the device that
             // earned them. Mark them settled so the next level-up here pays for
             // one level, not for the whole restored gap.
-            seedBonusLevel(level(merged.lifetimeXp));
+            seedBonusLevel(level(outcome.stats.lifetimeXp));
             // The merge may have crossed achievement or best-score thresholds this
             // device never saw, so re-run the platform sync over the union.
-            return syncGameServices(merged);
-        })
-        .catch(() => undefined);
+            await syncGameServices(outcome.stats);
+            return outcome;
+        });
+    // Home reports the outcome to the player; it mounts while this is still in
+    // flight, so it waits on the promise rather than reading a value.
+    trackRestore(attempt);
+    void attempt.catch(() => undefined);
 }
 
 function PremiumThemeGate() {

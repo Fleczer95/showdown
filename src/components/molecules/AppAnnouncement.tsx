@@ -68,6 +68,36 @@ function AppAnnouncement() {
         );
     }
 
+    if (shown?.kind === 'cloudRestored') {
+        return (
+            <AnnouncementSheet
+                visible={visible}
+                testID='cloud-restored-sheet'
+                title={t('cloudSave.restored.title')}
+                body={t('cloudSave.restored.body')}
+                ctaLabel={t('cloudSave.restored.cta')}
+                onPressCta={dismiss}
+                onClose={dismiss}
+                onDismissComplete={handleDismissComplete}
+            />
+        );
+    }
+
+    if (shown?.kind === 'cloudBlocked') {
+        return (
+            <AnnouncementSheet
+                visible={visible}
+                testID='cloud-blocked-sheet'
+                title={t('cloudSave.blocked.title')}
+                body={t('cloudSave.blocked.body')}
+                ctaLabel={t('cloudSave.blocked.cta')}
+                onPressCta={dismiss}
+                onClose={dismiss}
+                onDismissComplete={handleDismissComplete}
+            />
+        );
+    }
+
     return null;
 }
 

@@ -72,12 +72,24 @@ export async function restoreFromCloud(local: ProgressionStats): Promise<Progres
  * Takes its persistence as callbacks: recordRun imports this module, so importing
  * its store back would be a cycle.
  */
+/**
+ * What a restore actually did. The caller needs the distinction to tell the player
+ * something true: "we pulled your progress across" and "we refused to write" are
+ * different events, and "the cloud had nothing new" must stay silent — otherwise the
+ * message would fire on every single launch.
+ */
+export type RestoreOutcome =
+    | { status: 'restored'; stats: ProgressionStats }
+    | { status: 'unchanged' }
+    | { status: 'blocked' }
+    | { status: 'none' };
+
 export async function restoreAndPersist(
     load: () => ProgressionStats,
     save: (stats: ProgressionStats) => void,
-): Promise<ProgressionStats | null> {
+): Promise<RestoreOutcome> {
     const merged = await restoreFromCloud(load());
-    if (!merged) return null;
+    if (!merged) return { status: 'none' };
 
     const local = load();
     const next = mergeStats(local, merged);
@@ -97,9 +109,14 @@ export async function restoreAndPersist(
                 nextRuns: next.runsPlayed,
             },
         });
-        return null;
+        return { status: 'blocked' };
     }
 
+    // "Neither is worse than the other" is equality on everything that counts, and
+    // it reuses the guard rather than inventing a second comparison. Skipping the
+    // write here also removes a pointless MMKV round-trip on every quiet launch.
+    if (preservesProgress(next, local)) return { status: 'unchanged' };
+
     save(next);
-    return next;
+    return { status: 'restored', stats: next };
 }

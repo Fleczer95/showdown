@@ -957,6 +957,18 @@
         "cta": "Update now",
         "later": "Not now"
     },
+    "cloudSave": {
+        "restored": {
+            "title": "Welcome back!",
+            "body": "We found your progress from another device and brought it over. Everything you'd earned is here.",
+            "cta": "Nice"
+        },
+        "blocked": {
+            "title": "Your progress is safe",
+            "body": "Something looked wrong with the saved copy of your progress, so we left this device untouched rather than risk it. Nothing was lost. If you play on two devices, they may not be in sync for now.",
+            "cta": "Got it"
+        }
+    },
     "whatsNew": {
         "title": "Want to see what's new in %{version}?",
         "cta": "Let's play"

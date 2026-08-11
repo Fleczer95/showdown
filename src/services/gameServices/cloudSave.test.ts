@@ -89,17 +89,21 @@ describe('restoreAndPersist', () => {
             persisted = s;
         });
 
-        // The read resolves only after a run has already been recorded locally.
+        // The read resolves only after a run has already been recorded locally. The
+        // cloud carries more XP (so the restore genuinely contributes) but fewer
+        // runs — the run that landed mid-flight is the one at risk.
         native.readCloudSave.mockImplementation(async () => {
             persisted = { ...persisted, lifetimeXp: 500, runsPlayed: 5 };
-            return JSON.stringify({ ...defaultStats(), lifetimeXp: 300, runsPlayed: 3 });
+            return JSON.stringify({ ...defaultStats(), lifetimeXp: 900, runsPlayed: 3 });
         });
 
         const result = await restoreAndPersist(load, save);
 
-        expect(result?.lifetimeXp).toBe(500);
-        expect(result?.runsPlayed).toBe(5);
-        expect(persisted.lifetimeXp).toBe(500);
+        expect(result).toEqual({
+            status: 'restored',
+            stats: expect.objectContaining({ lifetimeXp: 900, runsPlayed: 5 }),
+        });
+        expect(persisted.runsPlayed).toBe(5);
     });
 
     // Simulates the failure the guard exists for: a future edit breaks mergeStats so
@@ -116,7 +120,7 @@ describe('restoreAndPersist', () => {
 
         const result = await restoreAndPersist(() => ({ ...defaultStats(), lifetimeXp: 5000 }), save);
 
-        expect(result).toBeNull();
+        expect(result).toEqual({ status: 'blocked' });
         expect(save).not.toHaveBeenCalled();
     });
 
@@ -124,7 +128,19 @@ describe('restoreAndPersist', () => {
         const save = jest.fn();
         native.readCloudSave.mockResolvedValue(null);
 
-        expect(await restoreAndPersist(() => defaultStats(), save)).toBeNull();
+        expect(await restoreAndPersist(() => defaultStats(), save)).toEqual({ status: 'none' });
+        expect(save).not.toHaveBeenCalled();
+    });
+
+    // Every quiet launch lands here. It must not write, and it must not report
+    // "restored" — otherwise the player is told their progress synced on every
+    // single start, which is both untrue and noise.
+    it('reports unchanged and skips the write when the cloud had nothing new', async () => {
+        const local = { ...defaultStats(), lifetimeXp: 3600, runsPlayed: 10 };
+        native.readCloudSave.mockResolvedValue(JSON.stringify(local));
+        const save = jest.fn();
+
+        expect(await restoreAndPersist(() => local, save)).toEqual({ status: 'unchanged' });
         expect(save).not.toHaveBeenCalled();
     });
 });

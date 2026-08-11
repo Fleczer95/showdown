@@ -7,6 +7,8 @@ import {
     readUpdatePromptSeen,
     readWhatsNewSeen,
 } from '../services/appUpdate/seenVersions';
+import { restoreOutcome } from '../services/gameServices/restoreSignal';
+import { defaultStats } from '../game/progression/defaults';
 import { APP_VERSION } from '../utils/version';
 import { WHATS_NEW } from '../data/whatsNew';
 
@@ -23,6 +25,8 @@ jest.mock('../services/appUpdate/updateCheck', () => ({
     checkStoreVersion: jest.fn(),
     openStoreListing: jest.fn(),
 }));
+
+jest.mock('../services/gameServices/restoreSignal', () => ({ restoreOutcome: jest.fn() }));
 
 let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
@@ -43,6 +47,7 @@ jest.mock('../services/appUpdate/seenVersions', () => ({
 }));
 
 const mockCheck = checkStoreVersion as jest.MockedFunction<typeof checkStoreVersion>;
+const mockRestore = restoreOutcome as jest.MockedFunction<typeof restoreOutcome>;
 const mockReadWhatsNew = readWhatsNewSeen as jest.MockedFunction<typeof readWhatsNewSeen>;
 const mockReadUpdate = readUpdatePromptSeen as jest.MockedFunction<typeof readUpdatePromptSeen>;
 
@@ -54,6 +59,7 @@ describe('useAppAnnouncement', () => {
         mockIsFocused = true;
         mockRunsPlayed = 0;
         mockCheck.mockResolvedValue(null);
+        mockRestore.mockResolvedValue({ status: 'none' });
         mockReadWhatsNew.mockReturnValue(APP_VERSION);
         mockReadUpdate.mockReturnValue(undefined);
     });
@@ -184,6 +190,7 @@ describe('useAppAnnouncement', () => {
 
     it('shows nothing when the store check fails', async () => {
         mockCheck.mockResolvedValue(null);
+        mockRestore.mockResolvedValue({ status: 'none' });
 
         const { result } = renderHook(() => useAppAnnouncement());
 
@@ -200,6 +207,50 @@ describe('useAppAnnouncement', () => {
         const second = renderHook(() => useAppAnnouncement());
         expect(second.result.current.announcement).toBeNull();
         expect(mockCheck).toHaveBeenCalledTimes(1);
+    });
+
+    describe('cloud save outcomes', () => {
+        const restoredStats = { ...defaultStats(), lifetimeXp: 900 };
+
+        it('reports a refused write, and outranks the update prompt doing it', async () => {
+            // A player whose devices are silently diverging needs to hear that
+            // before they hear about a new version.
+            mockRestore.mockResolvedValue({ status: 'blocked' });
+            mockCheck.mockResolvedValue({ available: true, storeVersion: '9.9.9' });
+
+            const { result } = renderHook(() => useAppAnnouncement());
+
+            await waitFor(() => expect(result.current.announcement).toEqual({ kind: 'cloudBlocked' }));
+            expect(markUpdatePromptSeen).not.toHaveBeenCalled();
+        });
+
+        it('reports a successful restore when nothing else is competing', async () => {
+            mockRestore.mockResolvedValue({ status: 'restored', stats: restoredStats });
+
+            const { result } = renderHook(() => useAppAnnouncement());
+
+            await waitFor(() => expect(result.current.announcement).toEqual({ kind: 'cloudRestored' }));
+        });
+
+        it('yields to the update prompt — good news can wait a launch', async () => {
+            mockRestore.mockResolvedValue({ status: 'restored', stats: restoredStats });
+            mockCheck.mockResolvedValue({ available: true, storeVersion: '9.9.9' });
+
+            const { result } = renderHook(() => useAppAnnouncement());
+
+            await waitFor(() => expect(result.current.announcement).toEqual({ kind: 'update' }));
+        });
+
+        // The quiet path, and by far the most common one: every launch where the
+        // cloud had nothing new must stay silent.
+        it.each(['unchanged', 'none'] as const)('stays silent on %s', async (status) => {
+            mockRestore.mockResolvedValue({ status });
+
+            const { result } = renderHook(() => useAppAnnouncement());
+
+            await waitFor(() => expect(mockRestore).toHaveBeenCalled());
+            expect(result.current.announcement).toBeNull();
+        });
     });
 
     it('clears the announcement on dismiss', async () => {

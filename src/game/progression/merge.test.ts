@@ -1,4 +1,4 @@
-import { mergeStats } from './merge';
+import { mergeStats, preservesProgress } from './merge';
 import { defaultStats } from './recordRun';
 import type { ProgressionStats } from './types';
 
@@ -83,6 +83,14 @@ describe('mergeStats', () => {
         expect(mergeStats(a, b).todayGameIds.sort()).toEqual(['the-drop', 'the-ladder']);
     });
 
+    it('never returns a state worse than either input', () => {
+        const a = stats({ lifetimeXp: 900, runsPlayed: 5, feats: ['spotless'], datesPlayed: ['2026-08-01'] });
+        const b = stats({ lifetimeXp: 400, runsPlayed: 9, feats: ['survivor'], datesPlayed: ['2026-08-02'] });
+        const merged = mergeStats(a, b);
+        expect(preservesProgress(a, merged)).toBe(true);
+        expect(preservesProgress(b, merged)).toBe(true);
+    });
+
     it('is commutative on every field', () => {
         const a = stats({
             lifetimeXp: 900,
@@ -105,5 +113,53 @@ describe('mergeStats', () => {
             feats: ['survivor'],
         });
         expect(mergeStats(a, b)).toEqual(mergeStats(b, a));
+    });
+});
+
+describe('preservesProgress — the guard at the destructive write', () => {
+    const base = stats({
+        lifetimeXp: 3600,
+        runsPlayed: 10,
+        challengesPlayed: 2,
+        winsByGame: { 'the-ladder': 4 },
+        bestScoreByGame: { 'the-ladder': 8000 },
+        datesPlayed: ['2026-08-01', '2026-08-02'],
+        feats: ['spotless'],
+    });
+
+    it('accepts an identical state', () => {
+        expect(preservesProgress(base, { ...base })).toBe(true);
+    });
+
+    it('accepts a strictly better state', () => {
+        expect(
+            preservesProgress(base, {
+                ...base,
+                lifetimeXp: 5000,
+                runsPlayed: 12,
+                feats: ['spotless', 'survivor'],
+                datesPlayed: ['2026-08-01', '2026-08-02', '2026-08-03'],
+            }),
+        ).toBe(true);
+    });
+
+    it.each([
+        ['lower lifetimeXp', { lifetimeXp: 3599 }],
+        ['lower runsPlayed', { runsPlayed: 9 }],
+        ['lower challengesPlayed', { challengesPlayed: 1 }],
+        ['a lost win', { winsByGame: { 'the-ladder': 3 } }],
+        ['a dropped game key', { winsByGame: {} }],
+        ['a lowered best score', { bestScoreByGame: { 'the-ladder': 7999 } }],
+        ['a lost date', { datesPlayed: ['2026-08-01'] }],
+        ['a lost feat', { feats: [] }],
+    ])('rejects %s', (_label, worse) => {
+        expect(preservesProgress(base, { ...base, ...worse })).toBe(false);
+    });
+
+    // The day-roll legitimately clears these, so they are deliberately not guarded:
+    // yesterday's game set must not suppress today's breadth bonus.
+    it('ignores today and todayGameIds', () => {
+        const rolled = { ...base, today: '2026-08-03', todayGameIds: [] };
+        expect(preservesProgress({ ...base, today: '2026-08-02', todayGameIds: ['the-ladder'] }, rolled)).toBe(true);
     });
 });

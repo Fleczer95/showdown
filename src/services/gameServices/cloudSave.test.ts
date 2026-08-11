@@ -7,6 +7,13 @@ jest.mock('../../../modules/game-services', () => ({
     writeCloudSave: jest.fn().mockResolvedValue(true),
 }));
 
+// mergeStats is spied so one test can simulate a broken merge; preservesProgress
+// stays real, because it is the thing under test.
+jest.mock('../../game/progression/merge', () => {
+    const actual = jest.requireActual('../../game/progression/merge');
+    return { ...actual, mergeStats: jest.fn(actual.mergeStats) };
+});
+
 const native = jest.requireMock('../../../modules/game-services');
 
 describe('restoreFromCloud', () => {
@@ -93,6 +100,24 @@ describe('restoreAndPersist', () => {
         expect(result?.lifetimeXp).toBe(500);
         expect(result?.runsPlayed).toBe(5);
         expect(persisted.lifetimeXp).toBe(500);
+    });
+
+    // Simulates the failure the guard exists for: a future edit breaks mergeStats so
+    // it returns something worse than local. The write must be refused, not applied.
+    it('refuses to persist a state that would lose progress', async () => {
+        // mergeStats runs twice per restore: once inside restoreFromCloud, once on
+        // the write candidate. Only the second one needs to come back broken.
+        const merge = jest.requireMock('../../game/progression/merge');
+        merge.mergeStats
+            .mockReturnValueOnce({ ...defaultStats(), lifetimeXp: 5000 })
+            .mockReturnValueOnce({ ...defaultStats(), lifetimeXp: 1 });
+        native.readCloudSave.mockResolvedValue(JSON.stringify(defaultStats()));
+        const save = jest.fn();
+
+        const result = await restoreAndPersist(() => ({ ...defaultStats(), lifetimeXp: 5000 }), save);
+
+        expect(result).toBeNull();
+        expect(save).not.toHaveBeenCalled();
     });
 
     it('persists nothing when there was no usable slot', async () => {

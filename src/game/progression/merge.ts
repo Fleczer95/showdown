@@ -23,6 +23,36 @@ function maxByKey(a: Record<string, number>, b: Record<string, number>): Record<
     return out;
 }
 
+/**
+ * Whether `next` keeps everything `prev` had earned. The merge cannot violate this
+ * by construction — every field goes through max or union, and `max(a,b) >= a` — so
+ * this is not a proof, it is a tripwire at the one place that overwrites a real
+ * player's progress. If someone later adds a field that can decrease, or breaks the
+ * merge, this turns silent data loss into a refused write.
+ *
+ * `today` and `todayGameIds` are deliberately unguarded: the day-roll legitimately
+ * clears them, and yesterday's game set must not suppress today's breadth bonus.
+ */
+export function preservesProgress(prev: ProgressionStats, next: ProgressionStats): boolean {
+    if (next.lifetimeXp < prev.lifetimeXp) return false;
+    if (next.runsPlayed < prev.runsPlayed) return false;
+    if (next.challengesPlayed < prev.challengesPlayed) return false;
+
+    for (const [key, value] of Object.entries(prev.winsByGame)) {
+        if ((next.winsByGame[key] ?? 0) < value) return false;
+    }
+    for (const [key, value] of Object.entries(prev.bestScoreByGame)) {
+        if ((next.bestScoreByGame[key] ?? 0) < value) return false;
+    }
+
+    const dates = new Set(next.datesPlayed);
+    if (prev.datesPlayed.some((d) => !dates.has(d))) return false;
+    const feats = new Set(next.feats);
+    if (prev.feats.some((f) => !feats.has(f))) return false;
+
+    return true;
+}
+
 /** Merge two devices' raw stats. Commutative, associative, and idempotent. */
 export function mergeStats(a: ProgressionStats, b: ProgressionStats): ProgressionStats {
     const today = a.today >= b.today ? a.today : b.today;

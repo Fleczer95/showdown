@@ -12,7 +12,7 @@
 // thing we are certain about; the cloud is a mirror, not the source of truth.
 
 import { readCloudSave, writeCloudSave } from '../../../modules/game-services';
-import { mergeStats } from '../../game/progression/merge';
+import { mergeStats, preservesProgress } from '../../game/progression/merge';
 import { defaultStats } from '../../game/progression/defaults';
 import type { ProgressionStats } from '../../game/progression/types';
 import { SafeSentry } from '../../utils/sentry/init';
@@ -79,7 +79,27 @@ export async function restoreAndPersist(
     const merged = await restoreFromCloud(load());
     if (!merged) return null;
 
-    const current = mergeStats(load(), merged);
-    save(current);
-    return current;
+    const local = load();
+    const next = mergeStats(local, merged);
+
+    // The one destructive write in this feature: it overwrites a real player's
+    // progress, and MMKV has no undo. The merge cannot produce a worse state by
+    // construction, so reaching this branch means the invariant broke — refuse the
+    // write and keep what the player has rather than trust the arithmetic.
+    if (!preservesProgress(local, next)) {
+        SafeSentry.captureMessage('Cloud restore would have lost progress — write refused', {
+            level: 'error',
+            tags: { area: 'game-services' },
+            extra: {
+                localXp: local.lifetimeXp,
+                nextXp: next.lifetimeXp,
+                localRuns: local.runsPlayed,
+                nextRuns: next.runsPlayed,
+            },
+        });
+        return null;
+    }
+
+    save(next);
+    return next;
 }

@@ -190,3 +190,56 @@ Found in review, deliberately left alone:
   credits the player; direction is safe.
 - A restore that jumps a player into the near-max band means `approaching_max_level`
   never fires for them — the event is one-shot on the transition.
+
+---
+
+## 6. Android build and emulator verification (2026-08-11)
+
+Verified on Linux/WSL with Android SDK 36, Kotlin 2.1.20, and the
+`Pixel_6_PlayStore_API33` Google Play emulator.
+
+### Build result
+
+The native bridge and full debug APK compile successfully:
+
+```bash
+cd android
+./gradlew :game-services:compileDebugKotlin :app:packageDebug
+```
+
+This confirms all compile-risk items in section 2:
+
+- `play-services-games-v2:22.0.0` resolves alongside the Firebase BoM and
+  `play-services-auth`; duplicate-class checking passes.
+- The Snapshots API calls, nullable promise resolution, `Map<String, Any>` argument,
+  `PlayerGameEvent.Builder`, and `GameStatsClient` calls compile as written.
+- The resulting debug APK is generated at
+  `android/app/build/outputs/apk/debug/app-debug.apk`.
+- `aapt dump permissions` reports none of `AD_ID`, `ACTIVITY_RECOGNITION`,
+  `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, or `RECORD_AUDIO` in the APK.
+
+A forced all-task rebuild briefly produced missing Gradle incremental-cache files in
+`mergeDebugJavaResource` and `packageDebug`. Re-running each affected task restored
+the generated cache state; the subsequent fresh compile/package command passed without
+source or configuration changes. This was build-cache state, not Play Services version
+skew.
+
+### Emulator smoke test
+
+The APK installed and launched on `Pixel_6_PlayStore_API33`. With Metro running and
+`adb reverse tcp:8081 tcp:8081`, Metro bundled all 4,409 modules and the home screen
+rendered correctly. The app process remained alive in the resumed foreground activity,
+and logcat contained no fatal exception or native crash.
+
+Non-blocking development warnings observed:
+
+- Existing require cycle:
+  `recordRun.ts -> offline/limit.ts -> recordRun.ts`.
+- React Native Firebase namespaced-API deprecation warnings.
+- `react-native-iap` could not initialize Billing on this offline emulator. The app
+  continued rendering normally.
+
+This smoke test proves native initialization and JS startup only. It does **not** close
+the cloud-save or Game Stats device checks in section 3: Saved Games still needs to be
+enabled in Play Console, the Game Stats CSV still needs to be uploaded, and the checks
+need a licensed tester account (plus a second device for the merge test).

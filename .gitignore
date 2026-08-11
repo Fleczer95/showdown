@@ -37,6 +37,7 @@ ios/build/
 android/build/
 android/.gradle/
 android/app/build/
+/modules/*/android/build/
 local.properties
 *.keystore
 *.jks

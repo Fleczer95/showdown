@@ -6,13 +6,14 @@
 **Goal:** get the two new native bridges — Play Saved Games and Game Stats — to compile
 and actually work on a device, so Level Up Phases 1 and 2 can be called done.
 
-## Blocking prerequisite
+## Blocking prerequisite — CLEARED 2026-08-11
 
-**Saved Games must be enabled in Play Console before any of this can work.** Without
-it every `SnapshotsClient` call fails and the cloud-save checks below are untestable.
-This is Phase 0 Step 2 of the plan and nobody has done it yet.
+**Saved Games ("Zapisane gry") is enabled in Play Console.** Confirmed by the account
+owner in the console UI; it is not verifiable through any API we hold — see the note at
+the end of this section. The cloud-save device checks in section 3 are now unblocked.
 
-Start from the app dashboard —
+Path kept for reference, and for whoever needs to re-check it. Start from the app
+dashboard —
 
 ```
 https://play.google.com/console/u/0/developers/8291209362117111057/app/4974544417577616151/app-dashboard
@@ -21,14 +22,29 @@ https://play.google.com/console/u/0/developers/8291209362117111057/app/497454441
 — then: **Grow users → Play Games Services → Setup and management → Configuration →
 Edit properties**, turn **Saved Games** to **ON**, and **Save**.
 
-**Do not build and test immediately after flipping it.** Activation takes **up to 24
-hours** to propagate, and a device hitting it early fails in a way that reads exactly
-like a bug in the bridge — you will spend the afternoon debugging working code. To test
-the same day, clear the cached configuration on the test device:
+**Activation takes up to 24 hours to propagate.** It was switched on 2026-08-11, so a
+device testing within a day of that may still fail in a way that reads exactly like a
+bug in the bridge — do not start debugging working code. Force the refresh instead:
 
 ```
 Settings → Apps → Google Play services → Manage Space → Clear All Data
 ```
+
+**This state cannot be verified through any API we have.** For the record, so nobody
+burns an afternoon rediscovering it:
+
+- `gamesConfiguration` v1configuration exposes only `achievementConfigurations` and
+  `leaderboardConfigurations` — no app-level feature flags.
+- The Games API v1 `applications.get` does carry `enabledFeatures` (Saved Games appears
+  there as `SNAPSHOTS`), but it **ignores the application id in the path** and resolves
+  the app from the calling credential's own Cloud project. Our service account lives in
+  `breathing-in-labour` (1011162158987), not the Games project (381435458877), so it
+  answers `404 application 1011162158987 not found`. Enabling the Games API in the Cloud
+  project does not change this. The same key against `gamesConfiguration` for the same
+  game returns 200, which is how we know it is an addressing limitation and not
+  permissions.
+
+The console UI is the only source of truth for this toggle.
 
 ## Why this exists
 

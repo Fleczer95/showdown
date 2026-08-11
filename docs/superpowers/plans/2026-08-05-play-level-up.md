@@ -62,10 +62,11 @@ may already be done — Sidekick in particular is believed to be enabled already
 Play Console → ShowDown → Grow → Play Games Services → Sidekick.
 Record: enabled yes/no. If already enabled, Phase 4's Sidekick task is a no-op.
 
-- [ ] **Step 2: Enable Saved Games**
+- [x] **Step 2: Enable Saved Games** — done 2026-08-11
 
-Play Console → Play Games Services → Configuration → enable **Saved Games**.
-This is a hard prerequisite: `SnapshotsClient` calls fail without it.
+Grow users → Play Games Services → Setup and management → Configuration → Edit
+properties → **Saved Games** ON. Confirmed in the console UI; no API we hold can read
+this flag (see the Android handoff for why). Allow up to 24h to propagate.
 
 - [ ] **Step 3: Confirm the target-audience declaration**
 

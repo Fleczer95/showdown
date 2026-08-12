@@ -157,13 +157,35 @@ and neither has ever run on hardware.
 
 ### Game Stats
 
-5. Upload `.agents/game-services/game_stats.csv` in Play Console → Play Games Services →
-   Game Stats. **The column headers are a best guess** — match them to the template
-   Console offers and fix the file if they differ.
-6. Play one run of each game. In Console, the rejected-events list must be empty. PGS
+**Timing caveat, read this first:** Google's docs say test accounts can exercise a
+*draft* Game Stats configuration from **September 2026**, and that stats appear on the
+Gamer profile in the same month. Checks 5–7 may simply not be observable before then.
+They do not block the cloud-save work or the release.
+
+5. Upload the Game Stats configuration. It is **a ZIP, not a single CSV** — Google
+   requires separate files for repetitive stats, the progression stat, localizations,
+   and the referenced icon images. The prepared set lives in
+   `.agents/game-services/game_stats/`:
+   - `repetitive_stats.csv` — 8 stats (the minimum is 5), one flagged competitive
+   - `progression_stat.csv` — the Level stat
+   - `localizations.csv` — pl-PL for all nine
+   - icons: run `python .agents/game-services/gen_images.py stats` on a machine with
+     Pillow to generate the nine `stat-*.png` files into `.agents/game-services/images/`
+
+   **Column headers are still inferred from prose documentation** — Google does not
+   publish the exact template. Download the template Console offers and reconcile
+   before uploading.
+6. **Publish the Play Games Services configuration.** Stats stay a draft until you do;
+   this is a separate action from uploading. Achievements already have a published
+   version, so the config itself is published — the new stats still need their own.
+7. Play one run of each game. In Console, the rejected-events list must be empty. PGS
    validates every event against the schema and drops mismatches silently, so an empty
-   rejection list is the only evidence that the properties line up.
-7. Confirm `progressUpdate` moves the Level stat when a run crosses a level threshold.
+   rejection list is the only evidence that the properties line up. Every property the
+   client sends (`gameId`, `score`, `isWinner`, `rungReached`, `lifelinesUsed`,
+   `isChallenge`, `currentProgress`) is referenced by a stat, which is what keeps them
+   in the schema — do not drop a stat without dropping its property from
+   `src/services/gameServices/stats.ts` too.
+8. Confirm `progressUpdate` moves the Level stat when a run crosses a level threshold.
 
 ---
 

@@ -1,6 +1,6 @@
 // Game Stats event shaping. Two events carry everything; the individual STATS are
 // defined console-side as aggregations over these properties (see
-// .agents/game-services/game_stats.csv), which is why this file stays this small —
+// .agents/game-services/game_stats/), which is why this file stays this small —
 // adding a stat is usually a CSV row, not code.
 //
 // Every property is always present, never conditionally omitted: PGS validates each

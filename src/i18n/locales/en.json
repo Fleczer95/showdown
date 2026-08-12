@@ -965,7 +965,7 @@
         },
         "blocked": {
             "title": "Your progress is safe",
-            "body": "Something looked wrong with the saved copy of your progress, so we left this device untouched rather than risk it. Nothing was lost. If you play on two devices, they may not be in sync for now.",
+            "body": "Something looked wrong with the saved copy of your progress, so we left this device untouched rather than risk it. If you play on two devices, they may not be in sync for now.",
             "cta": "Got it"
         }
     },

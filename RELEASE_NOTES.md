@@ -1,51 +1,30 @@
 # Release Notes
 
-## [1.5.0] - 2026-08-13
+## [1.4.1] - 2026-08-04
+
+The same version number carries different work on each store: iOS 1.4.1 shipped the
+Game Center fix below, Android 1.4.1 additionally carries cloud save.
 
 ### Added
 
-- [PL] Postęp przenosi się między urządzeniami (Android). Gdy jesteś zalogowany w Google Play Games, gra odnajduje na nowym telefonie twój poziom, zdobyte odznaki i rekordy — i przenosi je automatycznie przy pierwszym uruchomieniu.
-- [EN] Progress carries across devices (Android). While you are signed in to Google Play Games, the game finds your level, earned badges and best scores on a new phone and brings them over on first launch.
-- [PL] Lisek daje znać, kiedy postęp został przeniesiony z innego urządzenia.
-- [EN] The fox lets you know when progress has been brought over from another device.
+- [PL] (Android) Postęp przenosi się między urządzeniami. Gdy jesteś zalogowany w Google Play Games, gra odnajduje na nowym telefonie twój poziom, zdobyte odznaki i rekordy — i przenosi je automatycznie przy pierwszym uruchomieniu.
+- [EN] (Android) Progress carries across devices. While you are signed in to Google Play Games, the game finds your level, earned badges and best scores on a new phone and brings them over on first launch.
+- [PL] (Android) Lisek daje znać, kiedy postęp został przeniesiony z innego urządzenia.
+- [EN] (Android) The fox lets you know when progress has been brought over from another device.
 
 ### Improved
 
-- [PL] Postęp zapisany na urządzeniu nigdy nie zostaje zastąpiony. Gdy przeniesienie nie może się odbyć bezpiecznie, gra zostawia twój postęp nietknięty i mówi ci o tym.
-- [EN] Progress saved on a device is never replaced. When a transfer cannot happen safely, the game leaves your progress untouched and tells you so.
-
-### App Store
-
-<!-- PL -->
-
-[Wersja: 1.5.0]
-Twój postęp przenosi się teraz między urządzeniami. Zaloguj się do Google Play Games, a na nowym telefonie znajdziesz swój poziom, odznaki i rekordy. Postępu, który masz już na urządzeniu, gra nigdy nie zastąpi.
-
-<!-- EN -->
-
-Version 1.5.0
-Your progress now moves between devices. Sign in to Google Play Games and your level, badges and best scores are waiting on a new phone. Progress already on a device is never replaced.
-
-### Google Play
-
-<!-- PL -->
-
-[Wersja: 1.5.0]
-Twój postęp przenosi się teraz między urządzeniami. Zaloguj się do Google Play Games, a na nowym telefonie znajdziesz swój poziom, odznaki i rekordy. Postępu, który masz już na urządzeniu, gra nigdy nie zastąpi.
-
-<!-- EN -->
-
-Version 1.5.0
-Your progress now moves between devices. Sign in to Google Play Games and your level, badges and best scores are waiting on a new phone. Progress already on a device is never replaced.
-
-## [1.4.1] - 2026-08-04
+- [PL] (Android) Postęp zapisany na urządzeniu nigdy nie zostaje zastąpiony. Gdy przeniesienie nie może się odbyć bezpiecznie, gra zostawia twój postęp nietknięty i mówi ci o tym.
+- [EN] (Android) Progress saved on a device is never replaced. When a transfer cannot happen safely, the game leaves your progress untouched and tells you so.
 
 ### Fixed
 
-- [PL] Osiągnięcia i rankingi zapowiedziane w 1.4.0 nie pokazywały się w Game Center na iOS — panel był pusty, a zdobyte odznaki nie trafiały na konto. Wszystko, co zdobyłeś wcześniej, pojawi się przy pierwszym uruchomieniu. Androida ten błąd nie dotyczył.
-- [EN] The achievements and leaderboards announced in 1.4.0 never appeared in Game Center on iOS — the dashboard was empty and earned badges were not recorded. Everything earned before this update appears on first launch. Android was unaffected.
+- [PL] (iOS) Osiągnięcia i rankingi zapowiedziane w 1.4.0 nie pokazywały się w Game Center — panel był pusty, a zdobyte odznaki nie trafiały na konto. Wszystko, co zdobyłeś wcześniej, pojawi się przy pierwszym uruchomieniu. Androida ten błąd nie dotyczył.
+- [EN] (iOS) The achievements and leaderboards announced in 1.4.0 never appeared in Game Center — the dashboard was empty and earned badges were not recorded. Everything earned before this update appears on first launch. Android was unaffected.
 
 ### App Store
+
+Already published with the iOS build.
 
 <!-- PL -->
 
@@ -62,12 +41,12 @@ The achievements and leaderboards from the last update weren't showing up in Gam
 <!-- PL -->
 
 [Wersja: 1.4.1]
-Poprawki wewnętrzne i optymalizacja.
+Twój postęp przenosi się teraz między urządzeniami. Zaloguj się do Google Play Games, a na nowym telefonie znajdziesz swój poziom, odznaki i rekordy. Postępu, który masz już na urządzeniu, gra nigdy nie zastąpi.
 
 <!-- EN -->
 
 Version 1.4.1
-Internal improvements and optimizations.
+Your progress now moves between devices. Sign in to Google Play Games and your level, badges and best scores are waiting on a new phone. Progress already on a device is never replaced.
 
 ## [1.4.0] - 2026-07-31
 

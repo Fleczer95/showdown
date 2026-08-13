@@ -972,7 +972,7 @@
     "whatsNew": {
         "title": "Want to see what's new in %{version}?",
         "cta": "Let's play",
-        "1_4_1": {
+        "1_5_0": {
             "cloudSave": "Your progress now follows you to a new phone.",
             "notice": "The fox says so when he's brought it over.",
             "safety": "What you have on this device is never overwritten."

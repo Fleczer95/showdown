@@ -26,14 +26,11 @@ export interface WhatsNewEntry {
     highlights: WhatsNewHighlight[];
 }
 
-// Android ships cloud save as 1.4.1; iOS 1.4.1 was the Game Center fix and is
-// already live, so its players saw no sheet and their seen-version key has moved
-// past it. Only Android updating from 1.4.0 gets these highlights.
 export const WHATS_NEW: WhatsNewEntry = {
-    version: '1.4.1',
+    version: '1.5.0',
     highlights: [
-        { emoji: '☁️', key: 'whatsNew.1_4_1.cloudSave' },
-        { emoji: '🦊', key: 'whatsNew.1_4_1.notice' },
-        { emoji: '🛡️', key: 'whatsNew.1_4_1.safety' },
+        { emoji: '☁️', key: 'whatsNew.1_5_0.cloudSave' },
+        { emoji: '🦊', key: 'whatsNew.1_5_0.notice' },
+        { emoji: '🛡️', key: 'whatsNew.1_5_0.safety' },
     ],
 };

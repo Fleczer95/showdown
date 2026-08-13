@@ -9,6 +9,7 @@ export * from './map';
 export * from './streak';
 export * from './achievements';
 export * from './recordRun';
+export * from './merge';
 export * from './themes';
 export * from './signatures';
 export * from './mascotColors';

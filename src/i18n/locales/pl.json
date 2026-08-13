@@ -957,9 +957,26 @@
         "cta": "Aktualizuj",
         "later": "Nie teraz"
     },
+    "cloudSave": {
+        "restored": {
+            "title": "Dobrze cię widzieć!",
+            "body": "Znaleźliśmy twój postęp z innego urządzenia i przenieśliśmy go tutaj. Wszystko, co zdobyłeś, jest na miejscu.",
+            "cta": "Super"
+        },
+        "blocked": {
+            "title": "Twój postęp jest bezpieczny",
+            "body": "Zapisana kopia twojego postępu wyglądała podejrzanie, więc zostawiliśmy to urządzenie nietknięte, zamiast ryzykować. Jeśli grasz na dwóch urządzeniach, na razie mogą się nie synchronizować.",
+            "cta": "Rozumiem"
+        }
+    },
     "whatsNew": {
         "title": "Chcesz zobaczyć, co nowego w %{version}?",
-        "cta": "Zagrajmy"
+        "cta": "Zagrajmy",
+        "1_5_0": {
+            "cloudSave": "Twój postęp wędruje teraz na nowy telefon.",
+            "notice": "Lisek powie, kiedy go przeniesie.",
+            "safety": "To, co masz na tym urządzeniu, nigdy nie zostaje nadpisane."
+        }
     },
     "progression": {
         "title": "Postępy",

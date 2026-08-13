@@ -15,5 +15,8 @@ android {
 }
 
 dependencies {
-  implementation 'com.google.android.gms:play-services-games-v2:21.0.0'
+  // 22.0.0 is the first release carrying GameStatsClient and PlayerGameEvent —
+  // 21.0.0 has neither, so the Game Stats bridge cannot compile against it.
+  // Verified against the published AAR, not just the docs.
+  implementation 'com.google.android.gms:play-services-games-v2:22.0.0'
 }

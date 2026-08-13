@@ -15,6 +15,7 @@ import {
     remaining,
     consume,
     grantBonus,
+    seedBonus,
     UNLIMITED_RUNS,
     type OfflineRunState,
 } from './limit';
@@ -116,5 +117,26 @@ describe('grantBonus — one-time per level, no windfall', () => {
     it('is idempotent when no new level is reached', () => {
         const prev = state({ lastBonusLevel: 7, bonus: 5 });
         expect(grantBonus(prev, 7, 7, TODAY)).toEqual(prev);
+    });
+});
+
+describe('seedBonus — cloud restore must not re-pay other devices levels', () => {
+    it('raises the watermark without granting anything', () => {
+        const next = seedBonus(state({ lastBonusLevel: 3, bonus: 2 }), 15);
+        expect(next.lastBonusLevel).toBe(15);
+        expect(next.bonus).toBe(2);
+    });
+
+    it('never lowers the watermark', () => {
+        const prev = state({ lastBonusLevel: 20, bonus: 1 });
+        expect(seedBonus(prev, 15)).toBe(prev);
+    });
+
+    // The bug this exists for: a device sitting at level 3 restores a level-15
+    // save from another device, where those level-ups were already paid out.
+    // Without seeding, the next single level-up settles the whole 12-level gap.
+    it('leaves the next level-up paying for one level, not the restored gap', () => {
+        const restored = seedBonus(state({ lastBonusLevel: 3 }), 15);
+        expect(grantBonus(restored, 15, 16, TODAY).bonus).toBe(BONUS_RUNS_PER_LEVEL);
     });
 });

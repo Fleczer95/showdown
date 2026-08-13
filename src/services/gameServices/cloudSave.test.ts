@@ -1,0 +1,155 @@
+import { restoreFromCloud, restoreAndPersist, pushToCloud } from './cloudSave';
+import { defaultStats } from '../../game/progression/defaults';
+
+jest.mock('../../../modules/game-services', () => ({
+    gameServicesAvailable: true,
+    readCloudSave: jest.fn(),
+    writeCloudSave: jest.fn().mockResolvedValue(true),
+}));
+
+// mergeStats is spied so one test can simulate a broken merge; preservesProgress
+// stays real, because it is the thing under test.
+jest.mock('../../game/progression/merge', () => {
+    const actual = jest.requireActual('../../game/progression/merge');
+    return { ...actual, mergeStats: jest.fn(actual.mergeStats) };
+});
+
+const native = jest.requireMock('../../../modules/game-services');
+
+describe('restoreFromCloud', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        native.writeCloudSave.mockResolvedValue(true);
+    });
+
+    it('merges the remote save into the stats it was handed', async () => {
+        native.readCloudSave.mockResolvedValue(JSON.stringify({ ...defaultStats(), lifetimeXp: 900 }));
+
+        const merged = await restoreFromCloud({ ...defaultStats(), lifetimeXp: 400 });
+        expect(merged?.lifetimeXp).toBe(900);
+    });
+
+    it('pushes the merged union back so both devices converge', async () => {
+        native.readCloudSave.mockResolvedValue(JSON.stringify({ ...defaultStats(), runsPlayed: 3 }));
+
+        await restoreFromCloud({ ...defaultStats(), runsPlayed: 2 });
+        expect(native.writeCloudSave).toHaveBeenCalledWith(expect.stringContaining('"runsPlayed":3'));
+    });
+
+    it('treats a partial remote payload as zeros, never lowering local counters', async () => {
+        // An older app version wrote a slot without challengesPlayed.
+        native.readCloudSave.mockResolvedValue(JSON.stringify({ lifetimeXp: 100, runsPlayed: 1 }));
+
+        const merged = await restoreFromCloud({ ...defaultStats(), runsPlayed: 4, challengesPlayed: 2 });
+        expect(merged?.runsPlayed).toBe(4);
+        expect(merged?.challengesPlayed).toBe(2);
+    });
+
+    // Guards the whole restore path, not just the merge: a device that keeps
+    // relaunching must end up exactly where it started.
+    it('does not inflate anything when the slot holds the same history as local', async () => {
+        const local = { ...defaultStats(), runsPlayed: 10, winsByGame: { 'the-ladder': 4 }, lifetimeXp: 3600 };
+        native.readCloudSave.mockResolvedValue(JSON.stringify(local));
+
+        const merged = await restoreFromCloud(local);
+        expect(merged).toEqual(local);
+    });
+
+    it('returns null when the slot is empty', async () => {
+        native.readCloudSave.mockResolvedValue(null);
+
+        expect(await restoreFromCloud(defaultStats())).toBeNull();
+        expect(native.writeCloudSave).not.toHaveBeenCalled();
+    });
+
+    it('returns null on a corrupt payload rather than resetting progress', async () => {
+        native.readCloudSave.mockResolvedValue('{not json');
+
+        expect(await restoreFromCloud({ ...defaultStats(), lifetimeXp: 400 })).toBeNull();
+        expect(native.writeCloudSave).not.toHaveBeenCalled();
+    });
+
+    it('ignores a payload that is valid JSON but not an object', async () => {
+        native.readCloudSave.mockResolvedValue('"just a string"');
+
+        expect(await restoreFromCloud({ ...defaultStats(), lifetimeXp: 400 })).toBeNull();
+    });
+});
+
+describe('restoreAndPersist', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        native.writeCloudSave.mockResolvedValue(true);
+    });
+
+    it('keeps a run that lands while the cloud read is in flight', async () => {
+        let persisted = { ...defaultStats(), lifetimeXp: 400, runsPlayed: 4 };
+        const load = jest.fn(() => persisted);
+        const save = jest.fn((s: typeof persisted) => {
+            persisted = s;
+        });
+
+        // The read resolves only after a run has already been recorded locally. The
+        // cloud carries more XP (so the restore genuinely contributes) but fewer
+        // runs — the run that landed mid-flight is the one at risk.
+        native.readCloudSave.mockImplementation(async () => {
+            persisted = { ...persisted, lifetimeXp: 500, runsPlayed: 5 };
+            return JSON.stringify({ ...defaultStats(), lifetimeXp: 900, runsPlayed: 3 });
+        });
+
+        const result = await restoreAndPersist(load, save);
+
+        expect(result).toEqual({
+            status: 'restored',
+            stats: expect.objectContaining({ lifetimeXp: 900, runsPlayed: 5 }),
+        });
+        expect(persisted.runsPlayed).toBe(5);
+    });
+
+    // Simulates the failure the guard exists for: a future edit breaks mergeStats so
+    // it returns something worse than local. The write must be refused, not applied.
+    it('refuses to persist a state that would lose progress', async () => {
+        // mergeStats runs twice per restore: once inside restoreFromCloud, once on
+        // the write candidate. Only the second one needs to come back broken.
+        const merge = jest.requireMock('../../game/progression/merge');
+        merge.mergeStats
+            .mockReturnValueOnce({ ...defaultStats(), lifetimeXp: 5000 })
+            .mockReturnValueOnce({ ...defaultStats(), lifetimeXp: 1 });
+        native.readCloudSave.mockResolvedValue(JSON.stringify(defaultStats()));
+        const save = jest.fn();
+
+        const result = await restoreAndPersist(() => ({ ...defaultStats(), lifetimeXp: 5000 }), save);
+
+        expect(result).toEqual({ status: 'blocked' });
+        expect(save).not.toHaveBeenCalled();
+    });
+
+    it('persists nothing when there was no usable slot', async () => {
+        const save = jest.fn();
+        native.readCloudSave.mockResolvedValue(null);
+
+        expect(await restoreAndPersist(() => defaultStats(), save)).toEqual({ status: 'none' });
+        expect(save).not.toHaveBeenCalled();
+    });
+
+    // Every quiet launch lands here. It must not write, and it must not report
+    // "restored" — otherwise the player is told their progress synced on every
+    // single start, which is both untrue and noise.
+    it('reports unchanged and skips the write when the cloud had nothing new', async () => {
+        const local = { ...defaultStats(), lifetimeXp: 3600, runsPlayed: 10 };
+        native.readCloudSave.mockResolvedValue(JSON.stringify(local));
+        const save = jest.fn();
+
+        expect(await restoreAndPersist(() => local, save)).toEqual({ status: 'unchanged' });
+        expect(save).not.toHaveBeenCalled();
+    });
+});
+
+describe('pushToCloud', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('serializes the stats it is handed', async () => {
+        await pushToCloud({ ...defaultStats(), lifetimeXp: 123 });
+        expect(native.writeCloudSave).toHaveBeenCalledWith(expect.stringContaining('"lifetimeXp":123'));
+    });
+});

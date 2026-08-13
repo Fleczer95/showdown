@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Fredoka_700Bold } from '@expo-google-fonts/fredoka';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
@@ -15,7 +15,11 @@ import { initFirebase } from './src/utils/firebase/init';
 import { initAppCheck } from './src/utils/firebase/appCheck';
 import { retryPending } from './src/game/ranking/push';
 import { syncGameServices } from './src/services/gameServices';
-import { loadStats } from './src/game/progression';
+import { loadStats, saveStats, level } from './src/game/progression';
+import { seedBonusLevel } from './src/game/offline/limit';
+import { restoreAndPersist, type RestoreOutcome } from './src/services/gameServices/cloudSave';
+import { trackRestore } from './src/services/gameServices/restoreSignal';
+import { beginAuthentication } from './modules/game-services';
 import { AnalyticsProviders } from './src/hooks/analytics';
 import { StoreProvider, useStore } from './src/hooks/store/useStore';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -36,6 +40,37 @@ initFirebase();
 // Replay earned achievements/best scores to Game Center / Play Games once per
 // launch — idempotent, digest-throttled, and a no-op when signed out.
 void syncGameServices(loadStats());
+// Pull the Play Saved Games slot and merge it into local progress. Merge, never
+// replace — a second device that played offline must not lose those runs. A
+// failure resolves to null and leaves local state exactly as it was, so this can
+// never block or corrupt startup.
+//
+// Android only, and it authenticates first rather than riding on the sync above:
+// that call returns early when there is nothing to send, which is exactly the
+// fresh-install case cloud save exists for. On iOS this would also initialize
+// Game Center on a blank install, which the native module deliberately avoids.
+if (Platform.OS === 'android') {
+    const attempt = beginAuthentication()
+        .then((signedIn) =>
+            signedIn ? restoreAndPersist(loadStats, saveStats) : ({ status: 'none' } as RestoreOutcome),
+        )
+        .then(async (outcome): Promise<RestoreOutcome> => {
+            if (outcome.status !== 'restored') return outcome;
+            // A restore can lift this device a dozen levels in one step, and those
+            // level-ups were already paid out in banked runs on the device that
+            // earned them. Mark them settled so the next level-up here pays for
+            // one level, not for the whole restored gap.
+            seedBonusLevel(level(outcome.stats.lifetimeXp));
+            // The merge may have crossed achievement or best-score thresholds this
+            // device never saw, so re-run the platform sync over the union.
+            await syncGameServices(outcome.stats);
+            return outcome;
+        });
+    // Home reports the outcome to the player; it mounts while this is still in
+    // flight, so it waits on the promise rather than reading a value.
+    trackRestore(attempt);
+    void attempt.catch(() => undefined);
+}
 
 function PremiumThemeGate() {
     const { themeId, setTheme } = useThemeActions();

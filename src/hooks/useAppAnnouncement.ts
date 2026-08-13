@@ -3,6 +3,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { WHATS_NEW } from '../data/whatsNew';
 import { loadStats } from '../game/progression';
 import { checkStoreVersion } from '../services/appUpdate/updateCheck';
+import { restoreOutcome } from '../services/gameServices/restoreSignal';
 import {
     decideWhatsNew,
     markUpdatePromptSeen,
@@ -13,7 +14,12 @@ import {
 } from '../services/appUpdate/seenVersions';
 import { APP_VERSION } from '../utils/version';
 
-export type Announcement = { kind: 'whatsNew' } | { kind: 'update' } | null;
+export type Announcement =
+    | { kind: 'whatsNew' }
+    | { kind: 'update' }
+    | { kind: 'cloudRestored' }
+    | { kind: 'cloudBlocked' }
+    | null;
 
 /**
  * One decision per launch, not per mount. Home can gain focus many times in a
@@ -66,17 +72,34 @@ export function useAppAnnouncement(): { announcement: Announcement; dismiss: () 
         }
 
         let active = true;
-        void checkStoreVersion().then((result) => {
-            if (!active || !result) return;
-            // Left Home while the lookup was in flight: show nothing and mark
+        // Both lookups are already running by now — the restore started at launch,
+        // the store check starts here — so awaiting them together costs nothing and
+        // lets one ordering decide between them.
+        void Promise.all([restoreOutcome(), checkStoreVersion()]).then(([restore, result]) => {
+            if (!active) return;
+            // Left Home while the lookups were in flight: show nothing and mark
             // nothing, so the prompt is still available on the next launch.
             if (!focusedRef.current) {
                 decidedThisLaunch = false;
                 return;
             }
-            if (!shouldPromptUpdate(readUpdatePromptSeen(), result.storeVersion)) return;
-            markUpdatePromptSeen(result.storeVersion);
-            setAnnouncement({ kind: 'update' });
+
+            // A refused write means cloud save is not working for this player and
+            // their devices are silently diverging — that outranks a version nudge.
+            if (restore.status === 'blocked') {
+                setAnnouncement({ kind: 'cloudBlocked' });
+                return;
+            }
+
+            if (result && shouldPromptUpdate(readUpdatePromptSeen(), result.storeVersion)) {
+                markUpdatePromptSeen(result.storeVersion);
+                setAnnouncement({ kind: 'update' });
+                return;
+            }
+
+            // Purely good news, so it yields to everything else and only appears on
+            // the launch that actually pulled progress across.
+            if (restore.status === 'restored') setAnnouncement({ kind: 'cloudRestored' });
         });
 
         return () => {

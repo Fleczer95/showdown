@@ -1,0 +1,2 @@
+display_name,icon_filename,description,direction,unit
+Level,stat-level.png,Your level on the ShowDown Level Map. Every run earns XP toward the next one.,INCREASING,level

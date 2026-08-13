@@ -26,11 +26,12 @@ export interface WhatsNewEntry {
     highlights: WhatsNewHighlight[];
 }
 
+// Cloud save was announced in 1.4.1, which is live on Play — repeating it here
+// would tell Android players about something they already have, and iOS players
+// about a feature that platform does not ship at all. 1.5.0 only fixes how the
+// restore surfaces, which is not worth a sheet. Empty highlights are supported:
+// no sheet, no error.
 export const WHATS_NEW: WhatsNewEntry = {
     version: '1.5.0',
-    highlights: [
-        { emoji: '☁️', key: 'whatsNew.1_5_0.cloudSave' },
-        { emoji: '🦊', key: 'whatsNew.1_5_0.notice' },
-        { emoji: '🛡️', key: 'whatsNew.1_5_0.safety' },
-    ],
+    highlights: [],
 };

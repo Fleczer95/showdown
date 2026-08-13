@@ -971,12 +971,7 @@
     },
     "whatsNew": {
         "title": "Chcesz zobaczyć, co nowego w %{version}?",
-        "cta": "Zagrajmy",
-        "1_5_0": {
-            "cloudSave": "Twój postęp wędruje teraz na nowy telefon.",
-            "notice": "Lisek powie, kiedy go przeniesie.",
-            "safety": "To, co masz na tym urządzeniu, nigdy nie zostaje nadpisane."
-        }
+        "cta": "Zagrajmy"
     },
     "progression": {
         "title": "Postępy",

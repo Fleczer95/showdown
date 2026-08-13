@@ -2,43 +2,48 @@
 
 ## [1.5.0] - 2026-08-13
 
-### Added
+### Fixed
 
-- [PL] Postęp przenosi się między urządzeniami (Android). Gdy jesteś zalogowany w Google Play Games, gra odnajduje na nowym telefonie twój poziom, zdobyte odznaki i rekordy — i przenosi je automatycznie przy pierwszym uruchomieniu.
-- [EN] Progress carries across devices (Android). While you are signed in to Google Play Games, the game finds your level, earned badges and best scores on a new phone and brings them over on first launch.
-- [PL] Lisek daje znać, kiedy postęp został przeniesiony z innego urządzenia.
-- [EN] The fox lets you know when progress has been brought over from another device.
-
-### Improved
-
-- [PL] Postęp zapisany na urządzeniu nigdy nie zostaje zastąpiony. Gdy przeniesienie nie może się odbyć bezpiecznie, gra zostawia twój postęp nietknięty i mówi ci o tym.
-- [EN] Progress saved on a device is never replaced. When a transfer cannot happen safely, the game leaves your progress untouched and tells you so.
+- [PL] (Android) Postęp przeniesiony z innego urządzenia pojawia się teraz od razu. Wcześniej ekran główny pokazywał poziom 1 i zero punktów, dopóki nie weszło się w dowolny inny widok — wyglądało to jak utrata postępu, choć dane były całe.
+- [EN] (Android) Progress brought over from another device now appears straight away. The home screen used to show level 1 and zero points until you opened another view — it looked like lost progress, though the data was intact.
+- [PL] (Android) Powitanie po przeniesieniu postępu faktycznie się pokazuje. Na świeżej instalacji — czyli dokładnie wtedy, gdy ma sens — komunikat był pomijany.
+- [EN] (Android) The greeting shown after progress is brought over now actually appears. On a fresh install — exactly when it matters — it was being skipped.
 
 ### App Store
 
 <!-- PL -->
 
 [Wersja: 1.5.0]
-Twój postęp przenosi się teraz między urządzeniami. Zaloguj się do Google Play Games, a na nowym telefonie znajdziesz swój poziom, odznaki i rekordy. Postępu, który masz już na urządzeniu, gra nigdy nie zastąpi.
+Poprawki wewnętrzne i optymalizacja.
 
 <!-- EN -->
 
 Version 1.5.0
-Your progress now moves between devices. Sign in to Google Play Games and your level, badges and best scores are waiting on a new phone. Progress already on a device is never replaced.
+Internal improvements and optimizations.
 
 ### Google Play
 
 <!-- PL -->
 
 [Wersja: 1.5.0]
-Twój postęp przenosi się teraz między urządzeniami. Zaloguj się do Google Play Games, a na nowym telefonie znajdziesz swój poziom, odznaki i rekordy. Postępu, który masz już na urządzeniu, gra nigdy nie zastąpi.
+Postęp przeniesiony z innego urządzenia pojawia się teraz od razu, a nie dopiero po wejściu w grę. Lisek wita cię też przy tej okazji.
 
 <!-- EN -->
 
 Version 1.5.0
-Your progress now moves between devices. Sign in to Google Play Games and your level, badges and best scores are waiting on a new phone. Progress already on a device is never replaced.
+Progress brought over from another device now appears straight away, instead of only after you opened a game. The fox greets you when it lands, too.
 
 ## [1.4.1] - 2026-08-04
+
+The same version number carried different work on each store: iOS 1.4.1 shipped the
+Game Center fix, Android 1.4.1 shipped cloud save.
+
+### Added
+
+- [PL] (Android) Postęp przenosi się między urządzeniami. Gdy jesteś zalogowany w Google Play Games, gra odnajduje na nowym telefonie twój poziom, zdobyte odznaki i rekordy.
+- [EN] (Android) Progress carries across devices. While you are signed in to Google Play Games, the game finds your level, earned badges and best scores on a new phone.
+- [PL] (Android) Postęp zapisany na urządzeniu nigdy nie zostaje zastąpiony.
+- [EN] (Android) Progress saved on a device is never replaced.
 
 ### Fixed
 
@@ -62,12 +67,12 @@ The achievements and leaderboards from the last update weren't showing up in Gam
 <!-- PL -->
 
 [Wersja: 1.4.1]
-Poprawki wewnętrzne i optymalizacja.
+Twój postęp przenosi się teraz między urządzeniami. Zaloguj się do Google Play Games, a na nowym telefonie znajdziesz swój poziom, odznaki i rekordy. Postępu, który masz już na urządzeniu, gra nigdy nie zastąpi.
 
 <!-- EN -->
 
 Version 1.4.1
-Internal improvements and optimizations.
+Your progress now moves between devices. Sign in to Google Play Games and your level, badges and best scores are waiting on a new phone. Progress already on a device is never replaced.
 
 ## [1.4.0] - 2026-07-31
 

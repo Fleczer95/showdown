@@ -224,6 +224,23 @@ describe('useAppAnnouncement', () => {
             expect(markUpdatePromptSeen).not.toHaveBeenCalled();
         });
 
+        // Found on device: after clearing data, decideWhatsNew returns 'seed' and
+        // the effect used to return before ever reading the restore outcome — so
+        // the sheet could never appear on a fresh install, which is precisely the
+        // case cloud save exists for.
+        it('still reports a restore on a fresh install, where the seen key is empty', async () => {
+            mockReadWhatsNew.mockReturnValue(undefined);
+            mockRunsPlayed = 0;
+            mockRestore.mockResolvedValue({ status: 'restored', stats: restoredStats });
+
+            const { result } = renderHook(() => useAppAnnouncement());
+
+            await waitFor(() => expect(result.current.announcement).toEqual({ kind: 'cloudRestored' }));
+            expect(markWhatsNewSeen).toHaveBeenCalledWith(APP_VERSION);
+            // A build installed just now cannot be behind the store.
+            expect(mockCheck).not.toHaveBeenCalled();
+        });
+
         it('reports a successful restore when nothing else is competing', async () => {
             mockRestore.mockResolvedValue({ status: 'restored', stats: restoredStats });
 

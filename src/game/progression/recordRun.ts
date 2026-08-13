@@ -110,9 +110,24 @@ export function loadStats(): ProgressionStats {
     }
 }
 
+// Screens read stats on focus, which is enough for XP earned by playing — the
+// player is looking at a game-over screen when it changes. A cloud restore is
+// different: it lands seconds after Home has already rendered, so without a
+// notification the player sits staring at "Lv 1 · 0 XP" and concludes their
+// progress is gone.
+type StatsListener = (stats: ProgressionStats) => void;
+const listeners = new Set<StatsListener>();
+
+/** Subscribe to persisted-stat writes. Returns the unsubscribe function. */
+export function subscribeToStats(listener: StatsListener): () => void {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+}
+
 /** Persist raw stats. Exported for cloud-save restore, which writes a merged state. */
 export function saveStats(stats: ProgressionStats): void {
     store.set(STATS_KEY, JSON.stringify(stats));
+    for (const listener of listeners) listener(stats);
 }
 
 /** Device's local calendar date as YYYY-MM-DD. */

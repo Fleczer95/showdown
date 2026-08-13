@@ -63,19 +63,24 @@ export function useAppAnnouncement(): { announcement: Announcement; dismiss: () 
         const decision = decideWhatsNew(readWhatsNewSeen(), APP_VERSION, notesVersion, loadStats().runsPlayed > 0);
 
         // 'seed' (fresh install) and 'bump' (a patch with no notes) both record
-        // the version and stay quiet — and skip the store check, because a build
-        // installed or updated just now is not behind the store.
-        if (decision !== 'none') {
-            markWhatsNewSeen(APP_VERSION);
-            if (decision === 'show') setAnnouncement({ kind: 'whatsNew' });
+        // the version and stay quiet.
+        if (decision !== 'none') markWhatsNewSeen(APP_VERSION);
+        if (decision === 'show') {
+            setAnnouncement({ kind: 'whatsNew' });
             return;
         }
+
+        // Skip the store check for a build installed or updated just now — it
+        // cannot be behind the store. The cloud outcome is still worth waiting
+        // for: a fresh install is exactly when a restore has something to say,
+        // and returning early here is why that sheet never appeared.
+        const storeCheck = decision === 'none' ? checkStoreVersion() : Promise.resolve(null);
 
         let active = true;
         // Both lookups are already running by now — the restore started at launch,
         // the store check starts here — so awaiting them together costs nothing and
         // lets one ordering decide between them.
-        void Promise.all([restoreOutcome(), checkStoreVersion()]).then(([restore, result]) => {
+        void Promise.all([restoreOutcome(), storeCheck]).then(([restore, result]) => {
             if (!active) return;
             // Left Home while the lookups were in flight: show nothing and mark
             // nothing, so the prompt is still available on the next launch.

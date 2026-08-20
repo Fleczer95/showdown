@@ -1,0 +1,10 @@
+Stat Id,Stat Display Name,Locale,Localized Stat Display Name,Localized Stat Description
+runs_played,Runs played,pl-PL,Rozegrane gry,Ukończone gry we wszystkich trzech teleturniejach.
+wins,Wins,pl-PL,Wygrane,Gry zakończone wygraną.
+ladder_best,Best Ladder score,pl-PL,Najlepszy wynik w Drabinie,Twój najwyższy wynik w jednej grze w Drabinie.
+drop_best,Best Drop bank,pl-PL,Najlepszy bank w Zrzucie,"Największy bank, z którym udało ci się wyjść w Zrzucie."
+wheel_best,Best Wheel score,pl-PL,Najlepszy wynik w Kole,Twój najwyższy wynik w jednej grze w Kole.
+challenges_played,Challenges played,pl-PL,Rozegrane wyzwania,Gry rozegrane jako wyzwanie dla znajomego.
+lifelines_used,Lifelines used,pl-PL,Użyte koła ratunkowe,Łączna liczba wykorzystanych kół ratunkowych. Mniej znaczy lepiej.
+highest_rung,Highest rung,pl-PL,Najwyższy szczebel,Najdalej jak zaszedłeś w Drabinie.
+level,Level,pl-PL,Poziom,"Twój poziom w ShowDown, zwiększany przez XP z każdej gry."

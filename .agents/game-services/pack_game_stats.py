@@ -1,7 +1,8 @@
 """Bundle the Game Stats configuration into the ZIP Play Console expects.
 
-Google takes one archive holding the three CSVs and every icon they reference.
-The CSVs name icons without a path, so everything is written flat at the root.
+Google takes the event schema as a separate CSV upload. After that, it accepts one
+archive holding the three stats CSVs and every icon they reference. The CSVs name
+icons without a path, so everything is written flat at the root.
 
 Fails loudly on a missing icon: a silently incomplete archive would be rejected
 by the console with a much less obvious message.
@@ -20,8 +21,8 @@ CONFIG_DIR = os.path.join(HERE, "game_stats")
 IMAGE_DIR = os.path.join(HERE, "images")
 OUT = os.path.join(HERE, "game_stats.zip")
 
-CSVS = ("repetitive_stats.csv", "progression_stat.csv", "localizations.csv")
-ICON_SOURCES = ("repetitive_stats.csv", "progression_stat.csv")
+CSVS = ("RepetitiveStatsConfig.csv", "ProgressionStatConfig.csv", "StatLocalizations.csv")
+ICON_SOURCES = ("RepetitiveStatsConfig.csv", "ProgressionStatConfig.csv")
 
 
 def icon_names():
@@ -29,7 +30,7 @@ def icon_names():
     for name in ICON_SOURCES:
         with open(os.path.join(CONFIG_DIR, name), newline="", encoding="utf-8") as fh:
             for row in csv.DictReader(fh):
-                names.add(row["icon_filename"])
+                names.add(row["Icon File Name"])
     return sorted(names)
 
 

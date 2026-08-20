@@ -104,15 +104,15 @@ def draw_stat_icon(icon_filename, out_path):
 
 
 def stat_icon_names():
-    """Every icon_filename referenced by the Game Stats CSVs."""
+    """Every icon filename referenced by the Game Stats CSVs."""
     import csv
 
     base = os.path.join(os.path.dirname(__file__), "game_stats")
     names = set()
-    for name in ("repetitive_stats.csv", "progression_stat.csv"):
+    for name in ("RepetitiveStatsConfig.csv", "ProgressionStatConfig.csv"):
         with open(os.path.join(base, name), newline="", encoding="utf-8") as fh:
             for row in csv.DictReader(fh):
-                names.add(row["icon_filename"])
+                names.add(row["Icon File Name"])
     return sorted(names)
 
 

@@ -1,9 +1,0 @@
-stat_id,event_label,property_label,aggregation,filter,competitive,min_hourly,max_hourly,display_name,description,icon_filename,direction,unit
-runs_played,runCompleted,,COUNT,,FALSE,,,Runs played,Games you have finished across all three shows.,stat-runs-played.png,INCREASING,runs
-wins,runCompleted,,COUNT,isWinner = true,FALSE,,,Wins,Games you finished as a winner.,stat-wins.png,INCREASING,wins
-ladder_best,runCompleted,score,MAX,gameId = the-ladder,TRUE,0,25000,Best Ladder score,Your highest score in a single Ladder run.,stat-ladder-best.png,INCREASING,points
-drop_best,runCompleted,score,MAX,gameId = the-drop,FALSE,,,Best Drop bank,The largest bank you have walked away with in The Drop.,stat-drop-best.png,INCREASING,points
-wheel_best,runCompleted,score,MAX,gameId = the-wheel,FALSE,,,Best Wheel score,Your highest score in a single Wheel run.,stat-wheel-best.png,INCREASING,points
-challenges_played,runCompleted,,COUNT,isChallenge = true,FALSE,,,Challenges played,Games played as a challenge against a friend.,stat-challenges.png,INCREASING,challenges
-lifelines_used,runCompleted,lifelinesUsed,SUM,,FALSE,,,Lifelines used,Total lifelines you have spent. Fewer is better.,stat-lifelines.png,DECREASING,lifelines
-highest_rung,runCompleted,rungReached,MAX,gameId = the-ladder,FALSE,,,Highest rung,The furthest you have climbed The Ladder.,stat-highest-rung.png,INCREASING,rungs

@@ -1,0 +1,9 @@
+Stat Id,Event Name,Event Property Name,Aggregation Type,Stat Display Name,Stat Description,Filter Property,Filter Operator,Filter Value,Is Competitive,Min limit,Max limit,Icon File Name,Good value direction,Unit
+runs_played,runCompleted,gameId,COUNT,Runs played,Games you have finished across all three shows.,,,,false,,,stat-runs-played.png,INCREASING,
+wins,runCompleted,isWinner,COUNT,Wins,Games you finished as a winner.,isWinner,=,true,false,,,stat-wins.png,INCREASING,
+ladder_best,runCompleted,score,MAX,Best Ladder score,Your highest score in a single Ladder run.,gameId,=,the-ladder,true,0,25000,stat-ladder-best.png,INCREASING,
+drop_best,runCompleted,score,MAX,Best Drop bank,The largest bank you have walked away with in The Drop.,gameId,=,the-drop,false,,,stat-drop-best.png,INCREASING,
+wheel_best,runCompleted,score,MAX,Best Wheel score,Your highest score in a single Wheel run.,gameId,=,the-wheel,false,,,stat-wheel-best.png,INCREASING,
+challenges_played,runCompleted,isChallenge,COUNT,Challenges played,Games played as a challenge against a friend.,isChallenge,=,true,false,,,stat-challenges.png,INCREASING,
+lifelines_used,runCompleted,lifelinesUsed,SUM,Lifelines used,Total lifelines you have spent. Fewer is better.,,,,false,,,stat-lifelines.png,DECREASING,
+highest_rung,runCompleted,rungReached,MAX,Highest rung,The furthest you have climbed The Ladder.,gameId,=,the-ladder,false,,,stat-highest-rung.png,INCREASING,

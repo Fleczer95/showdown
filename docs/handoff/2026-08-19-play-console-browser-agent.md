@@ -46,33 +46,60 @@ the account that owns the developer account.
 until the stats are declared, because incoming events are validated against the console
 schema and silently dropped when they do not match.
 
-**Input file:** `.agents/game-services/game_stats.zip` in the repository. If it is
-missing, regenerate it — the archive is deliberately untracked:
+**Input files:**
+
+- `.agents/game-services/game_stats/PlayerGameEvent.csv` — the event schema uploaded
+  separately before any stats can be configured.
+- `.agents/game-services/game_stats.zip` — the stats configuration archive. If it is
+  missing, regenerate it; the archive is deliberately untracked:
 
 ```bash
 /usr/bin/python3 .agents/game-services/pack_game_stats.py
 ```
 
-It contains three CSVs and nine PNG icons, flat at the archive root: `repetitive_stats.csv`
-(8 stats, one flagged competitive), `progression_stat.csv` (the Level stat), and
-`localizations.csv` (pl-PL for all nine).
+It contains three CSVs and nine PNG icons, flat at the archive root:
+`RepetitiveStatsConfig.csv` (8 stats, one flagged competitive),
+`ProgressionStatConfig.csv` (the Level stat), and `StatLocalizations.csv` (pl-PL for
+all nine). These names and their title-cased column headers must match exactly.
 
 ### Steps
 
 1. Navigate to **Grow users → Play Games Services → Setup and management**
    (PL: *Rozwój użytkowników → Play Games Services → Konfiguracja i zarządzanie*).
-2. Find the **Game Stats** section. Its exact position is not documented publicly, so
-   locate it within that area rather than following a fixed path.
-3. **Before uploading, download the template the console offers.** Compare its column
-   headers against the three CSVs.
+2. Open **Game Stats** under **Setup and management**, then select **Get started** if
+   the five-step setup checklist is shown.
+3. Configure events first. Open **Configure events**, download the sample, and verify
+   its headers are exactly `Event Name,Property Name,Property Type`. Upload
+   `PlayerGameEvent.csv` and save it as a draft. This prerequisite unlocks stats setup.
+4. Open **Configure stats**. **Before uploading, download the templates the console
+   offers** and compare their column headers against the three CSVs in the ZIP.
    - Headers match → upload the ZIP.
-   - **Headers differ → stop and report the exact expected columns.** They were inferred
-     from prose documentation, and a mismatched upload is rejected with an unhelpful
-     error. Do not rename columns on a guess.
-4. Upload the archive and record every validation message verbatim, including warnings.
-5. **Publish the Play Games Services configuration.** Stats stay a draft until this
+   - **Headers differ → update the files to the exact documented/template schema; do
+     not invent field names.** The old inferred schema predates the event-first flow.
+5. Upload the archive and record every validation message verbatim, including warnings.
+6. **Publish the Play Games Services configuration.** Stats stay a draft until this
    separate action runs. Achievements already have a published version, so the config
    itself is published — the new stats still need their own publish.
+
+### Console state observed on 2026-08-19
+
+- The live console uses a five-step Game Stats workflow and requires the event schema
+  before the stats ZIP. The stats upload is locked until events are saved as a draft.
+- The downloaded event sample is `game_stats_schema_config.csv` with headers
+  `Event Name,Property Name,Property Type`.
+- The downloaded stats sample is `game_stats_config.zip`. Its exact required files are
+  `RepetitiveStatsConfig.csv` and `ProgressionStatConfig.csv`; the optional localization
+  file is named `StatLocalizations.csv`.
+- **Task A is complete.** The console accepted 2 events and all 9 stats without
+  validation warnings. Both events and all stats show **Published / Available to
+  everyone**. The Play Games Services publication page confirmed **Game published**
+  and then **No changes to publish**.
+- Saving the stats draft briefly displayed generic error `7D7B078E`, but a reload
+  authoritatively showed all 9 stats saved as a draft and ready to publish. Publication
+  then completed normally; do not re-upload because of that stale error.
+- Google Play Games on PC is already **Active**. The console reports 2 of 4 tasks
+  complete: program enrolment and a test-track artifact are complete; screenshots and
+  video are optional. PC uses the same release track and artifacts as mobile.
 
 ### Verification
 
@@ -93,11 +120,13 @@ month. Uploading and publishing now is still correct; do not expect to see data 
 
 ### Steps
 
-1. Find the **Google Play Games on PC** area in the console.
-2. Read what the enrolment asks for and **report it before accepting anything.** This is
-   the one place where accepting a program agreement may be required; it needs explicit
-   human approval first.
-3. If the console runs a playability or emulator check, record its result in full.
+1. Find the **Google Play Games on PC** area in the console. As of 2026-08-19 it is at
+   **Test and release → format selector → Manage formats**.
+2. Confirm the format remains **Active** and uses the same release track and artifacts
+   as mobile. Do not change that setting.
+3. No further enrolment action is currently required. If a future console state asks
+   for a new agreement, report it before accepting anything.
+4. If the console runs a playability or emulator check, record its result in full.
 
 ### What is not your job
 

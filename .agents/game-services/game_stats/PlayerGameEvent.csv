@@ -1,0 +1,8 @@
+Event Name,Property Name,Property Type
+runCompleted,gameId,STRING
+runCompleted,score,INT64
+runCompleted,isWinner,BOOL
+runCompleted,rungReached,INT64
+runCompleted,lifelinesUsed,INT64
+runCompleted,isChallenge,BOOL
+progressUpdate,currentProgress,INT64

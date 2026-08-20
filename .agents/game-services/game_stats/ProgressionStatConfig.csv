@@ -1,0 +1,2 @@
+Stat Id,Event Property Name,Stat Display Name,Stat Description,Icon File Name,Good value direction,Unit
+level,currentProgress,Level,"Your ShowDown level, raised by XP from every run.",stat-level.png,INCREASING,

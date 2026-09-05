@@ -72,6 +72,20 @@ Background: these capabilities come only from `createAudioPlayer` (foreground SF
 `src/hooks/useSound.ts`) and Firebase Analytics — never from app features. `expo-sensors`
 is not imported anywhere in `src/`.
 
+## Android release builds (R8)
+
+Release builds run R8 (shrinking, optimization, obfuscation) via
+`android.enableMinifyInReleaseBuilds`, set in `app.json` (`expo-build-properties`) and
+`android/gradle.properties`. It is required by Google Play's DEX code optimization
+threshold, enforced February 2027.
+
+R8 breaks things at **runtime**, not build time, and only in `release` — a debug build
+tells you nothing about it. Before shipping any Android release, work through
+[`docs/handoff/2026-09-05-android-r8-verification.md`](docs/handoff/2026-09-05-android-r8-verification.md).
+When a minified build crashes, add a targeted `-keep` rule to
+`android/app/proguard-rules.pro`; never a blanket `-keep class ** { *; }`, and never
+turn the flag back off.
+
 ## Touch Event Propagation
 
 When using icons or complex layouts inside a `Pressable`, `Button`, or any interactive container:

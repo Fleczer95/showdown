@@ -65,7 +65,8 @@
         "expo-build-properties",
         {
           "android": {
-            "enableMinifyInReleaseBuilds": true
+            "enableMinifyInReleaseBuilds": true,
+            "extraProguardRules": "-keep @interface expo.modules.kotlin.records.Field { *; }"
           }
         }
       ],

@@ -12,3 +12,7 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# Expo reads @Field through Kotlin reflection. Preserve the annotation itself
+# so R8 does not replace record field descriptors with null during optimization.
+-keep @interface expo.modules.kotlin.records.Field { *; }

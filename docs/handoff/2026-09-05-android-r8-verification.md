@@ -99,6 +99,20 @@ aapt dump permissions android/app/build/outputs/apk/release/app-release.apk \
 
 ## Step 2 — prove R8 actually ran
 
+Release builds use `proguard-android-optimize.txt`; the legacy default includes
+`-dontoptimize`. `npm run prebuild` repairs the default after Expo regenerates it.
+Run the regression checks with `npm run test:r8`, then confirm no dependency has
+reintroduced a global disable flag in the effective release configuration:
+
+```bash
+test -s android/app/build/outputs/mapping/release/configuration.txt || exit 1
+if rg -n '^-(dontoptimize|dontshrink|dontobfuscate)(\s|$)' \
+  android/app/build/outputs/mapping/release/configuration.txt; then
+  echo "R8 processing is disabled by a global rule"
+  exit 1
+fi
+```
+
 Three cheap checks. **If any fails, stop — the rest of the testing is meaningless
 because you would be exercising an unminified build.**
 
@@ -229,3 +243,26 @@ Final compliance confirmation cannot happen locally: it comes from **Play Consol
 App bundle explorer**, which reports DEX optimization coverage per uploaded bundle.
 Upload an AAB (`npm run aab`) to an internal testing track and read the figure there
 once this branch merges.
+
+## Optimization regression found during verification (2026-09-06)
+
+The optimized release initially crashed at startup in Expo Audio. A diagnostic
+build traced the NPE to `RecordTypeConverter` reading `fieldAnnotation.key`; R8
+had removed the annotation reference. The non-optimizing baseline launched.
+Keep `expo.modules.kotlin.records.Field` explicitly in native ProGuard rules and
+`expo-build-properties.android.extraProguardRules` so regeneration preserves the
+fix. This keeps global optimization enabled. Cold-launch the release and exercise
+a game with audio after changes; the configuration tests alone cannot prove
+reflection works at runtime.
+
+### Verified locally — 2026-09-06
+
+- 99 Jest suites / 983 tests, 8 existing plugin checks, 4 R8 regression checks: passed.
+- Optimized x86_64 release APK builds: passed. Effective R8 configuration has
+  no global optimization, shrinking, or obfuscation disable directives.
+- Android API 33 emulator: cold launch, free gameplay/scoring, store screen,
+  and haptic setting persistence across process restart passed. Crash buffer
+  remained empty after the annotation fix.
+- Existing native permission exclusions and unrelated local edits preserved.
+- Purchases, online services, other games, physical devices, and other ABIs
+  were not verified in this run. No all-ABI AAB was built for this change.

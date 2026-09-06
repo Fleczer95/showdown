@@ -21,6 +21,17 @@ try {
     let content = readFileSync(buildGradlePath, 'utf8');
     let modified = false;
 
+    // Expo regenerates the legacy defaults, which contain -dontoptimize.
+    const optimizedContent = content.replace(
+        /(getDefaultProguardFile\(\s*(['"]))proguard-android\.txt(\2\s*\))/g,
+        '$1proguard-android-optimize.txt$3',
+    );
+    if (optimizedContent !== content) {
+        content = optimizedContent;
+        modified = true;
+        console.log('   ℹ️  Enabled R8 optimization defaults');
+    }
+
     // 1. Add signing config (if not already present)
     if (!content.includes('MYAPP_UPLOAD_STORE_FILE')) {
         const namespaceMatch = content.match(/(namespace '[^']+'\n)/);
@@ -149,7 +160,7 @@ try {
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             def enablePngCrunchInRelease = findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true'
             crunchPngs enablePngCrunchInRelease.toBoolean()
         }
@@ -193,7 +204,7 @@ try {
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             def enablePngCrunchInRelease = findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true'
             crunchPngs enablePngCrunchInRelease.toBoolean()
         }

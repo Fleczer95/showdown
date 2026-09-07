@@ -1,4 +1,6 @@
 import { createMMKV } from 'react-native-mmkv';
+import { listSessions, sessionNeedsHistory, type ChallengeSession } from './session/store';
+import { playDeadline, findEdition } from '../../../shared/events/definitions';
 
 // Local index of challenges this device has created or opened (ADR-0003 has no
 // server-side "my challenges" list, since identity is just a device UUID). It
@@ -20,7 +22,7 @@ export const REMATCH_SNOOZE_MS = 60 * 60 * 1000;
 export type ChallengeRole = 'created' | 'received';
 
 /** Derived play state for a list row. Pure function of the stub + current time. */
-export type ChallengeStatus = 'yourTurn' | 'waitingOpponent' | 'completed' | 'expired';
+export type ChallengeStatus = 'yourTurn' | 'waitingOpponent' | 'completed' | 'expired' | 'resume' | 'pendingUpload';
 
 /**
  * A local pointer to a challenge. Holds just enough to render a list row and
@@ -37,6 +39,8 @@ export interface ChallengeStub {
     played: boolean;
     /** True once a result reveal contains at least one other participant. */
     opponentPlayed?: boolean;
+    /** Event membership and result availability are independent facts. */
+    opponentJoined?: boolean;
     /** Epoch ms when this stub was first indexed — write-once, never bumped on
      * reopen (unlike `updatedAt`). Drives the daily creation limit so a reopen
      * of an old challenge never counts as a fresh create. */
@@ -45,6 +49,7 @@ export interface ChallengeStub {
     updatedAt: number;
     /** Epoch ms when the online record is pruned (ADR-0003 TTL). */
     expiresAt: number;
+    eventId?: string;
     /** Directed 1:1 successor rather than a link-shared first round. */
     isRematch?: boolean;
     /** Immediate predecessor used by inbox sync; absent for first-round challenges. */
@@ -68,13 +73,18 @@ function readAll(): Record<string, ChallengeStub> {
 
 function writeAll(map: Record<string, ChallengeStub>): void {
     const entries = Object.values(map);
+    const protectedIds = new Set(
+        listSessions()
+            .filter((s) => sessionNeedsHistory(s))
+            .map((s) => s.challengeId),
+    );
     const capped =
         entries.length <= MAX_LOG_ENTRIES
             ? map
             : Object.fromEntries(
                   entries
                       .sort((a, b) => b.updatedAt - a.updatedAt)
-                      .slice(0, MAX_LOG_ENTRIES)
+                      .filter((s, i) => i < MAX_LOG_ENTRIES || protectedIds.has(s.id))
                       .map((s) => [s.id, s]),
               );
     storage.set(KEY, JSON.stringify(capped));
@@ -96,6 +106,8 @@ export function recordChallenge(stub: Omit<ChallengeStub, 'updatedAt' | 'created
         opponent: stub.opponent || prev?.opponent || '',
         played: stub.played || prev?.played === true,
         opponentPlayed: stub.opponentPlayed ?? prev?.opponentPlayed,
+        opponentJoined: stub.opponentJoined ?? prev?.opponentJoined,
+        eventId: stub.eventId ?? prev?.eventId,
         isRematch: stub.isRematch ?? prev?.isRematch,
         sourceChallengeId: stub.sourceChallengeId ?? prev?.sourceChallengeId,
         seen: stub.seen ?? prev?.seen,
@@ -112,6 +124,13 @@ export function markChallengePlayed(id: string): void {
     const stub = map[id];
     if (!stub) return;
     map[id] = { ...stub, played: true, seen: true, updatedAt: Date.now() };
+    writeAll(map);
+}
+
+export function markEventOpponentJoined(id: string, joined: boolean): void {
+    const map = readAll();
+    if (!map[id]) return;
+    map[id] = { ...map[id], opponentJoined: joined || map[id].opponentJoined === true };
     writeAll(map);
 }
 
@@ -150,7 +169,23 @@ export function isChallengeBannerDue(stub: ChallengeStub, now: number = Date.now
 /** Every indexed challenge, newest arrival first. Reopening, syncing, or
  * completing an older round updates it in place without reshuffling History. */
 export function listChallenges(): ChallengeStub[] {
-    return Object.values(readAll()).sort((a, b) => b.createdAt - a.createdAt);
+    const map = readAll();
+    // Session-first start commits can survive a crash before the index write.
+    for (const session of listSessions()) {
+        if (!sessionNeedsHistory(session) || map[session.challengeId]) continue;
+        map[session.challengeId] = {
+            id: session.challengeId,
+            game: session.record.game,
+            role: session.record.createdBy.uuid === session.deviceId ? 'created' : 'received',
+            opponent: session.record.createdBy.nickname,
+            played: session.upload === 'sent',
+            createdAt: session.startedAt,
+            updatedAt: session.startedAt,
+            expiresAt: session.record.expiresAt,
+            eventId: session.record.event?.editionId,
+        };
+    }
+    return Object.values(map).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 /** True when two epoch-ms instants fall on the same local calendar day. */
@@ -166,11 +201,26 @@ function sameLocalDay(a: number, b: number): boolean {
  * challenge today never inflates the tally.
  */
 export function countCreatedToday(now: number = Date.now()): number {
-    return Object.values(readAll()).filter((s) => s.role === 'created' && sameLocalDay(s.createdAt, now)).length;
+    return Object.values(readAll()).filter((s) => !s.eventId && s.role === 'created' && sameLocalDay(s.createdAt, now))
+        .length;
 }
 
 /** Derive the row status from a stub and the current time. */
-export function challengeStatus(stub: ChallengeStub, now: number = Date.now()): ChallengeStatus {
+export function challengeStatus(
+    stub: ChallengeStub,
+    now: number = Date.now(),
+    session: ChallengeSession | null = listSessions().find((s) => s.challengeId === stub.id) ?? null,
+): ChallengeStatus {
+    if (session?.status === 'completed' && session.upload === 'pending') return 'pendingUpload';
+    if (session?.status === 'active' && now < playDeadline(session.record))
+        return session.awaitingStart ? 'yourTurn' : 'resume';
+    if (
+        session?.status === 'abandoned' ||
+        (session && now >= playDeadline(session.record) && session.status !== 'completed')
+    )
+        return 'expired';
+    if (!stub.played && stub.eventId && (findEdition(stub.eventId, true)?.endsAt ?? stub.expiresAt) <= now)
+        return 'expired';
     if (stub.expiresAt <= now) return 'expired';
     if (!stub.played) return 'yourTurn';
     return stub.opponentPlayed ? 'completed' : 'waitingOpponent';

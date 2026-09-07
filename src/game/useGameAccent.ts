@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { EventAccentContext } from './events/presentation';
 import { useTheme } from '../theme';
 import { hexToRgba, readableOn, resolveAccent } from '../theme/colorUtils';
 import { games } from '../data/games';
@@ -11,7 +13,8 @@ import { games } from '../data/games';
 export function useGameAccent(gameId: string) {
     const theme = useTheme();
     const game = games.find((g) => g.id === gameId) ?? games[0];
-    const accent = resolveAccent(theme, game.accent);
+    const eventAccent = useContext(EventAccentContext);
+    const accent = eventAccent ?? resolveAccent(theme, game.accent);
     const onAccent = readableOn(accent);
 
     const glow = {

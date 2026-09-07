@@ -17,6 +17,7 @@ import StoreScreen from '../screens/store/StoreScreen';
 import { ProgressScreen } from '../screens/ProgressScreen';
 import { ChallengeScreen } from '../screens/ChallengeScreen';
 import { ChallengeHistoryScreen } from '../screens/ChallengeHistoryScreen';
+import { EventHubScreen } from '../screens/EventHubScreen';
 import { RankingScreen } from '../screens/RankingScreen';
 import { MascotScreen } from '../screens/MascotScreen';
 import { CHALLENGE_LINK_ORIGIN } from '../game/challenge/share';
@@ -82,6 +83,7 @@ export function RootNavigator() {
                     <Stack.Screen name='Progress' component={ProgressScreen} />
                     <Stack.Screen name='Challenge' component={ChallengeScreen} />
                     <Stack.Screen name='ChallengeHistory' component={ChallengeHistoryScreen} />
+                    <Stack.Screen name='EventHub' component={EventHubScreen} />
                     <Stack.Screen name='Ranking' component={RankingScreen} />
                     <Stack.Screen name='Mascot' component={MascotScreen} />
                     <Stack.Screen name='privacyPolicy' component={DocumentScreen} />

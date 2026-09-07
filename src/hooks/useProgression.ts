@@ -31,7 +31,7 @@ export function useProgression() {
         stats,
         level: level(stats.lifetimeXp),
         progress: levelProgress(stats.lifetimeXp),
-        unlockedRewards: unlockedRewards(stats.lifetimeXp),
+        unlockedRewards: new Set([...unlockedRewards(stats.lifetimeXp), ...(stats.earnedRewardIds ?? [])]),
         achievements: achievementsUnlocked(stats),
         streak: currentStreak(stats.datesPlayed, localDate()),
     };

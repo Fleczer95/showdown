@@ -33,6 +33,7 @@ import {
 } from '../../game/progression';
 import { shouldPromptReview, acceptReview } from '../../services/review/reviewPrompt';
 import ReviewPromptModal from './ReviewPromptModal';
+import { eventRewardTitleKey } from '../../game/events/access';
 
 const fillOf = (lifetimeXp: number) => {
     const band = levelProgress(lifetimeXp);
@@ -63,7 +64,8 @@ function rewardReveal(id: string): RewardReveal | null {
             iconColor: th.accentColor,
             IconComp: THEME_ICONS[th.iconName] ?? Sparkles,
         };
-    return null;
+    const titleKey = eventRewardTitleKey(id);
+    return titleKey ? { id, titleKey, labelKey: 'progression.newReward', IconComp: Sparkles } : null;
 }
 
 /** Localized name for a freshly unlocked achievement id ("Contestant Bronze", "Quick Wit"). */

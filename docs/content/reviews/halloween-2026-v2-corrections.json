@@ -1,0 +1,250 @@
+{
+    "revision": "halloween-2026-v2",
+    "baseRevision": "halloween-2026-v1",
+    "tool": "codex CLI",
+    "model": "gpt-6-astra",
+    "reasoning": "medium",
+    "scopeCount": 5,
+    "reviewed": [
+        "halloween-2026-019",
+        "halloween-2026-049",
+        "halloween-2026-082",
+        "halloween-2026-162",
+        "halloween-2026-257"
+    ],
+    "verdicts": [
+        {
+            "id": "halloween-2026-019",
+            "verdict": "PASS",
+            "issues": [],
+            "sources": [
+                {
+                    "url": "https://cms.museum.ie/en-IE/News/2023/Ghost-turnips,-pucas,-fortune-telling-and-evil-abd",
+                    "supports": "Directly identifies St John’s Eve as the traditionally more common summer bonfire occasion in western Ireland. Supports zero-based correctIndex 1; the Halloween comparison is a faithful paraphrase."
+                },
+                {
+                    "url": "https://www.museum.ie/getmedia/ec521e98-aa53-4ae7-af5c-bfa1b59e77cb/tp_guide_web_en.pdf",
+                    "supports": "Directly dates St John’s Eve to June 23 and explicitly connects it with proximity to the summer solstice. Both hints are accurate without repeating the key. Its descriptions of Stephen’s, Patrick’s and Brigid’s festivals support excluding those alternatives."
+                },
+                {
+                    "url": "https://inismeain.ie/blogs/diary/oiche-fheil-sain-seain",
+                    "supports": "Independent local firsthand account corroborates June 23 bonfires in western Ireland and June 24 as St John’s Day."
+                }
+            ]
+        },
+        {
+            "id": "halloween-2026-049",
+            "verdict": "PASS",
+            "issues": [],
+            "sources": [
+                {
+                    "url": "https://origin.town.ugo.lg.jp/sightseeing/detail.html?category_id=41&id=1013",
+                    "supports": "The Hanui section directly describes patchwork kimono made by joining silk remnants and an art passed down through generations. Supports zero-based correctIndex 3 and excludes paper layering, gold embroidery on linen, and tie-dyeing a single cotton panel. Needle and thread are a reasonable inference from traditional patchwork construction, not explicit source wording. Both hints narrow toward needlework without specifying silk or copying the key."
+                }
+            ]
+        },
+        {
+            "id": "halloween-2026-082",
+            "verdict": "PASS",
+            "issues": [],
+            "sources": [
+                {
+                    "url": "https://australian.museum/learn/animals/spiders/spider-webs/",
+                    "supports": "Truth/key pass: the Orb webs section explicitly describes many nocturnal orb-weavers eating old webs and recovering silk protein. Zero-based key 2 is correct. Distractor pass: 0 describes directly weaving the old web into its replacement, 1 wrapping egg sacs, and 3 storing retreat lining; none describes the documented recovery mechanism. Hint pass: recovered proteins support new silk production. Independent EN/PL passes: both questions naturally ask about method; 'W jaki sposób wiele' resolves the quantity-reading defect. The plural standalone Polish answers are valid, and 'ją/nią' refers to the old web. Clue-parity pass: both hints give equivalent protein-recycling information without repeating the answer."
+                }
+            ]
+        },
+        {
+            "id": "halloween-2026-162",
+            "verdict": "PASS",
+            "issues": [],
+            "sources": [
+                {
+                    "url": "https://weather.metoffice.gov.uk/learn-about/weather/optical-effects",
+                    "supports": "Truth/key pass: the Coronas section states that smaller water droplets produce larger coronas, supporting zero-based key 0, increased angular radius. Distractor pass: 1 confuses a corona with the 22° ice-crystal halo; 2 is not a consequence of decreasing droplet size—the pattern remains around the Moon; 3 reverses the documented size relationship. Hint pass: the coloured corona is produced by diffraction. Independent EN/PL passes: both are natural and technically coherent; 'wieniec' and 'promień kątowy' convey the intended concepts. Clue-parity pass: 'pozostałe warunki pozostają podobne' preserves the otherwise-similar-clouds condition, and both hints provide the same diffraction clue."
+                }
+            ]
+        },
+        {
+            "id": "halloween-2026-257",
+            "verdict": "PASS",
+            "issues": [],
+            "sources": [
+                {
+                    "url": "https://collection.sciencemuseumgroup.org.uk/objects/co77094/iron-mortsafe-base-and-lid",
+                    "supports": "Truth/key pass: the catalogue explains that iron mortsafes protected coffins against theft of corpses for sale to anatomists. Zero-based key 1 is correct. Distractor pass: 0 frost damage, 2 floodwater, and 3 root growth are not the documented design purpose; incidental physical protection would not make them correct answers. Hint pass: the British object is dated 1801–1822, and its description explicitly places this use in early nineteenth-century Britain. Independent EN/PL passes: both prompts and all options are natural; Polish options correctly use the instrumental case after 'przed'. Clue-parity pass: both hints retain equivalent place/time information and contain no unnamed museum reference."
+                }
+            ]
+        }
+    ],
+    "limitations": [
+        "Reviewed all two supplied items: exact prompts, all alternatives, keys and hints, reading Polish independently before comparing English. Structural and strict text checks passed. Numerical difficulty calibration cannot be independently established without the broader scale or player data; no difficulty change is indicated.",
+        "Both requested institutional pages were substantively accessible. Supplementary RTÉ pages could not be retrieved and were not used as evidence.",
+        "The directory is not a Git repository, so revision history was unavailable. No files were edited and no work was delegated.",
+        "Completed read-only coverage: 3/3 records; PASS 3, PASS_WITH_NOTE 0, FAIL 0, UNVERIFIED 0. Separate truth, key, every-distractor, hint, English, Polish, and clue-parity passes completed. No edits, delegation, or difficulty rebanding.",
+        "JSON parsing, unique IDs, four-option sets, zero-based key ranges, NFC normalization, and strict text-quality scanning passed; scanner reported zero errors and warnings.",
+        "The directory is not a Git repository, so historical change-only claims could not be verified by diff. Verdicts assess the complete current questions.json; application integration and runtime reachability were outside this file-only recheck."
+    ],
+    "questions": [
+        {
+            "id": "halloween-2026-019",
+            "difficulty": 5,
+            "theme": "customs",
+            "prompt": {
+                "en": "In western Ireland, which eve traditionally had bonfires where Halloween fires were less common?",
+                "pl": "W wigilię którego święta tradycyjnie palono ogniska w zachodniej Irlandii, gdzie ogniska halloweenowe były mniej powszechne?"
+            },
+            "options": [
+                {
+                    "en": "St Stephen’s Day",
+                    "pl": "Dnia św. Szczepana"
+                },
+                {
+                    "en": "St John’s Day",
+                    "pl": "Dnia św. Jana"
+                },
+                {
+                    "en": "St Patrick’s Day",
+                    "pl": "Dnia św. Patryka"
+                },
+                {
+                    "en": "St Brigid’s Day",
+                    "pl": "Dnia św. Brygidy"
+                }
+            ],
+            "correctIndex": 1,
+            "hint": {
+                "en": "Think of a celebration around the summer solstice.",
+                "pl": "Pomyśl o święcie obchodzonym w okolicach przesilenia letniego."
+            }
+        },
+        {
+            "id": "halloween-2026-049",
+            "difficulty": 13,
+            "theme": "customs",
+            "prompt": {
+                "en": "How is the traditional hanui kimono for Nishimonai Bon Odori made?",
+                "pl": "Jak wykonuje się tradycyjne kimono hanui na Nishimonai Bon Odori?"
+            },
+            "options": [
+                {
+                    "en": "By layering sheets of paper",
+                    "pl": "Nakładając warstwy papieru"
+                },
+                {
+                    "en": "By embroidering linen with gold",
+                    "pl": "Haftując len złotą nicią"
+                },
+                {
+                    "en": "By tie-dyeing one cotton panel",
+                    "pl": "Barwiąc wiązaną płachtę bawełny"
+                },
+                {
+                    "en": "By joining scraps of silk",
+                    "pl": "Zszywając kawałki jedwabiu"
+                }
+            ],
+            "correctIndex": 3,
+            "hint": {
+                "en": "This craft uses a needle and thread, with techniques passed down through generations.",
+                "pl": "To rzemiosło wymaga igły i nici, a jego techniki przekazuje się z pokolenia na pokolenie."
+            }
+        },
+        {
+            "id": "halloween-2026-082",
+            "difficulty": 6,
+            "theme": "creatures",
+            "prompt": {
+                "en": "How do many nocturnal orb-weavers recover material from an old web?",
+                "pl": "W jaki sposób wiele nocnych pająków tkających sieci koliste odzyskuje materiał ze starej sieci?"
+            },
+            "options": [
+                {
+                    "en": "They weave it into the replacement web",
+                    "pl": "Wplatają ją w nową sieć"
+                },
+                {
+                    "en": "They wrap it around future egg sacs",
+                    "pl": "Owijają nią przyszłe kokony jajowe"
+                },
+                {
+                    "en": "They eat it",
+                    "pl": "Zjadają ją"
+                },
+                {
+                    "en": "They store it as a lining in the retreat",
+                    "pl": "Przechowują ją jako wyściółkę kryjówki"
+                }
+            ],
+            "correctIndex": 2,
+            "hint": {
+                "en": "The recovered proteins can be used to make new silk.",
+                "pl": "Odzyskane białka mogą posłużyć do wytworzenia nowej nici."
+            }
+        },
+        {
+            "id": "halloween-2026-162",
+            "difficulty": 11,
+            "theme": "science",
+            "prompt": {
+                "en": "For otherwise similar water-droplet clouds, what happens to a lunar corona as the droplets become smaller?",
+                "pl": "Jak zmienia się wieniec wokół Księżyca, gdy kropelki wody w chmurach stają się mniejsze, a pozostałe warunki pozostają podobne?"
+            },
+            "options": [
+                {
+                    "en": "Its angular radius increases",
+                    "pl": "Jego promień kątowy rośnie"
+                },
+                {
+                    "en": "Its angular radius stays fixed at 22°",
+                    "pl": "Jego promień kątowy pozostaje równy 22°"
+                },
+                {
+                    "en": "Its centre shifts away from the Moon",
+                    "pl": "Jego środek odsuwa się od Księżyca"
+                },
+                {
+                    "en": "Its angular radius decreases",
+                    "pl": "Jego promień kątowy maleje"
+                }
+            ],
+            "correctIndex": 0,
+            "hint": {
+                "en": "This small coloured ring is a diffraction pattern.",
+                "pl": "Ten niewielki barwny pierścień jest obrazem dyfrakcyjnym."
+            }
+        },
+        {
+            "id": "halloween-2026-257",
+            "difficulty": 5,
+            "theme": "places-harvest",
+            "prompt": {
+                "en": "What threat were iron mortsafes designed to protect coffins from?",
+                "pl": "Przed jakim zagrożeniem chroniły trumny żelazne zabezpieczenia zwane mortsafe?"
+            },
+            "options": [
+                {
+                    "en": "Frost damage",
+                    "pl": "Uszkodzeniami mrozowymi"
+                },
+                {
+                    "en": "Body theft",
+                    "pl": "Kradzieżą zwłok"
+                },
+                {
+                    "en": "Floodwater",
+                    "pl": "Zalaniem wodą"
+                },
+                {
+                    "en": "Root growth",
+                    "pl": "Wrastaniem korzeni"
+                }
+            ],
+            "correctIndex": 1,
+            "hint": {
+                "en": "These protections were used in early nineteenth-century Britain.",
+                "pl": "Takie zabezpieczenia stosowano w Wielkiej Brytanii na początku XIX wieku."
+            }
+        }
+    ]
+}

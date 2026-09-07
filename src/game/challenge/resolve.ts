@@ -6,6 +6,9 @@
 // necessarily the same option order. An id this app doesn't have — a pack added
 // in a newer app version — is the signal to prompt an update (`missingContentIds`).
 
+import { eventLadderIndex } from '../events/content';
+import { validEventQuestions } from '../../../shared/events/content';
+import { playDeadline } from '../../../shared/events/definitions';
 import type { DropQuestion, DropState } from '../drop/logic';
 import { STARTING_BANK } from '../drop/logic';
 import type { LadderQuestion, LadderRun } from '../ladder/logic';
@@ -108,7 +111,9 @@ function lookup<T>(idx: Map<string, T>, id: string): T {
 
 /** Rebuild The Ladder's run: each pinned rung plus its Skip alternates, options shuffled locally. */
 export function ladderRunFromRecord(record: ChallengeRecord, locale: ChallengeLocale): LadderRun {
-    const idx = ladderIndex(playLocale(record, locale));
+    const idx = record.event
+        ? eventLadderIndex(record.event.contentRevision, playLocale(record, locale))
+        : ladderIndex(playLocale(record, locale));
     const rungs = record.questions.map((q) => ({
         current: shuffleOptions(lookup(idx, q.id)),
         alternates: (q.alternates ?? []).map((id) => shuffleOptions(lookup(idx, id))),
@@ -136,7 +141,7 @@ export type ChallengeGate = 'ok' | 'expired';
 
 /** A stale link whose `expiresAt` slipped past the server TTL is expired; otherwise playable. */
 export function gateChallenge(record: ChallengeRecord, nowMs: number): ChallengeGate {
-    return record.expiresAt <= nowMs ? 'expired' : 'ok';
+    return playDeadline(record) <= nowMs ? 'expired' : 'ok';
 }
 
 /** The on-device content index for a game's membership checks; empty for an unknown game. */
@@ -159,7 +164,10 @@ function contentIds(game: string, locale: ChallengeLocale): Set<string> {
  * A non-empty result means the player must update before they can play.
  */
 export function missingContentIds(record: ChallengeRecord): string[] {
-    const known = contentIds(record.game, record.lang);
+    if (record.event && !validEventQuestions(record)) return ['unsupported-event-content'];
+    const known = record.event
+        ? new Set(eventLadderIndex(record.event.contentRevision, record.lang).keys())
+        : contentIds(record.game, record.lang);
     const missing: string[] = [];
     for (const q of record.questions) {
         if (!known.has(q.id)) missing.push(q.id);

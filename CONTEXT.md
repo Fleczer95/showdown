@@ -82,6 +82,42 @@ record can lead to at most one immediate rematch. Delivery is asynchronous: the
 invited player discovers it when the app next synchronises, without a promise of
 a system notification.
 
+### Timed Event
+
+A temporary mode available during a defined period, with its own content and
+presentation, participation goals, prizes, and daily play allowance. Core gameplay
+remains familiar; players can challenge friends or enter a [[Random Match]].
+
+### Random Match
+
+An [[Async Challenge]] against an opponent assigned through matchmaking. A player
+can start playing while the opponent seat is still open for a later entrant.
+
+### Event Edition
+
+One dated occurrence of a [[Timed Event]], with its own activities, goals, and
+daily allowance. A later occurrence has separate event progress.
+
+### Event Activity
+
+A game offered within an [[Event Edition]], using that edition's selected content
+and participation rules. Players enter through a friend challenge or a [[Random Match]].
+
+### Event Goal
+
+A milestone within an [[Event Edition]] that guarantees a specific, previewable
+prize when reached, such as completing a configured number of event games.
+
+### Event Reward Grant
+
+Permanent ownership of a prize earned from an [[Event Goal]]. It remains available
+after the event ends and is distinct from a purchase.
+
+### Challenge Session
+
+One player's saved attempt at an [[Async Challenge]], including progress that can
+be resumed from challenge history or a completed result awaiting submission.
+
 ### Rung
 
 The 1-based position a player has reached on [[The Ladder]]. Reaching rung 15

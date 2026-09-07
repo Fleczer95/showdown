@@ -63,7 +63,9 @@ export function ThemeScreen() {
                 ? !isPremium
                 : opt.isEarned
                   ? !unlockedRewards.has(opt.rewardId!)
-                  : !!opt.isPremium && !purchasedItemIds.includes(`theme-${opt.value}`);
+                  : !!opt.isPremium &&
+                    !purchasedItemIds.includes(`theme-${opt.value}`) &&
+                    !unlockedRewards.has(`theme-${opt.value}`);
             const requiredLevel = opt.isEarned
                 ? LEVEL_MAP.find((node) => node.rewardId === opt.rewardId)?.level
                 : undefined;

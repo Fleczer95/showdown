@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable as MockPressable, StyleSheet, Text as MockText, View as MockView } from 'react-native';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { HomeScreen } from './HomeScreen';
 import { markChallengeSeen, markChallengeSnoozed } from '../game/challenge/log';
 import { syncIncomingRematches } from '../game/challenge/rematchSync';
@@ -37,6 +37,10 @@ jest.mock('react-native-svg', () => {
         Text: Node,
     };
 });
+
+jest.mock('../game/events/EventDiscovery', () => ({
+    EventDiscovery: () => <MockView testID='event-discovery' />,
+}));
 
 jest.mock('../components/molecules/AppAnnouncement', () => ({
     __esModule: true,
@@ -286,6 +290,7 @@ it('keeps the dock and game cards on the same inset tablet column', () => {
     const contentStyle = StyleSheet.flatten(screen.getByTestId('home-scroll').props.contentContainerStyle);
     const footerStyle = StyleSheet.flatten(screen.getByTestId('home-compete-footer').props.style);
 
+    expect(within(screen.getByTestId('home-scroll')).getByTestId('event-discovery')).toBeTruthy();
     expect(contentStyle).toMatchObject({ ...mockTabletColumn, paddingHorizontal: 24 });
     expect(footerStyle).toMatchObject({ ...mockTabletColumn, paddingHorizontal: 24 });
 });

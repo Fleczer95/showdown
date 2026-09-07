@@ -1,4 +1,6 @@
 import { verifyAppCheckToken } from './appcheck';
+import { admitEvent, parseEventStart, AdmissionError } from './events/admission';
+import { findEdition, type EventMembership } from '../../shared/events/definitions';
 import {
     validateChallenge,
     validateAttempt,
@@ -19,6 +21,8 @@ import { canSubmitDirectedAttempt, isSameAttempt, type AttemptPayload } from './
 interface Env {
     DB: D1Database;
     FIREBASE_PROJECT_NUMBER: string;
+    /** Local wrangler dev/test only; unset in production. */
+    ENABLE_EVENT_FIXTURE?: string;
 }
 
 interface RematchRow {
@@ -33,6 +37,8 @@ interface ChallengeStatusRow {
     id: string;
     played: number;
     opponentPlayed: number;
+    eventEditionId?: string | null;
+    opponentJoined?: number;
 }
 
 function rematchSummary(row: RematchRow) {
@@ -70,9 +76,13 @@ async function cleanupExpired(env: Env): Promise<void> {
     const now = Date.now();
     await env.DB.batch([
         env.DB.prepare(
-            'DELETE FROM attempts WHERE challengeId IN (SELECT id FROM challenges WHERE expiresAt < ?)',
+            'DELETE FROM event_seats WHERE challengeId IN (SELECT id FROM challenges WHERE expiresAt <= ?)',
         ).bind(now),
-        env.DB.prepare('DELETE FROM challenges WHERE expiresAt < ?').bind(now),
+        env.DB.prepare('DELETE FROM event_start_requests WHERE expiresAt <= ?').bind(now),
+        env.DB.prepare(
+            'DELETE FROM attempts WHERE challengeId IN (SELECT id FROM challenges WHERE expiresAt <= ?)',
+        ).bind(now),
+        env.DB.prepare('DELETE FROM challenges WHERE expiresAt <= ?').bind(now),
     ]);
 }
 
@@ -91,10 +101,23 @@ export default {
         try {
             // --- Challenges ------------------------------------------------------
 
+            if (method === 'POST' && seg.join('/') === 'events/start') {
+                const input = parseEventStart(await parseJsonBody(request));
+                if (!input) return json({ error: 'Invalid event start' }, 400);
+                try {
+                    const result = await admitEvent(env.DB, input, Date.now(), env.ENABLE_EVENT_FIXTURE === 'true');
+                    ctx.waitUntil(cleanupExpired(env));
+                    return json(result);
+                } catch (error) {
+                    if (error instanceof AdmissionError) return json({ error: error.message }, error.status);
+                    throw error;
+                }
+            }
+
             // POST /challenges
             if (method === 'POST' && seg.length === 1 && seg[0] === 'challenges') {
                 const body = await parseJsonBody(request);
-                if (!body) return json({ error: 'Invalid JSON' }, 400);
+                if (!body || body.event !== undefined) return json({ error: 'Invalid JSON or event create path' }, 400);
                 const { id } = body;
                 const record = {
                     lang: body.lang,
@@ -143,11 +166,13 @@ export default {
                 }
                 const senderUuid = body.senderUuid;
                 const record = body.challenge;
+                if (record.event) return json({ error: 'Event rematches unavailable' }, 409);
                 if (record.createdBy.uuid !== senderUuid) return json({ error: 'Invalid rematch creator' }, 400);
 
-                const source = await env.DB.prepare('SELECT game FROM challenges WHERE id = ? AND expiresAt > ?')
+                const source = await env.DB.prepare('SELECT game, event FROM challenges WHERE id = ? AND expiresAt > ?')
                     .bind(sourceId, Date.now())
-                    .first<{ game: string }>();
+                    .first<{ game: string; event: string | null }>();
+                if (source?.event) return json({ error: 'Event rematches unavailable' }, 409);
                 if (!source) return json({ error: 'Challenge not found' }, 404);
                 if (record.game !== source.game) return json({ error: 'Rematch game must match source' }, 400);
 
@@ -227,9 +252,13 @@ export default {
                 if (!sync) return json({ error: 'Invalid rematch sync' }, 400);
                 if (sync.ids.length === 0) return json([]);
 
-                const placeholders = sync.ids.map(() => '?').join(', ');
-                const { results } = await env.DB.prepare(
-                    `SELECT c.id, c.game, c.createdBy, c.expiresAt, c.rematchOf
+                const rows: RematchRow[] = [];
+                // D1 allows 100 bound values INCLUDING UUID/time parameters.
+                for (let offset = 0; offset < sync.ids.length; offset += 96) {
+                    const ids = sync.ids.slice(offset, offset + 96);
+                    const placeholders = ids.map(() => '?').join(', ');
+                    const { results } = await env.DB.prepare(
+                        `SELECT c.id, c.game, c.createdBy, c.expiresAt, c.rematchOf
                          FROM challenges c
                          LEFT JOIN attempts mine
                            ON mine.challengeId = c.id AND mine.uuid = ?
@@ -238,10 +267,12 @@ export default {
                            AND c.expiresAt > ?
                            AND mine.uuid IS NULL
                          ORDER BY c.expiresAt DESC`,
-                )
-                    .bind(sync.uuid, sync.uuid, ...sync.ids, Date.now())
-                    .all<RematchRow>();
-                return json(results.map(rematchSummary));
+                    )
+                        .bind(sync.uuid, sync.uuid, ...ids, Date.now())
+                        .all<RematchRow>();
+                    rows.push(...results);
+                }
+                return json(rows.sort((a, b) => b.expiresAt - a.expiresAt).map(rematchSummary));
             }
 
             // POST /challenges/statuses
@@ -252,24 +283,32 @@ export default {
                 if (!sync) return json({ error: 'Invalid challenge status sync' }, 400);
                 if (sync.ids.length === 0) return json([]);
 
-                const placeholders = sync.ids.map(() => '?').join(', ');
-                const { results } = await env.DB.prepare(
-                    `SELECT c.id,
+                const rows: ChallengeStatusRow[] = [];
+                for (let offset = 0; offset < sync.ids.length; offset += 96) {
+                    const ids = sync.ids.slice(offset, offset + 96);
+                    const placeholders = ids.map(() => '?').join(', ');
+                    const { results } = await env.DB.prepare(
+                        `SELECT c.id,
                             MAX(CASE WHEN a.uuid = ? THEN 1 ELSE 0 END) AS played,
-                            MAX(CASE WHEN a.uuid <> ? THEN 1 ELSE 0 END) AS opponentPlayed
+                            MAX(CASE WHEN a.uuid <> ? THEN 1 ELSE 0 END) AS opponentPlayed,
+                            c.eventEditionId,
+                            EXISTS (SELECT 1 FROM event_seats s WHERE s.challengeId = c.id AND s.uuid <> ?) AS opponentJoined
                        FROM challenges c
                        LEFT JOIN attempts a ON a.challengeId = c.id
                       WHERE c.id IN (${placeholders})
                         AND c.expiresAt > ?
                       GROUP BY c.id`,
-                )
-                    .bind(sync.uuid, sync.uuid, ...sync.ids, Date.now())
-                    .all<ChallengeStatusRow>();
+                    )
+                        .bind(sync.uuid, sync.uuid, sync.uuid, ...ids, Date.now())
+                        .all<ChallengeStatusRow>();
+                    rows.push(...results);
+                }
                 return json(
-                    results.map((row) => ({
+                    rows.map((row) => ({
                         id: row.id,
                         played: row.played === 1,
                         opponentPlayed: row.opponentPlayed === 1,
+                        ...(row.eventEditionId ? { opponentJoined: row.opponentJoined === 1 } : {}),
                     })),
                 );
             }
@@ -277,7 +316,7 @@ export default {
             // GET /challenges/:id
             if (method === 'GET' && seg.length === 2 && seg[0] === 'challenges') {
                 const row = await env.DB.prepare(
-                    'SELECT lang, game, questions, createdBy, expiresAt, mascot FROM challenges WHERE id = ? AND expiresAt > ?',
+                    'SELECT lang, game, questions, createdBy, expiresAt, mascot, event FROM challenges WHERE id = ? AND expiresAt > ?',
                 )
                     .bind(seg[1], Date.now())
                     .first<{
@@ -287,6 +326,7 @@ export default {
                         createdBy: string;
                         expiresAt: number;
                         mascot: string;
+                        event: string | null;
                     }>();
                 if (!row) return json({ error: 'Not found' }, 404);
                 return json({
@@ -296,6 +336,7 @@ export default {
                     createdBy: JSON.parse(row.createdBy),
                     expiresAt: row.expiresAt,
                     mascot: JSON.parse(row.mascot),
+                    ...(row.event ? { event: JSON.parse(row.event) } : {}),
                 });
             }
 
@@ -313,11 +354,41 @@ export default {
                 // group rounds stay open, while directed rematches admit only the
                 // creator and their server-derived recipient.
                 const parent = await env.DB.prepare(
-                    'SELECT createdBy, recipientUuid FROM challenges WHERE id = ? AND expiresAt > ?',
+                    'SELECT createdBy, recipientUuid, event, expiresAt FROM challenges WHERE id = ? AND (expiresAt > ? OR event IS NOT NULL)',
                 )
                     .bind(challengeId, Date.now())
-                    .first<{ createdBy: string; recipientUuid: string | null }>();
+                    .first<{
+                        createdBy: string;
+                        recipientUuid: string | null;
+                        event: string | null;
+                        expiresAt: number;
+                    }>();
                 if (!parent) return json({ error: 'Challenge not found' }, 404);
+                if (parent.event) {
+                    const existing = await env.DB.prepare(
+                        'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?',
+                    )
+                        .bind(challengeId, uuid)
+                        .first<AttemptPayload>();
+                    if (existing)
+                        return isSameAttempt(existing, attempt)
+                            ? json({ ok: true, existing: true })
+                            : json({ error: 'AttemptConflict' }, 409);
+                    if (parent.expiresAt <= Date.now()) return json({ error: 'Event upload window closed' }, 410);
+                    const event = JSON.parse(parent.event) as EventMembership;
+                    const edition = findEdition(event.editionId, env.ENABLE_EVENT_FIXTURE === 'true');
+                    if (
+                        !edition ||
+                        attempt.timestamp < edition.startsAt! ||
+                        attempt.timestamp >= event.endsAt ||
+                        attempt.timestamp > Date.now()
+                    )
+                        return json({ error: 'Event completion outside play window' }, 410);
+                    const seat = await env.DB.prepare('SELECT seat FROM event_seats WHERE challengeId = ? AND uuid = ?')
+                        .bind(challengeId, uuid)
+                        .first();
+                    if (!seat) return json({ error: 'Event seat required' }, 403);
+                }
                 if (!canSubmitDirectedAttempt(parent.createdBy, parent.recipientUuid, uuid)) {
                     return json({ error: 'Challenge is limited to its two participants' }, 403);
                 }

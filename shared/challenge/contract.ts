@@ -1,3 +1,5 @@
+import { EVENT_UPLOAD_WINDOW_MS, type EventMembership } from '../events/definitions';
+
 export const CHALLENGE_TTL_DAYS = 30;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -25,6 +27,7 @@ export interface ChallengeRecord {
     createdBy: ChallengeCreator;
     expiresAt: number;
     mascot: ChallengeMascotLook;
+    event?: EventMembership;
 }
 
 export interface ChallengeRecordValidationOptions {
@@ -88,7 +91,7 @@ export function isChallengeRecord(
     options: ChallengeRecordValidationOptions = {},
 ): value is ChallengeRecord {
     if (!isObject(value)) return false;
-    if (!hasOnly(value, ['lang', 'game', 'questions', 'createdBy', 'expiresAt', 'mascot'])) return false;
+    if (!hasOnly(value, ['lang', 'game', 'questions', 'createdBy', 'expiresAt', 'mascot', 'event'])) return false;
     if (!isChallengeLocale(value.lang)) return false;
     if (!isChallengeGameId(value.game)) return false;
     if (!Array.isArray(value.questions) || value.questions.length < 1 || value.questions.length > 50) return false;
@@ -98,7 +101,16 @@ export function isChallengeRecord(
     if (typeof expiresAt !== 'number' || !Number.isInteger(expiresAt)) return false;
     if (!isChallengeMascotLook(value.mascot)) return false;
 
-    if (options.nowMs !== undefined) {
+    if (value.event !== undefined) {
+        const event = value.event;
+        if (!isObject(event) || !hasOnly(event, ['editionId', 'contentRevision', 'mode', 'endsAt'])) return false;
+        if (!isString(event.editionId, 64) || !isString(event.contentRevision, 64)) return false;
+        if (event.mode !== 'friend' && event.mode !== 'random') return false;
+        if (typeof event.endsAt !== 'number' || !Number.isSafeInteger(event.endsAt)) return false;
+        if (expiresAt !== event.endsAt + EVENT_UPLOAD_WINDOW_MS) return false;
+    }
+
+    if (options.nowMs !== undefined && value.event === undefined) {
         if (expiresAt >= options.nowMs + MAX_CHALLENGE_LIFETIME_DAYS * MS_PER_DAY) return false;
     }
 

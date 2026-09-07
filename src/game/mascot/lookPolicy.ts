@@ -56,7 +56,7 @@ function lockedPurchasableColorIds(purchasedItemIds: ReadonlySet<string>): Set<s
 export function isMascotColorLocked(colorId: string, state: MascotLookPolicyState): boolean {
     const rewardId = rewardByColor.get(colorId);
     if (rewardId) return !state.unlockedRewards.has(rewardId);
-    return lockedPurchasableColorIds(state.purchasedItemIds).has(colorId);
+    return lockedPurchasableColorIds(new Set([...state.purchasedItemIds, ...state.unlockedRewards])).has(colorId);
 }
 
 function actionForLockedColor(colorId: string): MascotLookAction | null {

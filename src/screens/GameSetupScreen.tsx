@@ -23,6 +23,7 @@ import { games, GAME_ICONS } from '../data/games';
 import { gameSessionMachine } from '../game/machines/gameSessionMachine';
 import { playScreens } from '../game/playScreens';
 import { useStore } from '../hooks/store/useStore';
+import { useContentAccess } from '../game/events/access';
 import { buildChallenge } from '../game/challenge/build';
 import { getEquippedLook } from '../game/mascot/equippedLook';
 import {
@@ -230,6 +231,8 @@ export function GameSetupScreen() {
     // global across all games; the cap grows with owned premium themes. Refresh
     // on focus so returning after a create reflects the new tally.
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
+    const contentAccess = useContentAccess();
+    const accessibleIds = useMemo(() => new Set(contentAccess), [contentAccess]);
     const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
     const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
     const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds, isPremium));
@@ -244,17 +247,17 @@ export function GameSetupScreen() {
     // How much of this game's question pool the player has worked through. Refresh
     // on focus so returning after a session (which marks questions shown) reflects
     // the new tally and can surface the "running low → buy more" nudge.
-    const [coverage, setCoverage] = useState(() => poolCoverage(gameId, ownedIds));
+    const [coverage, setCoverage] = useState(() => poolCoverage(gameId, accessibleIds));
     useFocusEffect(
         useCallback(() => {
             focusedRef.current = true;
             setCreatedToday(countCreatedToday());
-            setCoverage(poolCoverage(gameId, ownedIds));
+            setCoverage(poolCoverage(gameId, accessibleIds));
             setRunsLeft(remainingOfflineRuns(ownedIds, isPremium));
             return () => {
                 focusedRef.current = false;
             };
-        }, [gameId, ownedIds, isPremium]),
+        }, [gameId, ownedIds, isPremium, accessibleIds]),
     );
     const cap = dailyCap(ownedIds, isPremium);
     const limitReached = createdToday >= cap;
@@ -294,7 +297,7 @@ export function GameSetupScreen() {
                     const record = buildChallenge({
                         gameId: game.id,
                         history: getHistory(game.id),
-                        ownedIds: new Set(purchasedItemIds),
+                        ownedIds: accessibleIds,
                         createdBy: { uuid: getDeviceId(), nickname: nick },
                         lang: locale === 'pl' ? 'pl' : 'en',
                         mascot: getEquippedLook(),
@@ -397,7 +400,7 @@ export function GameSetupScreen() {
     // nearly spent or fully cycled) and whether a pack is still buyable (CTA gate).
     const poolEscalated =
         coverage.floor >= 1 || (coverage.total > 0 && coverage.seen / coverage.total >= POOL_NUDGE_THRESHOLD);
-    const poolBuyable = hasBuyablePacks(gameId, ownedIds);
+    const poolBuyable = hasBuyablePacks(gameId, accessibleIds);
 
     const [state, send] = useMachine(gameSessionMachine, {
         input: { gameId: game.id },

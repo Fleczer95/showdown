@@ -2,11 +2,14 @@ import { getDeviceId } from './deviceId';
 import {
     listChallenges,
     markChallengeOpponentPlayed,
+    markEventOpponentJoined,
     markChallengePlayed,
     recordChallenge,
     type ChallengeStub,
 } from './log';
 import { syncChallengeStatuses, syncRematches } from './store';
+import { recoverCompletions } from './session/recovery';
+import { SafeSentry } from '../../utils/sentry/init';
 
 /**
  * Refresh status and pull directed successors for challenge ids already indexed
@@ -14,14 +17,19 @@ import { syncChallengeStatuses, syncRematches } from './store';
  * interface keeps network shape and MMKV dedupe out of Home/History.
  */
 export async function syncIncomingRematches(): Promise<ChallengeStub[]> {
+    void recoverCompletions().catch((error) =>
+        SafeSentry.captureException(error, { tags: { area: 'challenge-recovery' } }),
+    );
     const known = listChallenges();
     const sourceIds = known.map((challenge) => challenge.id);
     if (sourceIds.length === 0) return [];
 
     const deviceId = getDeviceId();
+    const batches: string[][] = [];
+    for (let i = 0; i < sourceIds.length; i += 100) batches.push(sourceIds.slice(i, i + 100));
     const [incomingResult, statusesResult] = await Promise.allSettled([
-        syncRematches(deviceId, sourceIds),
-        syncChallengeStatuses(deviceId, sourceIds),
+        Promise.all(batches.map((ids) => syncRematches(deviceId, ids))).then((rows) => rows.flat()),
+        Promise.all(batches.map((ids) => syncChallengeStatuses(deviceId, ids))).then((rows) => rows.flat()),
     ]);
     if (incomingResult.status === 'rejected' && statusesResult.status === 'rejected') {
         throw incomingResult.reason;
@@ -32,6 +40,7 @@ export async function syncIncomingRematches(): Promise<ChallengeStub[]> {
     const incoming = incomingResult.status === 'fulfilled' ? incomingResult.value : [];
     const statuses = statusesResult.status === 'fulfilled' ? statusesResult.value : [];
     for (const status of statuses) {
+        if (status.opponentJoined !== undefined) markEventOpponentJoined(status.id, status.opponentJoined);
         if (status.played) markChallengePlayed(status.id);
         if (status.opponentPlayed) markChallengeOpponentPlayed(status.id);
     }

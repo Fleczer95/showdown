@@ -42,7 +42,7 @@ import { useResponsive } from '../../responsive/useResponsive';
 
 import { dropQuestions, zipDropCard, type DropPackCard, type Language } from './content';
 import { getHistory, markShown } from '../history';
-import { useStore } from '../../hooks/store/useStore';
+import { useContentAccess } from '../events/access';
 import { getOwnedPackContentBilingual } from '../../data/store/packContent';
 import {
     buildGame,
@@ -56,6 +56,10 @@ import {
 } from './logic';
 import { dropScore, speedBonus, DROP_ROUND_SURVIVAL_POINTS } from '../scoring';
 import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
+
+import { getCheckpoint } from '../challenge/session/store';
+import { useSessionCheckpoint } from '../challenge/session/useSessionCheckpoint';
+import { dropResult, type DropCheckpoint } from '../challenge/session/checkpoints';
 
 const EMPTY_ALLOCATION = [0, 0, 0, 0];
 
@@ -102,34 +106,48 @@ export default function DropPlayScreen({
     const { tabletColumn, isTablet } = useResponsive();
 
     // Free bank plus any owned premium pack questions (reconstructed bilingual).
-    const { purchasedItemIds } = useStore();
+    const contentAccess = useContentAccess();
     const pool = useMemo(
         () => [
             ...dropQuestions,
-            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(
-                GAME_ID,
-                new Set(purchasedItemIds),
-                zipDropCard,
-            ),
+            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(GAME_ID, new Set(contentAccess), zipDropCard),
         ],
-        [purchasedItemIds],
+        [contentAccess],
     );
 
-    const [state, setState] = useState<DropState>(() => challenge?.initial ?? buildGame(pool, getHistory(GAME_ID)));
-    const [allocation, setAllocation] = useState<number[]>(EMPTY_ALLOCATION);
+    const [saved] = useState(() => getCheckpoint<DropCheckpoint>(challenge?.sessionId));
+    const [state, setState] = useState<DropState>(
+        () => saved?.state ?? challenge?.initial ?? buildGame(pool, getHistory(GAME_ID)),
+    );
+    const [allocation, setAllocation] = useState<number[]>(saved?.allocation ?? EMPTY_ALLOCATION);
+    const committedNext = useRef<DropState | undefined>(saved?.next);
     // Drives the lock-in → suspense → reveal choreography.
-    const [phase, setPhase] = useState<Phase>('allocating');
+    const [phase, setPhase] = useState<Phase>(saved?.next ? 'reveal' : 'allocating');
     // Per-option reveal state, flipped on a timeline during the reveal.
-    const [reveals, setReveals] = useState<Reveal[]>(['none', 'none', 'none', 'none']);
+    const [reveals, setReveals] = useState<Reveal[]>(() =>
+        saved?.next
+            ? [0, 1, 2, 3].map((i) => (i === saved.state.questions[saved.state.round].correctIndex ? 'win' : 'drop'))
+            : ['none', 'none', 'none', 'none'],
+    );
     // Continue only appears once the whole sequence has played out.
-    const [canAdvance, setCanAdvance] = useState(false);
+    const [canAdvance, setCanAdvance] = useState(!!saved?.next);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     // Hidden per-round stopwatch (allocating phase → Lock In). Each *survived*
     // round banks a timing bonus (faster = more); these accumulate into the
     // unified points speed total. A busted round earns no timing.
     const decisionStartedAt = useRef(Date.now());
-    const survivalSpeed = useRef(0);
+    const survivalSpeed = useRef(saved?.speed ?? 0);
+    const snapshot = useCallback(
+        (): DropCheckpoint => ({ state, allocation, speed: survivalSpeed.current, next: committedNext.current }),
+        [state, allocation],
+    );
+    const session = useSessionCheckpoint(
+        challenge?.sessionId,
+        String(state.round),
+        phase === 'allocating' && !showLeaveConfirm,
+        onExit,
+    );
 
     // Restart the round timer whenever a fresh allocating phase begins.
     useEffect(() => {
@@ -164,16 +182,13 @@ export default function DropPlayScreen({
 
     const setSlot = useCallback(
         (index: number, value: number) => {
-            setAllocation((prev) => {
-                const others = prev.reduce((sum, a, i) => (i === index ? sum : sum + a), 0);
-                // Clamp so the total never exceeds the bank.
-                const clamped = Math.min(value, state.bank - others);
-                const next = prev.slice();
-                next[index] = Math.max(0, clamped);
-                return next;
-            });
+            if (phase !== 'allocating' || !session.canPlay()) return;
+            const others = allocation.reduce((sum, a, i) => (i === index ? sum : sum + a), 0);
+            const next = allocation.slice();
+            next[index] = Math.max(0, Math.min(value, state.bank - others));
+            if (session.commit({ ...snapshot(), allocation: next })) setAllocation(next);
         },
-        [state.bank],
+        [state, allocation, phase, session, snapshot],
     );
 
     const canConfirm = isValidAllocation(state.bank, allocation);
@@ -191,16 +206,20 @@ export default function DropPlayScreen({
     }, [currentQuestionId, challenge]);
 
     const onConfirm = useCallback(() => {
-        if (!canConfirm) {
+        if (!canConfirm || phase !== 'allocating' || !session.canPlay()) {
             return;
         }
         // Record this round's decision time at Lock In, before the suspense/
         // reveal plays out (that animation must not count). Only a survived round
         // (a stake on the correct option) banks its timing bonus toward the score.
-        const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+        const seconds = (challenge ? session.elapsed() : Date.now() - decisionStartedAt.current) / 1000;
         if (allocation[question.correctIndex] > 0) {
             survivalSpeed.current += speedBonus(DROP_ROUND_SURVIVAL_POINTS, seconds);
         }
+        const next = applyRound(state, allocation);
+        const committed = { ...snapshot(), next };
+        if (!session.commit(committed, dropResult(committed))) return;
+        committedNext.current = next;
         clearTicks();
         setReveals(['none', 'none', 'none', 'none']);
         setCanAdvance(false);
@@ -259,16 +278,27 @@ export default function DropPlayScreen({
 
         // Phase 4 — Continue appears once the answer beat has settled too.
         push(answerTime + RESOLVE_MS, () => setCanAdvance(true));
-    }, [canConfirm, clearTicks, haptics, play, allocation, question]);
+    }, [canConfirm, clearTicks, haptics, play, allocation, question, state, phase, session, challenge, snapshot]);
 
     const onAdvance = useCallback(() => {
         clearTicks();
-        setState((prev) => applyRound(prev, allocation));
+        const next = committedNext.current ?? applyRound(state, allocation);
+        if (
+            next.status === 'active' &&
+            !session.commit(
+                { state: next, allocation: EMPTY_ALLOCATION, speed: survivalSpeed.current },
+                undefined,
+                true,
+            )
+        )
+            return;
+        committedNext.current = undefined;
+        setState(next);
         setAllocation(EMPTY_ALLOCATION);
         setPhase('allocating');
         setReveals(['none', 'none', 'none', 'none']);
         setCanAdvance(false);
-    }, [allocation, clearTicks]);
+    }, [allocation, clearTicks, state, session]);
 
     // --- Game over ---------------------------------------------------------
     if (state.status === 'over') {
@@ -476,7 +506,14 @@ export default function DropPlayScreen({
                             >
                                 {translate('game.the-drop.active.lockIn')}
                             </Button>
-                            <Button variant='ghost' fullWidth onPress={() => setShowLeaveConfirm(true)}>
+                            <Button
+                                variant='ghost'
+                                fullWidth
+                                onPress={() => {
+                                    session.pause();
+                                    setShowLeaveConfirm(true);
+                                }}
+                            >
                                 {translate('game.the-drop.active.leave')}
                             </Button>
                         </Stack>
@@ -503,8 +540,17 @@ export default function DropPlayScreen({
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-drop'
+                onPause={
+                    challenge
+                        ? () => {
+                              setShowLeaveConfirm(false);
+                              onExit();
+                          }
+                        : undefined
+                }
                 onConfirm={() => {
                     setShowLeaveConfirm(false);
+                    challenge?.onAbandon?.();
                     onExit();
                 }}
                 onCancel={() => setShowLeaveConfirm(false)}

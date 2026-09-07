@@ -64,6 +64,11 @@ export interface ProgressionStats {
     feats: string[];
     /** Async challenge runs completed. Powers the Challenger family. */
     challengesPlayed: number;
+    /** Optional only for compatibility with pre-event saves. */
+    completionReceipts?: Record<string, { previousLevel: number; level: number }>;
+    eventCompletedRuns?: Record<string, number>;
+    eventRewardGrants?: string[];
+    earnedRewardIds?: string[];
 }
 
 /** Before/after summary returned by recordRun so the game-over screen can celebrate. */

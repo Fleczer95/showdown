@@ -1,0 +1,114 @@
+{
+    "date": "2026-09-07",
+    "file": "assets/events/halloween-2026/ladder.json",
+    "revision": "halloween-2026-v1",
+    "inputSha256": "8281c6fb0869cf4d03cc70ebe796d54e3b93f3471b78e36e4a4b543eae8b3d92",
+    "mode": "report-only",
+    "scopeCount": 300,
+    "independentTargetedReview": {
+        "tool": "codex CLI",
+        "model": "gpt-6-astra",
+        "reasoning": "medium",
+        "result": {
+            "items": [
+                {
+                    "id": "007",
+                    "disposition": "rejected",
+                    "reason": "The NTS page was accessible and explicitly says “After performing tricks or songs”. National Records of Scotland independently confirms performances for treats. Party tricks are valid guising performances; confusing them with threatening pranks does not justify the reviewer’s claim. A poem is another valid example, not a necessary correction.",
+                    "sources": [
+                        {
+                            "url": "https://www.nts.org.uk/stories/6-scottish-halloween-traditions",
+                            "supports": "Explicitly describes performing tricks or songs before receiving gifts."
+                        },
+                        {
+                            "url": "https://blog.nrscotland.gov.uk/2020/10/31/out-guising/",
+                            "supports": "Confirms guisers perform for rewards, including jokes and songs."
+                        },
+                        {
+                            "url": "https://discoverulsterscots.com/sites/default/files/documents/2021-03/Oct%202019.pdf.pdf",
+                            "supports": "Page 16 explicitly describes the Scots tradition as performing a party trick for gifts."
+                        }
+                    ],
+                    "recommendationEn": "Keep “Performed a song or a trick”.",
+                    "recommendationPl": "Zachować „Śpiewali lub pokazywali sztuczkę”."
+                },
+                {
+                    "id": "082",
+                    "disposition": "nonblocking-edit",
+                    "reason": "“Wiele pająków odzyskuje” has correct singular agreement. Separate sentences such as “Zjadają ją” can refer to the plural spiders; they are grammatical, though not formally parallel with the quantified subject. “Jak wiele…” initially suggests “how many”, creating avoidable ambiguity. The web-eating fact and answer remain correct.",
+                    "sources": [
+                        {
+                            "url": "https://australian.museum/learn/animals/spiders/spider-webs/",
+                            "supports": "Many nocturnal orb-weavers eat old webs and recycle silk protein."
+                        }
+                    ],
+                    "recommendationEn": "Keep the English question and answers.",
+                    "recommendationPl": "Zmienić tylko początek pytania: „W jaki sposób wiele nocnych pająków tkających sieci koliste odzyskuje materiał ze starej sieci?”. Zachować odpowiedzi, w tym „Zjadają ją”."
+                },
+                {
+                    "id": "271",
+                    "disposition": "rejected",
+                    "reason": "“Pepo” is a valid technical term, documented in Polish botanical literature. “Peponidium” is an established alternate botanical term, but its greater conventionality in Polish was not established. FAO documents “owoc dyniowaty” for cucurbit fruits; replacing the answer with it would give Polish players an obvious dynia–dyniowaty clue absent from English. No wrong answer or necessary localization correction is demonstrated. Polish textbook and FAO browser-fetch failures were resolved by direct read-only retrieval; the textbook establishes historical usage, not modern frequency.",
+                    "sources": [
+                        {
+                            "url": "https://pbc.uken.krakow.pl/Content/1819/botanika_dla_nizszych_i_srednich_jerzykiewicz_boleslaw_001433.pdf",
+                            "supports": "Printed page 36 identifies the fruit category as “dynię (pepo)”, a berry variant of cucurbits."
+                        },
+                        {
+                            "url": "https://floraquebeca.qc.ca/peponide-2/",
+                            "supports": "Botanical glossary includes pumpkins and lists pepo and peponidium as alternate English terms; does not establish Polish preference."
+                        },
+                        {
+                            "url": "https://agrovoc.fao.org/browse/agrovoc/en/page/c_2005?clang=pl",
+                            "supports": "Documents the Polish label “Owoc dyniowaty” for cucurbit fruits."
+                        }
+                    ],
+                    "recommendationEn": "Keep “Pepo”.",
+                    "recommendationPl": "Zachować „Pepo”; zmiana nie jest konieczna."
+                }
+            ]
+        }
+    },
+    "coordinatorChecks": [
+        {
+            "ids": [179, 180],
+            "category": "reviewer evidence quality",
+            "result": "No content error confirmed; reject the weak/unresolvable agy substitute citations as independent verification.",
+            "details": "agy used Wikipedia alone for 179 and claimed to inspect RSC DOI 10.1039/d0tc05786g for 180. Both doi.org and Crossref returned 404 for that DOI; a known DOI control succeeded. The publisher URL returned 403. This does not substantiate the claimed access.",
+            "primaryRechecks": [
+                {
+                    "id": 179,
+                    "url": "https://eprints.soton.ac.uk/465803/1/994907.pdf",
+                    "accessed": true,
+                    "evidence": "Downloaded the thesis and read printed page 17 / PDF page 38: the long-lived excited atomic-oxygen state is collisionally quenched at lower altitudes before red emission. This supports the existing key and hint."
+                },
+                {
+                    "id": 180,
+                    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5445854/fullTextXML",
+                    "accessed": true,
+                    "evidence": "Downloaded and read relevant primary review sections: Persistent Luminescence in Eu2+-Doped Compounds: A Review. Describes storage of charge carriers in traps, gradual release, and recombination producing delayed light; distinguishes this from quasi-stable-state phosphorescence. Supports the existing key and hint."
+                }
+            ]
+        },
+        {
+            "ids": [82],
+            "category": "Polish wording",
+            "result": "Non-blocking cleanup recommendation, not a wrong answer.",
+            "details": "The opening Jak wiele can initially read as How many rather than How do many. W jaki sposób wiele... would clarify the intended task. The plural standalone answers do not by themselves demonstrate a factual or major grammar failure; gerund/adverbial-participle answers are an optional consistent rewrite."
+        },
+        {
+            "ids": [271],
+            "category": "localization versus clue parity",
+            "result": "Do not automatically apply the proposed owoc dyniowaty replacement.",
+            "details": "The prompt asks about dynia. Putting dyniowaty into the Polish keyed answer would reveal the answer through its stem, unlike English pepo. A validated alternative technical term is an editorial choice; this is not a confirmed incorrect answer."
+        },
+        {
+            "ids": [47],
+            "category": "source-attribution gap",
+            "result": "Resolved by direct primary-source inspection; existing key and scope supported.",
+            "details": "Codex could not access the Roots source. A direct read-only request succeeded (HTTP 200). The actual Getai article explicitly identifies predominant Hokkien use; this is stronger than the alternative Hungry Ghost page cited by agy, which merely says dialects such as Hokkien. No question edit is needed.",
+            "url": "https://www.roots.gov.sg/ich-landing/ich/getai",
+            "sourceExcerpt": "A distinguishing feature of the getai performance is the predominant use of the Hokkien dialect."
+        }
+    ]
+}

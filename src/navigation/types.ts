@@ -17,6 +17,7 @@ export type RootStackParamList = {
     Challenge: { challengeId: string; autoShare?: boolean };
     /** List of challenges this device created or opened — resume unplayed, revisit results. */
     ChallengeHistory: undefined;
+    EventHub: { editionId?: string } | undefined;
     /** Global ranking boards (ADR-0004). Optional `gameId` preselects a board. */
     Ranking: { gameId?: string } | undefined;
     /** Mascot customizer (plan §5). Reached from Settings → Appearance. Currently shows the

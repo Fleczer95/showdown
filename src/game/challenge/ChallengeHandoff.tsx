@@ -39,6 +39,9 @@ export function ChallengeHandoff({
 export interface ChallengePlay<TInitial> {
     /** The frozen, locale-resolved initial state to play. */
     initial: TInitial;
+    /** Device-local participation identity; omitted by legacy callers/tests. */
+    sessionId?: string;
+    onAbandon?: () => void;
     /** Question ids the player owns; only these are marked shown during the run. */
     ownedIds: ReadonlySet<string>;
     /** Called once with the run's result when it ends. */

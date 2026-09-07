@@ -50,6 +50,12 @@ export function preservesProgress(prev: ProgressionStats, next: ProgressionStats
     const feats = new Set(next.feats);
     if (prev.feats.some((f) => !feats.has(f))) return false;
 
+    for (const [id, count] of Object.entries(prev.eventCompletedRuns ?? {})) {
+        if ((next.eventCompletedRuns?.[id] ?? 0) < count) return false;
+    }
+    if ((prev.eventRewardGrants ?? []).some((id) => !next.eventRewardGrants?.includes(id))) return false;
+    if ((prev.earnedRewardIds ?? []).some((id) => !next.earnedRewardIds?.includes(id))) return false;
+    if (Object.keys(prev.completionReceipts ?? {}).some((id) => !next.completionReceipts?.[id])) return false;
     return true;
 }
 
@@ -74,5 +80,9 @@ export function mergeStats(a: ProgressionStats, b: ProgressionStats): Progressio
         bestScoreByGame: maxByKey(a.bestScoreByGame, b.bestScoreByGame),
         feats: union(a.feats, b.feats),
         challengesPlayed: Math.max(a.challengesPlayed, b.challengesPlayed),
+        eventCompletedRuns: maxByKey(a.eventCompletedRuns ?? {}, b.eventCompletedRuns ?? {}),
+        eventRewardGrants: union(a.eventRewardGrants ?? [], b.eventRewardGrants ?? []),
+        earnedRewardIds: union(a.earnedRewardIds ?? [], b.earnedRewardIds ?? []),
+        completionReceipts: { ...a.completionReceipts, ...b.completionReceipts },
     };
 }

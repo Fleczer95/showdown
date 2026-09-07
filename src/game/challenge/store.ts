@@ -1,4 +1,5 @@
 import appCheck from '@react-native-firebase/app-check';
+import { localPreviewToken } from '../events/localPreview';
 import { parseChallengeRecord, serializeChallengeRecord, type Attempt, type ChallengeRecord } from './types';
 import { generateUuid } from './deviceId';
 import { SafeSentry } from '../../utils/sentry/init';
@@ -14,7 +15,10 @@ import { SafeSentry } from '../../utils/sentry/init';
 // The Showdown backend Worker (Cloudflare + D1). Not user-facing — only the app
 // calls it — so the workers.dev URL is fine for production. One constant to swap
 // if it is ever moved to a branded domain.
-export const BASE_API_URL = 'https://showdown-backend.arturjankowski95.workers.dev';
+export const BASE_API_URL =
+    __DEV__ && process.env.EXPO_PUBLIC_CHALLENGE_API_URL
+        ? process.env.EXPO_PUBLIC_CHALLENGE_API_URL
+        : 'https://showdown-backend.arturjankowski95.workers.dev';
 
 /** Network round-trips that fail or hang resolve to this, gating the offline UI. */
 export class OfflineError extends Error {
@@ -64,7 +68,8 @@ export function httpError(status: number): OfflineError | BlockedError {
         SafeSentry.captureException(err, { tags: { area: 'challenge-store', status: '403' } });
         return err;
     }
-    if (status === 409) return new BlockedError(undefined, 409);
+    if (status === 409 || status === 410 || status === 404 || status === 400)
+        return new BlockedError(undefined, status);
 
     // Log any unexpected HTTP errors (500, 400, etc.) to Sentry
     const err = new OfflineError();
@@ -94,6 +99,8 @@ export function withTimeout<T>(promise: Promise<T>, onTimeout?: () => void): Pro
 }
 
 async function appCheckHeaders(forceRefresh: boolean): Promise<Record<string, string>> {
+    const previewToken = localPreviewToken();
+    if (previewToken) return { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': previewToken };
     const { token } = await appCheck().getToken(forceRefresh);
     if (!token) throw new Error('App Check token unavailable');
     return { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': token };
@@ -266,6 +273,7 @@ export interface ChallengeStatusSnapshot {
     id: string;
     played: boolean;
     opponentPlayed: boolean;
+    opponentJoined?: boolean;
 }
 
 /** Create the sole directed successor to a completed 1:1 challenge. The Worker

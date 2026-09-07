@@ -41,7 +41,7 @@ import { createDeck } from '../deck';
 import { getHistory, markShown } from '../history';
 import { useSound } from '../../hooks/useSound';
 import { useHaptics } from '../../hooks/useHaptics';
-import { useStore } from '../../hooks/store/useStore';
+import { useContentAccess } from '../events/access';
 import { getOwnedPackContent } from '../../data/store/packContent';
 import { useResponsive } from '../../responsive/useResponsive';
 import {
@@ -71,6 +71,10 @@ import {
 } from './logic';
 import { speedBonus, wheelScore } from '../scoring';
 import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
+
+import { getCheckpoint } from '../challenge/session/store';
+import { useSessionCheckpoint } from '../challenge/session/useSessionCheckpoint';
+import { wheelResult, type WheelCheckpoint } from '../challenge/session/checkpoints';
 
 type Phase = 'awaitSpin' | 'awaitGuess' | 'resolving';
 
@@ -115,42 +119,67 @@ export default function WheelPlayScreen({
     const keySize = scale(44);
 
     // Owned premium pack puzzles, localized, merged into the puzzle pool.
-    const { purchasedItemIds } = useStore();
+    const contentAccess = useContentAccess();
     const ownedPuzzles = useMemo(
-        () => getOwnedPackContent<PuzzleContent>(GAME_ID, locale, new Set(purchasedItemIds)),
-        [purchasedItemIds, locale],
+        () => getOwnedPackContent<PuzzleContent>(GAME_ID, locale, new Set(contentAccess)),
+        [contentAccess, locale],
     );
 
+    const [saved] = useState(() => getCheckpoint<WheelCheckpoint>(challenge?.sessionId));
     const [game, setGame] = useState<GameState>(
-        () => challenge?.initial ?? createGame(pickPuzzles(locale, TOTAL_PUZZLES, ownedPuzzles)),
+        () => saved?.game ?? challenge?.initial ?? createGame(pickPuzzles(locale, TOTAL_PUZZLES, ownedPuzzles)),
     );
-    const [phase, setPhase] = useState<Phase>('awaitSpin');
-    const [spinValue, setSpinValue] = useState(0);
+    const [phase, setPhase] = useState<Phase>(saved?.phase ?? 'awaitSpin');
+    const [spinValue, setSpinValue] = useState(saved?.spinValue ?? 0);
     const [spinning, setSpinning] = useState(false);
     // True while the player holds the spin button and the power meter oscillates.
     const [charging, setCharging] = useState(false);
     // Letters the player has tapped into the blank slots, in reading order.
-    const [filled, setFilled] = useState<string[]>([]);
-    const [solveMode, setSolveMode] = useState(false);
+    const [filled, setFilled] = useState<string[]>(saved?.filled ?? []);
+    const [solveMode, setSolveMode] = useState(saved?.solveMode ?? false);
     const [status, setStatus] = useState('');
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
     // Set when a puzzle resolves: the state to apply once the player taps Continue.
     // Holds the result on screen so the outcome can be read before advancing.
-    const [pendingNext, setPendingNext] = useState<GameState | null>(null);
+    const [pendingNext, setPendingNext] = useState<GameState | null>(saved?.pendingNext ?? null);
     // The player's incorrect solve attempt, shown alongside the answer on a miss.
-    const [wrongGuess, setWrongGuess] = useState<string | null>(null);
+    const [wrongGuess, setWrongGuess] = useState<string | null>(saved?.wrongGuess ?? null);
 
     // Hidden per-puzzle stopwatch + run accumulators for the unified points
     // score. `boughtVowel` tracks the clean-solve (no-vowel) bonus per puzzle.
     const decisionStartedAt = useRef(Date.now());
-    const speedTotal = useRef(0);
-    const cleanPuzzles = useRef(0);
-    const boughtVowel = useRef(false);
+    const speedTotal = useRef(saved?.speed ?? 0);
+    const cleanPuzzles = useRef(saved?.clean ?? 0);
+    const boughtVowel = useRef(saved?.boughtVowel ?? false);
     // Puzzles solved correctly — the board's primary ranking key for The Wheel.
-    const solvedCount = useRef(0);
+    const solvedCount = useRef(saved?.solved ?? 0);
     // "Comeback": did the player solve a puzzle after surviving a Bankrupt this run?
-    const sawBankruptThisPuzzle = useRef(false);
-    const bankruptRecovered = useRef(false);
+    const sawBankruptThisPuzzle = useRef(saved?.sawBankrupt ?? false);
+    const bankruptRecovered = useRef(saved?.bankruptRecovered ?? false);
+    const snapshot = useCallback((): WheelCheckpoint => {
+        return {
+            game,
+            phase,
+            spinValue,
+            filled,
+            solveMode,
+            pendingNext,
+            wrongGuess,
+            speed: speedTotal.current,
+            clean: cleanPuzzles.current,
+            boughtVowel: boughtVowel.current,
+            solved: solvedCount.current,
+            sawBankrupt: sawBankruptThisPuzzle.current,
+            bankruptRecovered: bankruptRecovered.current,
+        };
+    }, [game, phase, spinValue, filled, solveMode, pendingNext, wrongGuess]);
+    const session = useSessionCheckpoint(
+        challenge?.sessionId,
+        currentPuzzle(game).id,
+        phase !== 'resolving' && !showLeaveConfirm,
+        onExit,
+    );
+    const previousPuzzle = useRef(saved ? currentPuzzle(saved.game).id : null);
 
     // Mark each puzzle shown the moment it begins (display-time), and restart the
     // solve timer + clean-solve tracking. Fires once per puzzle actually reached,
@@ -161,8 +190,11 @@ export default function WheelPlayScreen({
         // the player doesn't own never pollutes their local rotation.
         if (!challenge || challenge.ownedIds.has(currentId)) markShown(GAME_ID, currentId);
         decisionStartedAt.current = Date.now();
-        boughtVowel.current = false;
-        sawBankruptThisPuzzle.current = false;
+        if (previousPuzzle.current !== currentId) {
+            boughtVowel.current = false;
+            sawBankruptThisPuzzle.current = false;
+            previousPuzzle.current = currentId;
+        }
     }, [currentId, challenge]);
 
     // Pawl-tick timers scheduled for the current spin; cleared on a new spin and
@@ -194,12 +226,22 @@ export default function WheelPlayScreen({
         (solvedState: GameState) => {
             // Bank cash earns a speed bonus (puzzle shown → solved), plus a
             // clean-solve bonus if no vowel was bought for this puzzle.
-            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+            if (!session.canPlay()) return;
+            const seconds = (challenge ? session.elapsed() : Date.now() - decisionStartedAt.current) / 1000;
             speedTotal.current += speedBonus(solvedState.roundCash, seconds);
             solvedCount.current += 1;
             if (!boughtVowel.current) cleanPuzzles.current += 1;
             if (sawBankruptThisPuzzle.current) bankruptRecovered.current = true;
             const next = solve(solvedState, currentPuzzle(solvedState).phrase);
+            const committed: WheelCheckpoint = {
+                ...snapshot(),
+                game: solvedState,
+                pendingNext: next,
+                phase: 'resolving',
+                solveMode: false,
+                spinValue: 0,
+            };
+            if (!session.commit(committed, wheelResult(committed))) return;
             play('correct');
             haptics.notification();
             setStatus('✓');
@@ -208,7 +250,7 @@ export default function WheelPlayScreen({
             setPhase('resolving');
             setPendingNext(next);
         },
-        [play, haptics],
+        [play, haptics, challenge, session, snapshot],
     );
 
     const settleSpin = useCallback(
@@ -236,12 +278,22 @@ export default function WheelPlayScreen({
     // position — extra full turns are cosmetic and never change the result.
     const runSpin = useCallback(
         (level: number) => {
-            if (spinning) return;
+            if (spinning || !session.canPlay()) return;
             setCharging(false);
             setSpinning(true);
             setStatus('');
 
             const result = spinWithPower(level);
+            // Save the logical landing BEFORE starting the decorative spin. A kill
+            // during the animation restores this exact outcome, never a reroll.
+            const committed: WheelCheckpoint = {
+                ...snapshot(),
+                game: result.segment.bankrupt ? applyBankrupt(game) : game,
+                sawBankrupt: sawBankruptThisPuzzle.current || !!result.segment.bankrupt,
+                spinValue: result.segment.bankrupt ? 0 : result.segment.value,
+                phase: result.segment.bankrupt ? 'awaitSpin' : 'awaitGuess',
+            };
+            if (!session.commit(committed)) return;
             const segmentAngle = 360 / WHEEL.length;
             // Final angle (mod 360) that places `index` at the top pointer.
             const landingMod = (((-segmentAngle * result.index) % 360) + 360) % 360;
@@ -281,7 +333,7 @@ export default function WheelPlayScreen({
                 if (finished) runOnJS(settleSpin)(result);
             });
         },
-        [spinning, reduceMotion, settleSpin, rotation, clearTickTimers, play],
+        [spinning, reduceMotion, settleSpin, rotation, clearTickTimers, play, game, session, snapshot],
     );
 
     // Hold to start the power meter oscillating 0->1->0 in a loop.
@@ -304,7 +356,7 @@ export default function WheelPlayScreen({
 
     const handleGuessConsonant = useCallback(
         (ch: string) => {
-            if (alreadyGuessed(game, ch)) return;
+            if (alreadyGuessed(game, ch) || !session.canPlay()) return;
             const next = guessConsonant(game, ch, spinValue);
             setGame(next);
             // Revealing the final letter completes the puzzle — bank it instead of
@@ -313,24 +365,26 @@ export default function WheelPlayScreen({
                 finishSolvedPuzzle(next);
                 return;
             }
+            if (!session.commit({ ...snapshot(), game: next, spinValue: 0, phase: 'awaitSpin' })) return;
             const award = next.roundCash - game.roundCash;
             setSpinValue(0);
             setPhase('awaitSpin');
             setStatus(award > 0 ? `${ch}: +${award}` : `${ch}: 0`);
         },
-        [game, spinValue, finishSolvedPuzzle],
+        [game, spinValue, finishSolvedPuzzle, session, snapshot],
     );
 
     const handleBuyVowel = useCallback(
         (ch: string) => {
-            if (alreadyGuessed(game, ch) || game.roundCash < VOWEL_COST) return;
+            if (alreadyGuessed(game, ch) || game.roundCash < VOWEL_COST || !session.canPlay()) return;
             boughtVowel.current = true;
             const next = buyVowel(game, ch);
             setGame(next);
             // Buying the last hidden letter completes the puzzle.
             if (isFullyRevealed(next)) finishSolvedPuzzle(next);
+            else session.commit({ ...snapshot(), game: next });
         },
-        [game, finishSolvedPuzzle],
+        [game, finishSolvedPuzzle, session, snapshot],
     );
 
     // Solve view: group the current phrase into words, tagging each character as a
@@ -362,25 +416,30 @@ export default function WheelPlayScreen({
     // Tap a letter into the next empty blank; ignore taps once every blank is full.
     const handleSolveKey = useCallback(
         (ch: string) => {
-            setFilled((f) => (f.length >= solveWords.blankCount ? f : [...f, ch.toUpperCase()]));
+            if (filled.length >= solveWords.blankCount || !session.canPlay()) return;
+            const next = [...filled, ch.toUpperCase()];
+            if (session.commit({ ...snapshot(), filled: next })) setFilled(next);
         },
-        [solveWords.blankCount],
+        [solveWords.blankCount, filled, session, snapshot],
     );
 
     // Clear the most recently entered letter (the "clear char" button).
     const handleSolveClear = useCallback(() => {
-        setFilled((f) => f.slice(0, -1));
-    }, []);
+        const next = filled.slice(0, -1);
+        if (session.commit({ ...snapshot(), filled: next })) setFilled(next);
+    }, [filled, session, snapshot]);
 
     const enterSolveMode = useCallback(() => {
+        if (!session.commit({ ...snapshot(), filled: [], solveMode: true })) return;
         setFilled([]);
         setSolveMode(true);
-    }, []);
+    }, [session, snapshot]);
 
     const cancelSolveMode = useCallback(() => {
+        if (!session.commit({ ...snapshot(), filled: [], solveMode: false })) return;
         setFilled([]);
         setSolveMode(false);
-    }, []);
+    }, [session, snapshot]);
 
     const handleSolve = useCallback(() => {
         // Rebuild the full guess: revealed letters + punctuation verbatim, blanks
@@ -401,7 +460,16 @@ export default function WheelPlayScreen({
         }
         // Reveal the full answer and hold it on screen; the player taps Continue to
         // see the result before the run ends. A wrong solve ends the run.
+        if (!session.canPlay()) return;
         const next = solve(game, guess);
+        const committed: WheelCheckpoint = {
+            ...snapshot(),
+            pendingNext: next,
+            wrongGuess: guess.trim(),
+            solveMode: false,
+            phase: 'resolving',
+        };
+        if (!session.commit(committed, wheelResult(committed))) return;
         play('wrong');
         haptics.heavy();
         setWrongGuess(guess.trim());
@@ -409,17 +477,32 @@ export default function WheelPlayScreen({
         setSolveMode(false);
         setPhase('resolving');
         setPendingNext(next);
-    }, [game, filled, finishSolvedPuzzle, play, haptics]);
+    }, [game, filled, finishSolvedPuzzle, play, haptics, session, snapshot]);
 
     // Apply the resolved state once the player has read the result.
     const handleContinue = useCallback(() => {
         if (!pendingNext) return;
+        if (pendingNext.status !== 'over' && pendingNext.status !== 'lost') {
+            const committed: WheelCheckpoint = {
+                ...snapshot(),
+                game: pendingNext,
+                pendingNext: null,
+                wrongGuess: null,
+                phase: 'awaitSpin',
+                spinValue: 0,
+                filled: [],
+                solveMode: false,
+                boughtVowel: false,
+                sawBankrupt: false,
+            };
+            if (!session.commit(committed, undefined, true)) return;
+        }
         setGame(pendingNext);
         setPendingNext(null);
         setWrongGuess(null);
         resetTurnInputs();
         setStatus('');
-    }, [pendingNext, resetTurnInputs]);
+    }, [pendingNext, resetTurnInputs, session, snapshot]);
 
     const handlePlayAgain = useCallback(() => {
         speedTotal.current = 0;
@@ -1009,7 +1092,14 @@ export default function WheelPlayScreen({
                             </Button>
                         </View>
                         <View style={styles.flex}>
-                            <Button variant='ghost' fullWidth onPress={() => setShowLeaveConfirm(true)}>
+                            <Button
+                                variant='ghost'
+                                fullWidth
+                                onPress={() => {
+                                    session.pause();
+                                    setShowLeaveConfirm(true);
+                                }}
+                            >
                                 {tr('game.the-wheel.active.leave')}
                             </Button>
                         </View>
@@ -1019,8 +1109,17 @@ export default function WheelPlayScreen({
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-wheel'
+                onPause={
+                    challenge
+                        ? () => {
+                              setShowLeaveConfirm(false);
+                              onExit();
+                          }
+                        : undefined
+                }
                 onConfirm={() => {
                     setShowLeaveConfirm(false);
+                    challenge?.onAbandon?.();
                     onExit();
                 }}
                 onCancel={() => setShowLeaveConfirm(false)}

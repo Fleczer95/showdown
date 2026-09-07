@@ -29,6 +29,7 @@ import { resolveAccent, readableOn, hexToRgba } from '../theme/colorUtils';
 import { useTranslation } from '../i18n/TranslationContext';
 import { games } from '../data/games';
 import { useStore } from '../hooks/store/useStore';
+import { useContentAccess } from '../game/events/access';
 import { rankEntries, MAX_NICKNAME_LENGTH, type LeaderboardEntry } from '../game/leaderboard';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import { getDeviceId } from '../game/challenge/deviceId';
@@ -77,10 +78,28 @@ import LadderPlayScreen from '../game/ladder/LadderPlayScreen';
 import DropPlayScreen from '../game/drop/DropPlayScreen';
 import WheelPlayScreen from '../game/wheel/WheelPlayScreen';
 import type { RootStackParamList } from '../navigation/types';
+import {
+    getSession,
+    getCheckpoint,
+    participationId,
+    startSession,
+    beginSessionPlay,
+    checkpointSession,
+    abandonSession,
+    updateSessionEffects,
+    UnsupportedSessionError,
+} from '../game/challenge/session/store';
+import { initialCheckpoint } from '../game/challenge/session/initial';
+import { settleCompletion, uploadCompletion } from '../game/challenge/session/recovery';
+import { playDeadline, findEdition } from '../../shared/events/definitions';
+import { EventAccentContext } from '../game/events/presentation';
+import { startEvent } from '../game/events/participation';
+import type { LadderCheckpoint, DropCheckpoint, WheelCheckpoint } from '../game/challenge/session/checkpoints';
 
 type Phase =
     | 'loading'
     | 'offline' // couldn't load the record — device appears offline
+    | 'full'
     | 'error' // couldn't load the record — server rejected the request (e.g. App Check)
     | 'expired'
     | 'updateRequired'
@@ -106,10 +125,13 @@ export function ChallengeScreen() {
     const { purchasedItemIds, isPremium } = useStore();
     const { tabletColumn } = useResponsive();
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
+    const contentAccess = useContentAccess();
+    const accessibleIds = useMemo(() => new Set(contentAccess), [contentAccess]);
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
     const emitMascot = useMascotEmit();
+    const sessionId = participationId(challengeId, deviceId);
 
     const [phase, setPhase] = useState<Phase>('loading');
     const [record, setRecord] = useState<ChallengeRecord | null>(null);
@@ -121,6 +143,9 @@ export function ChallengeScreen() {
     const [rematchConfirmSheet, setRematchConfirmSheet] = useState(false);
     const [rematchLimitSheet, setRematchLimitSheet] = useState(false);
     const [rematchBusy, setRematchBusy] = useState(false);
+    const [eventStartBusy, setEventStartBusy] = useState(false);
+    const liveAccess = useRef({ purchasedIds: ownedIds, premium: isPremium });
+    liveAccess.current = { purchasedIds: ownedIds, premium: isPremium };
     const [rematchLookup, setRematchLookup] = useState<{ checked: boolean; id: string | null }>({
         checked: false,
         id: null,
@@ -130,13 +155,14 @@ export function ChallengeScreen() {
     // injected play element (memoised below) never rebuilds mid-run when these change.
     const nicknameRef = useRef(nickname);
     const pendingResult = useRef<ChallengeResult | null>(null);
+    const pendingAttempt = useRef<LeaderboardEntry | null>(null);
     const pendingRematch = useRef<{ id: string; record: ChallengeRecord } | null>(null);
     const rematchInFlight = useRef(false);
     const autoSharedChallengeId = useRef<string | null>(null);
 
     // An immutable create can still finish after a timeout, so do not let a back
     // gesture remove the route while its result is allowed to navigate.
-    usePreventRemove(rematchBusy, () => undefined);
+    usePreventRemove(rematchBusy || eventStartBusy, () => undefined);
 
     // A freshly created challenge asks to share only after the native stack has
     // finished opening this screen. The share promise is deliberately detached:
@@ -177,7 +203,9 @@ export function ChallengeScreen() {
         if (record) emitMascot(record.createdBy.uuid === deviceId ? 'challenge-sent' : 'challenge-received');
     }, [emitMascot, record, deviceId]);
 
-    const exit = useCallback(() => navigation.navigate('Home'), [navigation]);
+    // navigate('Home') can push Home above this still-mounted play screen in
+    // React Navigation 7. Pop it instead so its modal, timers and clock unmount.
+    const exit = useCallback(() => navigation.popTo('Home'), [navigation]);
     const viewRanking = useCallback(() => {
         if (record) navigation.navigate('Ranking', { gameId: record.game });
     }, [navigation, record]);
@@ -200,6 +228,40 @@ export function ChallengeScreen() {
     const load = useCallback(async () => {
         setPhase('loading');
         try {
+            const saved = getSession(sessionId);
+            if (saved) {
+                recordChallenge({
+                    id: challengeId,
+                    game: saved.record.game,
+                    role: saved.record.createdBy.uuid === deviceId ? 'created' : 'received',
+                    opponent: saved.record.createdBy.uuid === deviceId ? '' : saved.record.createdBy.nickname,
+                    played: saved.upload === 'sent',
+                    expiresAt: saved.record.expiresAt,
+                    eventId: saved.record.event?.editionId,
+                });
+                setRecord(saved.record);
+                nicknameRef.current = saved.nickname;
+                setNickname(saved.nickname);
+                if (saved.status === 'completed' && saved.result) {
+                    pendingResult.current = saved.result;
+                    const diff = settleCompletion(sessionId);
+                    if (!saved.celebrationSeen) setCelebrationDiff(diff);
+                    setPhase('submitting');
+                    try {
+                        await uploadCompletion(sessionId);
+                        await showResults(saved.attempt?.timestamp ?? null);
+                    } catch (error) {
+                        setPhase(error instanceof BlockedError ? 'submitError' : 'submitOffline');
+                    }
+                    return;
+                }
+                if (saved.status === 'abandoned' || Date.now() >= playDeadline(saved.record)) {
+                    setPhase('expired');
+                    return;
+                }
+                setPhase(saved.awaitingStart ? 'intro' : 'playing');
+                return;
+            }
             const rec = await getChallenge(challengeId);
             if (!rec) {
                 setPhase('expired');
@@ -226,6 +288,7 @@ export function ChallengeScreen() {
                 opponent: role === 'received' ? rec.createdBy.nickname : '',
                 played: false,
                 expiresAt: rec.expiresAt,
+                eventId: rec.event?.editionId,
             });
             if (gateChallenge(rec, Date.now()) === 'expired') {
                 setPhase('expired');
@@ -238,11 +301,23 @@ export function ChallengeScreen() {
                 await showResults(mine.timestamp);
                 return;
             }
+            // Random opponents are assigned only by the queue. Shared links are
+            // status views, never a second admission path into a random round.
+            if (rec.event?.mode === 'random') {
+                await showResults(null);
+                return;
+            }
             setPhase('intro');
         } catch (err) {
-            setPhase(err instanceof BlockedError ? 'error' : 'offline');
+            setPhase(
+                err instanceof UnsupportedSessionError
+                    ? 'updateRequired'
+                    : err instanceof BlockedError
+                      ? 'error'
+                      : 'offline',
+            );
         }
-    }, [challengeId, deviceId, showResults]);
+    }, [challengeId, deviceId, showResults, sessionId]);
 
     useEffect(() => {
         load();
@@ -252,15 +327,20 @@ export function ChallengeScreen() {
         async (result: ChallengeResult) => {
             pendingResult.current = result;
             setPhase('submitting');
-            const attempt: LeaderboardEntry = {
-                nickname: nicknameRef.current,
-                progress: result.progress,
-                score: result.run.score,
-                timestamp: Date.now(),
-            };
+            const saved = getSession(sessionId);
+            const attempt: LeaderboardEntry = saved?.attempt ??
+                pendingAttempt.current ?? {
+                    nickname: nicknameRef.current,
+                    progress: result.progress,
+                    score: result.run.score,
+                    timestamp: Date.now(),
+                };
+            pendingAttempt.current = attempt;
             try {
-                await submitAttempt(challengeId, deviceId, attempt);
+                if (saved) await uploadCompletion(sessionId);
+                else await submitAttempt(challengeId, deviceId, attempt);
                 pendingResult.current = null;
+                pendingAttempt.current = null;
                 markChallengePlayed(challengeId);
                 if (record) {
                     SafeAnalytics.logEvent({
@@ -270,14 +350,14 @@ export function ChallengeScreen() {
                     // Feed the global ranking (ADR-0004). Best-effort and fire-and-forget
                     // so the result reveal is never blocked; a failed push stays pending
                     // locally and is retried on next app open / rankings view.
-                    void pushRanking(record.game, result.run.score, attempt.nickname);
+                    if (!saved) void pushRanking(record.game, result.run.score, attempt.nickname);
                 }
                 await showResults(attempt.timestamp);
             } catch (err) {
                 setPhase(err instanceof BlockedError ? 'submitError' : 'submitOffline');
             }
         },
-        [challengeId, deviceId, record, showResults],
+        [challengeId, deviceId, record, showResults, sessionId],
     );
 
     const handleComplete = useCallback(
@@ -285,13 +365,19 @@ export function ChallengeScreen() {
             // Bank the run's XP/achievements the moment it ends, before the submit:
             // a failed or abandoned submit never loses them, and submit retries
             // (which re-enter submit, not this callback) can't double-record.
-            setCelebrationDiff(recordRun({ ...result.run, challenge: true }));
+            const saved = getSession(sessionId);
+            if (saved) {
+                // Games commit terminal decisions before their reveals. Keep this
+                // fallback for compatible older checkpoint adapters only.
+                if (saved.status === 'active') checkpointSession(sessionId, saved.checkpoint, saved.elapsedMs, result);
+                setCelebrationDiff(settleCompletion(sessionId));
+            } else setCelebrationDiff(recordRun({ ...result.run, challenge: true }));
             return submit(result);
         },
-        [submit],
+        [submit, sessionId],
     );
 
-    const startPlay = useCallback(() => {
+    const startPlay = useCallback(async () => {
         const trimmed = nickname.trim();
         if (!trimmed) return;
         // The challenge nickname is public (opponent view + global ranking); the
@@ -301,8 +387,58 @@ export function ChallengeScreen() {
             return;
         }
         nicknameRef.current = trimmed;
-        setPhase('playing');
-    }, [nickname, t]);
+        if (!record || Date.now() >= playDeadline(record)) {
+            setPhase('expired');
+            return;
+        }
+        try {
+            if (getSession(sessionId)) {
+                // Admission and its charge already persisted when the invite was
+                // created. Starting later is local, including after an app restart.
+                if (!beginSessionPlay(sessionId, trimmed)) {
+                    setPhase('expired');
+                    return;
+                }
+            } else if (record.event) {
+                const edition = findEdition(record.event.editionId, __DEV__);
+                if (!edition) {
+                    setPhase('updateRequired');
+                    return;
+                }
+                setEventStartBusy(true);
+                const admitted = await startEvent({
+                    edition,
+                    mode: 'friend',
+                    nickname: trimmed,
+                    locale,
+                    challengeId,
+                    record,
+                    entitlements: () => liveAccess.current,
+                });
+                if (admitted.id !== challengeId) {
+                    navigation.push('Challenge', { challengeId: admitted.id, autoShare: admitted.share });
+                    return;
+                }
+            } else
+                startSession({ challengeId, deviceId, record, nickname: trimmed }, initialCheckpoint(record, locale));
+            setPhase('playing');
+        } catch (error) {
+            setPhase(
+                error instanceof BlockedError && error.status === 409
+                    ? 'full'
+                    : error instanceof BlockedError && error.status === 410
+                      ? 'expired'
+                      : 'error',
+            );
+        } finally {
+            setEventStartBusy(false);
+        }
+    }, [nickname, t, record, challengeId, deviceId, locale, navigation, sessionId]);
+
+    useEffect(() => {
+        if (celebrationDiff && (phase === 'results' || phase === 'submitError' || phase === 'submitOffline'))
+            updateSessionEffects(sessionId, { celebrationSeen: true });
+    }, [celebrationDiff, phase, sessionId]);
 
     const rematchOpponent = useMemo(
         () => (myTimestamp === null ? null : (attempts.find((entry) => entry.timestamp !== myTimestamp) ?? null)),
@@ -313,7 +449,7 @@ export function ChallengeScreen() {
     // server confirms there is no existing successor. Offline leaves the CTA in
     // its neutral state; tapping it still performs the authoritative lookup.
     useEffect(() => {
-        if (phase !== 'results' || attempts.length !== 2 || !rematchOpponent) return;
+        if (record?.event || phase !== 'results' || attempts.length !== 2 || !rematchOpponent) return;
         let active = true;
         void getRematch(challengeId, deviceId)
             .then((existing) => {
@@ -323,7 +459,7 @@ export function ChallengeScreen() {
         return () => {
             active = false;
         };
-    }, [attempts.length, challengeId, deviceId, phase, rematchOpponent]);
+    }, [attempts.length, challengeId, deviceId, phase, rematchOpponent, record]);
 
     const rematchLimitReached =
         rematchLookup.checked && !rematchLookup.id && countCreatedToday() >= dailyCap(ownedIds, isPremium);
@@ -331,7 +467,7 @@ export function ChallengeScreen() {
     // Resolve first: if either participant already created the sole successor,
     // opening it must not consume another daily allowance.
     const beginRematch = useCallback(async () => {
-        if (!record || attempts.length !== 2 || !rematchOpponent || rematchInFlight.current) return;
+        if (!record || record.event || attempts.length !== 2 || !rematchOpponent || rematchInFlight.current) return;
         if (rematchLookup.id) {
             navigation.push('Challenge', { challengeId: rematchLookup.id });
             return;
@@ -376,7 +512,7 @@ export function ChallengeScreen() {
     ]);
 
     const confirmRematch = useCallback(async () => {
-        if (!record || !rematchOpponent || rematchInFlight.current) return;
+        if (!record || record.event || !rematchOpponent || rematchInFlight.current) return;
         rematchInFlight.current = true;
         setRematchConfirmSheet(false);
         setRematchBusy(true);
@@ -388,7 +524,7 @@ export function ChallengeScreen() {
                 const nextRecord = buildChallenge({
                     gameId: record.game,
                     history: getHistory(record.game),
-                    ownedIds,
+                    ownedIds: accessibleIds,
                     createdBy: { uuid: deviceId, nickname: creatorNickname },
                     lang: locale === 'pl' ? 'pl' : 'en',
                     mascot: getEquippedLook(),
@@ -424,7 +560,7 @@ export function ChallengeScreen() {
             rematchInFlight.current = false;
             setRematchBusy(false);
         }
-    }, [attempts, challengeId, deviceId, locale, myTimestamp, navigation, ownedIds, record, rematchOpponent, t]);
+    }, [attempts, challengeId, deviceId, locale, myTimestamp, navigation, accessibleIds, record, rematchOpponent, t]);
 
     // The play screen wired to the frozen deck. Memoised on the record so it is
     // built once and isn't reset by unrelated re-renders during the run.
@@ -433,32 +569,62 @@ export function ChallengeScreen() {
         // not run before `load` has vetted the record — `phase` is only 'playing' after
         // the `missingContentIds` gate passed.
         if (phase !== 'playing' || !record) return null;
-        const owned = ownedQuestionIds(record.game, ownedIds);
-        const base = { ownedIds: owned, onComplete: handleComplete };
+        const owned = ownedQuestionIds(record.game, accessibleIds);
+        const base = {
+            ownedIds: owned,
+            onComplete: handleComplete,
+            sessionId,
+            onAbandon: () => abandonSession(sessionId),
+        };
         switch (record.game) {
             case 'the-ladder':
                 return (
                     <LadderPlayScreen
+                        key={sessionId}
                         onExit={exit}
-                        challenge={{ ...base, initial: ladderRunFromRecord(record, locale) }}
+                        challenge={{
+                            ...base,
+                            initial:
+                                getCheckpoint<LadderCheckpoint>(sessionId)?.run ?? ladderRunFromRecord(record, locale),
+                        }}
                     />
                 );
             case 'the-drop':
-                return <DropPlayScreen onExit={exit} challenge={{ ...base, initial: dropStateFromRecord(record) }} />;
+                return (
+                    <DropPlayScreen
+                        key={sessionId}
+                        onExit={exit}
+                        challenge={{
+                            ...base,
+                            initial: getCheckpoint<DropCheckpoint>(sessionId)?.state ?? dropStateFromRecord(record),
+                        }}
+                    />
+                );
             case 'the-wheel':
                 return (
                     <WheelPlayScreen
+                        key={sessionId}
                         onExit={exit}
-                        challenge={{ ...base, initial: wheelGameFromRecord(record, locale) }}
+                        challenge={{
+                            ...base,
+                            initial:
+                                getCheckpoint<WheelCheckpoint>(sessionId)?.game ?? wheelGameFromRecord(record, locale),
+                        }}
                     />
                 );
             default:
                 return null;
         }
-    }, [phase, record, ownedIds, locale, handleComplete, exit]);
+    }, [phase, record, accessibleIds, locale, handleComplete, exit, sessionId]);
 
     if (phase === 'playing' && playElement) {
-        return <SafeContainer edges={['top']}>{playElement}</SafeContainer>;
+        return (
+            <EventAccentContext.Provider
+                value={record?.event ? findEdition(record.event.editionId, true)?.accent : undefined}
+            >
+                <SafeContainer edges={['top']}>{playElement}</SafeContainer>
+            </EventAccentContext.Provider>
+        );
     }
 
     if (phase === 'results' && record) {
@@ -579,6 +745,15 @@ export function ChallengeScreen() {
                         onSecondary={exit}
                         secondaryLabel={t('common.home')}
                     />
+                ) : phase === 'full' ? (
+                    <MessageCard
+                        title={t('events.full')}
+                        body={t('events.fullBody')}
+                        actionLabel={t('challenge.results')}
+                        onAction={() => showResults(null)}
+                        onSecondary={exit}
+                        secondaryLabel={t('common.home')}
+                    />
                 ) : phase === 'expired' ? (
                     <MessageCard
                         title={t('challenge.expired')}
@@ -604,11 +779,16 @@ export function ChallengeScreen() {
                                 setNicknameError(null);
                             }}
                             nicknameError={nicknameError}
-                            onStart={startPlay}
+                            onStart={() => {
+                                if (!eventStartBusy) void startPlay();
+                            }}
                             onHome={exit}
                             t={t}
                         />
                     </KeyboardAvoidingView>
+                ) : null}
+                {celebrationDiff && (phase === 'submitOffline' || phase === 'submitError') ? (
+                    <CelebrationCard diff={celebrationDiff} accent={theme.colors.primary} />
                 ) : null}
             </View>
         </SafeContainer>
@@ -803,7 +983,7 @@ function ResultsCard({
     const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
     const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
     const rematchOpponent =
-        attempts.length === 2 && myTimestamp !== null
+        !record.event && attempts.length === 2 && myTimestamp !== null
             ? attempts.find((entry) => entry.timestamp !== myTimestamp)
             : undefined;
     const { play } = useSound();

@@ -16,5 +16,9 @@ export function defaultStats(): ProgressionStats {
         bestScoreByGame: {},
         feats: [],
         challengesPlayed: 0,
+        completionReceipts: {},
+        eventCompletedRuns: {},
+        eventRewardGrants: [],
+        earnedRewardIds: [],
     };
 }

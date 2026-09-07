@@ -2,6 +2,7 @@
 // the work over raw stats; the MMKV wrapper `recordRun` just loads, applies, saves.
 
 import { createMMKV } from 'react-native-mmkv';
+import { grantIdentity, type EventEdition } from '../../../shared/events/definitions';
 import { PROGRESSION_STORE_ID } from './constants';
 import { runXp } from './xp';
 import { level, unlockedRewards, isApproachingMaxLevel, MAX_LEVEL } from './map';
@@ -58,6 +59,7 @@ export function applyRun(
     if (new Set(todayGameIds).size >= 3) feats.add('triple-threat');
 
     const stats: ProgressionStats = {
+        ...prev,
         lifetimeXp: beforeXp + runXp(result, alreadyPlayed),
         runsPlayed: prev.runsPlayed + 1,
         winsByGame,
@@ -139,8 +141,55 @@ export function localDate(date: Date = new Date()): string {
 }
 
 /** Impure entry point: record a finished run and persist. Returns the diff. */
-export function recordRun(result: GameRunResult): RecordRunDiff {
-    const { stats, diff } = applyRun(loadStats(), result, localDate());
+export function recordRun(
+    result: GameRunResult,
+    completion?: { id: string; completedAt: number; edition?: EventEdition },
+): RecordRunDiff {
+    const prev = loadStats();
+    const receipt = completion ? prev.completionReceipts?.[completion.id] : undefined;
+    if (receipt) {
+        // The receipt guards progression, not the separately stored level bonus.
+        // Retrying its high-water-mark grant repairs a crash between the writes.
+        const bonusRunsGranted = grantLevelBonus(receipt.previousLevel, receipt.level);
+        return {
+            xpGained: 0,
+            lifetimeXp: prev.lifetimeXp,
+            leveledUp: false,
+            previousLevel: level(prev.lifetimeXp),
+            level: level(prev.lifetimeXp),
+            newRewards: [],
+            newAchievements: [],
+            bonusRunsGranted,
+        };
+    }
+    const { stats, diff } = applyRun(
+        prev,
+        result,
+        localDate(completion ? new Date(completion.completedAt) : undefined),
+    );
+    if (completion) {
+        stats.completionReceipts = {
+            ...prev.completionReceipts,
+            [completion.id]: { previousLevel: diff.previousLevel, level: diff.level },
+        };
+        const edition = completion.edition;
+        if (edition) {
+            const count = (prev.eventCompletedRuns?.[edition.id] ?? 0) + 1;
+            stats.eventCompletedRuns = { ...prev.eventCompletedRuns, [edition.id]: count };
+            const grants = new Set(prev.eventRewardGrants ?? []);
+            const earned = new Set(prev.earnedRewardIds ?? []);
+            for (const milestone of edition.milestones) {
+                const id = grantIdentity(edition.id, milestone.id);
+                if (count >= milestone.completedRuns && !grants.has(id)) {
+                    grants.add(id);
+                    earned.add(milestone.rewardId);
+                    diff.newRewards.push(milestone.rewardId);
+                }
+            }
+            stats.eventRewardGrants = [...grants];
+            stats.earnedRewardIds = [...earned];
+        }
+    }
     saveStats(stats);
     // Mirror to Game Center / Play Games — fire-and-forget, idempotent, and a
     // no-op when the native bridge is absent or the player isn't signed in.

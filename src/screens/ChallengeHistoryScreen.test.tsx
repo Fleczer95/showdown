@@ -3,6 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { ChallengeHistoryScreen } from './ChallengeHistoryScreen';
 import { listChallenges } from '../game/challenge/log';
 import { shareChallenge } from '../game/challenge/share';
+import { getPendingEventStart } from '../game/challenge/session/store';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -38,6 +39,11 @@ jest.mock('../game/challenge/share', () => ({
     shareChallenge: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../game/challenge/session/store', () => ({
+    ...jest.requireActual('../game/challenge/session/store'),
+    getPendingEventStart: jest.fn(),
+}));
+
 jest.mock('../game/challenge/rematchSync', () => ({
     syncIncomingRematches: jest.fn(() => Promise.resolve([])),
 }));
@@ -56,6 +62,16 @@ const stub = {
 beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(listChallenges).mockReturnValue([stub]);
+    jest.mocked(getPendingEventStart).mockReturnValue(undefined);
+});
+
+it('keeps pending event admission recoverable without a Home promotion', () => {
+    jest.mocked(getPendingEventStart).mockReturnValue({ editionId: 'past-event', mode: 'random' } as ReturnType<
+        typeof getPendingEventStart
+    >);
+    const screen = render(<ChallengeHistoryScreen />);
+    fireEvent.press(screen.getByText('challenge.retry', { includeHiddenElements: true }));
+    expect(mockNavigate).toHaveBeenCalledWith('EventHub', {});
 });
 
 it('shares an active challenge without opening the history row', () => {

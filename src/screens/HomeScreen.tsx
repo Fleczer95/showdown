@@ -1,3 +1,4 @@
+import { EventDiscovery } from '../game/events/EventDiscovery';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInRight, FadeOutLeft, useReducedMotion } from 'react-native-reanimated';
@@ -382,6 +383,7 @@ export function HomeScreen() {
                         <GameCard key={game.id} game={game} onPress={() => openGame(game)} />
                     ))}
                 </Stack>
+                <EventDiscovery />
             </ScrollView>
 
             {/* Fixed Compete dock: both social destinations stay labeled and in the thumb zone. */}

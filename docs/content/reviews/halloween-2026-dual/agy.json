@@ -1,0 +1,1397 @@
+{
+    "date": "2026-09-07",
+    "file": "assets/events/halloween-2026/ladder.json",
+    "revision": "halloween-2026-v1",
+    "inputSha256": "8281c6fb0869cf4d03cc70ebe796d54e3b93f3471b78e36e4a4b543eae8b3d92",
+    "mode": "report-only",
+    "scopeCount": 300,
+    "tool": "agy CLI",
+    "requestedModel": "gemini-3.1-pro-high",
+    "role": "raw reviewer results, not independently certified source-access records",
+    "method": "Independent whole-bank semantic review followed by five fresh 60-item source-audit batches. Initial memory-only blanket pass and plan-only follow-up are excluded. The customs batch was finalized from its retained conversation after the CLI time limit.",
+    "coverageReconciliation": "All 300 IDs have exactly one verdict. Raw truth/localization arrays contain 299/298 IDs. The omitted 007 has an explicit factual/localization finding, and the omitted 082 an explicit grammar finding; these supply direct evidence of review and reconcile assessment coverage to 300/300.",
+    "provenanceCaveats": [
+        "The suppliedEvidenceOnlyIds field overlaps claimed opened-source IDs for 218 items; do not treat it as a consistent factual-verification ledger.",
+        "The science batch cites Wikipedia alone for 179 and an unresolvable RSC DOI for 180. Those source claims were not accepted; coordinator primary-source rechecks support both existing answers."
+    ],
+    "batches": {
+        "customs": {
+            "findings": [
+                {
+                    "category": "ambiguity test",
+                    "evidenceUrls": ["https://www.nts.org.uk/stories/6-scottish-halloween-traditions"],
+                    "fixEn": "Performed a song or a poem",
+                    "fixPl": "Śpiewali lub recytowali wiersz",
+                    "ids": [7],
+                    "problem": "The Polish translation \"sztuczkę\" specifically implies a magic trick. However, traditional Scottish guisers performed a \"party piece\"—such as singing a song, reciting a poem, or telling a joke—in order to earn their treat, rather than doing magic tricks. The English word \"trick\" is also slightly misleading here (likely conflated with modern trick-or-treating or a literal translation of the Gaelic \"cleas\"), so it is better replaced with \"poem\" or \"joke\" to accurately describe the folklore.",
+                    "severity": "major"
+                }
+            ],
+            "limitations": [
+                "Used public web search to supplement some URLs that returned 403/404 during the initial fetch phase."
+            ],
+            "localizationPassIds": [
+                1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55,
+                56, 57, 58, 59, 60
+            ],
+            "setNotes": [],
+            "sourceChecks": [
+                {
+                    "accessed": true,
+                    "evidence": "Museum article details Irish Halloween traditions including ghost turnips lit by candles or coals, barmbrack omens (ring, coin, crucifix), and the four-bowl divination.",
+                    "ids": [1, 5, 10, 19, 44, 52],
+                    "url": "https://cms.museum.ie/en-IE/News/2023/Ghost-turnips,-pucas,-fortune-telling-and-evil-abd"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Outlines Samhain as marking the start of winter, its connection to Christian feasts, and protective customs like placing crosses above doors.",
+                    "ids": [2, 9, 27],
+                    "url": "https://source.museum.ie/en-IE/Collections-Research/Folklife-Collections/Folklife-Collections-List-(1)/Religion-and-Calendar-Customs/Hallowe-en-Samhain"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Describes Día de Muertos focusing on remembering deceased loved ones with photos on the ofrenda, combining Mesoamerican and Catholic traditions.",
+                    "ids": [3, 6, 30],
+                    "url": "https://lammuseum.wfu.edu/exhibits/life-death-day-dead-mexico/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Details Scottish customs including apple bobbing (caught with teeth), guising (performing a song/poem/joke), treacle scones on strings, nut divination, and kale pulling for wealth.",
+                    "ids": [4, 7, 15, 28, 33],
+                    "url": "https://www.nts.org.uk/stories/6-scottish-halloween-traditions"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Explains sugar calaveritas are skull-shaped with names on the forehead, and ofrenda food is based on the deceased's preferences.",
+                    "ids": [8, 22, 24],
+                    "url": "https://artsandculture.google.com/story/the-ofrenda-of-day-of-the-dead-museo-de-arte-popular/0gWRp6xep2BvIA?hl=en"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Notes Pan de muerto bread, 'angelitos' for deceased children, and the 'retablo' structure forming the back of the altar.",
+                    "ids": [11, 29, 57],
+                    "url": "https://peabody.harvard.edu/day-dead-exhibit"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Highlights Obon as a Japanese season for honoring spirits with bon odori dancing, floating tōrō nagashi lanterns, and using horse/cow figures for quick arrival and slow departure.",
+                    "ids": [12, 14, 26, 36],
+                    "url": "https://www.japan.travel/en/sg/story/how-much-do-you-know-about-summer-traditions-japan/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Historical English customs mentioning souling for prayers, somas cakes as soul cakes, Welsh Nos Galan Gaeaf as winter's eve, and straw torches for souls.",
+                    "ids": [13, 31, 39, 54],
+                    "url": "https://www.gutenberg.org/cache/epub/20644/pg20644-images.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Canna House archives by Margaret Fay Shaw showing 1930s sheepskin costumes, extra place set for relatives, eating fuarag (cream/oatmeal), and Oidhche nan Cleas meaning Night of Tricks.",
+                    "ids": [16, 32, 37, 40, 45],
+                    "url": "https://www.nts.org.uk/stories/a-hebridean-halloween"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Explains flower-petal trails in Oaxaca guide spirits home, and giant kites are used in Sumpango, Guatemala.",
+                    "ids": [17, 21],
+                    "url": "https://www.burkemuseum.org/static/celebration/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Documents Welsh divination reading future spouse's initial from apple peels and clean water foretelling a successful marriage.",
+                    "ids": [18, 38],
+                    "url": "https://museum.wales/blog/1857/Halloween-Traditions/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Hop tu Naa on Isle of Man on Oct 31, and Soddag Valloo used to discover a future spouse.",
+                    "ids": [20, 43],
+                    "url": "https://www.biosphere.im/news/get-ready-for-hop-tu-naa-"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Describes Dziady customs where windows/doors were opened to welcome ancestral souls.",
+                    "ids": [23],
+                    "url": "https://dzieje.pl/kultura-i-sztuka/dziady-czyli-zapomniane-zwyczaje-kultu-zmarlych"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Details Hungry Ghost Festival in the seventh lunar month, offering kim zua (paper money), reserving front rows for spirits at Hokkien-dominated getai shows replacing opera/puppets.",
+                    "ids": [25, 34, 35, 47, 48],
+                    "url": "https://www.roots.gov.sg/ich-landing/ich/zhong-yuan-jie-hungry-ghost-festival"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Covers Nishimonai Bon Odori features including hikosa zukin hoods, hanui patchwork silk kimonos, and the mournful Ganke melody.",
+                    "ids": [41, 49, 60],
+                    "url": "https://origin.town.ugo.lg.jp/sightseeing/detail.html?category_id=41&id=1013"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Describes the yagura as a raised stage for musicians, Gujo Odori's communal all-night dancing, and mukae-bi/okuri-bi as welcoming and sending-off fires.",
+                    "ids": [42, 56, 58],
+                    "url": "https://www.depts.ttu.edu/international/intlopr/k-12geo/documents/prepost_resources/Japan/3-12_Pre_Japan_Obon_final_edits.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Identifies calaveras literarias as playful, satirical verses imagining living people as dead.",
+                    "ids": [46],
+                    "url": "https://ucanr.edu/sites/Spanish/files/376732.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Robert Burns's 'Halloween' poem notes on divination: muddy water (widowed), blue yarn in kiln, first entrants' names for kale stalks, wet sleeve turning, and winnowing in barn.",
+                    "ids": [50, 51, 53, 55, 59],
+                    "url": "https://www.gutenberg.org/cache/epub/1279/pg1279-images.html"
+                }
+            ],
+            "suppliedEvidenceOnlyIds": [],
+            "toolAction": "Finishing the audit",
+            "toolSummary": "Submit audit report",
+            "truthPassIds": [
+                1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55,
+                56, 57, 58, 59, 60
+            ],
+            "verdicts": {
+                "FAIL": [7],
+                "PASS": [
+                    1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+                    29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+                    54, 55, 56, 57, 58, 59, 60
+                ],
+                "PASS_WITH_NOTE": [],
+                "UNVERIFIED": []
+            }
+        },
+        "creatures": {
+            "findings": [
+                {
+                    "category": "grammar",
+                    "evidenceUrls": ["https://australian.museum/learn/animals/spiders/spider-webs/"],
+                    "fixEn": "No change.",
+                    "fixPl": "Change options to gerunds: Wplatając ją w nową sieć / Owijając nią przyszłe kokony jajowe / Zjadając ją / Przechowując ją jako wyściółkę kryjówki",
+                    "ids": [82],
+                    "problem": "The prompt asks 'Jak wiele... odzyskuje' (singular neuter verb matching 'wiele'), but the options are conjugated in the plural (e.g. 'Zjadają ją'). While colloquial, it's a grammatical mismatch. Changing options to gerunds answers 'Jak' (How) more cleanly.",
+                    "severity": "minor"
+                }
+            ],
+            "limitations": [
+                "Some URLs returned 403 Forbidden or required Javascript (UCSF and Pubmed). For these, secondary searches via Wikipedia and Crossref API were used to verify the claims securely."
+            ],
+            "localizationPassIds": [
+                61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 83, 84, 85, 86, 87,
+                88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+                111, 112, 113, 114, 115, 116, 117, 118, 119, 120
+            ],
+            "setNotes": [
+                "The questions are of very high quality, both factually and linguistically. Almost all translations are natural and accurate."
+            ],
+            "sourceChecks": [
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [61],
+                    "url": "https://www.barnowltrust.org.uk/barn-owl-facts/signs-barn-owl-occupation/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [62, 74],
+                    "url": "https://www.si.edu/spotlight/buginfo/moths"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [63],
+                    "url": "https://www.wildlifetrusts.org/wildlife-explorer/birds/birds-prey/long-eared-owl"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [64],
+                    "url": "https://www.nps.gov/subjects/bats/hibernate-or-migrate.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [65, 78, 87],
+                    "url": "https://www.barnowltrust.org.uk/barn-owl-facts/barn-owl-adaptations/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [66, 84],
+                    "url": "https://zoo.sandiegozoo.org/animals/rattlesnake"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [67],
+                    "url": "https://www.nps.gov/rlc/ogbfrec/synchronic-firefly-research-at-congaree.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [68],
+                    "url": "https://animals.sandiegozoo.org/animals/snake"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [69],
+                    "url": "https://www.nps.gov/wica/learn/nature/bats-chiroptera.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [70, 77],
+                    "url": "https://animals.sandiegozoo.org/animals/scorpion"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [71, 73],
+                    "url": "https://www.nhm.ac.uk/discover/the-glimmering-world-of-glow-worms.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [72],
+                    "url": "https://australian.museum/learn/animals/spiders/garden-wolf-spider/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [75],
+                    "url": "https://www.allaboutbirds.org/guide/Turkey_Vulture/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [76],
+                    "url": "https://repository.si.edu/items/92b8ecb5-2a0f-4687-8bfd-9bef1398bcde/full"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [79],
+                    "url": "https://www.nps.gov/subjects/bats/studying-bats.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [80, 96],
+                    "url": "https://www.mbari.org/animal/deep-sea-anglerfish/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [81],
+                    "url": "https://australian.museum/learn/animals/spiders/net-casting-spiders/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [82],
+                    "url": "https://australian.museum/learn/animals/spiders/spider-webs/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [83],
+                    "url": "https://nationalzoo.si.edu/animals/giant-leaf-tailed-gecko"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [85, 104],
+                    "url": "https://www.mbari.org/animal/vampire-squid/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [86],
+                    "url": "https://teara.govt.nz/en/glow-worms/page-1"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "Source blocked or required JS. Verified factual accuracy using independent web search (Wikipedia/Crossref).",
+                    "ids": [88, 117],
+                    "url": "https://magazine.ucsf.edu/nobel-winning-sensory-neuroscience"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [89],
+                    "url": "https://australian.museum/learn/animals/spiders/magnificent-spider/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [90],
+                    "url": "https://www.floridamuseum.ufl.edu/science/what-is-it-good-for-absolutely-one-thing-luna-moths-use-their-tails-solely-for-bat-evasion/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [91, 106],
+                    "url": "https://australian.museum/learn/animals/spiders/scorpions/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [92, 100],
+                    "url": "https://www.montereybayaquarium.org/about-us/stories/mucus-slime-snot"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [93],
+                    "url": "https://www.wildlifetrusts.org/wildlife-explorer/invertebrates/spiders/water-spider"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [94],
+                    "url": "https://entnemdept.ufl.edu/baldwin/webbugs/3005_5006/docs/firefly%20paper.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [95],
+                    "url": "https://www.mbari.org/animal/angler-siphonophore/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [97],
+                    "url": "https://www.mbari.org/animal/bloody-belly-comb-jelly/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [98, 116],
+                    "url": "https://www.mbari.org/project/osedax-studies/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [99],
+                    "url": "https://australian.museum/learn/animals/spiders/hackled-orb-weavers/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [101],
+                    "url": "https://www1.pbrc.hawaii.edu/~danh/Neurodiversity/Fall%202012/2012-10-31_Petra_BatAvoidance/Corcoran-Barber-Connor_2009_MothSonarJamming.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [102],
+                    "url": "https://www.mbari.org/animal/deep-sea-crown-jelly/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [103],
+                    "url": "https://imb.uq.edu.au/article/2017/11/spitting-spiders-natures-strangest-hunters"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [105, 119],
+                    "url": "https://www.nhm.ac.uk/discover/what-are-spider-webs-made-of.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [107, 115],
+                    "url": "https://australian.museum/learn/animals/spiders/the-hairy-spider/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [108],
+                    "url": "https://www.nhm.ac.uk/discover/body-snatchers-eaten-alive.html"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "Source blocked or required JS. Verified factual accuracy using independent web search (Wikipedia/Crossref).",
+                    "ids": [109],
+                    "url": "https://www.ucsf.edu/news/2011/08/98378/what-steers-vampires-blood"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [110],
+                    "url": "https://australian.museum/learn/animals/spiders/silk-the-spiders-success-story/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [111],
+                    "url": "https://www.nhm.ac.uk/discover/news/2018/june/the-brain-worm-that-turns-ants-into-zombies.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [112],
+                    "url": "https://www.mbari.org/news/deep-sea-jelly-uses-glowing-red-lures-to-catch-fish/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [113],
+                    "url": "https://www.nature.com/articles/30871"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Source accessed and verified to support the exact claim in the keyed answer and reject the distractors.",
+                    "ids": [114],
+                    "url": "https://www.frontiersin.org/journals/microbiology/articles/10.3389/fmicb.2016.02013/full"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "Source blocked or required JS. Verified factual accuracy using independent web search (Wikipedia/Crossref).",
+                    "ids": [118, 120],
+                    "url": "https://pubmed.ncbi.nlm.nih.gov/8872318/"
+                }
+            ],
+            "suppliedEvidenceOnlyIds": [
+                61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
+                87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120
+            ],
+            "toolAction": "Finalizing audit task",
+            "toolSummary": "Finish audit",
+            "truthPassIds": [
+                61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
+                87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120
+            ],
+            "verdicts": {
+                "FAIL": [82],
+                "PASS": [
+                    61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 83, 84, 85, 86,
+                    87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108,
+                    109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120
+                ],
+                "PASS_WITH_NOTE": [],
+                "UNVERIFIED": []
+            }
+        },
+        "science": {
+            "findings": [],
+            "limitations": [
+                "Two source leads (for IDs 179 and 180) returned 403 Forbidden errors; alternative authoritative sources were successfully consulted and confirmed the facts."
+            ],
+            "localizationPassIds": [
+                121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+                142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162,
+                163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180
+            ],
+            "setNotes": [
+                "All 60 questions were found to be factually accurate, unambiguously phrased, correctly localized into natural Polish, and appropriate for the science theme. No defects were identified."
+            ],
+            "sourceChecks": [
+                {
+                    "accessed": true,
+                    "evidence": "NASA confirms moonlight is sunlight reflected by the Moon's surface.",
+                    "ids": [121],
+                    "url": "https://science.nasa.gov/moon/moonlight/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Exploratorium confirms that an echo in an empty space is produced by the reflection of sound.",
+                    "ids": [122],
+                    "url": "https://annex.exploratorium.edu/xref/exhibits/rotunda_echo.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Met Office defines fog as being caused by tiny liquid water droplets suspended in the air near the ground.",
+                    "ids": [123],
+                    "url": "https://weather.metoffice.gov.uk/learn-about/weather/types-of-weather/fog"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Science museum exhibit demonstrates that as an object moves closer to a light source, its shadow grows larger.",
+                    "ids": [124],
+                    "url": "https://www.ncsm.city.nagoya.jp/cgi-bin/en/exhibition_guide/exhibit.cgi?id=S202&key=O&keyword=outline"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "ACS details that glow sticks emit light via a chemical reaction (chemiluminescence).",
+                    "ids": [125],
+                    "url": "https://cen.acs.org/business/consumer-products/glow-sticks-s-chemical-reaction/99/i39"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Exploratorium confirms that lighting a single opaque figure from two different positions creates two separate shadows.",
+                    "ids": [126],
+                    "url": "https://www.exploratorium.edu/snacks/colored-shadows"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NIH explains that during dark adaptation, eyes become vastly more sensitive to light.",
+                    "ids": [127],
+                    "url": "https://www.nei.nih.gov/research-and-training/research-news/scientists-shine-light-how-eyes-adapt-dark"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NHS describes sleep paralysis as a state where a person is awake but temporarily unable to move or speak.",
+                    "ids": [128],
+                    "url": "https://www.nhs.uk/conditions/sleep-paralysis/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Exploratorium confirms that peripheral vision is particularly good at detecting movement despite poor detail.",
+                    "ids": [129],
+                    "url": "https://www.exploratorium.edu/snacks/peripheral-vision"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Exploratorium explains that an afterimage is the lingering visual impression of a bright shape.",
+                    "ids": [130],
+                    "url": "https://www.exploratorium.edu/snacks/afterimage"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Physics demo describes fluorescence as the absorption of UV light and the emission of visible light.",
+                    "ids": [131],
+                    "url": "https://web.physics.ucsb.edu/~lecturedemonstrations/Composer/Pages/88.21.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Hospital source confirms hypnic jerks (sudden body jerks with a falling sensation) occur during the transition into sleep.",
+                    "ids": [132],
+                    "url": "https://www.royalpapworth.nhs.uk/our-services/respiratory-services/rssc/patient-information/symptoms/odd-behaviour-night"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Exploratorium notes rods are the retinal receptors responsible for vision in very dark environments.",
+                    "ids": [133],
+                    "url": "https://www.exploratorium.edu/snacks/colored-shadows"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Weather.gov states radiation fog forms overnight under clear skies, with moist air and light winds.",
+                    "ids": [134],
+                    "url": "https://www.weather.gov/safety/fog-radiation"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Physics lab defines phosphorescence as the continued glowing of a material after the light source is removed.",
+                    "ids": [135],
+                    "url": "https://physicslabs.colorado.edu/demos/modern-physics/atomic-physics/resonance-radiation/fluorescence-and-phosphorescence/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NASA explains sound requires a material medium to travel and cannot traverse a vacuum.",
+                    "ids": [136],
+                    "url": "https://science.nasa.gov/ems/02_anatomy/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NASA explains the Moon appears red during a total lunar eclipse because sunlight is filtered and bent through Earth's atmosphere.",
+                    "ids": [137],
+                    "url": "https://science.nasa.gov/moon/eclipses/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "ACS activity demonstrates that cooling a glow stick slows the chemical reaction and dims the light.",
+                    "ids": [138],
+                    "url": "https://www.acs.org/education/activities/slow-the-glow.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NASA defines a penumbral eclipse as one where the Moon stays in the penumbra and never enters the central umbra.",
+                    "ids": [139],
+                    "url": "https://science.nasa.gov/moon/eclipses/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NIH identifies REM sleep as the phase most associated with vivid dreaming and nightmares.",
+                    "ids": [140],
+                    "url": "https://www.nhlbi.nih.gov/health/sleep/stages-of-sleep"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NASA explains earthshine is sunlight reflected from Earth that illuminates the dark portion of the Moon.",
+                    "ids": [141],
+                    "url": "https://science.nasa.gov/earth/earth-observatory/earthshine-83782/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Weather.gov confirms that a 22° halo is caused by refraction through ice crystals in high clouds.",
+                    "ids": [142],
+                    "url": "https://www.weather.gov/arx/why_halos_sundogs_pillars"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "UNSW explains that beating is the pulsing loudness created by two tones of slightly different frequencies.",
+                    "ids": [143],
+                    "url": "https://www.animations.physics.unsw.edu.au/jw/beats.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "UNSW discusses face pareidolia as the phenomenon of seeing faces in non-face patterns.",
+                    "ids": [144],
+                    "url": "https://www.unsw.edu.au/news/2020/08/why-the-brain-is-programmed-to-see-faces-in-everyday-objects"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Hanover College explains the Purkinje effect causes blue-green to appear relatively brighter than red as light fades.",
+                    "ids": [145],
+                    "url": "https://isle.hanover.edu/isle2/Ch03Eye/Ch03PurkinjieSim_evt.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "CIRES confirms Fata Morgana mirages are formed by warm air sitting above a much colder layer (thermal inversion).",
+                    "ids": [146],
+                    "url": "https://ciresblogs.colorado.edu/lidarexploration/2026/01/08/optical-phenomena-in-antarctica-fata-morgana/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Linda Hall Library describes Pepper's ghost illusion using a hidden actor and an angled sheet of glass.",
+                    "ids": [147],
+                    "url": "https://www.lindahall.org/about/news/scientist-of-the-day/john-henry-pepper/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Rutgers confirms the hollow-mask illusion makes the concave side of a mask appear as an outward-curving face.",
+                    "ids": [148],
+                    "url": "https://www.rutgers.edu/news/rutgers-researchers-test-potentially-lifesaving-tool-detecting-schizophrenia"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Met Office explains a Brocken spectre is the observer's shadow cast on mist or cloud.",
+                    "ids": [149],
+                    "url": "https://weather.metoffice.gov.uk/learn-about/weather/optical-effects"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Weather.gov confirms sun pillars are produced by light reflection from aligned, falling ice crystals.",
+                    "ids": [150],
+                    "url": "https://www.weather.gov/arx/why_halos_sundogs_pillars"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Iowa physics demo confirms that the flash when pulling apart adhesive surfaces is triboluminescence.",
+                    "ids": [151],
+                    "url": "https://instructional-resources.physics.uiowa.edu/7b1305-triboluminescence"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "ASU physics resource explains the strobe effect samples a rotating wheel's motion at separated instants.",
+                    "ids": [152],
+                    "url": "https://pirt.asu.edu/node/5936"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Richmond publication confirms the autokinetic effect makes a stationary point of light appear to wander in darkness.",
+                    "ids": [153],
+                    "url": "https://scholarship.richmond.edu/jepson-faculty-publications/162/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Exploratorium confirms the Shepard scale auditory illusion creates a scale that seems to rise endlessly.",
+                    "ids": [154],
+                    "url": "https://annex.exploratorium.edu/exhibits/highest_note/fr.discrete.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NASA confirms zodiacal light is sunlight scattered by interplanetary dust.",
+                    "ids": [155],
+                    "url": "https://science.nasa.gov/solar-system/skywatching/night-sky-network/nsn-night-lights/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Cleveland Clinic defines hypnagogic hallucinations as brief dreamlike images experienced while falling asleep.",
+                    "ids": [156],
+                    "url": "https://my.clevelandclinic.org/health/articles/23234-hypnagogic-hallucinations"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NCBI Bookshelf confirms retinal is the light-sensitive chromophore attached to opsin in rhodopsin.",
+                    "ids": [157],
+                    "url": "https://www.ncbi.nlm.nih.gov/books/NBK27937/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Met Office explains a fogbow is paler due to diffraction blending colours from very tiny droplets.",
+                    "ids": [158],
+                    "url": "https://weather.metoffice.gov.uk/learn-about/weather/optical-effects/rainbows"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "NASA explains noctilucent clouds are located in the high mesosphere, remaining sunlit after surface sunset.",
+                    "ids": [159],
+                    "url": "https://science.nasa.gov/solar-system/skywatching/night-sky-network/nsn-night-lights/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Hanover College confirms that in the missing-fundamental illusion, perceived pitch stays at the missing fundamental.",
+                    "ids": [160],
+                    "url": "https://isle.hanover.edu/Ch10AuditorySystem/Ch10MissingFundamental.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "JPL explains that the reddish glow of sprites is produced by excited nitrogen gas.",
+                    "ids": [161],
+                    "url": "https://www.jpl.nasa.gov/news/juno-data-indicates-sprites-or-elves-frolic-in-jupiters-atmosphere/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Met Office implies via diffraction principles that as cloud droplets become smaller, the angular radius of a lunar corona increases.",
+                    "ids": [162],
+                    "url": "https://weather.metoffice.gov.uk/learn-about/weather/optical-effects"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "MIT News describes St Elmo's fire as a corona discharge from pointed objects in strong electric fields.",
+                    "ids": [163],
+                    "url": "https://news.mit.edu/2020/airplanes-counteract-st-elmos-fire-thunderstorms-0811"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Textbook confirms Emmert's law governs why an afterimage appears larger when projected to a greater perceived distance.",
+                    "ids": [164],
+                    "url": "https://resources.saylor.org/wwwresources/archived/site/wp-content/uploads/2014/05/PSYCH306-Experiencing-Sensation-and-Perception-Chapter-9.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "APOD notes airglow is powered by the recombination of atoms previously photoionized by daytime solar radiation.",
+                    "ids": [165],
+                    "url": "https://apod.nasa.gov/apod/ap130619.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "UCSD explains the precedence effect, where the earlier arriving click dominates the perceived direction of the sound.",
+                    "ids": [166],
+                    "url": "https://musicweb.ucsd.edu/~trsmyth/space175/Precedence_Effect.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "PLOS ONE article confirms binaural beats require delivering slightly different tones separately to each ear.",
+                    "ids": [167],
+                    "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286023"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Purdue research explains the ear generates combination tones (distortion products) due to nonlinear responses within the ear.",
+                    "ids": [168],
+                    "url": "https://engineering.purdue.edu/~malcolm/apple/tr25/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Emory visual cognition site describes the Troxler effect as peripheral targets fading during steady central fixation.",
+                    "ids": [169],
+                    "url": "https://faculty.college.emory.edu/sites/wyttenbach/psycog/vis/fading/index.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "SIU explains the Pulfrich effect occurs due to unequal processing latency when one eye's image is dimmed.",
+                    "ids": [170],
+                    "url": "https://pulfrich.siu.edu/Pulfrich_Pages/explains/expl_txt/expl_jmw.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "McGill research confirms atmospheric elves are excited by an electromagnetic pulse (EMP) from lightning.",
+                    "ids": [171],
+                    "url": "https://wellbeing.research.mcgill.ca/elves/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "TUM photochemistry doc states phosphorescent decay is slower because the transition involves a change in spin multiplicity.",
+                    "ids": [172],
+                    "url": "https://www.ch.nat.tum.de/fileadmin/w00bzu/oc1/_my_direct_uploads/Photochemie_Uebung_WiSe202324.lsg.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "APOD confirms the gegenschein (counterglow) is centered at the antisolar point.",
+                    "ids": [173],
+                    "url": "https://apod.nasa.gov/apod/ap061226.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "ASU demo confirms the Arago spot is formed by constructive interference of light diffracted around an obstacle's edge.",
+                    "ids": [174],
+                    "url": "https://pirt.asu.edu/demos/6C20.10"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Illinois publication indicates sonoluminescence flash occurs at the end of the rapid collapse phase of the bubble.",
+                    "ids": [175],
+                    "url": "https://experts.illinois.edu/en/publications/single-bubble-sonoluminescence/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "TUM doc confirms Kasha's rule implies luminescence comes from the lowest excited state of a given spin multiplicity.",
+                    "ids": [176],
+                    "url": "https://www.ch.nat.tum.de/fileadmin/w00bzu/oc1/_my_direct_uploads/Photochemie_Uebung_WiSe202324.lsg.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Diana Deutsch's page explains her octave illusion uses two simultaneous tones, one presented to each ear at each instant.",
+                    "ids": [177],
+                    "url": "https://deutsch.ucsd.edu/psychology/pages.php?i=202"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Nature article defines Ganzfeld as a condition characterized by spatially homogeneous, unstructured visual stimulation.",
+                    "ids": [178],
+                    "url": "https://www.nature.com/articles/s41598-024-52372-1"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Wikipedia confirms the long-lived red oxygen emission is suppressed in denser lower air because collisions quench the excited state before emission.",
+                    "ids": [179],
+                    "url": "https://en.wikipedia.org/wiki/Aurora"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "RSC literature confirms trap-mediated persistent luminescence stores energy temporarily in charge carriers within defect-related traps.",
+                    "ids": [180],
+                    "url": "https://pubs.rsc.org/en/content/articlelanding/2021/tc/d0tc05786g"
+                }
+            ],
+            "suppliedEvidenceOnlyIds": [
+                121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+                142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162,
+                163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178
+            ],
+            "toolAction": "Finishing the audit",
+            "toolSummary": "Complete the audit",
+            "truthPassIds": [
+                121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+                142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162,
+                163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180
+            ],
+            "verdicts": {
+                "FAIL": [],
+                "PASS": [
+                    121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140,
+                    141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
+                    161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180
+                ],
+                "PASS_WITH_NOTE": [],
+                "UNVERIFIED": []
+            }
+        },
+        "stories": {
+            "findings": [],
+            "limitations": [
+                "A Python script was used to safely fetch and perform regex searches across the 30 provided URLs in the sandbox, ensuring that all sources were genuinely inspected without hitting token or read limit truncations."
+            ],
+            "localizationPassIds": [
+                181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201,
+                202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222,
+                223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240
+            ],
+            "setNotes": [
+                "The batch is exceptionally solid. All 60 items were factually verified against the provided sources and the Polish translations correctly reflect standard conventions and syntax. No defects were found."
+            ],
+            "sourceChecks": [
+                {
+                    "accessed": true,
+                    "evidence": "Text of Frankenstein confirms Mary Shelley as author, the creature's demand for a female companion, Walton's expedition to the North Pole, and the creature approaching the blind elder De Lacey.",
+                    "ids": [181, 194, 204, 214],
+                    "url": "https://www.gutenberg.org/cache/epub/84/pg84-images.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Text of Dracula confirms Van Helsing is a professor, Harker stays in Transylvania, Seward uses a phonograph, and Mina's forehead is burned by a consecrated Host.",
+                    "ids": [182, 193, 213, 222],
+                    "url": "https://www.gutenberg.org/cache/epub/345/pg345-images.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Text of Hamlet confirms the ghost claims to be the father of Hamlet.",
+                    "ids": [183],
+                    "url": "https://www.gutenberg.org/files/1524/1524-h/1524-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Slavic folk tales collection confirms Baba Yaga's hut on chicken legs and Koshchei's death bound to a needle.",
+                    "ids": [184, 217],
+                    "url": "https://gutenberg.org/cache/epub/26177/pg26177-images.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Text of Dr Jekyll and Mr Hyde confirms Jekyll transforms into Hyde, Utterson is a lawyer, and Jekyll believes his original salt had an unknown impurity.",
+                    "ids": [185, 202, 221],
+                    "url": "https://www.gutenberg.org/cache/epub/43/pg43-images.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Legend of Sleepy Hollow confirms the Headless Horseman legend and Ichabod Crane's occupation as a schoolteacher.",
+                    "ids": [186, 197],
+                    "url": "https://www.gutenberg.org/files/41/41-h/41-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Theoi entry on Charon confirms he ferries the dead across the underworld waters.",
+                    "ids": [187],
+                    "url": "https://www.theoi.com/Khthonios/Kharon.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Theoi entry on Cerberus confirms the creature guards the entrance to the underworld.",
+                    "ids": [188],
+                    "url": "https://www.theoi.com/Ther/KuonKerberos.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Ovid's Metamorphoses confirms Orpheus loses Eurydice by looking back.",
+                    "ids": [189],
+                    "url": "https://www.theoi.com/Text/OvidMetamorphoses10.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Theoi confirms Persephone is bound to the underworld by pomegranate seeds.",
+                    "ids": [190],
+                    "url": "https://www.theoi.com/Khthonios/Persephone.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "A Christmas Carol text confirms Marley drags a chain of objects linked to money and business.",
+                    "ids": [191],
+                    "url": "https://www.gutenberg.org/files/46/46-h/46-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Warsaw legend text confirms the tailor uses a mirror to defeat the basilisk.",
+                    "ids": [192],
+                    "url": "https://go2warsaw.pl/en/basilisk-legend/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Canterville Ghost text confirms Otis offers oil for the chains and Virginia helps the ghost find peace.",
+                    "ids": [195, 216],
+                    "url": "https://www.gutenberg.org/files/14522/14522-h/14522-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Macbeth text confirms Banquo's ghost occupies Macbeth's seat during the banquet.",
+                    "ids": [196],
+                    "url": "https://www.gutenberg.org/files/1533/1533-h/1533-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Raven text confirms the speaker mourns for Lenore.",
+                    "ids": [198],
+                    "url": "https://www.gutenberg.org/files/17192/17192-h/17192-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Theoi confirms Lethe is the underworld river associated with forgetting.",
+                    "ids": [199],
+                    "url": "https://www.theoi.com/Khthonios/PotamosLethe.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Theoi entry on Hermes confirms he acts as a guide leading souls to Charon.",
+                    "ids": [200],
+                    "url": "https://www.theoi.com/Olympios/Hermes.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Pani Twardowska text confirms the devil claims the pact is met at an inn named Rome.",
+                    "ids": [201],
+                    "url": "https://eink.wolnelektury.pl/katalog/lektura/ballady-i-romanse-pani-twardowska.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Text confirms Roderick and Madeline Usher are twins, and the Red Death costume contains no tangible body.",
+                    "ids": [203, 209],
+                    "url": "https://www.gutenberg.org/files/2148/2148-h/2148-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Carmilla text confirms Laura recounts the encounter, her home is in Styria, and the portrait bears the name Mircalla Karnstein.",
+                    "ids": [205, 215, 223],
+                    "url": "https://www.gutenberg.org/files/10007/10007-h/10007-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Turn of the Screw text confirms the governess writes the main account and Peter Quint was the master's valet.",
+                    "ids": [206, 224],
+                    "url": "https://www.gutenberg.org/files/209/209-h/209-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Prose Edda text confirms Loki is the father of Hel, and Hel demands all things weep for Baldr.",
+                    "ids": [207, 212],
+                    "url": "https://www.gutenberg.org/files/18947/18947-h/18947-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Yeats' folklore text confirms the wailing of a banshee foretells a death in the family.",
+                    "ids": [208],
+                    "url": "https://www.gutenberg.org/files/33887/33887-h/33887-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Monkey's Paw text confirms Sergeant-Major Morris tries to destroy the talisman.",
+                    "ids": [210],
+                    "url": "https://www.gutenberg.org/files/12122/12122-h/12122-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Hearn's stories text confirms details from Yuki-Onna, Mujina, The Dream of Akinosuke, Jikininki, Rokuro-Kubi, and Of a Mirror and a Bell.",
+                    "ids": [211, 218, 226, 232, 234, 238],
+                    "url": "https://www.gutenberg.org/files/1210/1210-h/1210-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Castle of Otranto text confirms Conrad is killed by a helmet and the apparition recognizes Theodore as heir.",
+                    "ids": [219, 235],
+                    "url": "https://www.gutenberg.org/files/696/696-h/696-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "The Mysteries of Udolpho text confirms the object behind the black veil is a wax figure.",
+                    "ids": [220],
+                    "url": "https://www.gutenberg.org/files/3268/3268-h/3268-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "M. R. James ghost stories text confirms details from his various tales including the bedclothes apparition and Canon Alberic's Scrap-book.",
+                    "ids": [225, 229, 233, 237, 239, 240],
+                    "url": "https://www.gutenberg.org/files/8486/8486-h/8486-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Vathek text confirms the protagonists lose hope in the palace of Eblis.",
+                    "ids": [227],
+                    "url": "https://www.gutenberg.org/files/2060/2060-h/2060-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Ligeia text confirms the narrator recognizes her eyes.",
+                    "ids": [228],
+                    "url": "https://www.gutenberg.org/files/2149/2149-h/2149-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Bisclavret text confirms the werewolf must recover his clothes to become human.",
+                    "ids": [230],
+                    "url": "https://www.gutenberg.org/files/11417/11417-h/11417-h.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Green Tea text confirms the apparition takes the form of a small black monkey.",
+                    "ids": [231],
+                    "url": "https://www.gutenberg.org/cache/epub/11635/pg11635-images.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Odyssey 11 text confirms Tiresias says an inland traveller will mistake an oar for a winnowing fan.",
+                    "ids": [236],
+                    "url": "https://www.theoi.com/Text/HomerOdyssey11.html"
+                }
+            ],
+            "suppliedEvidenceOnlyIds": [
+                181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201,
+                202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222,
+                223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240
+            ],
+            "toolAction": "Submitting audit findings",
+            "toolSummary": "Submit audit findings",
+            "truthPassIds": [
+                181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201,
+                202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222,
+                223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240
+            ],
+            "verdicts": {
+                "FAIL": [],
+                "PASS": [
+                    181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200,
+                    201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
+                    221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240
+                ],
+                "PASS_WITH_NOTE": [],
+                "UNVERIFIED": []
+            }
+        },
+        "places-harvest": {
+            "findings": [
+                {
+                    "category": "localization",
+                    "evidenceUrls": ["https://pl.wikipedia.org/wiki/Jagoda_(botanika)"],
+                    "fixEn": "N/A",
+                    "fixPl": "Consider changing 'Pepo' to 'Peponidium' or 'Owoc dyniowaty' for better naturalness in Polish.",
+                    "ids": [271],
+                    "problem": "The English botanical term 'pepo' is translated directly as 'Pepo' in Polish, but in Polish botany, it is more commonly referred to as 'peponidium', 'owoc dyniowaty', or simply 'jagoda' (rzekoma). While 'pepo' is understandable in a Latin botanical context, using the established Polish equivalent would be more natural.",
+                    "severity": "minor"
+                }
+            ],
+            "limitations": [
+                "Several provided URLs (Metropolitan Museum of Art, UMN Extension, and Science Museum Group) returned 403 Forbidden or 429 Too Many Requests errors blocking automated access. For the corresponding IDs, web searches were conducted to independently verify the factual claims."
+            ],
+            "localizationPassIds": [
+                241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261,
+                262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282,
+                283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300
+            ],
+            "setNotes": [
+                "The batch is exceptionally well-researched with fascinating, accurate facts covering history, botany, and archaeology. The Polish translations are highly natural, correctly handling grammatical cases and nuanced terminology. A minor localization suggestion was made for 'pepo' (271) to better align with Polish botanical conventions, but otherwise the set is flawless."
+            ],
+            "sourceChecks": [
+                {
+                    "accessed": true,
+                    "evidence": "PDF confirms crypt is a burial chamber beneath a church, sarcophagus is an ornate stone coffin, columbarium houses cremains, and exedra is a semicircular masonry bench.",
+                    "ids": [241, 249, 265, 286],
+                    "url": "https://www.nps.gov/subjects/nationalregister/upload/NRB41-Complete.pdf"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms the Paris Catacombs ossuary holds human bones arranged in walls.",
+                    "ids": [245],
+                    "url": "https://www.catacombes.paris.fr/en/history/ossuary"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Paris Catacombs were former stone quarries (Tombe-Issoire).",
+                    "ids": [253],
+                    "url": "https://www.catacombes.paris.fr/en/history/site-history"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms shedding leaves helps trees limit water loss in winter, and the separation layer forms at the junction of the leaf stalk and stem.",
+                    "ids": [248, 267],
+                    "url": "https://www.woodlandtrust.org.uk/blog/2020/10/why-autumn-leaves-change-colour/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms European larch is a conifer that turns yellow and sheds needles in autumn.",
+                    "ids": [256],
+                    "url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/british-trees/a-z-of-british-trees/european-larch/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms marcescence is the retention of dead leaves through winter, seen on beech trees.",
+                    "ids": [276],
+                    "url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/british-trees/a-z-of-british-trees/common-beech/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms autumn mushrooms release spores, a mushroom with cap and stalk is the fruiting body, and the network of fine threads beneath is mycelium.",
+                    "ids": [243, 246, 255],
+                    "url": "https://www.anbg.gov.au/fungi/what-is-fungus.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms boletes have tubes opening as pores beneath the cap.",
+                    "ids": [259],
+                    "url": "https://www.anbg.gov.au/fungi/types-boletes.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms mycorrhiza is an association between fungus and plant roots, and Hartig net is the fungal network between root cells in ectomycorrhiza.",
+                    "ids": [275, 294],
+                    "url": "https://www.anbg.gov.au/fungi/mycorrhiza.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Pisolithus has powdery spores above and rice-grain-like peridioles below, and that basidia in gasteromycetes disintegrate after producing spores.",
+                    "ids": [291, 296],
+                    "url": "https://www.anbg.gov.au/fungi/two-gasteromycetes.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms spore-containing packets in Cyathus are peridioles and the funicular cord anchors to nearby vegetation.",
+                    "ids": [284, 299],
+                    "url": "https://www.anbg.gov.au/fungi/birds-nest-cannonball.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms basidium projections bearing spores are sterigmata and Leotia lubrica asci are on the upper surface.",
+                    "ids": [292, 300],
+                    "url": "https://www.anbg.gov.au/fungi/ascomycetes-basidiomycetes.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Ħal Saflieni Hypogeum rock-hewn chambers resemble above-ground megalithic buildings.",
+                    "ids": [282],
+                    "url": "https://heritagemalta.mt/explore/hal-saflieni-hypogeum/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Lindow Man was discovered in a peat bog.",
+                    "ids": [266],
+                    "url": "https://www.sciencehistory.org/stories/magazine/bodies-in-the-bog-the-lindow-mysteries/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Etruscan tombs at Cerveteri imitate domestic houses.",
+                    "ids": [274],
+                    "url": "https://whc.unesco.org/en/list/1158"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms stećci tombstones were shared by several Christian communities.",
+                    "ids": [290],
+                    "url": "https://whc.unesco.org/en/list/1504"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Newgrange's corbelled roof consists of successive stone layers projecting inward and passage is lined with orthostats.",
+                    "ids": [270, 295],
+                    "url": "https://www.newgrange.com/description.htm"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Stoney Littleton long barrow is from the Neolithic period.",
+                    "ids": [250],
+                    "url": "https://www.english-heritage.org.uk/visit/places/stoney-littleton-long-barrow/history/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Sedlec Ossuary chandelier is made of human bones.",
+                    "ids": [262],
+                    "url": "https://www.sedlec.info/en/ossuary/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Cucurbita pepo uses tendrils to grip supports and its fruit type is a pepo.",
+                    "ids": [252, 271],
+                    "url": "https://plants.ces.ncsu.edu/plants/cucurbita-pepo/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Datura stramonium has a spiny capsule fruit.",
+                    "ids": [283],
+                    "url": "https://plants.ces.ncsu.edu/plants/datura-stramonium/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Aconitum has flowers with a helmet-like upper hood.",
+                    "ids": [264],
+                    "url": "https://plants.ces.ncsu.edu/plants/aconitum/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms cross-pollination traits in Cucurbita pepo first appear in plants grown from the resulting seeds.",
+                    "ids": [287],
+                    "url": "https://yardandgarden.extension.iastate.edu/how-to/cross-pollination-between-vine-crops"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Colchicum autumnale leaves appear in spring and die back before autumn flowering, and it has six stamens compared to three for true Crocus.",
+                    "ids": [272, 288],
+                    "url": "https://hort.extension.wisc.edu/articles/autumn-crocus-colchicum-spp/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms Roman catacombs were excavated in tuff, simple elongated burial recesses are loculi, and those with arched recesses are arcosolia.",
+                    "ids": [273, 281, 285],
+                    "url": "https://www.vatican.va/roman_curia/pontifical_commissions/archeo/inglese/documents/rc_com_archeo_doc_20011010_cataccrist_en.html"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms saffron is from stigmas.",
+                    "ids": [260],
+                    "url": "https://www.rhs.org.uk/herbs/saffron"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms fly agaric has white patches.",
+                    "ids": [251],
+                    "url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/fungi-and-lichens/fly-agaric/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms cenotaph differs from a tomb as commemorated remains are absent.",
+                    "ids": [261],
+                    "url": "https://www.english-heritage.org.uk/visit/london-statues-and-monuments/monuments-gallery/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms gills of mature inkcap turn to black liquid.",
+                    "ids": [268],
+                    "url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/fungi-and-lichens/common-inkcap/"
+                },
+                {
+                    "accessed": true,
+                    "evidence": "Confirms outer skin of collared earthstar splits and curls back.",
+                    "ids": [280],
+                    "url": "https://www.woodlandtrust.org.uk/trees-woods-and-wildlife/fungi-and-lichens/collared-earthstar/"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked (429). Verified via web search that mastaba of Perneb burial chamber was below ground reached by a shaft, the enclosed statue chamber is a serdab, and the superstructure interior is mostly rubble fill.",
+                    "ids": [269, 289, 293],
+                    "url": "https://www.metmuseum.org/art/collection/search/587738"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked. Verified via search that mummy bandages were linen and selvedges indicate it was woven as a narrow strip.",
+                    "ids": [244, 298],
+                    "url": "https://www.metmuseum.org/art/collection/search/548838"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked. Verified via general knowledge/search that canopic jars contained internal organs.",
+                    "ids": [258],
+                    "url": "https://www.metmuseum.org/art/collection/search/550773"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked. Verified via search that Egyptian cartonnage core is layers of cloth glued together.",
+                    "ids": [278],
+                    "url": "https://www.metmuseum.org/art/collection/search/553242"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked. Verified via search that a false door was a passage for the soul of the deceased.",
+                    "ids": [277],
+                    "url": "https://www.metmuseum.org/art/collection/search/543863"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked. Verified via search that a rishi coffin features a covering pattern of feathers.",
+                    "ids": [297],
+                    "url": "https://www.metmuseum.org/art/collection/search/544788"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked (403). Verified via web search that iron mortsafes protected coffins from body theft.",
+                    "ids": [257],
+                    "url": "https://collection.sciencemuseumgroup.org.uk/objects/co77094/iron-mortsafe-base-and-lid"
+                },
+                {
+                    "accessed": false,
+                    "evidence": "URL blocked (403). Verified via search that pumpkins belong to the same family as cucumbers, pie pumpkins are selected for sweeter flesh, winter squash is mature with a hard rind, and Hubbard squash is Cucurbita maxima.",
+                    "ids": [242, 247, 263, 279],
+                    "url": "https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/pumpkins-and-winter-squash"
+                }
+            ],
+            "suppliedEvidenceOnlyIds": [
+                241, 243, 245, 246, 248, 249, 250, 251, 252, 253, 254, 255, 256, 259, 260, 261, 262, 264, 265, 266, 267,
+                268, 270, 271, 272, 273, 274, 275, 276, 280, 281, 282, 283, 284, 285, 286, 287, 288, 290, 291, 292, 294,
+                295, 296, 299, 300
+            ],
+            "toolAction": "Finishing the factual and bilingual audit",
+            "toolSummary": "Finish the audit",
+            "truthPassIds": [
+                241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261,
+                262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282,
+                283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300
+            ],
+            "verdicts": {
+                "FAIL": [],
+                "PASS": [
+                    241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260,
+                    261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281,
+                    282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300
+                ],
+                "PASS_WITH_NOTE": [271],
+                "UNVERIFIED": []
+            }
+        }
+    }
+}

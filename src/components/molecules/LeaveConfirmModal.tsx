@@ -17,6 +17,7 @@ interface LeaveConfirmModalProps {
     /** Run the real exit. */
     onConfirm: () => void;
     onCancel: () => void;
+    onPause?: () => void;
 }
 
 /**
@@ -24,7 +25,7 @@ interface LeaveConfirmModalProps {
  * leave control doesn't abandon the run. Copy comes from each game's
  * `active.leave{Confirm,Cancel,Ok}` strings.
  */
-function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfirmModalProps) {
+function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel, onPause }: LeaveConfirmModalProps) {
     const { t } = useTranslation();
     const { setIsBlurry } = useBlur();
     const { scale } = useResponsive();
@@ -53,14 +54,19 @@ function LeaveConfirmModal({ visible, gameKey, onConfirm, onCancel }: LeaveConfi
                     <Card variant='glass' padding='xl' gap='xl'>
                         <Stack gap='xl'>
                             <Text variant='subheading' weight='bold' align='center'>
-                                {t(`${base}.leaveConfirm`)}
+                                {t(onPause ? 'challenge.session.leave' : `${base}.leaveConfirm`)}
                             </Text>
                             <Stack gap='sm' align='stretch'>
                                 <Button variant='primary' fullWidth onPress={onCancel}>
                                     {t(`${base}.leaveCancel`)}
                                 </Button>
+                                {onPause ? (
+                                    <Button variant='secondary' fullWidth onPress={onPause}>
+                                        {t('challenge.session.pause')}
+                                    </Button>
+                                ) : null}
                                 <Button variant='ghost' fullWidth onPress={onConfirm}>
-                                    {t(`${base}.leaveOk`)}
+                                    {t(onPause ? 'challenge.session.abandon' : `${base}.leaveOk`)}
                                 </Button>
                             </Stack>
                         </Stack>

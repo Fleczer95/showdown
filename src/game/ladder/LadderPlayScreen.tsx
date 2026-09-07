@@ -37,7 +37,7 @@ import { buildLocalizedRungs, type Language, type LadderPackCard } from './build
 import { getHistory, markShown } from '../history';
 import { useSound } from '../../hooks/useSound';
 import { useHaptics } from '../../hooks/useHaptics';
-import { useStore } from '../../hooks/store/useStore';
+import { useContentAccess } from '../events/access';
 import { getOwnedPackContent } from '../../data/store/packContent';
 import { useResponsive } from '../../responsive/useResponsive';
 import {
@@ -56,6 +56,10 @@ import {
 } from './logic';
 import { speedBonus, ladderScore, LADDER_RUNG_POINTS, type ScoreBreakdown } from '../scoring';
 import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHandoff';
+
+import { getCheckpoint } from '../challenge/session/store';
+import { useSessionCheckpoint } from '../challenge/session/useSessionCheckpoint';
+import { ladderResult, type LadderCheckpoint } from '../challenge/session/checkpoints';
 
 const GAME_ID = 'the-ladder';
 
@@ -94,10 +98,10 @@ export default function LadderPlayScreen({
     const lang = (locale === 'pl' ? 'pl' : 'en') as Language;
 
     // Owned premium pack questions, localized + slotted into rungs by difficulty.
-    const { purchasedItemIds } = useStore();
+    const contentAccess = useContentAccess();
     const ownedCards = useMemo(
-        () => getOwnedPackContent<LadderPackCard>(GAME_ID, lang, new Set(purchasedItemIds)),
-        [purchasedItemIds, lang],
+        () => getOwnedPackContent<LadderPackCard>(GAME_ID, lang, new Set(contentAccess)),
+        [contentAccess, lang],
     );
 
     const success = useColor('success');
@@ -110,32 +114,34 @@ export default function LadderPlayScreen({
     const haptics = useHaptics();
     const { tabletColumn, isTablet } = useResponsive();
 
+    const [saved] = useState(() => getCheckpoint<LadderCheckpoint>(challenge?.sessionId));
     const [run, setRun] = useState<LadderRun>(
-        () => challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
+        () => saved?.run ?? challenge?.initial ?? buildRun(buildLocalizedRungs(lang, ownedCards), getHistory(GAME_ID)),
     );
 
     // Hidden per-decision stopwatch + run accumulators for the unified points
     // score. The timer resets on every new question (including after a Skip);
     // base + speed accrue only on correct answers, the lifeline bonus at run end.
     const decisionStartedAt = useRef(Date.now());
-    const baseTotal = useRef(0);
-    const speedTotal = useRef(0);
+    const baseTotal = useRef(saved?.base ?? 0);
+    const speedTotal = useRef(saved?.speed ?? 0);
     // "Quick Wit": a single fast, correct answer at a high rung this run.
-    const quickWit = useRef(false);
+    const quickWit = useRef(saved?.quickWit ?? false);
 
     // Count a question as shown once per distinct question displayed, and restart
     // the decision timer. Skipping changes the current id, so this refires for the
     // swapped-in question while the skipped one was already counted when first shown.
+    const shownId = currentQuestion(run).id;
     useEffect(() => {
-        const id = currentQuestion(run).id;
+        const id = shownId;
         // In challenge mode only mark questions the player owns, so embedded
         // premium content they don't own never pollutes their local rotation.
         if (!challenge || challenge.ownedIds.has(id)) markShown(GAME_ID, id);
         decisionStartedAt.current = Date.now();
-    }, [currentQuestion(run).id, challenge]);
+    }, [shownId, challenge]);
     // Per-question transient UI state.
-    const [hidden, setHidden] = useState<number[]>([]);
-    const [audience, setAudience] = useState<number[] | null>(null);
+    const [hidden, setHidden] = useState<number[]>(saved?.hidden ?? []);
+    const [audience, setAudience] = useState<number[] | null>(saved?.audience ?? null);
     const [selected, setSelected] = useState<number | null>(null);
     // The verdict is withheld during the suspense beat: `selected` marks the
     // locked-in choice, `revealed` flips on only when the correct/wrong reveal
@@ -152,6 +158,20 @@ export default function LadderPlayScreen({
     };
 
     const question = currentQuestion(run);
+    const snapshot = (): LadderCheckpoint => ({
+        run,
+        hidden,
+        audience,
+        base: baseTotal.current,
+        speed: speedTotal.current,
+        quickWit: quickWit.current,
+    });
+    const session = useSessionCheckpoint(
+        challenge?.sessionId,
+        question.id,
+        selected === null && !showLeaveConfirm,
+        onExit,
+    );
 
     function resetTransient() {
         setHidden([]);
@@ -169,7 +189,7 @@ export default function LadderPlayScreen({
     }
 
     function handleAnswer(index: number) {
-        if (run.status !== 'active' || selected !== null) {
+        if (run.status !== 'active' || selected !== null || !session.canPlay()) {
             return;
         }
         setSelected(index);
@@ -180,12 +200,14 @@ export default function LadderPlayScreen({
         if (correct) {
             const rung = run.currentIndex + 1;
             const base = rung * LADDER_RUNG_POINTS;
-            const seconds = (Date.now() - decisionStartedAt.current) / 1000;
+            const seconds = (challenge ? session.elapsed() : Date.now() - decisionStartedAt.current) / 1000;
             baseTotal.current += base;
             speedTotal.current += speedBonus(base, seconds);
             if (isQuickWit(rung, seconds)) quickWit.current = true;
         }
         const next = applyAnswer(run, index);
+        const committed = { ...snapshot(), run: next, hidden: [], audience: null };
+        if (!session.commit(committed, ladderResult(committed), true)) return;
         // Tension scales with the stake: higher rungs hold the verdict longer and,
         // near the top, throb a heartbeat or two before it lands.
         const stake = RUN_LENGTH > 1 ? run.currentIndex / (RUN_LENGTH - 1) : 0;
@@ -217,20 +239,28 @@ export default function LadderPlayScreen({
     }
 
     function handleLifeline(key: Lifeline) {
-        if (!canUseLifeline(run, key) || selected !== null) {
+        if (!canUseLifeline(run, key) || selected !== null || !session.canPlay()) {
             return;
         }
         if (key === 'fiftyFifty') {
-            setHidden(fiftyFiftyHidden(run));
-            setRun(consumeLifeline(run, 'fiftyFifty'));
+            const hidden = fiftyFiftyHidden(run);
+            const next = consumeLifeline(run, 'fiftyFifty');
+            if (!session.commit({ ...snapshot(), run: next, hidden })) return;
+            setHidden(hidden);
+            setRun(next);
         } else if (key === 'askStudio') {
             // Poll the audience over whatever options are still live (50:50 may
             // have removed two), then lock the result in for this question.
-            setAudience(audienceVote(run, hidden));
-            setRun(consumeLifeline(run, 'askStudio'));
+            const audience = audienceVote(run, hidden);
+            const next = consumeLifeline(run, 'askStudio');
+            if (!session.commit({ ...snapshot(), run: next, audience })) return;
+            setAudience(audience);
+            setRun(next);
         } else if (key === 'skip') {
             // Swap to a different same-rung question; player must still answer it.
-            setRun(skipQuestion(run));
+            const next = skipQuestion(run);
+            if (!session.commit({ ...snapshot(), run: next, hidden: [], audience: null }, undefined, true)) return;
+            setRun(next);
             resetTransient();
         }
     }
@@ -300,7 +330,10 @@ export default function LadderPlayScreen({
                             variant='ghost'
                             size={isTablet ? 'md' : 'sm'}
                             style={{ flexShrink: 1 }}
-                            onPress={() => setShowLeaveConfirm(true)}
+                            onPress={() => {
+                                session.pause();
+                                setShowLeaveConfirm(true);
+                            }}
                         >
                             {t('game.the-ladder.active.leave')}
                         </Button>
@@ -394,8 +427,17 @@ export default function LadderPlayScreen({
             <LeaveConfirmModal
                 visible={showLeaveConfirm}
                 gameKey='the-ladder'
+                onPause={
+                    challenge
+                        ? () => {
+                              setShowLeaveConfirm(false);
+                              onExit();
+                          }
+                        : undefined
+                }
                 onConfirm={() => {
                     setShowLeaveConfirm(false);
+                    challenge?.onAbandon?.();
                     onExit();
                 }}
                 onCancel={() => setShowLeaveConfirm(false)}

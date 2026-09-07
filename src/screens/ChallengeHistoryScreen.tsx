@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View, type ListRenderItemInfo } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { ChevronLeft, Swords, Trophy, Hourglass, ChevronRight, Share2, type LucideIcon } from 'lucide-react-native';
@@ -8,6 +8,7 @@ import Stack from '../components/atoms/Stack';
 import Icon from '../components/atoms/Icon';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
+import Button from '../components/molecules/Button';
 import { useTheme } from '../theme';
 import { hexToRgba, resolveAccent } from '../theme/colorUtils';
 import { useTranslation } from '../i18n';
@@ -16,10 +17,13 @@ import { games } from '../data/games';
 import { listChallenges, challengeStatus, type ChallengeStub, type ChallengeStatus } from '../game/challenge/log';
 import { shareChallenge } from '../game/challenge/share';
 import { syncIncomingRematches } from '../game/challenge/rematchSync';
+import { getPendingEventStart, listSessions } from '../game/challenge/session/store';
 
 /** Status → icon + i18n label key. Color is the game accent (muted for expired). */
 const STATUS_META: Record<ChallengeStatus, { icon: LucideIcon; labelKey: string }> = {
     yourTurn: { icon: Swords, labelKey: 'challenge.history.yourTurn' },
+    resume: { icon: Swords, labelKey: 'challenge.history.resume' },
+    pendingUpload: { icon: Hourglass, labelKey: 'challenge.history.pendingUpload' },
     waitingOpponent: { icon: Hourglass, labelKey: 'challenge.history.waitingOpponent' },
     completed: { icon: Trophy, labelKey: 'challenge.history.completed' },
     expired: { icon: Hourglass, labelKey: 'challenge.history.expiredStatus' },
@@ -30,6 +34,7 @@ interface ChallengeRowProps {
     gameId: string;
     opponent: string;
     isRematch: boolean;
+    opponentJoined?: boolean;
     status: ChallengeStatus;
     onOpen: (id: string) => void;
     onShare: (id: string) => Promise<void>;
@@ -40,6 +45,7 @@ const ChallengeRow = React.memo(function ChallengeRow({
     gameId,
     opponent,
     isRematch,
+    opponentJoined,
     status,
     onOpen,
     onShare,
@@ -106,6 +112,7 @@ const ChallengeRow = React.memo(function ChallengeRow({
                             <Text variant='caption' color='textSecondary' numberOfLines={1}>
                                 {game ? `${t(`game.${game.id}.name`)} · ` : ''}
                                 {t(meta.labelKey)}
+                                {opponentJoined === false ? ` · ${t('events.unmatched')}` : ''}
                             </Text>
                         </Stack>
                         <Icon name={ChevronRight} size={iconSize(20)} color={theme.colors.textMuted} />
@@ -170,6 +177,15 @@ export function ChallengeHistoryScreen() {
     const theme = useTheme();
     const { tabletColumn, iconSize } = useResponsive();
     const [stubs, setStubs] = useState<ChallengeStub[]>(() => listChallenges());
+    // Parse the device-local journal once per refresh, not once per visible row.
+    const sessions = useMemo(() => {
+        const ids = new Set(stubs.map((s) => s.id));
+        return new Map(
+            listSessions()
+                .filter((s) => ids.has(s.challengeId))
+                .map((s) => [s.challengeId, s]),
+        );
+    }, [stubs]);
 
     // Refresh on focus so a just-played challenge reflects its new status.
     useFocusEffect(
@@ -199,12 +215,13 @@ export function ChallengeHistoryScreen() {
                 gameId={item.game}
                 opponent={item.opponent}
                 isRematch={item.isRematch === true}
-                status={challengeStatus(item)}
+                opponentJoined={item.opponentJoined}
+                status={challengeStatus(item, Date.now(), sessions.get(item.id) ?? null)}
                 onOpen={openChallenge}
                 onShare={shareChallenge}
             />
         ),
-        [openChallenge],
+        [openChallenge, sessions],
     );
 
     return (
@@ -232,6 +249,14 @@ export function ChallengeHistoryScreen() {
                 keyExtractor={(item) => item.id}
                 renderItem={renderChallenge}
                 ListEmptyComponent={EmptyState}
+                ListHeaderComponent={
+                    getPendingEventStart() ? (
+                        <Card padding='lg' gap='md'>
+                            <Text>{t('events.pendingStart')}</Text>
+                            <Button onPress={() => navigation.navigate('EventHub', {})}>{t('challenge.retry')}</Button>
+                        </Card>
+                    ) : null
+                }
                 contentContainerStyle={[
                     stubs.length === 0 ? styles.emptyContent : undefined,
                     {

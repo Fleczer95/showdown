@@ -23,14 +23,25 @@ import { dropStateFromRecord, missingContentIds } from '../game/challenge/resolv
 import { recordRun } from '../game/progression';
 import type { GameRunResult, RecordRunDiff } from '../game/progression';
 import type { ChallengeRecord } from '../game/challenge/types';
+import { beginSessionPlay, getSession, type ChallengeSession } from '../game/challenge/session/store';
+import { startEvent } from '../game/events/participation';
+
+jest.mock('../game/challenge/session/store', () => ({
+    ...jest.requireActual('../game/challenge/session/store'),
+    getSession: jest.fn(),
+    beginSessionPlay: jest.fn(() => true),
+}));
+jest.mock('../game/events/participation', () => ({ startEvent: jest.fn() }));
 
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
+const mockPopTo = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: mockNavigate,
         push: mockPush,
+        popTo: mockPopTo,
         addListener: jest.fn(() => jest.fn()),
         setParams: jest.fn(),
     }),
@@ -214,10 +225,15 @@ const RUN: GameRunResult = { gameId: 'the-ladder', score: 1200, won: false, rung
 // standing in for ChallengeHandoff at the end of a real run.
 jest.mock('../game/ladder/LadderPlayScreen', () => ({
     __esModule: true,
-    default: ({ challenge }: any) => (
-        <MockPressable onPress={() => challenge.onComplete({ progress: 6, run: RUN })}>
-            <MockNativeText>FINISH</MockNativeText>
-        </MockPressable>
+    default: ({ challenge, onExit }: any) => (
+        <MockView>
+            <MockPressable onPress={() => challenge.onComplete({ progress: 6, run: RUN })}>
+                <MockNativeText>FINISH</MockNativeText>
+            </MockPressable>
+            <MockPressable onPress={onExit}>
+                <MockNativeText>PAUSE</MockNativeText>
+            </MockPressable>
+        </MockView>
     ),
 }));
 jest.mock('../game/drop/DropPlayScreen', () => ({ __esModule: true, default: () => null }));
@@ -273,12 +289,78 @@ async function playThrough(screen: ReturnType<typeof render>) {
 describe('ChallengeScreen progression', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(getSession).mockReturnValue(undefined);
+        jest.mocked(beginSessionPlay).mockReturnValue(true);
         (getChallenge as jest.Mock).mockResolvedValue(record);
         (missingContentIds as jest.Mock).mockReturnValue([]);
         (dropStateFromRecord as jest.Mock).mockReturnValue({});
         (getAttempts as jest.Mock).mockResolvedValue([myAttempt]);
         (countCreatedToday as jest.Mock).mockReturnValue(0);
         (recordRun as jest.Mock).mockReturnValue(DIFF);
+    });
+
+    const reserved = (): ChallengeSession => ({
+        version: 1,
+        id: 'reserved-session',
+        challengeId: 'c1',
+        deviceId: 'device',
+        nickname: 'Reserved name',
+        record: {
+            ...record,
+            event: {
+                editionId: 'local-event-fixture',
+                contentRevision: 'local-ladder-v1',
+                mode: 'friend',
+                endsAt: Date.now() + 86400000,
+            },
+        },
+        status: 'active',
+        startedAt: Date.now(),
+        elapsedMs: 0,
+        awaitingStart: true,
+    });
+
+    it('shows the normal intro for a reserved friend invitation and preserves Play later', async () => {
+        jest.mocked(getSession).mockReturnValue(reserved());
+        const screen = render(<ChallengeScreen />);
+        expect(await screen.findByText('challenge.start')).toBeTruthy();
+        expect(screen.queryByText('FINISH')).toBeNull();
+        fireEvent.press(screen.getByText('challenge.playLater'));
+        expect(mockPopTo).toHaveBeenCalledWith('Home');
+        expect(beginSessionPlay).not.toHaveBeenCalled();
+        expect(startEvent).not.toHaveBeenCalled();
+        screen.unmount();
+        const reopened = render(<ChallengeScreen />);
+        expect(await reopened.findByText('challenge.start')).toBeTruthy();
+        expect(reopened.queryByText('FINISH')).toBeNull();
+    });
+
+    it('starts an admitted invitation locally without admission, sampling or another charge', async () => {
+        jest.mocked(getSession).mockReturnValue(reserved());
+        const screen = render(<ChallengeScreen />);
+        fireEvent.press(await screen.findByText('challenge.start'));
+        expect(await screen.findByText('FINISH')).toBeTruthy();
+        expect(beginSessionPlay).toHaveBeenCalledWith(expect.any(String), 'Reserved name');
+        expect(startEvent).not.toHaveBeenCalled();
+        expect(getChallenge).not.toHaveBeenCalled();
+    });
+
+    it('still resumes previously started saved games directly', async () => {
+        jest.mocked(getSession).mockReturnValue({ ...reserved(), awaitingStart: undefined, elapsedMs: 1500 });
+        const screen = render(<ChallengeScreen />);
+        expect(await screen.findByText('FINISH')).toBeTruthy();
+        expect(screen.queryByText('challenge.start')).toBeNull();
+    });
+
+    it('pops back to Home on pause instead of retaining the running challenge underneath Home', async () => {
+        (getAttempt as jest.Mock).mockResolvedValue(null);
+        const screen = render(<ChallengeScreen />);
+        fireEvent.press(await screen.findByText('challenge.start'));
+        fireEvent.press(await screen.findByText('PAUSE'));
+        expect(mockPopTo).toHaveBeenCalledWith('Home');
+        expect(mockNavigate).not.toHaveBeenCalledWith('Home');
+        expect(submitAttempt).not.toHaveBeenCalled();
+        expect(recordRun).not.toHaveBeenCalled();
     });
 
     it('shows the update prompt without resolving content the app lacks', async () => {

@@ -25,7 +25,9 @@
     "test:watch": "jest --watch",
     "prebuild": "node scripts/prebuild.js",
     "aab": "rm -rf android/app/build android/.gradle android/build android/app/.cxx && npx expo prebuild --platform android --no-install && npm run prebuild && npx react-native build-android --mode=release",
-    "bundletool": "scripts/bundletool.sh"
+    "bundletool": "scripts/bundletool.sh",
+    "test:events:d1": "node scripts/test-timed-events-d1.mjs",
+    "content:halloween:check": "node scripts/validate-halloween-content.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/fredoka": "^0.4.1",

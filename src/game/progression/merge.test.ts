@@ -175,8 +175,18 @@ describe('event wins', () => {
     });
 
     it('merging is idempotent for event wins', () => {
-        const a = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1'] } };
-        expect(mergeStats(a, mergeStats(a, a))).toEqual(mergeStats(a, a));
+        const a = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1', 'c2'] } };
+        const b = { ...stats({}), eventWinIds: { 'halloween-2026': ['c2', 'c3'] } };
+        const once = mergeStats(a, b);
+        expect(mergeStats(once, b)).toEqual(once);
+        expect(mergeStats(once, a)).toEqual(once);
+    });
+
+    it('event wins merge commutatively even for an edition only one side knows', () => {
+        const a = { ...stats({}), eventWinIds: { 'halloween-2026': ['c3', 'c1'] } };
+        const b = stats({});
+        expect(mergeStats(a, b).eventWinIds).toEqual(mergeStats(b, a).eventWinIds);
+        expect(mergeStats(a, b).eventWinIds?.['halloween-2026']).toEqual(['c1', 'c3']);
     });
 
     it('dropping an event win fails the progress tripwire', () => {

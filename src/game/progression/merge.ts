@@ -24,8 +24,8 @@ function maxByKey(a: Record<string, number>, b: Record<string, number>): Record<
 }
 
 function unionByKey(a: Record<string, string[]>, b: Record<string, string[]>): Record<string, string[]> {
-    const out: Record<string, string[]> = { ...a };
-    for (const [key, value] of Object.entries(b)) out[key] = union(out[key] ?? [], value);
+    const out: Record<string, string[]> = {};
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) out[key] = union(a[key] ?? [], b[key] ?? []);
     return out;
 }
 

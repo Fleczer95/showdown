@@ -1,6 +1,7 @@
 import { createMMKV } from 'react-native-mmkv';
 import { listSessions, sessionNeedsHistory, type ChallengeSession } from './session/store';
 import { playDeadline, findEdition } from '../../../shared/events/definitions';
+import type { ChallengeOutcome } from './outcome';
 
 // Local index of challenges this device has created or opened (ADR-0003 has no
 // server-side "my challenges" list, since identity is just a device UUID). It
@@ -41,6 +42,8 @@ export interface ChallengeStub {
     opponentPlayed?: boolean;
     /** Event membership and result availability are independent facts. */
     opponentJoined?: boolean;
+    /** Settled head-to-head verdict. Absent until the opponent's score is readable. */
+    outcome?: ChallengeOutcome;
     /** Epoch ms when this stub was first indexed — write-once, never bumped on
      * reopen (unlike `updatedAt`). Drives the daily creation limit so a reopen
      * of an old challenge never counts as a fresh create. */
@@ -109,6 +112,7 @@ export function recordChallenge(stub: Omit<ChallengeStub, 'updatedAt' | 'created
         played: stub.played || prev?.played === true,
         opponentPlayed: stub.opponentPlayed ?? prev?.opponentPlayed,
         opponentJoined: stub.opponentJoined ?? prev?.opponentJoined,
+        outcome: stub.outcome ?? prev?.outcome,
         eventId: stub.eventId ?? prev?.eventId,
         isRematch: stub.isRematch ?? prev?.isRematch,
         sourceChallengeId: stub.sourceChallengeId ?? prev?.sourceChallengeId,
@@ -142,6 +146,36 @@ export function markChallengeOpponentPlayed(id: string): void {
     const stub = map[id];
     if (!stub) return;
     map[id] = { ...stub, opponentPlayed: true, updatedAt: Date.now() };
+    writeAll(map);
+}
+
+/**
+ * Settle the head-to-head verdict. Write-once: prize progress counts wins from
+ * these stubs, so a later sync must never flip a verdict and re-open a grant.
+ */
+export function markChallengeOutcome(id: string, outcome: ChallengeOutcome): void {
+    if (outcome === 'pending') return;
+    const map = readAll();
+    const stub = map[id];
+    if (!stub || stub.outcome) return;
+    map[id] = {
+        id: stub.id,
+        game: stub.game,
+        role: stub.role,
+        opponent: stub.opponent,
+        played: stub.played,
+        opponentPlayed: stub.opponentPlayed,
+        opponentJoined: stub.opponentJoined,
+        outcome,
+        createdAt: stub.createdAt,
+        updatedAt: Date.now(),
+        expiresAt: stub.expiresAt,
+        eventId: stub.eventId,
+        isRematch: stub.isRematch,
+        sourceChallengeId: stub.sourceChallengeId,
+        seen: stub.seen,
+        snoozedUntil: stub.snoozedUntil,
+    };
     writeAll(map);
 }
 

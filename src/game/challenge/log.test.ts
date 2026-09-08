@@ -1,16 +1,5 @@
 // Override the global stateless MMKV mock with a real in-memory store so the
 // upsert / played-flag / ordering behaviour can be exercised end to end.
-jest.mock('react-native-mmkv', () => {
-    const store = new Map<string, string>();
-    return {
-        createMMKV: () => ({
-            getString: (k: string) => store.get(k),
-            set: (k: string, v: string) => store.set(k, v),
-            remove: (k: string) => store.delete(k),
-        }),
-    };
-});
-
 import {
     recordChallenge,
     markChallengePlayed,
@@ -22,8 +11,20 @@ import {
     listChallenges,
     challengeStatus,
     countCreatedToday,
+    markChallengeOutcome,
     type ChallengeStub,
 } from './log';
+
+jest.mock('react-native-mmkv', () => {
+    const store = new Map<string, string>();
+    return {
+        createMMKV: () => ({
+            getString: (k: string) => store.get(k),
+            set: (k: string, v: string) => store.set(k, v),
+            remove: (k: string) => store.delete(k),
+        }),
+    };
+});
 
 type StubInput = Omit<ChallengeStub, 'updatedAt' | 'createdAt'>;
 
@@ -189,5 +190,48 @@ describe('challengeStatus', () => {
 
     it('is yourTurn when unplayed and not expired', () => {
         expect(challengeStatus({ ...base, played: false, expiresAt: 200 }, 100)).toBe('yourTurn');
+    });
+});
+
+describe('markChallengeOutcome', () => {
+    it('an outcome is written once and never overwritten', () => {
+        // Use a high timestamp to avoid being pruned by the storage cap
+        let now = 1e16;
+        jest.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
+        recordChallenge({
+            id: 'round-1',
+            game: 'the-ladder',
+            role: 'created',
+            opponent: '',
+            played: true,
+            expiresAt: Date.now() + 100000,
+            eventId: 'halloween-2026',
+        });
+        markChallengeOutcome('round-1', 'won');
+        expect(listChallenges().find((s) => s.id === 'round-1')?.outcome).toBe('won');
+
+        // A settled verdict is immutable — a later sync must not flip it.
+        markChallengeOutcome('round-1', 'lost');
+        expect(listChallenges().find((s) => s.id === 'round-1')?.outcome).toBe('won');
+    });
+
+    it('pending is not stored as a verdict', () => {
+        let now = 1e16;
+        jest.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
+        recordChallenge({
+            id: 'round-2',
+            game: 'the-ladder',
+            role: 'created',
+            opponent: '',
+            played: true,
+            expiresAt: Date.now() + 100000,
+            eventId: 'halloween-2026',
+        });
+        markChallengeOutcome('round-2', 'pending');
+        expect(listChallenges().find((s) => s.id === 'round-2')?.outcome).toBeUndefined();
+    });
+
+    it('an unknown challenge id is ignored', () => {
+        expect(() => markChallengeOutcome('nope', 'won')).not.toThrow();
     });
 });

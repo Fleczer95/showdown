@@ -112,7 +112,7 @@ export function recordChallenge(stub: Omit<ChallengeStub, 'updatedAt' | 'created
         played: stub.played || prev?.played === true,
         opponentPlayed: stub.opponentPlayed ?? prev?.opponentPlayed,
         opponentJoined: stub.opponentJoined ?? prev?.opponentJoined,
-        outcome: stub.outcome ?? prev?.outcome,
+        outcome: prev?.outcome,
         eventId: stub.eventId ?? prev?.eventId,
         isRematch: stub.isRematch ?? prev?.isRematch,
         sourceChallengeId: stub.sourceChallengeId ?? prev?.sourceChallengeId,

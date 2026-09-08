@@ -15,13 +15,15 @@ import {
     type ChallengeStub,
 } from './log';
 
+let mockStore: Map<string, string>;
+
 jest.mock('react-native-mmkv', () => {
-    const store = new Map<string, string>();
+    mockStore = new Map<string, string>();
     return {
         createMMKV: () => ({
-            getString: (k: string) => store.get(k),
-            set: (k: string, v: string) => store.set(k, v),
-            remove: (k: string) => store.delete(k),
+            getString: (k: string) => mockStore.get(k),
+            set: (k: string, v: string) => mockStore.set(k, v),
+            remove: (k: string) => mockStore.delete(k),
         }),
     };
 });
@@ -38,9 +40,10 @@ const stub = (over: Partial<StubInput> = {}): StubInput => ({
     ...over,
 });
 
-// The mocked store persists across tests in this file; each test uses unique
-// ids and asserts via `.find(id)`, so they don't collide. Just restore any
-// Date.now spy between tests.
+// Clear the mocked store before each test to avoid state leakage between tests.
+beforeEach(() => mockStore.clear());
+
+// Restore any Date.now spy between tests.
 afterEach(() => jest.restoreAllMocks());
 
 describe('recordChallenge', () => {
@@ -195,9 +198,6 @@ describe('challengeStatus', () => {
 
 describe('markChallengeOutcome', () => {
     it('an outcome is written once and never overwritten', () => {
-        // Use a high timestamp to avoid being pruned by the storage cap
-        let now = 1e16;
-        jest.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
         recordChallenge({
             id: 'round-1',
             game: 'the-ladder',
@@ -216,8 +216,6 @@ describe('markChallengeOutcome', () => {
     });
 
     it('pending is not stored as a verdict', () => {
-        let now = 1e16;
-        jest.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
         recordChallenge({
             id: 'round-2',
             game: 'the-ladder',

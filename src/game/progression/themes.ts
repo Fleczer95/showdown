@@ -3,7 +3,7 @@
 // TOKENS themselves live in src/theme/themes/ like every other theme; here we only
 // bind a reward id (matching a LEVEL_MAP node) to its picker presentation.
 
-import { championTheme, legendTheme } from '../../theme/themes';
+import { championTheme, legendTheme, magmaTheme } from '../../theme/themes';
 import type { Theme } from '../../theme/contract';
 
 export interface ProgressionTheme {
@@ -33,5 +33,13 @@ export const PROGRESSION_THEMES: readonly ProgressionTheme[] = [
         iconName: 'crown',
         accentColor: '#FACC15',
         tokens: legendTheme,
+    },
+    {
+        id: 'theme-haunt',
+        value: 'haunt',
+        titleKey: 'events.prizes.hauntTheme',
+        iconName: 'moon',
+        accentColor: '#EA580C',
+        tokens: magmaTheme,
     },
 ];

@@ -24,6 +24,12 @@ export const PROGRESSION_MASCOT_COLORS: readonly ProgressionMascotColor[] = [
         colorId: 'mic.platinum',
         titleKey: 'progression.mascotColors.platinumMic',
     },
+    { id: 'mascot-fur-pumpkin', slot: 'fur', colorId: 'fur.pumpkin', titleKey: 'events.prizes.pumpkinFur' },
+    { id: 'mascot-fur-blackcat', slot: 'fur', colorId: 'fur.blackcat', titleKey: 'events.prizes.blackCatFur' },
+    { id: 'mascot-suit-witch', slot: 'suit', colorId: 'suit.witch', titleKey: 'events.prizes.witchSuit' },
+    { id: 'mascot-accent-slime', slot: 'accent', colorId: 'accent.slime', titleKey: 'events.prizes.slimeAccent' },
+    { id: 'mascot-accent-blood', slot: 'accent', colorId: 'accent.blood', titleKey: 'events.prizes.bloodAccent' },
+    { id: 'mascot-mic-bone', slot: 'mic', colorId: 'mic.bone', titleKey: 'events.prizes.boneMic' },
 ];
 
 /** Every earned colorId — excluded from the purchasable bundle so it reads as earned, not buyable. */

@@ -194,7 +194,16 @@
         "retryBody": "Sprawdź połączenie i pozostały limit, a następnie spróbuj ponownie. Rozpoczęcie gry jest zapisane — ponowienie nie zużyje limitu drugi raz.",
         "closed": "Wydarzenie zakończone. Ukończone rozgrywki nadal można przesłać w okresie przyjmowania wyników.",
         "full": "Brak miejsc w tej rundzie",
-        "fullBody": "Oba miejsca są zajęte. Możesz zobaczyć wyniki lub rozpocząć kolejną rundę na ekranie wydarzenia."
+        "fullBody": "Oba miejsca są zajęte. Możesz zobaczyć wyniki lub rozpocząć kolejną rundę na ekranie wydarzenia.",
+        "prizes": {
+            "pumpkinFur": "Dyniowe futro",
+            "blackCatFur": "Futro czarnego kota",
+            "witchSuit": "Peleryna wiedźmy",
+            "slimeAccent": "Zielony śluz",
+            "bloodAccent": "Krwista czerwień",
+            "boneMic": "Kościany mikrofon",
+            "hauntTheme": "Nawiedzenie"
+        }
     },
     "challenge": {
         "session": {

@@ -41,16 +41,21 @@ export const MASCOT_PALETTE: Record<MascotSlot, MascotSwatch[]> = {
         { id: 'fur.orange', hex: '#F2780C' },
         { id: 'fur.rust', hex: '#C2410C' },
         { id: 'fur.arctic', hex: '#E2E8F0' },
+        { id: 'fur.pumpkin', hex: '#EA580C' },
+        { id: 'fur.blackcat', hex: '#1C1917' },
     ],
     suit: [
         { id: 'suit.royal', hex: '#1D4ED8' },
         { id: 'suit.emerald', hex: '#047857' },
         { id: 'suit.plum', hex: '#7E22CE' },
+        { id: 'suit.witch', hex: '#4C1D95' },
     ],
     accent: [
         { id: 'accent.crimson', hex: '#DC2626' },
         { id: 'accent.gold', hex: '#F59E0B' },
         { id: 'accent.teal', hex: '#0D9488' },
+        { id: 'accent.slime', hex: '#84CC16' },
+        { id: 'accent.blood', hex: '#7F1D1D' },
     ],
     mic: [
         { id: 'mic.gold', hex: '#FBBF24' },
@@ -58,6 +63,7 @@ export const MASCOT_PALETTE: Record<MascotSlot, MascotSwatch[]> = {
         { id: 'mic.rose', hex: '#FB7185' },
         // Earned, never sold — unlocked via the Level Map (see progression/mascotColors.ts).
         { id: 'mic.platinum', hex: '#E5E4E2' },
+        { id: 'mic.bone', hex: '#E7E5E4' },
     ],
 };
 

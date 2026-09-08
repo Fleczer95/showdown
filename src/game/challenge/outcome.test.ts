@@ -40,3 +40,7 @@ test('a zero-zero round is a draw for both players', () => {
 test('equal progress but a higher score is a win', () => {
     expect(challengeOutcome([entry(5, 700, 200), entry(5, 500, 100)], 200)).toBe('won');
 });
+
+test('a tie is still pending for a viewer who has not played', () => {
+    expect(challengeOutcome([entry(5, 500, 100), entry(5, 500, 200)], null)).toBe('pending');
+});

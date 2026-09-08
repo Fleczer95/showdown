@@ -1,11 +1,13 @@
 import { themeRegistry } from './registry';
+import { PROGRESSION_THEMES } from '../game/progression/themes';
 
 describe('themeRegistry', () => {
     it('exposes live store themes then earned progression themes', () => {
         const values = themeRegistry.map((t) => t.value);
+        const earned = PROGRESSION_THEMES.map((t) => t.value);
         // Earned (progression) themes are always appended after every store theme.
-        expect(values.slice(-2)).toEqual(['champion', 'legend']);
-        const firstEarned = values.indexOf('champion');
+        expect(values.slice(-earned.length)).toEqual(earned);
+        const firstEarned = values.indexOf(earned[0]);
         expect(values.indexOf('default')).toBeLessThan(firstEarned);
         expect(values.indexOf('cyberpunk')).toBeLessThan(firstEarned);
     });

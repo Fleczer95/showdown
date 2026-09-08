@@ -10,6 +10,7 @@ jest.mock('./log', () => ({
     recordChallenge: jest.fn(),
 }));
 jest.mock('./store', () => ({ syncRematches: jest.fn(), syncChallengeStatuses: jest.fn() }));
+jest.mock('../events/resolveOutcomes', () => ({ resolveEventOutcomes: jest.fn().mockResolvedValue([]) }));
 
 const source = {
     id: 'c1',

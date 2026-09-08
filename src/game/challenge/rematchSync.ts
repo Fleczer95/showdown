@@ -9,6 +9,7 @@ import {
 } from './log';
 import { syncChallengeStatuses, syncRematches } from './store';
 import { recoverCompletions } from './session/recovery';
+import { resolveEventOutcomes } from '../events/resolveOutcomes';
 import { SafeSentry } from '../../utils/sentry/init';
 
 /**
@@ -44,6 +45,11 @@ export async function syncIncomingRematches(): Promise<ChallengeStub[]> {
         if (status.played) markChallengePlayed(status.id);
         if (status.opponentPlayed) markChallengeOpponentPlayed(status.id);
     }
+    // Statuses have just told us who else has played; settle any event verdict
+    // that became knowable. Failures are contained per round inside.
+    await resolveEventOutcomes().catch((error) =>
+        SafeSentry.captureException(error, { tags: { area: 'event-outcomes' } }),
+    );
     for (const rematch of incoming) {
         recordChallenge({
             id: rematch.id,

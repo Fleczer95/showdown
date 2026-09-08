@@ -40,7 +40,7 @@ const input = {
     mode: 'random' as const,
     nickname: 'Player',
     locale: 'en' as const,
-    entitlements: () => ({ purchasedIds: new Set<string>(), premium: false }),
+    entitlements: { purchasedIds: new Set<string>(), premium: false },
 };
 beforeEach(() => {
     deviceStore.remove('challenge-sessions-v1');

@@ -231,8 +231,7 @@ export function GameSetupScreen() {
     // global across all games; the cap grows with owned premium themes. Refresh
     // on focus so returning after a create reflects the new tally.
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
-    const contentAccess = useContentAccess();
-    const accessibleIds = useMemo(() => new Set(contentAccess), [contentAccess]);
+    const accessibleIds = useContentAccess();
     const [createdToday, setCreatedToday] = useState(() => countCreatedToday());
     const [offlineLimitSheet, setOfflineLimitSheet] = useState(false);
     const [runsLeft, setRunsLeft] = useState(() => remainingOfflineRuns(ownedIds, isPremium));

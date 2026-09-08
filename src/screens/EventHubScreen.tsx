@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
 import { useNavigation, usePreventRemove, useRoute, type RouteProp } from '@react-navigation/native';
 import SafeContainer from '../responsive/SafeContainer';
@@ -19,6 +19,7 @@ import { eventRewardTitleKey } from '../game/events/access';
 import { remainingEventPlays, startEvent } from '../game/events/participation';
 import { getPendingEventStart } from '../game/challenge/session/store';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
+import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { BlockedError } from '../game/challenge/store';
 import { eventLifecycle, findEdition, grantIdentity, type EventEdition } from '../../shared/events/definitions';
 
@@ -29,8 +30,10 @@ export function EventHubScreen() {
     const theme = useTheme();
     const { purchasedItemIds, isPremium } = useStore();
     const { stats } = useProgression();
-    const access = useRef({ purchasedIds: new Set(purchasedItemIds), premium: isPremium });
-    access.current = { purchasedIds: new Set(purchasedItemIds), premium: isPremium };
+    const access = useMemo(
+        () => ({ purchasedIds: new Set(purchasedItemIds), premium: isPremium }),
+        [purchasedItemIds, isPremium],
+    );
     const [nickname, setNickname] = useState(getChallengeNickname);
     const [busy, setBusy] = useState(false);
     const [previewReward, setPreviewReward] = useState<string | null>(null);
@@ -53,7 +56,7 @@ export function EventHubScreen() {
                 mode,
                 nickname: nickname.trim(),
                 locale,
-                entitlements: () => access.current,
+                entitlements: access,
             });
             navigation.navigate('Challenge', { challengeId: result.id, autoShare: result.share });
         } catch (error) {
@@ -89,7 +92,7 @@ export function EventHubScreen() {
                             value={nickname}
                             onChangeText={setNickname}
                             placeholder={t('leaderboard.nicknamePlaceholder')}
-                            maxLength={24}
+                            maxLength={MAX_NICKNAME_LENGTH}
                         />
                     ) : null}
                     {pending ? (
@@ -109,6 +112,7 @@ export function EventHubScreen() {
                     {editions.length === 0 ? <Text>{t('events.none')}</Text> : null}
                     {editions.map((edition) => {
                         const phase = eventLifecycle(edition, now);
+                        const remaining = remainingEventPlays(edition, access);
                         return (
                             <Card
                                 key={edition.id}
@@ -123,7 +127,7 @@ export function EventHubScreen() {
                                 ) : null}
                                 <Text>
                                     {phase === 'active'
-                                        ? t('events.remaining', { count: remainingEventPlays(edition, access.current) })
+                                        ? t('events.remaining', { count: remaining })
                                         : t(phase === 'upcoming' ? 'events.upcoming' : 'events.finished')}
                                 </Text>
                                 <Text variant='caption'>
@@ -158,22 +162,15 @@ export function EventHubScreen() {
                                 ))}
                                 {phase === 'active' ? (
                                     <>
-                                        <Button
-                                            disabled={
-                                                busy || !!pending || remainingEventPlays(edition, access.current) === 0
-                                            }
-                                            onPress={() => void begin(edition, 'friend')}
-                                        >
-                                            {t('events.friend')}
-                                        </Button>
-                                        <Button
-                                            disabled={
-                                                busy || !!pending || remainingEventPlays(edition, access.current) === 0
-                                            }
-                                            onPress={() => void begin(edition, 'random')}
-                                        >
-                                            {t('events.random')}
-                                        </Button>
+                                        {(['friend', 'random'] as const).map((mode) => (
+                                            <Button
+                                                key={mode}
+                                                disabled={busy || !!pending || remaining === 0}
+                                                onPress={() => void begin(edition, mode)}
+                                            >
+                                                {t(`events.${mode}`)}
+                                            </Button>
+                                        ))}
                                     </>
                                 ) : phase === 'closed' ? (
                                     <Button onPress={() => navigation.navigate('ChallengeHistory')}>

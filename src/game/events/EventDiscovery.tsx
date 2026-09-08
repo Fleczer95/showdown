@@ -9,7 +9,7 @@ import { useTranslation } from '../../i18n';
 import { useTheme } from '../../theme';
 import { hexToRgba } from '../../theme/colorUtils';
 import { useResponsive } from '../../responsive/useResponsive';
-import { visibleEvents, eventDiscoveryPhase } from './catalogue';
+import { visibleEvents, eventDiscoveryPhase, DAY_MS } from './catalogue';
 import { EventArtwork } from './EventArtwork';
 import { useEventNow } from './useEventNow';
 
@@ -28,7 +28,7 @@ export function EventDiscovery() {
         <View testID='event-discovery' style={{ gap: theme.spacing.md }}>
             {editions.map((edition) => {
                 const phase = eventDiscoveryPhase(edition, now);
-                const days = Math.ceil((edition.startsAt! - now) / 86400000);
+                const days = Math.ceil((edition.startsAt! - now) / DAY_MS);
                 const subtitle =
                     phase === 'upcoming'
                         ? days > 1

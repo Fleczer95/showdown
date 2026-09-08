@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { AppState } from 'react-native';
 import { playDeadline } from '../../../../shared/events/definitions';
 import type { ChallengeResult } from '../ChallengeHandoff';
-import { checkpointSession, getSession, type ChallengeSession } from './store';
+import { checkpointSession, getSession } from './store';
 import { settleCompletion } from './recovery';
 
 /** Active decision clock is separate from the absolute play deadline. */
@@ -12,16 +12,23 @@ export function useSessionCheckpoint(
     running: boolean,
     onExpire: () => void,
 ) {
-    const initial = useRef<ChallengeSession | null | undefined>(undefined);
-    if (initial.current === undefined) initial.current = id ? (getSession(id) ?? null) : null;
-    const deadline = initial.current ? playDeadline(initial.current.record) : Infinity;
+    // Copy the two numbers we need; holding the session would pin its whole
+    // record and checkpoint alive for the lifetime of the play screen.
+    const initial = useRef<{ deadline: number; elapsedMs: number } | undefined>(undefined);
+    if (initial.current === undefined) {
+        const session = id ? getSession(id) : undefined;
+        initial.current = session
+            ? { deadline: playDeadline(session.record), elapsedMs: session.elapsedMs }
+            : { deadline: Infinity, elapsedMs: 0 };
+    }
+    const deadline = initial.current.deadline;
     const expire = useRef(onExpire);
     expire.current = onExpire;
     const requestedRunning = useRef(running);
     requestedRunning.current = running;
     const foreground = useRef(AppState.currentState !== 'background' && AppState.currentState !== 'inactive');
     running = running && foreground.current;
-    const clock = useRef({ key: decisionKey, elapsed: initial.current?.elapsedMs ?? 0, since: Date.now(), running });
+    const clock = useRef({ key: decisionKey, elapsed: initial.current.elapsedMs, since: Date.now(), running });
     if (clock.current.key !== decisionKey) clock.current = { key: decisionKey, elapsed: 0, since: Date.now(), running };
     if (clock.current.running !== running) {
         if (clock.current.running) clock.current.elapsed += Date.now() - clock.current.since;
@@ -59,14 +66,15 @@ export function useSessionCheckpoint(
         },
         [id, elapsed],
     );
+    // React may still display the PRE-decision animation frame. The journal, not
+    // a render closure, is authoritative for logical state.
+    const persist = useCallback(() => {
+        if (!id) return;
+        const saved = getSession(id);
+        if (saved && clock.current.running) checkpointSession(id, saved.checkpoint, elapsed());
+    }, [id, elapsed]);
     useEffect(() => {
         if (!id) return;
-        const persist = () => {
-            // React may still display the PRE-decision animation frame. The
-            // journal, not a render closure, is authoritative for logical state.
-            const saved = getSession(id);
-            if (saved && clock.current.running) checkpointSession(id, saved.checkpoint, elapsed());
-        };
         const listener = AppState.addEventListener('change', (state) => {
             foreground.current = state === 'active';
             if (state !== 'active') {
@@ -88,10 +96,6 @@ export function useSessionCheckpoint(
             listener.remove();
             clearInterval(interval);
         };
-    }, [id, elapsed, deadline]);
-    const pause = useCallback(() => {
-        const saved = id ? getSession(id) : undefined;
-        if (id && saved && clock.current.running) checkpointSession(id, saved.checkpoint, elapsed());
-    }, [id, elapsed]);
-    return useMemo(() => ({ commit, elapsed, canPlay, pause }), [commit, elapsed, canPlay, pause]);
+    }, [id, elapsed, deadline, persist]);
+    return useMemo(() => ({ commit, elapsed, canPlay, pause: persist }), [commit, elapsed, canPlay, persist]);
 }

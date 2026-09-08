@@ -121,7 +121,7 @@ export default function WheelPlayScreen({
     // Owned premium pack puzzles, localized, merged into the puzzle pool.
     const contentAccess = useContentAccess();
     const ownedPuzzles = useMemo(
-        () => getOwnedPackContent<PuzzleContent>(GAME_ID, locale, new Set(contentAccess)),
+        () => getOwnedPackContent<PuzzleContent>(GAME_ID, locale, contentAccess),
         [contentAccess, locale],
     );
 

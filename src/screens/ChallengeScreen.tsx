@@ -80,7 +80,6 @@ import WheelPlayScreen from '../game/wheel/WheelPlayScreen';
 import type { RootStackParamList } from '../navigation/types';
 import {
     getSession,
-    getCheckpoint,
     participationId,
     startSession,
     beginSessionPlay,
@@ -94,7 +93,6 @@ import { settleCompletion, uploadCompletion } from '../game/challenge/session/re
 import { playDeadline, findEdition } from '../../shared/events/definitions';
 import { EventAccentContext } from '../game/events/presentation';
 import { startEvent } from '../game/events/participation';
-import type { LadderCheckpoint, DropCheckpoint, WheelCheckpoint } from '../game/challenge/session/checkpoints';
 
 type Phase =
     | 'loading'
@@ -125,8 +123,7 @@ export function ChallengeScreen() {
     const { purchasedItemIds, isPremium } = useStore();
     const { tabletColumn } = useResponsive();
     const ownedIds = useMemo(() => new Set(purchasedItemIds), [purchasedItemIds]);
-    const contentAccess = useContentAccess();
-    const accessibleIds = useMemo(() => new Set(contentAccess), [contentAccess]);
+    const accessibleIds = useContentAccess();
 
     const challengeId = route.params.challengeId;
     const deviceId = useMemo(() => getDeviceId(), []);
@@ -144,8 +141,7 @@ export function ChallengeScreen() {
     const [rematchLimitSheet, setRematchLimitSheet] = useState(false);
     const [rematchBusy, setRematchBusy] = useState(false);
     const [eventStartBusy, setEventStartBusy] = useState(false);
-    const liveAccess = useRef({ purchasedIds: ownedIds, premium: isPremium });
-    liveAccess.current = { purchasedIds: ownedIds, premium: isPremium };
+    const liveAccess = useMemo(() => ({ purchasedIds: ownedIds, premium: isPremium }), [ownedIds, isPremium]);
     const [rematchLookup, setRematchLookup] = useState<{ checked: boolean; id: string | null }>({
         checked: false,
         id: null,
@@ -413,7 +409,7 @@ export function ChallengeScreen() {
                     locale,
                     challengeId,
                     record,
-                    entitlements: () => liveAccess.current,
+                    entitlements: liveAccess,
                 });
                 if (admitted.id !== challengeId) {
                     navigation.push('Challenge', { challengeId: admitted.id, autoShare: admitted.share });
@@ -433,23 +429,28 @@ export function ChallengeScreen() {
         } finally {
             setEventStartBusy(false);
         }
-    }, [nickname, t, record, challengeId, deviceId, locale, navigation, sessionId]);
+    }, [nickname, t, record, challengeId, deviceId, locale, navigation, sessionId, liveAccess]);
 
     useEffect(() => {
         if (celebrationDiff && (phase === 'results' || phase === 'submitError' || phase === 'submitOffline'))
             updateSessionEffects(sessionId, { celebrationSeen: true });
     }, [celebrationDiff, phase, sessionId]);
 
+    // Event challenges never offer a rematch, so fold that here rather than
+    // repeating the check at each consumer.
     const rematchOpponent = useMemo(
-        () => (myTimestamp === null ? null : (attempts.find((entry) => entry.timestamp !== myTimestamp) ?? null)),
-        [attempts, myTimestamp],
+        () =>
+            record?.event || myTimestamp === null
+                ? null
+                : (attempts.find((entry) => entry.timestamp !== myTimestamp) ?? null),
+        [attempts, myTimestamp, record],
     );
 
     // Resolve availability in the background so a lock is shown only after the
     // server confirms there is no existing successor. Offline leaves the CTA in
     // its neutral state; tapping it still performs the authoritative lookup.
     useEffect(() => {
-        if (record?.event || phase !== 'results' || attempts.length !== 2 || !rematchOpponent) return;
+        if (phase !== 'results' || attempts.length !== 2 || !rematchOpponent) return;
         let active = true;
         void getRematch(challengeId, deviceId)
             .then((existing) => {
@@ -459,7 +460,7 @@ export function ChallengeScreen() {
         return () => {
             active = false;
         };
-    }, [attempts.length, challengeId, deviceId, phase, rematchOpponent, record]);
+    }, [attempts.length, challengeId, deviceId, phase, rematchOpponent]);
 
     const rematchLimitReached =
         rematchLookup.checked && !rematchLookup.id && countCreatedToday() >= dailyCap(ownedIds, isPremium);
@@ -467,7 +468,7 @@ export function ChallengeScreen() {
     // Resolve first: if either participant already created the sole successor,
     // opening it must not consume another daily allowance.
     const beginRematch = useCallback(async () => {
-        if (!record || record.event || attempts.length !== 2 || !rematchOpponent || rematchInFlight.current) return;
+        if (!record || attempts.length !== 2 || !rematchOpponent || rematchInFlight.current) return;
         if (rematchLookup.id) {
             navigation.push('Challenge', { challengeId: rematchLookup.id });
             return;
@@ -512,7 +513,7 @@ export function ChallengeScreen() {
     ]);
 
     const confirmRematch = useCallback(async () => {
-        if (!record || record.event || !rematchOpponent || rematchInFlight.current) return;
+        if (!record || !rematchOpponent || rematchInFlight.current) return;
         rematchInFlight.current = true;
         setRematchConfirmSheet(false);
         setRematchBusy(true);
@@ -584,8 +585,7 @@ export function ChallengeScreen() {
                         onExit={exit}
                         challenge={{
                             ...base,
-                            initial:
-                                getCheckpoint<LadderCheckpoint>(sessionId)?.run ?? ladderRunFromRecord(record, locale),
+                            initial: ladderRunFromRecord(record, locale),
                         }}
                     />
                 );
@@ -596,7 +596,7 @@ export function ChallengeScreen() {
                         onExit={exit}
                         challenge={{
                             ...base,
-                            initial: getCheckpoint<DropCheckpoint>(sessionId)?.state ?? dropStateFromRecord(record),
+                            initial: dropStateFromRecord(record),
                         }}
                     />
                 );
@@ -607,8 +607,7 @@ export function ChallengeScreen() {
                         onExit={exit}
                         challenge={{
                             ...base,
-                            initial:
-                                getCheckpoint<WheelCheckpoint>(sessionId)?.game ?? wheelGameFromRecord(record, locale),
+                            initial: wheelGameFromRecord(record, locale),
                         }}
                     />
                 );

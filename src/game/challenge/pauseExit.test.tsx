@@ -20,7 +20,7 @@ jest.mock('react-native-reanimated', () => ({
     useReducedMotion: () => true,
 }));
 jest.mock('./session/recovery', () => ({ settleCompletion: jest.fn() }));
-jest.mock('../events/access', () => ({ useContentAccess: () => [] }));
+jest.mock('../events/access', () => ({ useContentAccess: () => new Set() }));
 jest.mock('../wheel/WheelGraphic', () => ({ __esModule: true, default: () => null }));
 jest.mock('react-native-safe-area-context', () => ({
     ...jest.requireActual('react-native-safe-area-context'),

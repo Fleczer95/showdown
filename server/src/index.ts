@@ -59,6 +59,27 @@ function json(body: unknown, status = 200): Response {
     });
 }
 
+/**
+ * The stored attempt for this participant, as a response. A retry after an
+ * uncertain committed timeout is a normal, idempotent success; a changed result
+ * remains immutable. Returns null when no attempt is stored yet.
+ */
+async function storedAttemptResponse(
+    db: D1Database,
+    challengeId: string,
+    uuid: string,
+    attempt: AttemptPayload,
+): Promise<Response | null> {
+    const existing = await db
+        .prepare('SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?')
+        .bind(challengeId, uuid)
+        .first<AttemptPayload>();
+    if (!existing) return null;
+    return isSameAttempt(existing, attempt)
+        ? json({ ok: true, existing: true })
+        : json({ error: 'AttemptConflict' }, 409);
+}
+
 /** Parse a JSON request body, or null when it isn't valid JSON — a malformed body
  *  is a 400 (client error), not a 500. */
 async function parseJsonBody(request: Request): Promise<Record<string, unknown> | null> {
@@ -365,15 +386,8 @@ export default {
                     }>();
                 if (!parent) return json({ error: 'Challenge not found' }, 404);
                 if (parent.event) {
-                    const existing = await env.DB.prepare(
-                        'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?',
-                    )
-                        .bind(challengeId, uuid)
-                        .first<AttemptPayload>();
-                    if (existing)
-                        return isSameAttempt(existing, attempt)
-                            ? json({ ok: true, existing: true })
-                            : json({ error: 'AttemptConflict' }, 409);
+                    const stored = await storedAttemptResponse(env.DB, challengeId, uuid, attempt);
+                    if (stored) return stored;
                     if (parent.expiresAt <= Date.now()) return json({ error: 'Event upload window closed' }, 410);
                     const event = JSON.parse(parent.event) as EventMembership;
                     const edition = findEdition(event.editionId, env.ENABLE_EVENT_FIXTURE === 'true');
@@ -401,17 +415,10 @@ export default {
                         .run();
                 } catch (err: unknown) {
                     if (err instanceof Error && err.message.includes('UNIQUE constraint failed')) {
-                        const existing = await env.DB.prepare(
-                            'SELECT nickname, progress, score, timestamp FROM attempts WHERE challengeId = ? AND uuid = ?',
-                        )
-                            .bind(challengeId, uuid)
-                            .first<AttemptPayload>();
-                        // A retry after an uncertain committed timeout is a normal,
-                        // idempotent success. A changed result remains immutable.
-                        if (existing && isSameAttempt(existing, attempt)) {
-                            return json({ ok: true, existing: true });
-                        }
-                        return json({ error: 'AttemptConflict' }, 409);
+                        return (
+                            (await storedAttemptResponse(env.DB, challengeId, uuid, attempt)) ??
+                            json({ error: 'AttemptConflict' }, 409)
+                        );
                     }
                     throw err;
                 }

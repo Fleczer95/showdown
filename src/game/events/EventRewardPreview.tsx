@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import BottomSheet from '../../components/molecules/BottomSheet';
 import Card from '../../components/molecules/Card';
@@ -9,6 +9,7 @@ import { getEntryForId } from '../../data/store/catalog';
 import { PROGRESSION_THEMES } from '../progression/themes';
 import { PROGRESSION_MASCOT_COLORS } from '../progression/mascotColors';
 import { Mascot } from '../mascot/Mascot';
+import { MASCOT_SLOTS } from '../mascot/look';
 import { getEquippedLook } from '../mascot/equippedLook';
 import { eventRewardTitleKey } from './access';
 
@@ -16,20 +17,25 @@ import { eventRewardTitleKey } from './access';
 export function EventRewardPreview({ rewardId, onClose }: { rewardId: string | null; onClose: () => void }) {
     const { t } = useTranslation();
     const id = rewardId ?? '';
-    const entry = getEntryForId(id);
-    const tokens =
-        PROGRESSION_THEMES.find((theme) => theme.id === id)?.tokens ??
-        (entry?.kind === 'theme' ? entry.tokens : undefined);
-    const colors = tokens?.colors;
-    const color = PROGRESSION_MASCOT_COLORS.find((c) => c.id === id);
-    const look = { ...getEquippedLook() };
-    if (color) look[color.slot] = color.colorId;
-    if (entry?.kind === 'mascotSkin') {
-        for (const colorId of entry.unlocks) {
-            const slot = colorId.split('.')[0];
-            if (slot === 'fur' || slot === 'suit' || slot === 'accent' || slot === 'mic') look[slot] = colorId;
+    // Reads equipped look from storage and scans the catalogues; the sheet stays
+    // mounted while closed, so keep it off every host re-render.
+    const { entry, colors, color, look } = useMemo(() => {
+        const entry = getEntryForId(id);
+        const tokens =
+            PROGRESSION_THEMES.find((theme) => theme.id === id)?.tokens ??
+            (entry?.kind === 'theme' ? entry.tokens : undefined);
+        const color = PROGRESSION_MASCOT_COLORS.find((c) => c.id === id);
+        const look = { ...getEquippedLook() };
+        if (color) look[color.slot] = color.colorId;
+        if (entry?.kind === 'mascotSkin') {
+            for (const colorId of entry.unlocks) {
+                const slot = colorId.split('.')[0];
+                if ((MASCOT_SLOTS as readonly string[]).includes(slot))
+                    look[slot as (typeof MASCOT_SLOTS)[number]] = colorId;
+            }
         }
-    }
+        return { entry, colors: tokens?.colors, color, look };
+    }, [id]);
     return (
         <BottomSheet
             visible={rewardId !== null}

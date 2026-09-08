@@ -3,7 +3,7 @@ import { halloweenPreviewEdition } from '../../../shared/events/fixtures';
 import { eventContent } from '../../../shared/events/content';
 import { eventRewardTitleKey } from './access';
 
-const DAY_MS = 86400000;
+export const DAY_MS = 86400000;
 export const DEFAULT_DISCOVERY_WINDOW = { beforeDays: 7, afterDays: 7 } as const;
 
 /** Promotion has its own window. Admission and saved-result retention are unchanged. */

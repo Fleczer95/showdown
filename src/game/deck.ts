@@ -12,7 +12,7 @@ export type History = Record<string, number>;
 type Rng = () => number;
 
 /** Fisher–Yates shuffle returning a new array. Deterministic given `rng`. */
-function shuffle<T>(items: T[], rng: Rng): T[] {
+export function shuffle<T>(items: T[], rng: Rng = Math.random): T[] {
     const out = items.slice();
     for (let i = out.length - 1; i > 0; i--) {
         const j = Math.floor(rng() * (i + 1));

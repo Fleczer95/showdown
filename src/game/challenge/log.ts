@@ -73,20 +73,22 @@ function readAll(): Record<string, ChallengeStub> {
 
 function writeAll(map: Record<string, ChallengeStub>): void {
     const entries = Object.values(map);
-    const protectedIds = new Set(
-        listSessions()
-            .filter((s) => sessionNeedsHistory(s))
-            .map((s) => s.challengeId),
-    );
-    const capped =
-        entries.length <= MAX_LOG_ENTRIES
-            ? map
-            : Object.fromEntries(
-                  entries
-                      .sort((a, b) => b.updatedAt - a.updatedAt)
-                      .filter((s, i) => i < MAX_LOG_ENTRIES || protectedIds.has(s.id))
-                      .map((s) => [s.id, s]),
-              );
+    let capped = map;
+    if (entries.length > MAX_LOG_ENTRIES) {
+        // Only the over-cap path needs the session journal; reading it on every
+        // write would parse the whole store for nothing.
+        const protectedIds = new Set(
+            listSessions()
+                .filter((s) => sessionNeedsHistory(s))
+                .map((s) => s.challengeId),
+        );
+        capped = Object.fromEntries(
+            entries
+                .sort((a, b) => b.updatedAt - a.updatedAt)
+                .filter((s, i) => i < MAX_LOG_ENTRIES || protectedIds.has(s.id))
+                .map((s) => [s.id, s]),
+        );
+    }
     storage.set(KEY, JSON.stringify(capped));
 }
 

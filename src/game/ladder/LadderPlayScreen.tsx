@@ -100,7 +100,7 @@ export default function LadderPlayScreen({
     // Owned premium pack questions, localized + slotted into rungs by difficulty.
     const contentAccess = useContentAccess();
     const ownedCards = useMemo(
-        () => getOwnedPackContent<LadderPackCard>(GAME_ID, lang, new Set(contentAccess)),
+        () => getOwnedPackContent<LadderPackCard>(GAME_ID, lang, contentAccess),
         [contentAccess, lang],
     );
 
@@ -133,10 +133,9 @@ export default function LadderPlayScreen({
     // swapped-in question while the skipped one was already counted when first shown.
     const shownId = currentQuestion(run).id;
     useEffect(() => {
-        const id = shownId;
         // In challenge mode only mark questions the player owns, so embedded
         // premium content they don't own never pollutes their local rotation.
-        if (!challenge || challenge.ownedIds.has(id)) markShown(GAME_ID, id);
+        if (!challenge || challenge.ownedIds.has(shownId)) markShown(GAME_ID, shownId);
         decisionStartedAt.current = Date.now();
     }, [shownId, challenge]);
     // Per-question transient UI state.

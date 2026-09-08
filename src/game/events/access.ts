@@ -6,14 +6,11 @@ import { PROGRESSION_THEMES } from '../progression/themes';
 import { PROGRESSION_MASCOT_COLORS } from '../progression/mascotColors';
 
 /** Access union only — never pass this to purchases or paid-item allowance counting. */
-export function accessibleItemIds(purchased: readonly string[], earned: readonly string[]): string[] {
-    return [...new Set([...purchased, ...earned])];
-}
-export function useContentAccess(): string[] {
+export function useContentAccess(): ReadonlySet<string> {
     const { purchasedItemIds } = useStore();
     const { stats } = useProgression();
     return useMemo(
-        () => accessibleItemIds(purchasedItemIds, stats.earnedRewardIds ?? []),
+        () => new Set([...purchasedItemIds, ...(stats.earnedRewardIds ?? [])]),
         [purchasedItemIds, stats.earnedRewardIds],
     );
 }

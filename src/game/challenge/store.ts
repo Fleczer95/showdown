@@ -71,7 +71,7 @@ export function httpError(status: number): OfflineError | BlockedError {
     if (status === 409 || status === 410 || status === 404 || status === 400)
         return new BlockedError(undefined, status);
 
-    // Log any unexpected HTTP errors (500, 400, etc.) to Sentry
+    // Log any unexpected HTTP errors (500, etc.) to Sentry
     const err = new OfflineError();
     SafeSentry.captureException(err, { tags: { area: 'challenge-store', status: status.toString() } });
     return err;

@@ -110,7 +110,7 @@ export default function DropPlayScreen({
     const pool = useMemo(
         () => [
             ...dropQuestions,
-            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(GAME_ID, new Set(contentAccess), zipDropCard),
+            ...getOwnedPackContentBilingual<DropPackCard, DropQuestion>(GAME_ID, contentAccess, zipDropCard),
         ],
         [contentAccess],
     );

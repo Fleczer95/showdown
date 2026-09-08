@@ -41,7 +41,7 @@ export async function startEvent(input: {
     mode: 'friend' | 'random';
     nickname: string;
     locale: ChallengeLocale;
-    entitlements: () => EventEntitlements;
+    entitlements: EventEntitlements;
     challengeId?: string;
     record?: ChallengeRecord;
 }): Promise<{ id: string; share: boolean }> {
@@ -53,7 +53,7 @@ export async function startEvent(input: {
         const edition = pending ? findEdition(pending.editionId, true)! : input.edition;
         if (!pending) {
             if (eventLifecycle(edition, Date.now()) !== 'active') throw new BlockedError(undefined, 410);
-            if (remainingEventPlays(edition, input.entitlements()) <= 0) throw new Error('Event allowance exhausted');
+            if (remainingEventPlays(edition, input.entitlements) <= 0) throw new Error('Event allowance exhausted');
             const activity = edition.activities[0];
             const record: ChallengeRecord = input.record ?? {
                 lang: input.locale,
@@ -104,7 +104,7 @@ export async function startEvent(input: {
         }
         const record = await getChallenge(admitted.id);
         if (!record?.event || record.event.editionId !== edition.id) throw new Error('Invalid admitted event');
-        const access = input.entitlements();
+        const access = input.entitlements;
         startSession(
             {
                 challengeId: admitted.id,

@@ -163,3 +163,31 @@ describe('preservesProgress — the guard at the destructive write', () => {
         expect(preservesProgress({ ...base, today: '2026-08-02', todayGameIds: ['the-ladder'] }, rolled)).toBe(true);
     });
 });
+
+describe('event wins', () => {
+    it('event wins union across devices without double counting', () => {
+        const a = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1', 'c2'] } };
+        const b = { ...stats({}), eventWinIds: { 'halloween-2026': ['c2', 'c3'] } };
+        const merged = mergeStats(a, b);
+        expect(merged.eventWinIds?.['halloween-2026']).toEqual(['c1', 'c2', 'c3']);
+        expect(preservesProgress(a, merged)).toBe(true);
+        expect(preservesProgress(b, merged)).toBe(true);
+    });
+
+    it('merging is idempotent for event wins', () => {
+        const a = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1'] } };
+        expect(mergeStats(a, mergeStats(a, a))).toEqual(mergeStats(a, a));
+    });
+
+    it('dropping an event win fails the progress tripwire', () => {
+        const prev = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1', 'c2'] } };
+        const next = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1'] } };
+        expect(preservesProgress(prev, next)).toBe(false);
+    });
+
+    it('an old save with no event wins merges cleanly', () => {
+        const old = stats({});
+        const withWins = { ...stats({}), eventWinIds: { 'halloween-2026': ['c1'] } };
+        expect(mergeStats(old, withWins).eventWinIds?.['halloween-2026']).toEqual(['c1']);
+    });
+});

@@ -69,6 +69,8 @@ export interface ProgressionStats {
     eventCompletedRuns?: Record<string, number>;
     eventRewardGrants?: string[];
     earnedRewardIds?: string[];
+    /** Challenge ids won per edition. The count is the length; unions cleanly. */
+    eventWinIds?: Record<string, string[]>;
 }
 
 /** Before/after summary returned by recordRun so the game-over screen can celebrate. */

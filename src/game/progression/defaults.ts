@@ -20,5 +20,6 @@ export function defaultStats(): ProgressionStats {
         eventCompletedRuns: {},
         eventRewardGrants: [],
         earnedRewardIds: [],
+        eventWinIds: {},
     };
 }

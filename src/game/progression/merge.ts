@@ -23,6 +23,12 @@ function maxByKey(a: Record<string, number>, b: Record<string, number>): Record<
     return out;
 }
 
+function unionByKey(a: Record<string, string[]>, b: Record<string, string[]>): Record<string, string[]> {
+    const out: Record<string, string[]> = { ...a };
+    for (const [key, value] of Object.entries(b)) out[key] = union(out[key] ?? [], value);
+    return out;
+}
+
 /**
  * Whether `next` keeps everything `prev` had earned. The merge cannot violate this
  * by construction — every field goes through max or union, and `max(a,b) >= a` — so
@@ -52,6 +58,10 @@ export function preservesProgress(prev: ProgressionStats, next: ProgressionStats
 
     for (const [id, count] of Object.entries(prev.eventCompletedRuns ?? {})) {
         if ((next.eventCompletedRuns?.[id] ?? 0) < count) return false;
+    }
+    for (const [id, won] of Object.entries(prev.eventWinIds ?? {})) {
+        const kept = new Set(next.eventWinIds?.[id] ?? []);
+        if (won.some((challengeId) => !kept.has(challengeId))) return false;
     }
     if ((prev.eventRewardGrants ?? []).some((id) => !next.eventRewardGrants?.includes(id))) return false;
     if ((prev.earnedRewardIds ?? []).some((id) => !next.earnedRewardIds?.includes(id))) return false;
@@ -83,6 +93,7 @@ export function mergeStats(a: ProgressionStats, b: ProgressionStats): Progressio
         eventCompletedRuns: maxByKey(a.eventCompletedRuns ?? {}, b.eventCompletedRuns ?? {}),
         eventRewardGrants: union(a.eventRewardGrants ?? [], b.eventRewardGrants ?? []),
         earnedRewardIds: union(a.earnedRewardIds ?? [], b.earnedRewardIds ?? []),
+        eventWinIds: unionByKey(a.eventWinIds ?? {}, b.eventWinIds ?? {}),
         completionReceipts: { ...a.completionReceipts, ...b.completionReceipts },
     };
 }

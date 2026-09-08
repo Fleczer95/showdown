@@ -57,7 +57,12 @@ export const eventEditions: readonly EventEdition[] = [
     // halloween-2026 — the tripwire test in events.test.ts enforces it.
     // Containment is by binary: the Worker validates whatever definitions file
     // it was deployed with, and it is shared by the internal and public apps,
-    // so no server-side flag could separate them.
+    // so no server-side flag could separate them. It stays `enabled: true` here
+    // in every build; visibility is gated client-side instead — visibleEvents()
+    // (catalogue.ts) only lists it when EXPO_PUBLIC_EVENT_REHEARSAL === 'true',
+    // which is set only in the internal build, so a public build never shows it
+    // on Home. findEdition() still resolves it by id regardless of the flag, so
+    // a tester's in-flight round always recovers.
     {
         id: 'halloween-2026-rehearsal',
         enabled: true,

@@ -65,7 +65,12 @@ test('beating the opponent records a win and grants a prize', async () => {
 test('losing records the verdict and grants nothing', async () => {
     stub('r2');
     markChallengeOpponentPlayed('r2');
-    jest.mocked(getAttempts).mockResolvedValue([theirs, mine]);
+    // A real loss: the opponent outranks me on progress. (Previously this passed
+    // [theirs, mine] with theirs at *lower* progress than mine, relying on
+    // challengeOutcome trusting array order rather than ranking — now that it
+    // ranks its own copy (Finding 1), the fixture must encode an actual loss
+    // instead of an array-order trick.)
+    jest.mocked(getAttempts).mockResolvedValue([mine, { ...theirs, progress: 15, score: 1500 }]);
     expect(await resolveEventOutcomes(edition.startsAt! + 1)).toEqual([]);
     expect(listChallenges().find((s) => s.id === 'r2')?.outcome).toBe('lost');
 });

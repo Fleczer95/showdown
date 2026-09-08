@@ -170,7 +170,7 @@
     },
     "events": {
         "title": "Wydarzenia czasowe",
-        "description": "Zagraj ze znajomym lub losowym przeciwnikiem. Ukończone rozgrywki dają trwałe nagrody, także offline.",
+        "description": "Zagraj w wydarzeniu ze znajomym lub losowym przeciwnikiem. Wygrywaj rundy, aby zdobywać stałe nagrody.",
         "none": "Obecnie nie ma wydarzeń do wyświetlenia.",
         "play": "Zagraj",
         "viewResults": "Zobacz wyniki",
@@ -214,7 +214,7 @@
             "pumpkinFur": "Dyniowe futro",
             "blackCatFur": "Futro czarnego kota",
             "witchSuit": "Peleryna wiedźmy",
-            "slimeAccent": "Zielony śluz",
+            "slimeAccent": "Śluzowa zieleń",
             "bloodAccent": "Krwista czerwień",
             "boneMic": "Kościany mikrofon",
             "hauntTheme": "Nawiedzenie"

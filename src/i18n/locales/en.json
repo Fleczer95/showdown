@@ -170,7 +170,7 @@
     },
     "events": {
         "title": "Timed events",
-        "description": "Play the event with a friend or a random opponent. Completed runs earn permanent prizes, even offline.",
+        "description": "Play the event with a friend or a random opponent. Win rounds to earn permanent prizes.",
         "none": "No events to show right now.",
         "play": "Play now",
         "viewResults": "View results",

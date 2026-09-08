@@ -44,3 +44,10 @@ test('equal progress but a higher score is a win', () => {
 test('a tie is still pending for a viewer who has not played', () => {
     expect(challengeOutcome([entry(5, 500, 100), entry(5, 500, 200)], null)).toBe('pending');
 });
+
+test('an unranked array still yields the right verdict — equal progress, higher score, listed second', () => {
+    // D1 orders by progress only, so a same-progress, higher-scoring winner can
+    // still arrive second in the raw array. The function must rank its own copy
+    // rather than trust attempts[0].
+    expect(challengeOutcome([entry(15, 7200, 100), entry(15, 9800, 200)], 200)).toBe('won');
+});

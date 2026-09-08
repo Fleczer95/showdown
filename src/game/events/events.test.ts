@@ -10,6 +10,7 @@ import { isChallengeRecord } from '../../../shared/challenge/contract';
 import { eventLadderIndex } from './content';
 import { validEventQuestions } from '../../../shared/events/content';
 import { eventRewardTitleKey } from './access';
+import { visibleEvents } from './catalogue';
 
 test('Halloween is a disabled incomplete draft and never becomes active just because time passes', () => {
     expect(eventEditions).toHaveLength(2);
@@ -155,4 +156,15 @@ test('a rehearsal edition must never be live alongside the real event', () => {
     const rehearsals = eventEditions.filter((e) => e.id.endsWith('-rehearsal') && e.enabled);
     const live = eventEditions.filter((e) => !e.id.endsWith('-rehearsal') && e.enabled);
     expect(rehearsals.length === 0 || live.length === 0).toBe(true);
+});
+
+test('a rehearsal edition never reaches a public build — visibleEvents hides it unless EXPO_PUBLIC_EVENT_REHEARSAL is set', () => {
+    const rehearsal = eventEditions.find((e) => e.id.endsWith('-rehearsal'))!;
+    const now = rehearsal.startsAt!;
+    // Sanity: without the flag term this edition would otherwise qualify (enabled,
+    // dated, valid content/prizes, inside its own active+discovery window) — proving
+    // the flag, not some other filter, is what excludes it.
+    expect(eventEditions.some((e) => e.id.endsWith('-rehearsal'))).toBe(true);
+    expect(process.env.EXPO_PUBLIC_EVENT_REHEARSAL).not.toBe('true');
+    expect(visibleEvents(now).some((e) => e.id.endsWith('-rehearsal'))).toBe(false);
 });

@@ -1,6 +1,7 @@
 import { syncIncomingRematches } from './rematchSync';
 import { listChallenges, markChallengeOpponentPlayed, markChallengePlayed, recordChallenge } from './log';
 import { syncChallengeStatuses, syncRematches } from './store';
+import { resolveEventOutcomes } from '../events/resolveOutcomes';
 
 jest.mock('./deviceId', () => ({ getDeviceId: () => 'mine' }));
 jest.mock('./log', () => ({
@@ -105,6 +106,14 @@ it('still reconciles statuses when rematch discovery fails', async () => {
     await expect(syncIncomingRematches()).resolves.toEqual([]);
     expect(markChallengePlayed).toHaveBeenCalledWith('c1');
     expect(markChallengeOpponentPlayed).toHaveBeenCalledWith('c1');
+});
+
+it('settles event outcomes after a status sync', async () => {
+    jest.mocked(listChallenges).mockReturnValueOnce([source]).mockReturnValueOnce([source]);
+
+    await syncIncomingRematches();
+
+    expect(resolveEventOutcomes).toHaveBeenCalled();
 });
 
 it('rejects only when both independent sync requests fail', async () => {

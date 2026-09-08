@@ -2,7 +2,8 @@
 // the work over raw stats; the MMKV wrapper `recordRun` just loads, applies, saves.
 
 import { createMMKV } from 'react-native-mmkv';
-import { grantIdentity, type EventEdition } from '../../../shared/events/definitions';
+import type { EventEdition } from '../../../shared/events/definitions';
+import { drawPrizes } from '../events/draw';
 import { PROGRESSION_STORE_ID } from './constants';
 import { runXp } from './xp';
 import { level, unlockedRewards, isApproachingMaxLevel, MAX_LEVEL } from './map';
@@ -176,18 +177,6 @@ export function recordRun(
         if (edition) {
             const count = (prev.eventCompletedRuns?.[edition.id] ?? 0) + 1;
             stats.eventCompletedRuns = { ...prev.eventCompletedRuns, [edition.id]: count };
-            const grants = new Set(prev.eventRewardGrants ?? []);
-            const earned = new Set(prev.earnedRewardIds ?? []);
-            for (const milestone of edition.milestones) {
-                const id = grantIdentity(edition.id, milestone.id);
-                if (count >= milestone.completedRuns && !grants.has(id)) {
-                    grants.add(id);
-                    earned.add(milestone.rewardId);
-                    diff.newRewards.push(milestone.rewardId);
-                }
-            }
-            stats.eventRewardGrants = [...grants];
-            stats.earnedRewardIds = [...earned];
         }
     }
     saveStats(stats);
@@ -226,4 +215,41 @@ export function recordRun(
     // run — solo or challenge — that levels up earns banked solo runs.
     const bonusRunsGranted = diff.leveledUp ? grantLevelBonus(diff.previousLevel, diff.level) : 0;
     return { ...diff, bonusRunsGranted };
+}
+
+/**
+ * Award any prizes owed for this edition's current win count. Idempotent: a
+ * draw already in `eventRewardGrants` is skipped, never re-rolled.
+ */
+export function grantEventPrizes(edition: EventEdition, deviceId: string): string[] {
+    const prev = loadStats();
+    const wins = prev.eventWinIds?.[edition.id]?.length ?? 0;
+    const drawn = drawPrizes({
+        deviceId,
+        editionId: edition.id,
+        pool: edition.prizePool,
+        winsPerPrize: edition.winsPerPrize,
+        wins,
+        grantedDraws: prev.eventRewardGrants ?? [],
+        alreadyEarned: prev.earnedRewardIds ?? [],
+    });
+    if (drawn.length === 0) return [];
+    saveStats({
+        ...prev,
+        eventRewardGrants: [...(prev.eventRewardGrants ?? []), ...drawn.map((d) => d.grantId)],
+        earnedRewardIds: [...(prev.earnedRewardIds ?? []), ...drawn.map((d) => d.rewardId)],
+    });
+    return drawn.map((d) => d.rewardId);
+}
+
+/** Record a won round and award anything it unlocks. Safe to call repeatedly. */
+export function recordEventWin(edition: EventEdition, challengeId: string, deviceId: string): string[] {
+    const prev = loadStats();
+    const won = prev.eventWinIds?.[edition.id] ?? [];
+    if (won.includes(challengeId)) return [];
+    saveStats({
+        ...prev,
+        eventWinIds: { ...prev.eventWinIds, [edition.id]: [...won, challengeId] },
+    });
+    return grantEventPrizes(edition, deviceId);
 }

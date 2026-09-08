@@ -11,7 +11,8 @@ export const testEventEdition: EventEdition = {
     accent: '#F97316',
     activities: [{ game: 'the-ladder', contentRevision: 'local-ladder-v1' }],
     allowance: { base: 3, perPaidItem: 1, premium: 10 },
-    milestones: [{ id: 'first-run', completedRuns: 1, rewardId: 'theme-champion' }],
+    winsPerPrize: 1,
+    prizePool: ['theme-champion'],
 };
 /** Dedicated questions, but test-only dates and Champion prize. NEVER a production edition. */
 export const halloweenV1PreviewEdition: EventEdition = {

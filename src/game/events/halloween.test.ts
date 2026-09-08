@@ -187,7 +187,8 @@ test('production Halloween stays disabled and preview does not reinterpret exist
     expect(production.enabled).toBe(false);
     expect(production.startsAt).toBeUndefined();
     expect(production.endsAt).toBeUndefined();
-    expect(production.milestones).toEqual([]);
+    expect(production.winsPerPrize).toBe(13);
+    expect(production.prizePool).toHaveLength(7);
     expect(production.activities[0].contentRevision).toBe(HALLOWEEN_CONTENT_REVISION);
     expect(halloweenPreviewEdition.id).not.toBe(testEventEdition.id);
     expect(findEdition(halloweenPreviewEdition.id)).toBeUndefined();

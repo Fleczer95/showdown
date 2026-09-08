@@ -51,7 +51,7 @@ test('catalogue includes upcoming/results editions, but hides drafts and invalid
             mutable.length,
             edition,
             { ...edition, id: 'draft', enabled: false },
-            { ...edition, id: 'invalid', milestones: [] },
+            { ...edition, id: 'invalid', prizePool: [] },
         );
         expect(visibleEvents(13 * day).map((e) => e.id)).toEqual(['seasonal-test']);
         expect(visibleEvents(30 * day).map((e) => e.id)).toEqual(['seasonal-test']);

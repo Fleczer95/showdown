@@ -19,7 +19,10 @@ export interface EventEdition {
     discoveryWindow?: { beforeDays: number; afterDays: number };
     activities: readonly EventActivity[];
     allowance: { base: number; perPaidItem: number; premium: number };
-    milestones: readonly { id: string; completedRuns: number; rewardId: string }[];
+    /** Wins required per prize draw. The ladder repeats: 13, 26, 39, … */
+    winsPerPrize: number;
+    /** Reward ids this edition can award, drawn without replacement. */
+    prizePool: readonly string[];
 }
 export interface EventMembership {
     editionId: string;
@@ -37,7 +40,16 @@ export const eventEditions: readonly EventEdition[] = [
         artwork: 'pumpkin',
         activities: [{ game: 'the-ladder', contentRevision: HALLOWEEN_CONTENT_REVISION }],
         allowance: { base: 3, perPaidItem: 1, premium: 10 },
-        milestones: [],
+        winsPerPrize: 13,
+        prizePool: [
+            'mascot-fur-pumpkin',
+            'mascot-fur-blackcat',
+            'mascot-suit-witch',
+            'mascot-accent-slime',
+            'mascot-accent-blood',
+            'mascot-mic-bone',
+            'theme-haunt',
+        ],
     },
 ];
 
@@ -64,18 +76,14 @@ export function validateEdition(
     )
         errors.push('discovery window');
     if (Object.values(edition.allowance).some((n) => !Number.isSafeInteger(n) || n < 0)) errors.push('allowance');
-    if (new Set(edition.milestones.map((m) => m.id)).size !== edition.milestones.length) errors.push('milestone ids');
     if (
-        edition.milestones.some(
-            (m) =>
-                !m.id ||
-                !m.rewardId ||
-                !Number.isSafeInteger(m.completedRuns) ||
-                m.completedRuns < 1 ||
-                !hasReward(m.rewardId),
-        )
+        !Number.isSafeInteger(edition.winsPerPrize) ||
+        edition.winsPerPrize < 1 ||
+        new Set(edition.prizePool).size !== edition.prizePool.length ||
+        edition.prizePool.some((id) => !hasReward(id)) ||
+        (edition.enabled && edition.prizePool.length === 0)
     )
-        errors.push('milestones');
+        errors.push('prizes');
     if (edition.enabled) {
         if (
             !Number.isSafeInteger(edition.startsAt) ||
@@ -84,7 +92,6 @@ export function validateEdition(
         )
             errors.push('schedule');
         if (!edition.activities.length || edition.activities.some((a) => !hasContent(a))) errors.push('content');
-        if (!edition.milestones.length) errors.push('prizes');
     }
     if (new Set(edition.activities.map((a) => `${a.game}:${a.contentRevision}`)).size !== edition.activities.length)
         errors.push('activities');
@@ -106,7 +113,4 @@ export function findEdition(id: string, includeTestFixture = false): EventEditio
 }
 export function playDeadline(record: { expiresAt: number; event?: EventMembership }): number {
     return record.event?.endsAt ?? record.expiresAt;
-}
-export function grantIdentity(editionId: string, milestoneId: string): string {
-    return `${editionId}/${milestoneId}`;
 }

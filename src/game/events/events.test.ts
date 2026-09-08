@@ -15,7 +15,8 @@ test('Halloween is a disabled incomplete draft and never becomes active just bec
     const halloween = eventEditions[0];
     expect(halloween.startsAt).toBeUndefined();
     expect(halloween.endsAt).toBeUndefined();
-    expect(halloween.milestones).toEqual([]);
+    expect(halloween.winsPerPrize).toBe(13);
+    expect(halloween.prizePool).toHaveLength(7);
     expect(eventLifecycle(halloween, Date.UTC(2026, 9, 31))).toBe('draft');
     expect(
         validateEdition(
@@ -78,4 +79,35 @@ test('event retention can exceed 31 days without weakening ordinary expiry or po
     expect(validEventQuestions(record)).toBe(true);
     expect(validEventQuestions({ ...record, questions: [{ id: 'ordinary-question' }] })).toBe(false);
     expect(validEventQuestions({ ...record, questions: testEventQuestions.map((q) => ({ id: q.id })) })).toBe(false);
+});
+
+const enabled = {
+    id: 'x',
+    enabled: true,
+    name: { en: 'X', pl: 'X' },
+    startsAt: 1000,
+    endsAt: 2000,
+    activities: [{ game: 'the-ladder' as const, contentRevision: 'r1' }],
+    allowance: { base: 3, perPaidItem: 1, premium: 10 },
+    winsPerPrize: 13,
+    prizePool: ['reward-a'],
+};
+const ok = () => true;
+
+test('an enabled edition needs a non-empty prize pool', () => {
+    expect(validateEdition({ ...enabled, prizePool: [] }, ok, ok)).toContain('prizes');
+    expect(validateEdition(enabled, ok, ok)).toEqual([]);
+});
+
+test('winsPerPrize must be a positive integer', () => {
+    expect(validateEdition({ ...enabled, winsPerPrize: 0 }, ok, ok)).toContain('prizes');
+    expect(validateEdition({ ...enabled, winsPerPrize: 1.5 }, ok, ok)).toContain('prizes');
+});
+
+test('every pool reward must resolve', () => {
+    expect(validateEdition(enabled, ok, () => false)).toContain('prizes');
+});
+
+test('a draft edition may still have an empty pool', () => {
+    expect(validateEdition({ ...enabled, enabled: false, prizePool: [] }, ok, ok)).toEqual([]);
 });

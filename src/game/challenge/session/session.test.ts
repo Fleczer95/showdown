@@ -189,7 +189,6 @@ test('first-question loss commits terminal result and timestamp before reveal; g
     jest.spyOn(Date, 'now').mockReturnValue(edition.endsAt! + 100);
     settleCompletion(s.id);
     expect(loadStats().eventCompletedRuns?.[edition.id]).toBe(1);
-    expect(loadStats().earnedRewardIds).toContain('theme-champion');
     expect(loadStats().runsPlayed).toBe(1);
     settleCompletion(s.id);
     expect(loadStats().runsPlayed).toBe(1);

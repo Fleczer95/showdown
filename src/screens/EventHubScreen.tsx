@@ -21,7 +21,7 @@ import { getPendingEventStart } from '../game/challenge/session/store';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { BlockedError } from '../game/challenge/store';
-import { eventLifecycle, findEdition, grantIdentity, type EventEdition } from '../../shared/events/definitions';
+import { eventLifecycle, findEdition, type EventEdition } from '../../shared/events/definitions';
 
 export function EventHubScreen() {
     const navigation = useNavigation();
@@ -142,20 +142,12 @@ export function EventHubScreen() {
                                         {t('events.completed', { count: stats.eventCompletedRuns?.[edition.id] ?? 0 })}
                                     </Text>
                                 ) : null}
-                                {edition.milestones.map((milestone) => (
-                                    <Stack key={milestone.id} gap='xs'>
+                                {edition.prizePool.map((rewardId) => (
+                                    <Stack key={rewardId} gap='xs'>
                                         <Text weight='bold'>
-                                            {t(eventRewardTitleKey(milestone.rewardId) ?? 'progression.newReward')}
+                                            {t(eventRewardTitleKey(rewardId) ?? 'progression.newReward')}
                                         </Text>
-                                        <Text>
-                                            {stats.eventRewardGrants?.includes(grantIdentity(edition.id, milestone.id))
-                                                ? t('events.earned')
-                                                : t('events.goal', {
-                                                      count: stats.eventCompletedRuns?.[edition.id] ?? 0,
-                                                      total: milestone.completedRuns,
-                                                  })}
-                                        </Text>
-                                        <Button variant='ghost' onPress={() => setPreviewReward(milestone.rewardId)}>
+                                        <Button variant='ghost' onPress={() => setPreviewReward(rewardId)}>
                                             {t('events.preview')}
                                         </Button>
                                     </Stack>

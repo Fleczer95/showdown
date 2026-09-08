@@ -12,8 +12,8 @@ import { validEventQuestions } from '../../../shared/events/content';
 import { eventRewardTitleKey } from './access';
 
 test('Halloween is a disabled incomplete draft and never becomes active just because time passes', () => {
-    expect(eventEditions).toHaveLength(1);
-    const halloween = eventEditions[0];
+    expect(eventEditions).toHaveLength(2);
+    const halloween = eventEditions.find((e) => e.id === 'halloween-2026')!;
     expect(halloween.startsAt).toBeUndefined();
     expect(halloween.endsAt).toBeUndefined();
     expect(halloween.winsPerPrize).toBe(13);
@@ -134,4 +134,25 @@ test('a draft edition may still have an empty pool', () => {
 
 test('a pool listing the same reward twice is rejected', () => {
     expect(validateEdition({ ...enabled, prizePool: ['reward-a', 'reward-a'] }, ok, ok)).toContain('prizes');
+});
+
+test('halloween ships as a draft with the full pool', () => {
+    const halloween = eventEditions.find((e) => e.id === 'halloween-2026')!;
+    expect(halloween.enabled).toBe(false);
+    expect(halloween.winsPerPrize).toBe(13);
+    expect(halloween.prizePool).toHaveLength(7);
+});
+
+test('the rehearsal edition is enabled and dated', () => {
+    const rehearsal = eventEditions.find((e) => e.id === 'halloween-2026-rehearsal')!;
+    expect(rehearsal.enabled).toBe(true);
+    expect(Number.isSafeInteger(rehearsal.startsAt)).toBe(true);
+    expect(Number.isSafeInteger(rehearsal.endsAt)).toBe(true);
+});
+
+test('a rehearsal edition must never be live alongside the real event', () => {
+    // Release tripwire: delete the rehearsal edition before enabling Halloween.
+    const rehearsals = eventEditions.filter((e) => e.id.endsWith('-rehearsal') && e.enabled);
+    const live = eventEditions.filter((e) => !e.id.endsWith('-rehearsal') && e.enabled);
+    expect(rehearsals.length === 0 || live.length === 0).toBe(true);
 });

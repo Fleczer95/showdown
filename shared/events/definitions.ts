@@ -31,6 +31,16 @@ export interface EventMembership {
     endsAt: number;
 }
 
+const HALLOWEEN_PRIZE_POOL = [
+    'mascot-fur-pumpkin',
+    'mascot-fur-blackcat',
+    'mascot-suit-witch',
+    'mascot-accent-slime',
+    'mascot-accent-blood',
+    'mascot-mic-bone',
+    'theme-haunt',
+] as const;
+
 export const eventEditions: readonly EventEdition[] = [
     {
         id: 'halloween-2026',
@@ -41,15 +51,25 @@ export const eventEditions: readonly EventEdition[] = [
         activities: [{ game: 'the-ladder', contentRevision: HALLOWEEN_CONTENT_REVISION }],
         allowance: { base: 3, perPaidItem: 1, premium: 10 },
         winsPerPrize: 13,
-        prizePool: [
-            'mascot-fur-pumpkin',
-            'mascot-fur-blackcat',
-            'mascot-suit-witch',
-            'mascot-accent-slime',
-            'mascot-accent-blood',
-            'mascot-mic-bone',
-            'theme-haunt',
-        ],
+        prizePool: HALLOWEEN_PRIZE_POOL,
+    },
+    // INTERNAL TRACK ONLY. Delete before the public release that enables
+    // halloween-2026 — the tripwire test in definitions.test.ts enforces it.
+    // Containment is by binary: the Worker validates whatever definitions file
+    // it was deployed with, and it is shared by the internal and public apps,
+    // so no server-side flag could separate them.
+    {
+        id: 'halloween-2026-rehearsal',
+        enabled: true,
+        name: { en: 'Halloween', pl: 'Halloween' },
+        startsAt: Date.UTC(2026, 8, 1),
+        endsAt: Date.UTC(2026, 11, 31),
+        accent: '#F97316',
+        artwork: 'pumpkin',
+        activities: [{ game: 'the-ladder', contentRevision: HALLOWEEN_CONTENT_REVISION }],
+        allowance: { base: 3, perPaidItem: 1, premium: 10 },
+        winsPerPrize: 13,
+        prizePool: HALLOWEEN_PRIZE_POOL,
     },
 ];
 

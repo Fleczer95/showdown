@@ -104,3 +104,9 @@ test('pending admission retry remains reachable even after promotion disappears'
     await act(async () => fireEvent.press(screen.getByText('challenge.retry', options)));
     expect(startEvent).toHaveBeenCalled();
 });
+
+test('the hub lists the pool and the wins remaining to the next prize', async () => {
+    const { findByText } = mount();
+    expect(await findByText('events.winsGoal', options)).toBeTruthy();
+    expect(await findByText('events.randomPrize', options)).toBeTruthy();
+});

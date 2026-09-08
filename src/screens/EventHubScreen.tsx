@@ -113,6 +113,10 @@ export function EventHubScreen() {
                     {editions.map((edition) => {
                         const phase = eventLifecycle(edition, now);
                         const remaining = remainingEventPlays(edition, access);
+                        const wins = stats.eventWinIds?.[edition.id]?.length ?? 0;
+                        const toNextPrize = edition.winsPerPrize - (wins % edition.winsPerPrize);
+                        const earned = new Set(stats.earnedRewardIds ?? []);
+                        const poolComplete = edition.prizePool.every((id) => earned.has(id));
                         return (
                             <Card
                                 key={edition.id}
@@ -142,11 +146,19 @@ export function EventHubScreen() {
                                         {t('events.completed', { count: stats.eventCompletedRuns?.[edition.id] ?? 0 })}
                                     </Text>
                                 ) : null}
+                                <Text>{t('events.winsGoal', { count: wins })}</Text>
+                                <Text variant='caption'>
+                                    {poolComplete
+                                        ? t('events.poolComplete')
+                                        : t('events.nextPrize', { count: toNextPrize })}
+                                </Text>
+                                <Text variant='caption'>{t('events.randomPrize')}</Text>
                                 {edition.prizePool.map((rewardId) => (
                                     <Stack key={rewardId} gap='xs'>
                                         <Text weight='bold'>
                                             {t(eventRewardTitleKey(rewardId) ?? 'progression.newReward')}
                                         </Text>
+                                        <Text>{earned.has(rewardId) ? t('events.earned') : t('events.locked')}</Text>
                                         <Button variant='ghost' onPress={() => setPreviewReward(rewardId)}>
                                             {t('events.preview')}
                                         </Button>

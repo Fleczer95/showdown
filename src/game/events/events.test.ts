@@ -9,6 +9,7 @@ import { testEventEdition, testEventQuestions } from '../../../shared/events/fix
 import { isChallengeRecord } from '../../../shared/challenge/contract';
 import { eventLadderIndex } from './content';
 import { validEventQuestions } from '../../../shared/events/content';
+import { eventRewardTitleKey } from './access';
 
 test('Halloween is a disabled incomplete draft and never becomes active just because time passes', () => {
     expect(eventEditions).toHaveLength(1);
@@ -22,9 +23,28 @@ test('Halloween is a disabled incomplete draft and never becomes active just bec
         validateEdition(
             { ...halloween, enabled: true },
             () => false,
+            (id) => !!eventRewardTitleKey(id),
+        ),
+    ).toEqual(expect.arrayContaining(['schedule', 'content']));
+});
+
+test('the shipped Halloween draft is well-formed but cannot go live without dates', () => {
+    const halloween = eventEditions.find((e) => e.id === 'halloween-2026')!;
+    // The real reward resolver, same as production's catalogue.ts wiring — a typo'd
+    // id in the pool must fail this, not just membership-in-itself.
+    const hasReward = (id: string) => !!eventRewardTitleKey(id);
+    // As shipped it is a clean draft: every prize resolves, nothing is malformed.
+    expect(validateEdition(halloween, () => true, hasReward)).toEqual([]);
+    // Flipping it live without a schedule must still be rejected.
+    expect(validateEdition({ ...halloween, enabled: true }, () => true, hasReward)).toContain('schedule');
+    // A prize id that does not resolve must be rejected even in a draft.
+    expect(
+        validateEdition(
+            halloween,
+            () => true,
             () => false,
         ),
-    ).toEqual(expect.arrayContaining(['schedule', 'content', 'prizes']));
+    ).toContain('prizes');
 });
 test('inclusive start, exclusive end, future editions need only new typed data', () => {
     const edition = { ...testEventEdition, id: 'future-edition', startsAt: 100, endsAt: 200 };
@@ -110,4 +130,8 @@ test('every pool reward must resolve', () => {
 
 test('a draft edition may still have an empty pool', () => {
     expect(validateEdition({ ...enabled, enabled: false, prizePool: [] }, ok, ok)).toEqual([]);
+});
+
+test('a pool listing the same reward twice is rejected', () => {
+    expect(validateEdition({ ...enabled, prizePool: ['reward-a', 'reward-a'] }, ok, ok)).toContain('prizes');
 });

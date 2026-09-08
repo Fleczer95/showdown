@@ -1,4 +1,5 @@
 import { findEdition } from '../../../../shared/events/definitions';
+import { SafeSentry } from '../../../utils/sentry/init';
 import { recordRun } from '../../progression/recordRun';
 import { pushRanking } from '../../ranking/push';
 import { submitAttempt, BlockedError } from '../store';
@@ -25,7 +26,13 @@ export function settleCompletion(id: string) {
 export async function uploadCompletion(id: string): Promise<void> {
     const session = getSession(id);
     if (!session?.attempt || !session.result) return;
-    settleCompletion(id);
+    // Local progression needs the edition; the attempt upload does not. Never let
+    // an unresolvable edition hold back a result the opponent is waiting for.
+    try {
+        settleCompletion(id);
+    } catch (error) {
+        SafeSentry.captureException(error, { tags: { area: 'challenge-recovery' } });
+    }
     // Rankings have their own persistent retry queue and current-period policy.
     void pushRanking(session.record.game, session.result.run.score, session.attempt.nickname);
     if (session.upload === 'sent' || session.upload === 'closed') return;
@@ -46,6 +53,14 @@ export async function uploadCompletion(id: string): Promise<void> {
 /** Local effects are synchronous; one offline upload must not block other runs. */
 export async function recoverCompletions(): Promise<void> {
     const completed = listSessions().filter((s) => s.status === 'completed');
-    for (const s of completed) if (!s.effectsSettled) settleCompletion(s.id);
+    for (const s of completed) {
+        if (s.effectsSettled) continue;
+        try {
+            settleCompletion(s.id);
+        } catch (error) {
+            // A run whose edition no longer resolves must not stop the uploads below.
+            SafeSentry.captureException(error, { tags: { area: 'challenge-recovery' } });
+        }
+    }
     await Promise.allSettled(completed.filter((s) => s.upload === 'pending').map((s) => uploadCompletion(s.id)));
 }

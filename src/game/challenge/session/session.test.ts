@@ -10,8 +10,9 @@ import {
     eventUsage,
     abandonSession,
     participationId,
+    updateSessionEffects,
 } from './store';
-import { settleCompletion, uploadCompletion } from './recovery';
+import { settleCompletion, uploadCompletion, recoverCompletions } from './recovery';
 import { initialCheckpoint } from './initial';
 import {
     ladderResult,
@@ -312,4 +313,70 @@ test('cloud max/union and old-save upgrade preserve receipts and unknown permane
     expect(loadStats().runsPlayed).toBe(1);
     expect(loadStats().earnedRewardIds).toContain('future-prize');
     expect(mergeStats(merged, defaultStats())).toEqual(merged);
+});
+
+test('the journal is capped, but never drops a run the app still needs', () => {
+    const settle = (challengeId: string, score: number) => {
+        const id = participationId(challengeId, 'device');
+        checkpointSession(id, {}, 0, { progress: 1, run: { gameId: 'the-ladder', score, won: true } }, now + score);
+        updateSessionEffects(id, { effectsSettled: true, upload: 'sent' });
+    };
+    // Fill well past the cap with fully settled, uploaded runs.
+    for (let i = 0; i < 60; i++) {
+        start(`settled-${i}`, '2026-01-01', 1000);
+        settle(`settled-${i}`, i);
+    }
+    expect(listSessions().length).toBeLessThanOrEqual(50);
+
+    // An unfinished run and a completion whose upload is still pending must
+    // survive even when they become the oldest entries in the journal.
+    start('unfinished', '2026-01-01', 1000);
+    start('awaiting-upload', '2026-01-01', 1000);
+    checkpointSession(participationId('awaiting-upload', 'device'), {}, 0, {
+        progress: 1,
+        run: { gameId: 'the-ladder', score: 1, won: true },
+    });
+    for (let i = 60; i < 120; i++) {
+        start(`filler-${i}`, '2026-01-01', 1000);
+        settle(`filler-${i}`, i);
+    }
+    const ids = listSessions().map((s) => s.id);
+    expect(listSessions().length).toBeLessThanOrEqual(52);
+    expect(ids).toContain(participationId('unfinished', 'device'));
+    expect(ids).toContain(participationId('awaiting-upload', 'device'));
+});
+
+test('a completed run whose edition is gone does not block the other uploads', async () => {
+    // An ordinary completed run whose result is still waiting to upload.
+    const ordinary: ChallengeRecord = { ...record, event: undefined, expiresAt: now + 100000 };
+    const good = startSession(
+        { challengeId: 'ordinary', deviceId: 'device', record: ordinary, nickname: 'P' },
+        {},
+        undefined,
+        now,
+    );
+    checkpointSession(good.id, {}, 0, { progress: 1, run: { gameId: 'the-ladder', score: 5, won: true } }, now);
+
+    // A completed event run whose edition this build no longer defines — for
+    // example an edition retired in a later release.
+    const retired: ChallengeRecord = { ...record, event: { ...record.event!, editionId: 'retired-edition' } };
+    setPendingEventStart({
+        requestId: 'retired',
+        editionId: 'retired-edition',
+        game: record.game,
+        mode: 'friend',
+        record: retired,
+        nickname: 'P',
+    });
+    const bad = startSession(
+        { challengeId: 'retired', deviceId: 'device', record: retired, nickname: 'P' },
+        {},
+        { date: '2026-01-01', cap: 3, requestId: 'retired' },
+        now,
+    );
+    checkpointSession(bad.id, {}, 0, { progress: 1, run: { gameId: 'the-ladder', score: 1, won: true } }, now);
+
+    await recoverCompletions();
+    expect(submitAttempt).toHaveBeenCalledTimes(2);
+    expect(getSession(good.id)?.upload).toBe('sent');
 });

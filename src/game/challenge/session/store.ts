@@ -6,6 +6,10 @@ import type { RecordRunDiff } from '../../progression/types';
 import { playDeadline } from '../../../../shared/events/definitions';
 
 const KEY = 'challenge-sessions-v1';
+// The journal is re-parsed on every read and re-serialised on every decision the
+// player commits, so its size is felt on the JS thread during play. Cap it the
+// way the challenge log caps its own index.
+const MAX_SESSIONS = 50;
 export class UnsupportedSessionError extends Error {
     constructor() {
         super('Unsupported or unreadable challenge save; no data was reset');
@@ -72,8 +76,25 @@ function readStore(): SessionStore {
     if (!state || state.version !== 1 || !state.sessions || !state.usage) throw new UnsupportedSessionError();
     return state;
 }
+/**
+ * Keep the most recent sessions, and never drop one the app still needs: an
+ * unfinished run, an unsettled completion, or a result whose upload is still
+ * pending. Older settled runs stay visible in history through the challenge log,
+ * and reopening one resolves its result from the server.
+ */
+function prune(state: SessionStore): SessionStore {
+    const sessions = Object.values(state.sessions);
+    if (sessions.length <= MAX_SESSIONS) return state;
+    state.sessions = Object.fromEntries(
+        sessions
+            .sort((a, b) => (b.completedAt ?? b.startedAt) - (a.completedAt ?? a.startedAt))
+            .filter((s, i) => i < MAX_SESSIONS || sessionNeedsHistory(s))
+            .map((s) => [s.id, s]),
+    );
+    return state;
+}
 function save(state: SessionStore): void {
-    deviceStore.set(KEY, encode(state));
+    deviceStore.set(KEY, encode(prune(state)));
 }
 export function getSession(id: string): ChallengeSession | undefined {
     const session = readStore().sessions[id];

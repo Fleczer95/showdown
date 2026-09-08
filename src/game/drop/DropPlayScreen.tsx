@@ -59,7 +59,7 @@ import { ChallengeHandoff, type ChallengePlay } from '../challenge/ChallengeHand
 
 import { getCheckpoint } from '../challenge/session/store';
 import { useSessionCheckpoint } from '../challenge/session/useSessionCheckpoint';
-import { dropResult, type DropCheckpoint } from '../challenge/session/checkpoints';
+import { dropResult, restoredReveals, type DropCheckpoint, type DropReveal } from '../challenge/session/checkpoints';
 
 const EMPTY_ALLOCATION = [0, 0, 0, 0];
 
@@ -84,7 +84,7 @@ const FALL_DISTANCE = 56; // how far the text falls while disappearing
 const RETURN_RISE = 12; // how far below the tally rises from as it returns
 
 type Phase = 'allocating' | 'suspense' | 'reveal';
-type Reveal = 'none' | 'drop' | 'win';
+type Reveal = DropReveal;
 
 const formatMoney = (value: number): string => value.toLocaleString('en-US');
 
@@ -125,9 +125,7 @@ export default function DropPlayScreen({
     const [phase, setPhase] = useState<Phase>(saved?.next ? 'reveal' : 'allocating');
     // Per-option reveal state, flipped on a timeline during the reveal.
     const [reveals, setReveals] = useState<Reveal[]>(() =>
-        saved?.next
-            ? [0, 1, 2, 3].map((i) => (i === saved.state.questions[saved.state.round].correctIndex ? 'win' : 'drop'))
-            : ['none', 'none', 'none', 'none'],
+        saved?.next ? restoredReveals(saved) : ['none', 'none', 'none', 'none'],
     );
     // Continue only appears once the whole sequence has played out.
     const [canAdvance, setCanAdvance] = useState(!!saved?.next);

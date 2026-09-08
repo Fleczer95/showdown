@@ -79,3 +79,15 @@ export function wheelResult(c: WheelCheckpoint): ChallengeResult | undefined {
         },
     };
 }
+
+export type DropReveal = 'none' | 'drop' | 'win';
+
+/**
+ * Reveal state for a round restored mid-choreography. Only options the player
+ * actually staked drop, exactly as the live timeline resolves them — an
+ * uncovered wrong option stays neutral.
+ */
+export function restoredReveals(saved: DropCheckpoint): DropReveal[] {
+    const { correctIndex } = saved.state.questions[saved.state.round];
+    return [0, 1, 2, 3].map((i) => (i === correctIndex ? 'win' : (saved.allocation[i] ?? 0) > 0 ? 'drop' : 'none'));
+}

@@ -65,6 +65,7 @@ import {
     wheelGameFromRecord,
     ownedQuestionIds,
 } from '../game/challenge/resolve';
+import { challengeOutcome } from '../game/challenge/outcome';
 import type { ChallengeResult } from '../game/challenge/ChallengeHandoff';
 import type { ChallengeRecord } from '../game/challenge/types';
 import { recordRun, type RecordRunDiff } from '../game/progression';
@@ -975,12 +976,12 @@ function ResultsCard({
     // crowning the sole player the winner.
     const waiting = attempts.length <= 1;
     const winner = attempts[0];
-    // A genuine tie on the ranking key (same progress AND same score) is a draw,
-    // not a win — the timestamp tiebreak in rankEntries only fixes row order, it
-    // shouldn't crown anyone (e.g. both players score 0). Applies to every game.
+    const outcome = challengeOutcome(attempts, myTimestamp);
+    const draw = outcome === 'draw';
+    const youWon = outcome === 'won';
+    // Used below to crown every leaderboard row tied with the winner, separate
+    // from the win/loss verdict.
     const isTopTie = (e: LeaderboardEntry) => !!winner && e.progress === winner.progress && e.score === winner.score;
-    const draw = !waiting && !!attempts[1] && isTopTie(attempts[1]);
-    const youWon = !waiting && !draw && winner && myTimestamp !== null && winner.timestamp === myTimestamp;
     const rematchOpponent =
         !record.event && attempts.length === 2 && myTimestamp !== null
             ? attempts.find((entry) => entry.timestamp !== myTimestamp)

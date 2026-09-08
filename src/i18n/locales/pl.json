@@ -186,8 +186,18 @@
         "random": "Znajdź przeciwnika",
         "unmatched": "Czeka na dobranie przeciwnika",
         "goal": "Ukończone rozgrywki: %{count} / %{total}",
-        "winsGoal": "Zwycięstwa: %{count}",
-        "nextPrize": "Jeszcze %{count} zwycięstw do następnej nagrody",
+        "winsGoal": {
+            "one": "Zwycięstwa: %{count}",
+            "few": "Zwycięstwa: %{count}",
+            "many": "Zwycięstwa: %{count}",
+            "other": "Zwycięstwa: %{count}"
+        },
+        "nextPrize": {
+            "one": "Jeszcze %{count} zwycięstwo do następnej nagrody",
+            "few": "Jeszcze %{count} zwycięstwa do następnej nagrody",
+            "many": "Jeszcze %{count} zwycięstw do następnej nagrody",
+            "other": "Jeszcze %{count} zwycięstw do następnej nagrody"
+        },
         "randomPrize": "Każda nagroda jest losowana spośród tych, których jeszcze nie masz.",
         "poolComplete": "Zdobyto wszystkie nagrody w tym wydarzeniu.",
         "earned": "Zdobyto na stałe",

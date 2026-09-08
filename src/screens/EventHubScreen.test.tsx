@@ -1,11 +1,12 @@
 import React from 'react';
 import { View as MockView } from 'react-native';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme';
 import { EventHubScreen } from './EventHubScreen';
 import { visibleEvents } from '../game/events/catalogue';
 import { startEvent } from '../game/events/participation';
 import { getPendingEventStart } from '../game/challenge/session/store';
+import { useProgression } from '../hooks/useProgression';
 import { halloweenPreviewEdition } from '../../shared/events/fixtures';
 
 const day = 86400000;
@@ -28,15 +29,14 @@ jest.mock('../game/challenge/nickname', () => ({
 }));
 jest.mock('../game/challenge/store', () => ({ BlockedError: class extends Error {} }));
 jest.mock('../hooks/store/useStore', () => ({ useStore: () => ({ purchasedItemIds: [], isPremium: false }) }));
-jest.mock('../hooks/useProgression', () => ({
-    useProgression: () => ({ stats: { eventCompletedRuns: { 'local-halloween-preview-v2': 2 } } }),
-}));
+jest.mock('../hooks/useProgression', () => ({ useProgression: jest.fn() }));
 jest.mock('../game/events/EventRewardPreview', () => ({ EventRewardPreview: () => null }));
 jest.mock('../responsive/SafeContainer', () => ({
     __esModule: true,
     default: ({ children }: { children: React.ReactNode }) => <MockView>{children}</MockView>,
 }));
-jest.mock('../i18n', () => ({ useTranslation: () => ({ locale: 'en', t: (key: string) => key }) }));
+const mockT = jest.fn((key: string) => key);
+jest.mock('../i18n', () => ({ useTranslation: () => ({ locale: 'en', t: mockT }) }));
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
     useReducedMotion: () => true,
@@ -56,6 +56,9 @@ beforeEach(() => {
     jest.mocked(visibleEvents).mockReturnValue([edition]);
     jest.mocked(getPendingEventStart).mockReturnValue(undefined);
     jest.mocked(startEvent).mockResolvedValue({ id: 'saved-event', share: false });
+    jest.mocked(useProgression).mockReturnValue({
+        stats: { eventCompletedRuns: { 'local-halloween-preview-v2': 2 } },
+    } as unknown as ReturnType<typeof useProgression>);
 });
 
 test.each([
@@ -105,8 +108,27 @@ test('pending admission retry remains reachable even after promotion disappears'
     expect(startEvent).toHaveBeenCalled();
 });
 
-test('the hub lists the pool and the wins remaining to the next prize', async () => {
-    const { findByText } = mount();
-    expect(await findByText('events.winsGoal', options)).toBeTruthy();
-    expect(await findByText('events.randomPrize', options)).toBeTruthy();
+test('the hub reports wins remaining to the next prize for a player with no wins yet', async () => {
+    const poolEdition = { ...edition, winsPerPrize: 13, prizePool: ['theme-champion', 'mascot-fur-pumpkin'] };
+    jest.mocked(visibleEvents).mockReturnValue([poolEdition]);
+    jest.mocked(useProgression).mockReturnValue({
+        stats: { eventWinIds: {}, earnedRewardIds: [] },
+    } as unknown as ReturnType<typeof useProgression>);
+    mount();
+    await waitFor(() => expect(mockT).toHaveBeenCalledWith('events.nextPrize', { count: 13 }));
+    expect(mockT).not.toHaveBeenCalledWith('events.poolComplete');
+});
+
+test('the hub reports the pool complete once every prize has been earned', async () => {
+    const poolEdition = { ...edition, winsPerPrize: 13, prizePool: ['theme-champion', 'mascot-fur-pumpkin'] };
+    jest.mocked(visibleEvents).mockReturnValue([poolEdition]);
+    jest.mocked(useProgression).mockReturnValue({
+        stats: {
+            eventWinIds: { [poolEdition.id]: Array.from({ length: 13 }, (_, i) => `run-${i}`) },
+            earnedRewardIds: poolEdition.prizePool,
+        },
+    } as unknown as ReturnType<typeof useProgression>);
+    mount();
+    await waitFor(() => expect(mockT).toHaveBeenCalledWith('events.poolComplete'));
+    expect(mockT).not.toHaveBeenCalledWith('events.nextPrize', expect.anything());
 });

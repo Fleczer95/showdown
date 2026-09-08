@@ -186,8 +186,18 @@
         "random": "Find an opponent",
         "unmatched": "Waiting to be matched",
         "goal": "%{count} / %{total} completed runs",
-        "winsGoal": "%{count} wins so far",
-        "nextPrize": "%{count} more wins for your next prize",
+        "winsGoal": {
+            "one": "%{count} win so far",
+            "few": "%{count} wins so far",
+            "many": "%{count} wins so far",
+            "other": "%{count} wins so far"
+        },
+        "nextPrize": {
+            "one": "%{count} more win for your next prize",
+            "few": "%{count} more wins for your next prize",
+            "many": "%{count} more wins for your next prize",
+            "other": "%{count} more wins for your next prize"
+        },
         "randomPrize": "Each prize is drawn at random from the ones you haven't won yet.",
         "poolComplete": "You've won every prize in this event.",
         "earned": "Earned permanently",

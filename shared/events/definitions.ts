@@ -54,7 +54,7 @@ export const eventEditions: readonly EventEdition[] = [
         prizePool: HALLOWEEN_PRIZE_POOL,
     },
     // INTERNAL TRACK ONLY. Delete before the public release that enables
-    // halloween-2026 — the tripwire test in definitions.test.ts enforces it.
+    // halloween-2026 — the tripwire test in events.test.ts enforces it.
     // Containment is by binary: the Worker validates whatever definitions file
     // it was deployed with, and it is shared by the internal and public apps,
     // so no server-side flag could separate them.

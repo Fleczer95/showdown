@@ -192,81 +192,101 @@ export function EventHubScreen() {
                                         : t('events.nextPrize', { count: toNextPrize })}
                                 </Text>
                                 <Text variant='caption'>{t('events.randomPrize')}</Text>
-                                {/* Reads as a control, not a heading: tinted surface, an
-                                    explicit show/hide verb, and the same circled chevron
-                                    affordance Home uses on its game cards. */}
-                                <Pressable
-                                    testID={`event-prizes-toggle-${edition.id}`}
-                                    accessibilityRole='button'
-                                    accessibilityState={{ expanded: prizesOpen }}
-                                    accessibilityLabel={t('events.prizesTitle')}
-                                    accessibilityHint={t(prizesOpen ? 'events.hidePrizes' : 'events.showPrizes')}
-                                    haptic='light'
+                                {/* Header and list share one tinted, rounded panel:
+                                    expanded prizes stay attached to the control that
+                                    opened them instead of spilling onto the card. */}
+                                <View
                                     style={{
                                         backgroundColor: hexToRgba(accent, 0.1),
                                         borderRadius: theme.radii.lg,
-                                        paddingHorizontal: theme.spacing.md,
-                                        paddingVertical: theme.spacing.xs,
-                                        minHeight: scale(48),
-                                        justifyContent: 'center',
+                                        overflow: 'hidden',
                                     }}
-                                    onPress={() =>
-                                        setOpenPrizes((prev) => {
-                                            const next = new Set(prev);
-                                            if (!next.delete(edition.id)) next.add(edition.id);
-                                            return next;
-                                        })
-                                    }
                                 >
-                                    <View
-                                        pointerEvents='none'
+                                    {/* Reads as a control, not a heading: an explicit
+                                        show/hide verb and the same circled chevron
+                                        affordance Home uses on its game cards. */}
+                                    <Pressable
+                                        testID={`event-prizes-toggle-${edition.id}`}
+                                        accessibilityRole='button'
+                                        accessibilityState={{ expanded: prizesOpen }}
+                                        accessibilityLabel={t('events.prizesTitle')}
+                                        accessibilityHint={t(prizesOpen ? 'events.hidePrizes' : 'events.showPrizes')}
+                                        haptic='light'
                                         style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            gap: theme.spacing.sm,
+                                            paddingHorizontal: theme.spacing.md,
+                                            paddingVertical: theme.spacing.xs,
+                                            minHeight: scale(48),
+                                            justifyContent: 'center',
                                         }}
+                                        onPress={() =>
+                                            setOpenPrizes((prev) => {
+                                                const next = new Set(prev);
+                                                if (!next.delete(edition.id)) next.add(edition.id);
+                                                return next;
+                                            })
+                                        }
                                     >
-                                        <Text weight='bold' style={{ flex: 1 }}>
-                                            {`${t('events.prizesTitle')} · ${
-                                                edition.prizePool.filter((id) => earned.has(id)).length
-                                            }/${edition.prizePool.length}`}
-                                        </Text>
-                                        <Text variant='caption' weight='bold' color={accent}>
-                                            {t(prizesOpen ? 'events.hidePrizes' : 'events.showPrizes')}
-                                        </Text>
                                         <View
+                                            pointerEvents='none'
                                             style={{
-                                                width: scale(32),
-                                                height: scale(32),
-                                                borderRadius: theme.radii.full,
-                                                backgroundColor: hexToRgba(accent, 0.16),
+                                                flexDirection: 'row',
                                                 alignItems: 'center',
-                                                justifyContent: 'center',
+                                                gap: theme.spacing.sm,
                                             }}
                                         >
-                                            <Icon
-                                                name={prizesOpen ? ChevronUp : ChevronDown}
-                                                size={iconSize(18)}
-                                                color={accent}
-                                            />
+                                            <Text weight='bold' style={{ flex: 1 }}>
+                                                {`${t('events.prizesTitle')} · ${
+                                                    edition.prizePool.filter((id) => earned.has(id)).length
+                                                }/${edition.prizePool.length}`}
+                                            </Text>
+                                            <Text variant='caption' weight='bold' color={accent}>
+                                                {t(prizesOpen ? 'events.hidePrizes' : 'events.showPrizes')}
+                                            </Text>
+                                            <View
+                                                style={{
+                                                    width: scale(32),
+                                                    height: scale(32),
+                                                    borderRadius: theme.radii.full,
+                                                    backgroundColor: hexToRgba(accent, 0.16),
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <Icon
+                                                    name={prizesOpen ? ChevronUp : ChevronDown}
+                                                    size={iconSize(18)}
+                                                    color={accent}
+                                                />
+                                            </View>
                                         </View>
-                                    </View>
-                                </Pressable>
-                                {prizesOpen
-                                    ? edition.prizePool.map((rewardId) => (
-                                          <Stack key={rewardId} gap='xs'>
-                                              <Text weight='bold'>
-                                                  {t(eventRewardTitleKey(rewardId) ?? 'progression.newReward')}
-                                              </Text>
-                                              <Text>
-                                                  {earned.has(rewardId) ? t('events.earned') : t('events.locked')}
-                                              </Text>
-                                              <Button variant='ghost' onPress={() => setPreviewReward(rewardId)}>
-                                                  {t('events.preview')}
-                                              </Button>
-                                          </Stack>
-                                      ))
-                                    : null}
+                                    </Pressable>
+                                    {prizesOpen ? (
+                                        <View
+                                            style={{
+                                                gap: theme.spacing.md,
+                                                paddingHorizontal: theme.spacing.md,
+                                                paddingTop: theme.spacing.sm,
+                                                paddingBottom: theme.spacing.md,
+                                                borderTopWidth: StyleSheet.hairlineWidth,
+                                                borderTopColor: hexToRgba(accent, 0.24),
+                                            }}
+                                        >
+                                            {edition.prizePool.map((rewardId) => (
+                                                <Stack key={rewardId} gap='xs'>
+                                                    <Text weight='bold'>
+                                                        {t(eventRewardTitleKey(rewardId) ?? 'progression.newReward')}
+                                                    </Text>
+                                                    <Text>
+                                                        {earned.has(rewardId) ? t('events.earned') : t('events.locked')}
+                                                    </Text>
+                                                    <Button variant='ghost' onPress={() => setPreviewReward(rewardId)}>
+                                                        {t('events.preview')}
+                                                    </Button>
+                                                </Stack>
+                                            ))}
+                                        </View>
+                                    ) : null}
+                                </View>
                                 {phase === 'active' ? (
                                     <>
                                         {(['friend', 'random'] as const).map((mode) => (

@@ -219,7 +219,9 @@
             "boneMic": "Kościany mikrofon",
             "hauntTheme": "Nawiedzenie"
         },
-        "prizesTitle": "Nagrody"
+        "prizesTitle": "Nagrody",
+        "showPrizes": "Pokaż",
+        "hidePrizes": "Ukryj"
     },
     "challenge": {
         "session": {

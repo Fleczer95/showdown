@@ -141,8 +141,11 @@ test('the prize list starts hidden and expands when its header is tapped', async
     } as unknown as ReturnType<typeof useProgression>);
     const screen = mount();
 
-    // Hidden by default: the header is there, the prize rows are not.
+    // Hidden by default: the header is there, the prize rows are not, and the
+    // header states the action it performs rather than looking like a heading.
     await waitFor(() => expect(mockT).toHaveBeenCalledWith('events.prizesTitle'));
+    expect(mockT).toHaveBeenCalledWith('events.showPrizes');
+    expect(mockT).not.toHaveBeenCalledWith('events.hidePrizes');
     expect(mockT).not.toHaveBeenCalledWith('events.preview');
 
     mockT.mockClear();
@@ -150,7 +153,9 @@ test('the prize list starts hidden and expands when its header is tapped', async
         fireEvent.press(screen.getByTestId(`event-prizes-toggle-${poolEdition.id}`, options));
     });
 
-    // Expanded: every prize row renders.
+    // Expanded: every prize row renders and the verb flips to the inverse action.
+    expect(mockT).toHaveBeenCalledWith('events.hidePrizes');
+    expect(mockT).not.toHaveBeenCalledWith('events.showPrizes');
     expect(mockT).toHaveBeenCalledWith('events.preview');
     expect(mockT).toHaveBeenCalledWith('events.earned');
     expect(mockT).toHaveBeenCalledWith('events.locked');

@@ -219,7 +219,9 @@
             "boneMic": "Bone microphone",
             "hauntTheme": "Haunt"
         },
-        "prizesTitle": "Prizes"
+        "prizesTitle": "Prizes",
+        "showPrizes": "Show",
+        "hidePrizes": "Hide"
     },
     "challenge": {
         "session": {

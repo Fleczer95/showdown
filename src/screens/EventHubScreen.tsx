@@ -12,6 +12,8 @@ import Card from '../components/molecules/Card';
 import Input from '../components/molecules/Input';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
+import { hexToRgba } from '../theme/colorUtils';
+import { useResponsive } from '../responsive/useResponsive';
 import { useStore } from '../hooks/store/useStore';
 import { useProgression } from '../hooks/useProgression';
 import { EventRewardPreview } from '../game/events/EventRewardPreview';
@@ -31,6 +33,7 @@ export function EventHubScreen() {
     const route = useRoute<RouteProp<RootStackParamList, 'EventHub'>>();
     const { t, locale } = useTranslation();
     const theme = useTheme();
+    const { scale, iconSize } = useResponsive();
     const { purchasedItemIds, isPremium } = useStore();
     const { stats } = useProgression();
     const access = useMemo(
@@ -124,6 +127,7 @@ export function EventHubScreen() {
                         const earned = new Set(stats.earnedRewardIds ?? []);
                         const poolComplete = edition.prizePool.every((id) => earned.has(id));
                         const prizesOpen = openPrizes.has(edition.id);
+                        const accent = edition.accent ?? theme.colors.primary;
                         return (
                             <Card
                                 key={edition.id}
@@ -160,12 +164,24 @@ export function EventHubScreen() {
                                         : t('events.nextPrize', { count: toNextPrize })}
                                 </Text>
                                 <Text variant='caption'>{t('events.randomPrize')}</Text>
+                                {/* Reads as a control, not a heading: tinted surface, an
+                                    explicit show/hide verb, and the same circled chevron
+                                    affordance Home uses on its game cards. */}
                                 <Pressable
                                     testID={`event-prizes-toggle-${edition.id}`}
                                     accessibilityRole='button'
                                     accessibilityState={{ expanded: prizesOpen }}
                                     accessibilityLabel={t('events.prizesTitle')}
+                                    accessibilityHint={t(prizesOpen ? 'events.hidePrizes' : 'events.showPrizes')}
                                     haptic='light'
+                                    style={{
+                                        backgroundColor: hexToRgba(accent, 0.1),
+                                        borderRadius: theme.radii.lg,
+                                        paddingHorizontal: theme.spacing.md,
+                                        paddingVertical: theme.spacing.xs,
+                                        minHeight: scale(48),
+                                        justifyContent: 'center',
+                                    }}
                                     onPress={() =>
                                         setOpenPrizes((prev) => {
                                             const next = new Set(prev);
@@ -187,11 +203,25 @@ export function EventHubScreen() {
                                                 edition.prizePool.filter((id) => earned.has(id)).length
                                             }/${edition.prizePool.length}`}
                                         </Text>
-                                        <Icon
-                                            name={prizesOpen ? ChevronUp : ChevronDown}
-                                            size={20}
-                                            color={theme.colors.textSecondary}
-                                        />
+                                        <Text variant='caption' weight='bold' color={accent}>
+                                            {t(prizesOpen ? 'events.hidePrizes' : 'events.showPrizes')}
+                                        </Text>
+                                        <View
+                                            style={{
+                                                width: scale(32),
+                                                height: scale(32),
+                                                borderRadius: theme.radii.full,
+                                                backgroundColor: hexToRgba(accent, 0.16),
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <Icon
+                                                name={prizesOpen ? ChevronUp : ChevronDown}
+                                                size={iconSize(18)}
+                                                color={accent}
+                                            />
+                                        </View>
                                     </View>
                                 </Pressable>
                                 {prizesOpen

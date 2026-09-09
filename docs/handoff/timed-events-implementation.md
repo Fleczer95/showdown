@@ -27,16 +27,19 @@ The `halloween-2026-rehearsal` edition exists so two devices on the internal
 track can play the real flow against production before October. Two things are
 required, and the second fails silently if forgotten.
 
-1. **Build the app with the flag set.** There is no `.env` in this repo, so pass
-   it on the build command:
+1. **Just build it.** The rehearsal edition is enabled unconditionally, so any
+   build containing it shows the event. There is no env flag.
 
     ```bash
-    EXPO_PUBLIC_EVENT_REHEARSAL=true npx expo run:ios --configuration Release
-    EXPO_PUBLIC_EVENT_REHEARSAL=true npx expo run:android --variant release
+    npx expo run:ios --configuration Release
+    npx expo run:android --variant release
     ```
 
-    Without it `visibleEvents` filters any `-rehearsal` edition out, which is what
-    keeps the event invisible in a public build. Public builds must NOT set it.
+    The corollary is that containment is procedural: **delete the rehearsal entry
+    from `eventEditions` before cutting any public release.** The tripwire test in
+    `src/game/events/events.test.ts` fails the moment `halloween-2026` is enabled
+    while the rehearsal entry is still present, but nothing stops a public build
+    that ships the rehearsal event while `halloween-2026` stays disabled.
 
 2. **Redeploy the Worker.** `admitEvent` resolves the edition from the Worker's
    own bundled copy of `shared/events/definitions.ts` (`server/src/events/admission.ts`).

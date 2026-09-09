@@ -21,6 +21,38 @@ Source: `docs/plans/2026-09-06-timed-events.md`.
 - [x] Dedicated Halloween simulator smoke: new-bank admission, Skip to another Halloween question, correct answer, pause/relaunch/resume with the consumed lifeline retained and no extra daily charge; original base-content save also still resumes.
 - [ ] Full iOS/Android background/kill/relaunch, offline completion, and app-update matrix on devices remains outstanding.
 
+## Running the Halloween rehearsal on the internal track
+
+The `halloween-2026-rehearsal` edition exists so two devices on the internal
+track can play the real flow against production before October. Two things are
+required, and the second fails silently if forgotten.
+
+1. **Build the app with the flag set.** There is no `.env` in this repo, so pass
+   it on the build command:
+
+    ```bash
+    EXPO_PUBLIC_EVENT_REHEARSAL=true npx expo run:ios --configuration Release
+    EXPO_PUBLIC_EVENT_REHEARSAL=true npx expo run:android --variant release
+    ```
+
+    Without it `visibleEvents` filters any `-rehearsal` edition out, which is what
+    keeps the event invisible in a public build. Public builds must NOT set it.
+
+2. **Redeploy the Worker.** `admitEvent` resolves the edition from the Worker's
+   own bundled copy of `shared/events/definitions.ts` (`server/src/events/admission.ts`).
+   The deployed Worker predates the rehearsal edition, so until it is redeployed
+   every admission fails with `410 Event closed or unavailable` — the app looks
+   correct and simply refuses to start a round. No env var is needed on the
+   Worker: the rehearsal edition is a normal entry in `eventEditions`, not a
+   fixture, so `ENABLE_EVENT_FIXTURE` is irrelevant to it.
+
+Both devices must run the same build: matchmaking pairs on edition id and content
+revision. Test runs write real production D1 rows and real ranking entries.
+
+Delete the rehearsal edition before the public release that enables
+`halloween-2026`; the tripwire test in `src/game/events/events.test.ts` fails if
+both are ever enabled at once.
+
 ## Important paths
 
 - `shared/events/`: edition policy, immutable pool manifests, isolated test edition.

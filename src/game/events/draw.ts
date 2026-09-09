@@ -1,12 +1,20 @@
 /**
- * Prize selection is a pure function of the player, the edition and the pool —
- * never a call to Math.random. Two devices that diverge offline and merge later
- * must compute the SAME prize for the same draw, or the union merge in
- * mergeStats would hand the player two prizes for one goal.
+ * Prize selection is a pure function of the edition and the pool — never a call
+ * to Math.random, and deliberately NOT keyed on the player.
+ *
+ * Two devices sharing one cloud save can each reach a milestone while offline.
+ * mergeStats unions `earnedRewardIds`, so if they drew different prizes for the
+ * same draw the player would end up holding both — one milestone, two rewards.
+ * Any per-player seed has that flaw, because the only ids stable enough to seed
+ * with (deviceId) are deliberately excluded from backup, and a seed stored in
+ * progression would itself diverge before the two saves ever met.
+ *
+ * So the draw order is fixed per edition: every device computes the same prize
+ * for the same draw, with nothing extra persisted anywhere. Players still cannot
+ * predict it — the pool order is not the declaration order — they simply share it.
  */
 
 export interface DrawInput {
-    deviceId: string;
     editionId: string;
     pool: readonly string[];
     winsPerPrize: number;
@@ -35,7 +43,7 @@ export function drawIdentity(editionId: string, draw: number): string {
 
 /** The prizes owed for `wins` that have not been granted yet. */
 export function drawPrizes(input: DrawInput): { grantId: string; rewardId: string }[] {
-    const { deviceId, editionId, pool, winsPerPrize, wins } = input;
+    const { editionId, pool, winsPerPrize, wins } = input;
     if (winsPerPrize < 1) return [];
     const granted = new Set(input.grantedDraws);
     const taken = new Set(input.alreadyEarned);
@@ -47,7 +55,7 @@ export function drawPrizes(input: DrawInput): { grantId: string; rewardId: strin
         // Sorted so the outcome cannot depend on how the pool was declared.
         const remaining = [...pool].filter((id) => !taken.has(id)).sort();
         if (remaining.length === 0) break;
-        const rewardId = remaining[seededIndex(`${deviceId}:${editionId}:${draw}`, remaining.length)];
+        const rewardId = remaining[seededIndex(`${editionId}:${draw}`, remaining.length)];
         taken.add(rewardId);
         out.push({ grantId, rewardId });
     }

@@ -52,7 +52,7 @@ export async function resolveEventOutcomes(now: number = Date.now()): Promise<st
         // Record the win before marking the outcome: both are guarded against
         // repeats, so an app kill between them must not drop the win — a kill
         // after recordEventWin just re-resolves (a no-op) on the next sync.
-        if (outcome === 'won') granted.push(...recordEventWin(edition, stub.id, deviceId));
+        if (outcome === 'won') granted.push(...recordEventWin(edition, stub.id));
         markChallengeOutcome(stub.id, outcome);
     }
     return granted;

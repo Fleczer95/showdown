@@ -221,11 +221,10 @@ export function recordRun(
  * Award any prizes owed for this edition's current win count. Idempotent: a
  * draw already in `eventRewardGrants` is skipped, never re-rolled.
  */
-export function grantEventPrizes(edition: EventEdition, deviceId: string): string[] {
+export function grantEventPrizes(edition: EventEdition): string[] {
     const prev = loadStats();
     const wins = prev.eventWinIds?.[edition.id]?.length ?? 0;
     const drawn = drawPrizes({
-        deviceId,
         editionId: edition.id,
         pool: edition.prizePool,
         winsPerPrize: edition.winsPerPrize,
@@ -243,7 +242,7 @@ export function grantEventPrizes(edition: EventEdition, deviceId: string): strin
 }
 
 /** Record a won round and award anything it unlocks. Safe to call repeatedly. */
-export function recordEventWin(edition: EventEdition, challengeId: string, deviceId: string): string[] {
+export function recordEventWin(edition: EventEdition, challengeId: string): string[] {
     const prev = loadStats();
     const won = prev.eventWinIds?.[edition.id] ?? [];
     if (won.includes(challengeId)) return [];
@@ -251,5 +250,5 @@ export function recordEventWin(edition: EventEdition, challengeId: string, devic
         ...prev,
         eventWinIds: { ...prev.eventWinIds, [edition.id]: [...won, challengeId] },
     });
-    return grantEventPrizes(edition, deviceId);
+    return grantEventPrizes(edition);
 }

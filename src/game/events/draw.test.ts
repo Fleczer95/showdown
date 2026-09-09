@@ -2,7 +2,6 @@ import { drawPrizes, seededIndex } from './draw';
 
 const POOL = ['a-fur', 'b-suit', 'c-accent', 'd-mic'];
 const base = {
-    deviceId: 'device-1',
     editionId: 'halloween-2026',
     pool: POOL,
     winsPerPrize: 13,
@@ -27,11 +26,17 @@ test('the same player and edition always draw the same sequence', () => {
     expect(a).toEqual(b);
 });
 
-test('the draw varies across players', () => {
-    const rewards = new Set(
-        Array.from({ length: 20 }, (_, i) => drawPrizes({ ...base, deviceId: `device-${i}`, wins: 13 })[0].rewardId),
-    );
-    expect(rewards.size).toBeGreaterThan(1);
+// The draw is deliberately NOT keyed on the player: two devices sharing one cloud
+// save must compute the same prize for the same draw, or the union merge would
+// hand the player two rewards for one milestone.
+test('the sequence is fixed per edition but varies between editions', () => {
+    const sequence = (editionId: string) =>
+        drawPrizes({ ...base, editionId, wins: 52 })
+            .map((d) => d.rewardId)
+            .join(',');
+    expect(sequence('halloween-2026')).toBe(sequence('halloween-2026'));
+    const distinct = new Set(Array.from({ length: 20 }, (_, i) => sequence(`edition-${i}`)));
+    expect(distinct.size).toBeGreaterThan(1);
 });
 
 test('a prize is never drawn twice', () => {

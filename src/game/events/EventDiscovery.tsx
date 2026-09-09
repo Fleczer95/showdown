@@ -62,9 +62,7 @@ export function EventDiscovery() {
                         ]}
                     >
                         <View pointerEvents='none' style={[styles.row, { gap: theme.spacing.md }]}>
-                            <View style={{ marginTop: -theme.spacing.xl }}>
-                                <EventArtwork artwork={edition.artwork} accent={accent} size={iconSize(64)} />
-                            </View>
+                            <EventArtwork artwork={edition.artwork} accent={accent} size={iconSize(56)} />
                             <View style={styles.copy}>
                                 <Text variant='subheading' weight='bold' color={colors.text}>
                                     {edition.name[locale]}

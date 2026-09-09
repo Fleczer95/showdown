@@ -378,12 +378,14 @@ export function HomeScreen() {
                     </Animated.View>
                 ) : null}
 
+                {/* A timed event runs for days, not forever — it leads, and it also
+                    keeps clear of the mascot overlay that floats over the last row. */}
+                <EventDiscovery />
                 <Stack gap='lg'>
                     {games.map((game) => (
                         <GameCard key={game.id} game={game} onPress={() => openGame(game)} />
                     ))}
                 </Stack>
-                <EventDiscovery />
             </ScrollView>
 
             {/* Fixed Compete dock: both social destinations stay labeled and in the thumb zone. */}

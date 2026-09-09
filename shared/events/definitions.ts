@@ -31,14 +31,21 @@ export interface EventMembership {
     endsAt: number;
 }
 
+/**
+ * The prize ladder, in order: entry N is awarded at N * winsPerPrize wins.
+ * A free player has 21 runs in a 7-day edition and so realistically reaches
+ * draw 1; Premium has 91 runs and realistically reaches draw 4. So the
+ * signature item leads, the theme is the achievable Premium peak, and the
+ * remainder is long-tail for exceptional play.
+ */
 const HALLOWEEN_PRIZE_POOL = [
     'mascot-fur-pumpkin',
-    'mascot-fur-blackcat',
     'mascot-suit-witch',
     'mascot-accent-slime',
+    'theme-haunt',
+    'mascot-fur-blackcat',
     'mascot-accent-blood',
     'mascot-mic-bone',
-    'theme-haunt',
 ] as const;
 
 export const eventEditions: readonly EventEdition[] = [

@@ -1,4 +1,4 @@
-import { drawPrizes, seededIndex } from './draw';
+import { drawPrizes } from './draw';
 
 const POOL = ['a-fur', 'b-suit', 'c-accent', 'd-mic'];
 const base = {
@@ -20,23 +20,18 @@ test('one draw at the threshold, identified by draw number', () => {
     expect(POOL).toContain(out[0].rewardId);
 });
 
-test('the same player and edition always draw the same sequence', () => {
+test('the same edition always draws the same sequence', () => {
     const a = drawPrizes({ ...base, wins: 39 });
     const b = drawPrizes({ ...base, wins: 39 });
     expect(a).toEqual(b);
 });
 
 // The draw is deliberately NOT keyed on the player: two devices sharing one cloud
-// save must compute the same prize for the same draw, or the union merge would
-// hand the player two rewards for one milestone.
-test('the sequence is fixed per edition but varies between editions', () => {
-    const sequence = (editionId: string) =>
-        drawPrizes({ ...base, editionId, wins: 52 })
-            .map((d) => d.rewardId)
-            .join(',');
-    expect(sequence('halloween-2026')).toBe(sequence('halloween-2026'));
-    const distinct = new Set(Array.from({ length: 20 }, (_, i) => sequence(`edition-${i}`)));
-    expect(distinct.size).toBeGreaterThan(1);
+// save must pick the same prize for the same draw, or the union merge would hand
+// the player two rewards for one milestone.
+test("prizes are awarded in the pool's declared order", () => {
+    const out = drawPrizes({ ...base, wins: 52 }).map((d) => d.rewardId);
+    expect(out).toEqual(POOL);
 });
 
 test('a prize is never drawn twice', () => {
@@ -63,17 +58,8 @@ test('already-granted draws are skipped, not re-rolled', () => {
     expect(next[0].rewardId).not.toBe(first.rewardId);
 });
 
-test('pool declaration order does not change the result', () => {
-    const forward = drawPrizes({ ...base, wins: 13 })[0].rewardId;
-    const reversed = drawPrizes({ ...base, pool: [...POOL].reverse(), wins: 13 })[0].rewardId;
-    expect(reversed).toBe(forward);
-});
-
-test('seededIndex stays in range and returns -1 for an empty pool', () => {
-    for (let i = 0; i < 50; i++) {
-        const n = seededIndex(`seed-${i}`, 4);
-        expect(n).toBeGreaterThanOrEqual(0);
-        expect(n).toBeLessThan(4);
-    }
-    expect(seededIndex('seed', 0)).toBe(-1);
+test('reordering the pool reorders the ladder', () => {
+    expect(drawPrizes({ ...base, wins: 13 })[0].rewardId).toBe(POOL[0]);
+    const reversed = [...POOL].reverse();
+    expect(drawPrizes({ ...base, pool: reversed, wins: 13 })[0].rewardId).toBe(reversed[0]);
 });

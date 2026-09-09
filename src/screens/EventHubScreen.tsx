@@ -52,8 +52,20 @@ export function EventHubScreen() {
     const editions = visibleEvents(now).filter(
         (edition) => !route.params?.editionId || edition.id === route.params.editionId,
     );
-    const canStart = editions.some((edition) => eventLifecycle(edition, now) === 'active');
     usePreventRemove(busy, () => undefined);
+    /** Save the edit, or put the stored nickname back so the field never lies. */
+    function commitNickname() {
+        const trimmed = nickname.trim();
+        const stored = getChallengeNickname();
+        if (trimmed === stored) return;
+        if (setChallengeNickname(trimmed)) {
+            setNickname(getChallengeNickname());
+            return;
+        }
+        setNickname(stored);
+        if (trimmed.length > 0) Alert.alert(t('challenge.nicknameRejected'));
+    }
+
     async function begin(edition: EventEdition, mode: 'friend' | 'random') {
         if (!pending && !setChallengeNickname(nickname.trim())) {
             Alert.alert(t('challenge.nicknameRejected'));
@@ -104,17 +116,22 @@ export function EventHubScreen() {
                     <Text variant='body' color='textSecondary'>
                         {t('events.description')}
                     </Text>
-                    {canStart ? (
-                        <Input
-                            testID='event-nickname'
-                            accessibilityLabel={t('leaderboard.nicknamePlaceholder')}
-                            returnKeyType='done'
-                            value={nickname}
-                            onChangeText={setNickname}
-                            placeholder={t('leaderboard.nicknamePlaceholder')}
-                            maxLength={MAX_NICKNAME_LENGTH}
-                        />
-                    ) : null}
+                    {/* Always editable, not just while a round can be started, and
+                        saved on blur/submit — typing here used to be discarded unless
+                        the player went on to start a round. */}
+                    <Input
+                        testID='event-nickname'
+                        label={t('challenge.nicknamePrompt')}
+                        accessibilityLabel={t('challenge.nicknamePrompt')}
+                        returnKeyType='done'
+                        value={nickname}
+                        onChangeText={setNickname}
+                        onBlur={commitNickname}
+                        onSubmitEditing={commitNickname}
+                        placeholder={t('leaderboard.nicknamePlaceholder')}
+                        maxLength={MAX_NICKNAME_LENGTH}
+                        autoCapitalize='words'
+                    />
                     {pending ? (
                         <Card padding='lg' gap='md'>
                             <Text>{t('events.pendingStart')}</Text>

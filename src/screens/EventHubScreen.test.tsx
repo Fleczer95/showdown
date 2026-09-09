@@ -6,6 +6,7 @@ import { EventHubScreen } from './EventHubScreen';
 import { visibleEvents } from '../game/events/catalogue';
 import { startEvent } from '../game/events/participation';
 import { getPendingEventStart } from '../game/challenge/session/store';
+import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
 import { useProgression } from '../hooks/useProgression';
 import { halloweenPreviewEdition } from '../../shared/events/fixtures';
 
@@ -25,8 +26,8 @@ jest.mock('../game/events/catalogue', () => ({ visibleEvents: jest.fn() }));
 jest.mock('../game/events/participation', () => ({ remainingEventPlays: () => 3, startEvent: jest.fn() }));
 jest.mock('../game/challenge/session/store', () => ({ getPendingEventStart: jest.fn() }));
 jest.mock('../game/challenge/nickname', () => ({
-    getChallengeNickname: () => 'Ada',
-    setChallengeNickname: () => true,
+    getChallengeNickname: jest.fn(() => 'Ada'),
+    setChallengeNickname: jest.fn(() => true),
 }));
 jest.mock('../game/challenge/store', () => ({ BlockedError: class extends Error {} }));
 jest.mock('../hooks/store/useStore', () => ({ useStore: () => ({ purchasedItemIds: [], isPremium: false }) }));
@@ -52,6 +53,8 @@ const mount = () =>
 
 beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(getChallengeNickname).mockReturnValue('Ada');
+    jest.mocked(setChallengeNickname).mockReturnValue(true);
     mockParams = undefined;
     mockNow = 20 * day;
     jest.mocked(visibleEvents).mockReturnValue([edition]);
@@ -69,7 +72,8 @@ test.each([
     mockNow = now as number;
     const screen = mount();
     expect(screen.getByText(copy as string, options)).toBeTruthy();
-    expect(screen.queryByTestId('event-nickname')).toBeNull();
+    // The nickname stays editable outside active play — only the start actions go.
+    expect(screen.getByTestId('event-nickname', options)).toBeTruthy();
     expect(screen.queryByText('events.friend', options)).toBeNull();
     expect(screen.queryByText('events.random', options)).toBeNull();
     expect(startEvent).not.toHaveBeenCalled();
@@ -173,4 +177,33 @@ test('the header carries a back control, matching the other screens', async () =
     const back = await screen.findByLabelText('screen.settings.back', options);
     fireEvent.press(back);
     expect(mockGoBack).toHaveBeenCalled();
+});
+
+test('editing the nickname is saved without starting a round', async () => {
+    jest.mocked(setChallengeNickname).mockReturnValue(true);
+    jest.mocked(getChallengeNickname).mockReturnValue('Ada');
+    const screen = mount();
+    const field = screen.getByTestId('event-nickname', options);
+
+    fireEvent.changeText(field, 'Nowa Nazwa');
+    await act(async () => {
+        fireEvent(field, 'blur');
+    });
+
+    expect(setChallengeNickname).toHaveBeenCalledWith('Nowa Nazwa');
+    expect(startEvent).not.toHaveBeenCalled();
+});
+
+test('a rejected nickname is reverted rather than left on screen', async () => {
+    jest.mocked(getChallengeNickname).mockReturnValue('Ada');
+    jest.mocked(setChallengeNickname).mockReturnValue(false);
+    const screen = mount();
+    const field = screen.getByTestId('event-nickname', options);
+
+    fireEvent.changeText(field, 'rude-word');
+    await act(async () => {
+        fireEvent(field, 'blur');
+    });
+
+    expect(screen.getByDisplayValue('Ada', options)).toBeTruthy();
 });

@@ -12,10 +12,11 @@ import { halloweenPreviewEdition } from '../../shared/events/fixtures';
 const day = 86400000;
 const edition = { ...halloweenPreviewEdition, startsAt: 20 * day, endsAt: 30 * day };
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 let mockNow = 20 * day;
 let mockParams: { editionId?: string } | undefined;
 jest.mock('@react-navigation/native', () => ({
-    useNavigation: () => ({ navigate: mockNavigate }),
+    useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
     useRoute: () => ({ params: mockParams }),
     usePreventRemove: () => undefined,
 }));
@@ -165,4 +166,11 @@ test('the prize list starts hidden and expands when its header is tapped', async
         fireEvent.press(screen.getByTestId(`event-prizes-toggle-${poolEdition.id}`, options));
     });
     expect(mockT).not.toHaveBeenCalledWith('events.preview');
+});
+
+test('the header carries a back control, matching the other screens', async () => {
+    const screen = mount();
+    const back = await screen.findByLabelText('screen.settings.back', options);
+    fireEvent.press(back);
+    expect(mockGoBack).toHaveBeenCalled();
 });

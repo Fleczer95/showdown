@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react-native';
 import { useNavigation, usePreventRemove, useRoute, type RouteProp } from '@react-navigation/native';
 import SafeContainer from '../responsive/SafeContainer';
 import Pressable from '../components/atoms/HapticPressable';
@@ -9,6 +9,7 @@ import Stack from '../components/atoms/Stack';
 import Text from '../components/atoms/Text';
 import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
+import IconButton from '../components/molecules/IconButton';
 import Input from '../components/molecules/Input';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
@@ -85,11 +86,21 @@ export function EventHubScreen() {
     }
     return (
         <SafeContainer edges={['top', 'bottom']}>
+            <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
+                <IconButton
+                    icon={<ChevronLeft size={iconSize(24)} color={theme.colors.text} />}
+                    onPress={() => navigation.goBack()}
+                    size='md'
+                    accessibilityLabel={t('screen.settings.back')}
+                />
+                <Text variant='heading' weight='bold' style={styles.headerTitle} numberOfLines={1}>
+                    {editions.length === 1 ? editions[0].name[locale] : t('events.title')}
+                </Text>
+                {/* Balances the back button so the title stays optically centred. */}
+                <View style={{ width: scale(44) }} />
+            </View>
             <ScrollView contentContainerStyle={{ padding: theme.spacing.xl }} keyboardShouldPersistTaps='handled'>
                 <Stack gap='lg'>
-                    <Text variant='heading' weight='bold'>
-                        {editions.length === 1 ? editions[0].name[locale] : t('events.title')}
-                    </Text>
                     <Text variant='body' color='textSecondary'>
                         {t('events.description')}
                     </Text>
@@ -271,3 +282,15 @@ export function EventHubScreen() {
         </SafeContainer>
     );
 }
+
+const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    headerTitle: {
+        flex: 1,
+        textAlign: 'center',
+    },
+});

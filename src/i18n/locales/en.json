@@ -218,7 +218,8 @@
             "bloodAccent": "Blood red",
             "boneMic": "Bone microphone",
             "hauntTheme": "Haunt"
-        }
+        },
+        "prizesTitle": "Prizes"
     },
     "challenge": {
         "session": {

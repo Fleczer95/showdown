@@ -132,3 +132,32 @@ test('the hub reports the pool complete once every prize has been earned', async
     await waitFor(() => expect(mockT).toHaveBeenCalledWith('events.poolComplete'));
     expect(mockT).not.toHaveBeenCalledWith('events.nextPrize', expect.anything());
 });
+
+test('the prize list starts expanded and collapses when its header is tapped', async () => {
+    const poolEdition = { ...edition, winsPerPrize: 13, prizePool: ['theme-champion', 'mascot-fur-pumpkin'] };
+    jest.mocked(visibleEvents).mockReturnValue([poolEdition]);
+    jest.mocked(useProgression).mockReturnValue({
+        stats: { eventWinIds: {}, earnedRewardIds: ['theme-champion'] },
+    } as unknown as ReturnType<typeof useProgression>);
+    const screen = mount();
+
+    // Toggled on by default: every prize row is rendered.
+    await waitFor(() => expect(mockT).toHaveBeenCalledWith('events.preview'));
+    expect(mockT).toHaveBeenCalledWith('events.earned');
+    expect(mockT).toHaveBeenCalledWith('events.locked');
+
+    mockT.mockClear();
+    await act(async () => {
+        fireEvent.press(screen.getByTestId(`event-prizes-toggle-${poolEdition.id}`, options));
+    });
+
+    // Collapsed: the header survives, the rows do not.
+    expect(mockT).toHaveBeenCalledWith('events.prizesTitle');
+    expect(mockT).not.toHaveBeenCalledWith('events.preview');
+
+    mockT.mockClear();
+    await act(async () => {
+        fireEvent.press(screen.getByTestId(`event-prizes-toggle-${poolEdition.id}`, options));
+    });
+    expect(mockT).toHaveBeenCalledWith('events.preview');
+});

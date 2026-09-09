@@ -218,7 +218,8 @@
             "bloodAccent": "Krwista czerwień",
             "boneMic": "Kościany mikrofon",
             "hauntTheme": "Nawiedzenie"
-        }
+        },
+        "prizesTitle": "Nagrody"
     },
     "challenge": {
         "session": {

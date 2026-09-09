@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useNavigation, usePreventRemove, useRoute, type RouteProp } from '@react-navigation/native';
 import SafeContainer from '../responsive/SafeContainer';
+import Pressable from '../components/atoms/HapticPressable';
+import Icon from '../components/atoms/Icon';
 import Stack from '../components/atoms/Stack';
 import Text from '../components/atoms/Text';
 import Button from '../components/molecules/Button';
@@ -37,6 +40,9 @@ export function EventHubScreen() {
     const [nickname, setNickname] = useState(getChallengeNickname);
     const [busy, setBusy] = useState(false);
     const [previewReward, setPreviewReward] = useState<string | null>(null);
+    // Seven prizes push the friend/random actions below the fold. Collapsible,
+    // tracked by the ids that are CLOSED so the default state is open.
+    const [collapsedPrizes, setCollapsedPrizes] = useState<ReadonlySet<string>>(new Set());
     const now = useEventNow();
     const pending = getPendingEventStart();
     const editions = visibleEvents(now).filter(
@@ -117,6 +123,7 @@ export function EventHubScreen() {
                         const toNextPrize = edition.winsPerPrize - (wins % edition.winsPerPrize);
                         const earned = new Set(stats.earnedRewardIds ?? []);
                         const poolComplete = edition.prizePool.every((id) => earned.has(id));
+                        const prizesOpen = !collapsedPrizes.has(edition.id);
                         return (
                             <Card
                                 key={edition.id}
@@ -153,17 +160,55 @@ export function EventHubScreen() {
                                         : t('events.nextPrize', { count: toNextPrize })}
                                 </Text>
                                 <Text variant='caption'>{t('events.randomPrize')}</Text>
-                                {edition.prizePool.map((rewardId) => (
-                                    <Stack key={rewardId} gap='xs'>
-                                        <Text weight='bold'>
-                                            {t(eventRewardTitleKey(rewardId) ?? 'progression.newReward')}
+                                <Pressable
+                                    testID={`event-prizes-toggle-${edition.id}`}
+                                    accessibilityRole='button'
+                                    accessibilityState={{ expanded: prizesOpen }}
+                                    accessibilityLabel={t('events.prizesTitle')}
+                                    haptic='light'
+                                    onPress={() =>
+                                        setCollapsedPrizes((prev) => {
+                                            const next = new Set(prev);
+                                            if (!next.delete(edition.id)) next.add(edition.id);
+                                            return next;
+                                        })
+                                    }
+                                >
+                                    <View
+                                        pointerEvents='none'
+                                        style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            gap: theme.spacing.sm,
+                                        }}
+                                    >
+                                        <Text weight='bold' style={{ flex: 1 }}>
+                                            {`${t('events.prizesTitle')} · ${
+                                                edition.prizePool.filter((id) => earned.has(id)).length
+                                            }/${edition.prizePool.length}`}
                                         </Text>
-                                        <Text>{earned.has(rewardId) ? t('events.earned') : t('events.locked')}</Text>
-                                        <Button variant='ghost' onPress={() => setPreviewReward(rewardId)}>
-                                            {t('events.preview')}
-                                        </Button>
-                                    </Stack>
-                                ))}
+                                        <Icon
+                                            name={prizesOpen ? ChevronUp : ChevronDown}
+                                            size={20}
+                                            color={theme.colors.textSecondary}
+                                        />
+                                    </View>
+                                </Pressable>
+                                {prizesOpen
+                                    ? edition.prizePool.map((rewardId) => (
+                                          <Stack key={rewardId} gap='xs'>
+                                              <Text weight='bold'>
+                                                  {t(eventRewardTitleKey(rewardId) ?? 'progression.newReward')}
+                                              </Text>
+                                              <Text>
+                                                  {earned.has(rewardId) ? t('events.earned') : t('events.locked')}
+                                              </Text>
+                                              <Button variant='ghost' onPress={() => setPreviewReward(rewardId)}>
+                                                  {t('events.preview')}
+                                              </Button>
+                                          </Stack>
+                                      ))
+                                    : null}
                                 {phase === 'active' ? (
                                     <>
                                         {(['friend', 'random'] as const).map((mode) => (

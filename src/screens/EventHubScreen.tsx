@@ -40,9 +40,9 @@ export function EventHubScreen() {
     const [nickname, setNickname] = useState(getChallengeNickname);
     const [busy, setBusy] = useState(false);
     const [previewReward, setPreviewReward] = useState<string | null>(null);
-    // Seven prizes push the friend/random actions below the fold. Collapsible,
-    // tracked by the ids that are CLOSED so the default state is open.
-    const [collapsedPrizes, setCollapsedPrizes] = useState<ReadonlySet<string>>(new Set());
+    // Seven prizes push the friend/random actions below the fold, so the list
+    // starts hidden. Tracked by the ids that are OPEN, so the default is closed.
+    const [openPrizes, setOpenPrizes] = useState<ReadonlySet<string>>(new Set());
     const now = useEventNow();
     const pending = getPendingEventStart();
     const editions = visibleEvents(now).filter(
@@ -123,7 +123,7 @@ export function EventHubScreen() {
                         const toNextPrize = edition.winsPerPrize - (wins % edition.winsPerPrize);
                         const earned = new Set(stats.earnedRewardIds ?? []);
                         const poolComplete = edition.prizePool.every((id) => earned.has(id));
-                        const prizesOpen = !collapsedPrizes.has(edition.id);
+                        const prizesOpen = openPrizes.has(edition.id);
                         return (
                             <Card
                                 key={edition.id}
@@ -167,7 +167,7 @@ export function EventHubScreen() {
                                     accessibilityLabel={t('events.prizesTitle')}
                                     haptic='light'
                                     onPress={() =>
-                                        setCollapsedPrizes((prev) => {
+                                        setOpenPrizes((prev) => {
                                             const next = new Set(prev);
                                             if (!next.delete(edition.id)) next.add(edition.id);
                                             return next;

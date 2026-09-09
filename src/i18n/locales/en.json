@@ -202,7 +202,7 @@
         "poolComplete": "You've won every prize in this event.",
         "earned": "Earned permanently",
         "locked": "Not won yet",
-        "preview": "Preview prize",
+        "preview": "Preview",
         "permanentPrize": "Once earned, this prize remains yours after the event ends.",
         "pendingStart": "A previous start is pending. Resolve it before starting another round.",
         "errorTitle": "Event start unavailable",

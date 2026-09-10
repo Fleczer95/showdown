@@ -80,13 +80,14 @@ export function isRankedGame(game: string): boolean {
  */
 export function isWritablePeriod(period: string, game: string, now: number = Date.now()): boolean {
     if (period === 'alltime') return true;
-    const edition = findEdition(period);
-    if (edition) {
-        return eventLifecycle(edition, now) === 'active' && edition.activities.some((a) => a.game === game);
+    // Month first, so the pre-existing paths are reached by exactly the strings
+    // that reached them before — an edition can never shadow a month bucket.
+    if (period.length === 7) {
+        const d = new Date(now);
+        const yyyy = d.getUTCFullYear();
+        const mm = `${d.getUTCMonth() + 1}`.padStart(2, '0');
+        return period === `${yyyy}-${mm}`;
     }
-    if (period.length !== 7) return false;
-    const d = new Date(now);
-    const yyyy = d.getUTCFullYear();
-    const mm = `${d.getUTCMonth() + 1}`.padStart(2, '0');
-    return period === `${yyyy}-${mm}`;
+    const edition = findEdition(period);
+    return !!edition && eventLifecycle(edition, now) === 'active' && edition.activities.some((a) => a.game === game);
 }

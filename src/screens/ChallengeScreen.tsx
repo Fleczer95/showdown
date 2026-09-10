@@ -347,7 +347,9 @@ export function ChallengeScreen() {
                     // Feed the global ranking (ADR-0004). Best-effort and fire-and-forget
                     // so the result reveal is never blocked; a failed push stays pending
                     // locally and is retried on next app open / rankings view.
-                    if (!saved) void pushRanking(record.game, result.run.score, attempt.nickname);
+                    // An event round is ranked on its own edition board only.
+                    if (!saved)
+                        void pushRanking(record.game, result.run.score, attempt.nickname, record.event?.editionId);
                 }
                 await showResults(attempt.timestamp);
             } catch (err) {

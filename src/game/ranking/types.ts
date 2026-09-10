@@ -28,4 +28,6 @@ export interface LocalBest {
 export interface LocalRankingState {
     allTime?: LocalBest;
     month?: LocalBest & { monthId: string };
+    /** Best per event edition. An edition never rolls over, so these are never reset. */
+    events?: Record<string, LocalBest>;
 }

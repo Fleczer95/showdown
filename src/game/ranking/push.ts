@@ -21,7 +21,13 @@ import type { RankingEntry } from './types';
  * Returns whether the local best can be considered resolved (`true`) or should
  * stay pending for retry (`false`, i.e. the network call failed).
  */
-async function pushToBucket(game: string, period: string, score: number, nickname: string): Promise<boolean> {
+async function pushToBucket(
+    game: string,
+    period: string,
+    score: number,
+    nickname: string,
+    editionId?: string,
+): Promise<boolean> {
     try {
         const [count, lowest] = await Promise.all([countEntries(game, period), lowestScore(game, period)]);
         if (!qualifies(count, lowest ?? 0, score)) return true; // doesn't qualify — terminal, nothing to write
@@ -33,7 +39,7 @@ async function pushToBucket(game: string, period: string, score: number, nicknam
         await submitEntry(game, period, getDeviceId(), entry);
         // Our own entry just changed the board; drop the day cache so the next
         // rankings open pulls fresh and shows the new standing.
-        invalidateGameCache(game);
+        invalidateGameCache(game, editionId);
         return true;
     } catch (err) {
         // A `BlockedError` (permission-denied / App Check) is a terminal server
@@ -43,10 +49,21 @@ async function pushToBucket(game: string, period: string, score: number, nicknam
     }
 }
 
-/** Push a just-finished challenge run's score to the all-time + current-month
- * boards, for each scope it set a new local best. */
-export async function pushRanking(game: string, score: number, nickname: string): Promise<void> {
+/**
+ * Push a just-finished challenge run's score to the all-time + current-month
+ * boards, for each scope it set a new local best.
+ *
+ * An event round goes to its edition's board and NOWHERE else: it plays a
+ * different question pack, so its score is not comparable with a normal run's
+ * and must not enter the per-game boards.
+ */
+export async function pushRanking(game: string, score: number, nickname: string, editionId?: string): Promise<void> {
     if (!RANKED_GAMES.includes(game as RankedGame)) return; // only the three live games have a board
+    if (editionId) {
+        if (!recordBestIfHigher(game, 'event', score, editionId)) return;
+        if (await pushToBucket(game, editionId, score, nickname, editionId)) markSynced(game, 'event', editionId);
+        return;
+    }
     const monthId = monthBucketId();
     const scopes: { scope: RankingScope; period: string }[] = [
         { scope: 'alltime', period: ALLTIME_PERIOD },
@@ -77,7 +94,12 @@ export async function retryPending(): Promise<void> {
                 continue;
             }
         }
-        const period = p.scope === 'alltime' ? ALLTIME_PERIOD : currentMonth;
-        if (await pushToBucket(p.game, period, p.score, nickname)) markSynced(p.game, p.scope);
+        // An event best belongs to its own bucket. A write to a closed edition is
+        // refused with a 400, which `pushToBucket` treats as terminal, so a best
+        // left over from a finished event resolves instead of retrying forever.
+        const period = p.scope === 'alltime' ? ALLTIME_PERIOD : p.scope === 'event' ? p.editionId! : currentMonth;
+        if (await pushToBucket(p.game, period, p.score, nickname, p.editionId)) {
+            markSynced(p.game, p.scope, p.editionId);
+        }
     }
 }

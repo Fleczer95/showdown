@@ -34,7 +34,12 @@ export async function uploadCompletion(id: string): Promise<void> {
         SafeSentry.captureException(error, { tags: { area: 'challenge-recovery' } });
     }
     // Rankings have their own persistent retry queue and current-period policy.
-    void pushRanking(session.record.game, session.result.run.score, session.attempt.nickname);
+    void pushRanking(
+        session.record.game,
+        session.result.run.score,
+        session.attempt.nickname,
+        session.record.event?.editionId,
+    );
     if (session.upload === 'sent' || session.upload === 'closed') return;
     if (Date.now() >= session.record.expiresAt) {
         updateSessionEffects(id, { upload: 'closed' });

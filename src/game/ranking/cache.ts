@@ -26,13 +26,18 @@ export interface CachedBoard {
 /** Boards are pulled at most once per this window; navigation in between is free. */
 export const BOARD_CACHE_TTL_MS = 60 * 60 * 1000;
 
-function key(game: string, scope: RankingScope): string {
-    return `${game}|${scope}`;
+function key(game: string, scope: RankingScope, editionId?: string): string {
+    return scope === 'event' ? `${game}|event|${editionId}` : `${game}|${scope}`;
 }
 
 /** The cached board for a (game, scope), or null when missing or older than the TTL. */
-export function readCachedBoard(game: string, scope: RankingScope, now: number = Date.now()): CachedBoard | null {
-    const json = store.getString(key(game, scope));
+export function readCachedBoard(
+    game: string,
+    scope: RankingScope,
+    now: number = Date.now(),
+    editionId?: string,
+): CachedBoard | null {
+    const json = store.getString(key(game, scope, editionId));
     if (!json) return null;
     try {
         const parsed = JSON.parse(json) as CachedBoard;
@@ -50,14 +55,16 @@ export function writeCachedBoard(
     board: RankingEntry[],
     displayedMonth: string | null,
     now: number = Date.now(),
+    editionId?: string,
 ): CachedBoard {
     const record: CachedBoard = { board, displayedMonth, syncedAt: now };
-    store.set(key(game, scope), JSON.stringify(record));
+    store.set(key(game, scope, editionId), JSON.stringify(record));
     return record;
 }
 
 /** Drop a game's cached boards so the next pull reflects a just-submitted score. */
-export function invalidateGameCache(game: string): void {
+export function invalidateGameCache(game: string, editionId?: string): void {
     store.remove(key(game, 'month'));
     store.remove(key(game, 'alltime'));
+    if (editionId) store.remove(key(game, 'event', editionId));
 }

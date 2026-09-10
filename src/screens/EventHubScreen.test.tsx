@@ -93,6 +93,12 @@ test('closed edition exposes results through history', () => {
     expect(mockNavigate).toHaveBeenCalledWith('ChallengeHistory');
 });
 
+test('the hub reaches the edition’s own ranking board', () => {
+    const screen = mount();
+    fireEvent.press(screen.getByText('events.ranking', options));
+    expect(mockNavigate).toHaveBeenCalledWith('Ranking', { editionId: edition.id });
+});
+
 test('each seasonal entry opens its own edition when events overlap', () => {
     const other = { ...edition, id: 'other-event', name: { en: 'Other event', pl: 'Inne wydarzenie' } };
     jest.mocked(visibleEvents).mockReturnValue([edition, other]);

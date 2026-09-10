@@ -60,3 +60,41 @@ describe('markSynced + listPending', () => {
         expect(listPending()).toEqual([]);
     });
 });
+
+describe('recordBestIfHigher — event', () => {
+    const EDITION = 'halloween-2026';
+
+    it('records a best per edition, best-only', () => {
+        expect(recordBestIfHigher(GAME, 'event', 500, EDITION)).toBe(true);
+        expect(getLocalState(GAME).events?.[EDITION]).toEqual({ score: 500, synced: false });
+        expect(recordBestIfHigher(GAME, 'event', 400, EDITION)).toBe(false);
+        expect(recordBestIfHigher(GAME, 'event', 500, EDITION)).toBe(false);
+        expect(recordBestIfHigher(GAME, 'event', 900, EDITION)).toBe(true);
+        expect(getLocalState(GAME).events?.[EDITION].score).toBe(900);
+    });
+
+    it('keeps editions independent of each other and of the normal scopes', () => {
+        recordBestIfHigher(GAME, 'event', 500, EDITION);
+        recordBestIfHigher(GAME, 'event', 100, 'halloween-2027');
+        recordBestIfHigher(GAME, 'alltime', 900, MONTH);
+        const state = getLocalState(GAME);
+        expect(state.events?.[EDITION].score).toBe(500);
+        expect(state.events?.['halloween-2027'].score).toBe(100);
+        expect(state.allTime?.score).toBe(900);
+    });
+
+    it('marks one edition synced without touching another', () => {
+        recordBestIfHigher(GAME, 'event', 500, EDITION);
+        recordBestIfHigher(GAME, 'event', 100, 'halloween-2027');
+        markSynced(GAME, 'event', EDITION);
+        expect(getLocalState(GAME).events?.[EDITION].synced).toBe(true);
+        expect(getLocalState(GAME).events?.['halloween-2027'].synced).toBe(false);
+    });
+
+    it('queues an unsynced event best for retry, carrying its edition', () => {
+        recordBestIfHigher(GAME, 'event', 500, EDITION);
+        expect(listPending()).toContainEqual({ game: GAME, scope: 'event', score: 500, editionId: EDITION });
+        markSynced(GAME, 'event', EDITION);
+        expect(listPending()).toEqual([]);
+    });
+});

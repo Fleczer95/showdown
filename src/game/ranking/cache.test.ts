@@ -58,3 +58,21 @@ describe('invalidateGameCache', () => {
         expect(readCachedBoard('the-drop', 'month', T0)).not.toBeNull();
     });
 });
+
+describe('event boards', () => {
+    const EDITION = 'halloween-2026';
+
+    it('caches an event board under its own key, apart from the game scopes', () => {
+        writeCachedBoard(GAME, 'month', [{ nickname: 'Month', score: 1 }], '2026-06', T0);
+        writeCachedBoard(GAME, 'event', board, null, T0, EDITION);
+        expect(readCachedBoard(GAME, 'event', T0, EDITION)?.board).toEqual(board);
+        expect(readCachedBoard(GAME, 'event', T0, 'halloween-2027')).toBeNull();
+        expect(readCachedBoard(GAME, 'month', T0)?.board).toEqual([{ nickname: 'Month', score: 1 }]);
+    });
+
+    it('drops the event board too, so a just-pushed event score shows', () => {
+        writeCachedBoard(GAME, 'event', board, null, T0, EDITION);
+        invalidateGameCache(GAME, EDITION);
+        expect(readCachedBoard(GAME, 'event', T0, EDITION)).toBeNull();
+    });
+});

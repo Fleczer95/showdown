@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -32,6 +32,9 @@ import { resolveDisplayedMonth } from '../game/ranking/rank';
 import { getBoard, countEntries } from '../game/ranking/store';
 import { readCachedBoard, writeCachedBoard } from '../game/ranking/cache';
 import { getLocalState } from '../game/ranking/local';
+import { visibleEvents } from '../game/events/catalogue';
+import { EventArtwork } from '../game/events/EventArtwork';
+import type { EventEdition } from '../../shared/events/definitions';
 import { retryPending } from '../game/ranking/push';
 import { signatureEmoji } from '../game/progression';
 import { OfflineError, BlockedError } from '../game/challenge/store';
@@ -43,20 +46,29 @@ function formatMonth(monthId: string, locale: string): string {
     return new Date(year, month - 1, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
-/** Variant A: a compact accent medallion tile, one per ranked game. */
-function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean; onPress: () => void }) {
+/** Variant A: a compact accent medallion tile. One per ranked game, plus one per live event. */
+function BoardTab({
+    label,
+    accent,
+    active,
+    onPress,
+    icon,
+}: {
+    label: string;
+    accent: string;
+    active: boolean;
+    onPress: () => void;
+    /** Drawn in the colour that reads on the tile, which inverts when active. */
+    icon: (color: string) => React.ReactNode;
+}) {
     const theme = useTheme();
-    const { t } = useTranslation();
-    const { iconSize, scale } = useResponsive();
-    const def = games.find((g) => g.id === game);
-    const accent = def ? resolveAccent(theme, def.accent) : theme.colors.primary;
-    const GameIcon = def ? GAME_ICONS[def.iconName] : null;
-
+    const { scale } = useResponsive();
     return (
         <Pressable
             onPress={onPress}
             haptic='light'
-            accessibilityLabel={t(`game.${game}.name`)}
+            accessibilityLabel={label}
+            accessibilityState={{ selected: active }}
             style={[
                 styles.gameTab,
                 {
@@ -69,13 +81,44 @@ function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean;
                 },
             ]}
         >
-            {GameIcon ? (
-                <Icon name={GameIcon} size={iconSize(24)} color={active ? readableOn(accent) : accent} />
-            ) : null}
+            {icon(active ? readableOn(accent) : accent)}
             <Text variant='caption' weight='bold' color={active ? readableOn(accent) : 'text'} numberOfLines={1}>
-                {t(`game.${game}.name`)}
+                {label}
             </Text>
         </Pressable>
+    );
+}
+
+function GameTab({ game, active, onPress }: { game: RankedGame; active: boolean; onPress: () => void }) {
+    const theme = useTheme();
+    const { t } = useTranslation();
+    const { iconSize } = useResponsive();
+    const def = games.find((g) => g.id === game);
+    const accent = def ? resolveAccent(theme, def.accent) : theme.colors.primary;
+    const GameIcon = def ? GAME_ICONS[def.iconName] : null;
+    return (
+        <BoardTab
+            label={t(`game.${game}.name`)}
+            accent={accent}
+            active={active}
+            onPress={onPress}
+            icon={(color) => (GameIcon ? <Icon name={GameIcon} size={iconSize(24)} color={color} /> : null)}
+        />
+    );
+}
+
+function EventTab({ edition, active, onPress }: { edition: EventEdition; active: boolean; onPress: () => void }) {
+    const theme = useTheme();
+    const { locale } = useTranslation();
+    const { iconSize } = useResponsive();
+    return (
+        <BoardTab
+            label={edition.name[locale]}
+            accent={edition.accent ?? theme.colors.primary}
+            active={active}
+            onPress={onPress}
+            icon={(color) => <EventArtwork artwork={edition.artwork} accent={color} size={iconSize(24)} />}
+        />
     );
 }
 
@@ -153,7 +196,13 @@ function BestChip({
         >
             <View style={{ flex: 1, gap: theme.spacing.xs }}>
                 <Text variant='caption' weight='bold' color='primary'>
-                    {t(scope === 'month' ? 'ranking.yourBestMonth' : 'ranking.yourBestAllTime')}
+                    {t(
+                        scope === 'month'
+                            ? 'ranking.yourBestMonth'
+                            : scope === 'event'
+                              ? 'ranking.yourBestEvent'
+                              : 'ranking.yourBestAllTime',
+                    )}
                 </Text>
                 <Text variant='body' weight='bold'>
                     {`${best.score.toLocaleString(locale)} ${t('leaderboard.points')}`}
@@ -199,8 +248,18 @@ export function RankingScreen() {
     const initialGame = (RANKED_GAMES as readonly string[]).includes(route.params?.gameId ?? '')
         ? (route.params!.gameId as RankedGame)
         : RANKED_GAMES[0];
-    const [game, setGame] = useState<RankedGame>(initialGame);
-    const [scope, setScope] = useState<RankingScope>('month');
+    // One board per live edition, alongside the three game boards. An edition that
+    // is not currently visible falls back to a game tab rather than an empty board.
+    const eventBoards = useMemo(() => visibleEvents(), []);
+    const [gameTab, setGameTab] = useState<RankedGame>(initialGame);
+    const [editionId, setEditionId] = useState<string | null>(
+        eventBoards.some((e) => e.id === route.params?.editionId) ? route.params!.editionId! : null,
+    );
+    const [period, setPeriod] = useState<'month' | 'alltime'>('month');
+    const edition = eventBoards.find((e) => e.id === editionId);
+    // An event board has exactly one period, so the scope follows the selected tab.
+    const scope: RankingScope = edition ? 'event' : period;
+    const game = (edition?.activities[0].game ?? gameTab) as RankedGame;
 
     const [board, setBoard] = useState<RankingEntry[] | null>(null);
     const [displayedMonth, setDisplayedMonth] = useState<string | null>(null);
@@ -217,7 +276,7 @@ export function RankingScreen() {
         setStatus('loading');
         // A board barely moves minute-to-minute, so serve an hour-fresh cached pull
         // when there is one — zero Firestore reads, and it works offline (ADR-0004).
-        const cached = readCachedBoard(game, scope);
+        const cached = readCachedBoard(game, scope, Date.now(), editionId ?? undefined);
         if (cached) {
             if (!isLatestRequest()) return;
             setBoard(cached.board);
@@ -228,7 +287,10 @@ export function RankingScreen() {
         try {
             let nextBoard: RankingEntry[];
             let displayed: string | null;
-            if (scope === 'alltime') {
+            if (scope === 'event') {
+                nextBoard = await getBoard(game, editionId!);
+                displayed = null;
+            } else if (scope === 'alltime') {
                 nextBoard = await getBoard(game, ALLTIME_PERIOD);
                 displayed = null;
             } else {
@@ -244,7 +306,7 @@ export function RankingScreen() {
                 displayed = which === 'current' ? currentMonth : previousMonth;
                 nextBoard = await getBoard(game, displayed);
             }
-            writeCachedBoard(game, scope, nextBoard, displayed);
+            writeCachedBoard(game, scope, nextBoard, displayed, Date.now(), editionId ?? undefined);
             // A slower request for a previously selected tab may still warm its
             // correctly keyed cache, but it must never replace the visible board.
             if (!isLatestRequest()) return;
@@ -257,7 +319,7 @@ export function RankingScreen() {
             else if (err instanceof OfflineError) setStatus('offline');
             else setStatus('ready');
         }
-    }, [game, scope, currentMonth]);
+    }, [game, scope, currentMonth, editionId]);
 
     useEffect(() => {
         void load();
@@ -269,11 +331,13 @@ export function RankingScreen() {
     // The player's own best for the chip (month scope only counts this month).
     const localState = getLocalState(game);
     const best =
-        scope === 'alltime'
-            ? localState.allTime
-            : localState.month?.monthId === currentMonth
-              ? localState.month
-              : undefined;
+        scope === 'event'
+            ? localState.events?.[editionId!]
+            : scope === 'alltime'
+              ? localState.allTime
+              : localState.month?.monthId === currentMonth
+                ? localState.month
+                : undefined;
 
     const syncPending = useCallback(async () => {
         setSyncingPending(true);
@@ -330,19 +394,33 @@ export function RankingScreen() {
                 <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
                     {RANKED_GAMES.map((g) => (
                         <View key={g} style={styles.gameTabSlot}>
-                            <GameTab game={g} active={g === game} onPress={() => setGame(g)} />
+                            <GameTab
+                                game={g}
+                                active={!edition && g === gameTab}
+                                onPress={() => {
+                                    setEditionId(null);
+                                    setGameTab(g);
+                                }}
+                            />
+                        </View>
+                    ))}
+                    {eventBoards.map((e) => (
+                        <View key={e.id} style={styles.gameTabSlot}>
+                            <EventTab edition={e} active={edition?.id === e.id} onPress={() => setEditionId(e.id)} />
                         </View>
                     ))}
                 </View>
 
-                <ToggleGroup
-                    value={scope}
-                    onChange={(v) => setScope(v as RankingScope)}
-                    options={[
-                        { value: 'month', label: t('ranking.month') },
-                        { value: 'alltime', label: t('ranking.allTime') },
-                    ]}
-                />
+                {edition ? null : (
+                    <ToggleGroup
+                        value={period}
+                        onChange={(v) => setPeriod(v as 'month' | 'alltime')}
+                        options={[
+                            { value: 'month', label: t('ranking.month') },
+                            { value: 'alltime', label: t('ranking.allTime') },
+                        ]}
+                    />
+                )}
 
                 {best ? (
                     <BestChip best={best} scope={scope} syncing={syncingPending} onRetry={handleRetrySync} />
@@ -352,7 +430,11 @@ export function RankingScreen() {
                     <Text variant='caption' weight='bold' color='textSecondary'>
                         {t('ranking.globalBoard')}
                     </Text>
-                    {scope === 'month' && displayedMonth ? (
+                    {edition ? (
+                        <Text variant='caption' color='textMuted'>
+                            {t('ranking.eventNote')}
+                        </Text>
+                    ) : scope === 'month' && displayedMonth ? (
                         <Text variant='caption' color='textMuted'>
                             {formatMonth(displayedMonth, locale)}
                         </Text>
@@ -406,9 +488,11 @@ export function RankingScreen() {
                                     <Text variant='caption' color='textMuted'>
                                         {t('ranking.updatesNote')}
                                     </Text>
-                                    <Text variant='caption' color='textMuted'>
-                                        {t('ranking.rolloverNote')}
-                                    </Text>
+                                    {edition ? null : (
+                                        <Text variant='caption' color='textMuted'>
+                                            {t('ranking.rolloverNote')}
+                                        </Text>
+                                    )}
                                     {best && !best.synced ? (
                                         <Text variant='caption' color='textMuted'>
                                             {t('ranking.connectivityNote')}

@@ -38,13 +38,13 @@ export const RETAINED_MONTHS_BACK = 2;
 export const RANKED_GAMES = ['the-ladder', 'the-drop', 'the-wheel'] as const;
 export type RankedGame = (typeof RANKED_GAMES)[number];
 
-/** A board scope: the current calendar month, or all time. */
-export type RankingScope = 'month' | 'alltime';
+/** A board scope: the current calendar month, all time, or one event edition. */
+export type RankingScope = 'month' | 'alltime' | 'event';
 
 /**
- * Period doc id for the all-time scope. Months use a `YYYY-MM` id; both live as
- * sibling docs under `rankings/{game}/periods/{period}/entries/{uuid}`, so the
- * paths (and the security-rules match) are symmetric.
+ * Period doc id for the all-time scope. Months use a `YYYY-MM` id and an event
+ * board uses its edition id; all three live as sibling docs under
+ * `rankings/{game}/periods/{period}/entries/{uuid}`, so the paths stay symmetric.
  */
 export const ALLTIME_PERIOD = 'alltime';
 

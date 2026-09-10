@@ -304,6 +304,12 @@ export function EventHubScreen() {
                                         {t('events.viewResults')}
                                     </Button>
                                 ) : null}
+                                <Button
+                                    variant='secondary'
+                                    onPress={() => navigation.navigate('Ranking', { editionId: edition.id })}
+                                >
+                                    {t('events.ranking')}
+                                </Button>
                             </Card>
                         );
                     })}

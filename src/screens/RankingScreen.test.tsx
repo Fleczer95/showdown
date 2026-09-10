@@ -8,10 +8,11 @@ import { retryPending } from '../game/ranking/push';
 import { BlockedError } from '../game/challenge/store';
 
 let mockFocusEffect: (() => void | (() => void)) | undefined;
+let mockRouteParams: { gameId?: string; editionId?: string } = { gameId: 'the-ladder' };
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({ goBack: jest.fn() }),
-    useRoute: () => ({ params: { gameId: 'the-ladder' } }),
+    useRoute: () => ({ params: mockRouteParams }),
     useFocusEffect: (callback: () => void | (() => void)) => {
         mockFocusEffect = callback;
     },
@@ -112,6 +113,9 @@ jest.mock('../theme/colorUtils', () => ({
     hexToRgba: (color: string) => color,
     readableOn: () => '#ffffff',
     resolveAccent: () => '#ff00ff',
+    // The event tab draws its artwork, which shades the accent.
+    darken: (color: string) => color,
+    blend: (color: string) => color,
 }));
 
 jest.mock('../i18n', () => ({
@@ -135,6 +139,16 @@ jest.mock('../game/ranking/config', () => ({
     previousMonthBucketId: () => '2026-06',
 }));
 
+// A fixture edition, so these stay true after the shipped editions change.
+const EVENT = {
+    id: 'test-event',
+    name: { en: 'Test Event', pl: 'Test Event' },
+    accent: '#F97316',
+    artwork: 'pumpkin',
+    activities: [{ game: 'the-ladder', contentRevision: 'r1' }],
+};
+jest.mock('../game/events/catalogue', () => ({ visibleEvents: jest.fn(() => [EVENT]) }));
+
 jest.mock('../game/ranking/rank', () => ({ resolveDisplayedMonth: () => 'current' }));
 jest.mock('../game/ranking/store', () => ({ getBoard: jest.fn(), countEntries: jest.fn() }));
 jest.mock('../game/ranking/cache', () => ({
@@ -152,6 +166,7 @@ jest.mock('../game/challenge/store', () => ({
 const localState = {
     month: { monthId: '2026-07', score: 1234, synced: true },
     allTime: { score: 4321, synced: true },
+    events: { 'test-event': { score: 777, synced: true } },
 };
 
 function deferred<T>() {
@@ -167,6 +182,7 @@ function deferred<T>() {
 beforeEach(() => {
     jest.clearAllMocks();
     mockFocusEffect = undefined;
+    mockRouteParams = { gameId: 'the-ladder' };
     jest.mocked(retryPending).mockResolvedValue(undefined);
     jest.mocked(getLocalState).mockReturnValue(localState);
     jest.mocked(countEntries).mockResolvedValue(12);
@@ -317,4 +333,47 @@ it('offers manual retry when the automatic focus attempt remains pending', async
     fireEvent.press(screen.getByLabelText('ranking.retrySync'));
 
     await waitFor(() => expect(retryPending).toHaveBeenCalledTimes(2));
+});
+
+describe('event boards', () => {
+    it('offers a tab per live event and loads that edition’s board', async () => {
+        jest.mocked(getBoard).mockResolvedValue([]);
+        const screen = render(<RankingScreen />);
+        await waitFor(() => expect(getBoard).toHaveBeenCalled());
+        jest.mocked(getBoard).mockClear();
+
+        fireEvent.press(screen.getByLabelText('Test Event'));
+
+        // The period is the edition id — no month, no all-time.
+        await waitFor(() => expect(getBoard).toHaveBeenCalledWith('the-ladder', 'test-event'));
+    });
+
+    it('hides the period toggle, which an event board does not have', async () => {
+        jest.mocked(getBoard).mockResolvedValue([]);
+        const screen = render(<RankingScreen />);
+        expect(screen.getByText('ranking.month')).toBeTruthy();
+
+        fireEvent.press(screen.getByLabelText('Test Event'));
+
+        await waitFor(() => expect(screen.queryByText('ranking.month')).toBeNull());
+        expect(screen.queryByText('ranking.allTime')).toBeNull();
+    });
+
+    it('opens straight onto the event board when routed with its edition', async () => {
+        mockRouteParams = { editionId: 'test-event' };
+        jest.mocked(getBoard).mockResolvedValue([]);
+        const screen = render(<RankingScreen />);
+
+        await waitFor(() => expect(getBoard).toHaveBeenCalledWith('the-ladder', 'test-event'));
+        expect(screen.getByText('ranking.yourBestEvent')).toBeTruthy();
+    });
+
+    it('falls back to a game board when the edition is not live', async () => {
+        mockRouteParams = { editionId: 'halloween-1999' };
+        jest.mocked(getBoard).mockResolvedValue([]);
+        render(<RankingScreen />);
+
+        await waitFor(() => expect(getBoard).toHaveBeenCalled());
+        expect(jest.mocked(getBoard).mock.calls.map((c) => c[1])).not.toContain('halloween-1999');
+    });
 });

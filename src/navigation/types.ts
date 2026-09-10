@@ -19,7 +19,7 @@ export type RootStackParamList = {
     ChallengeHistory: undefined;
     EventHub: { editionId?: string } | undefined;
     /** Global ranking boards (ADR-0004). Optional `gameId` preselects a board. */
-    Ranking: { gameId?: string } | undefined;
+    Ranking: { gameId?: string; editionId?: string } | undefined;
     /** Mascot customizer (plan §5). Reached from Settings → Appearance. Currently shows the
      * PoC harness; repointed to the real customizer in Phase 2. */
     Mascot: undefined;

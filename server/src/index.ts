@@ -454,7 +454,7 @@ export default {
                 const period = seg[2];
                 const uuid = seg[4];
                 const body = await parseJsonBody(request);
-                if (!body || !isRankedGame(game) || !isWritablePeriod(period) || !validateRankingEntry(body)) {
+                if (!body || !isRankedGame(game) || !isWritablePeriod(period, game) || !validateRankingEntry(body)) {
                     return json({ error: 'Invalid ranking entry' }, 400);
                 }
                 const signature = typeof body.signature === 'string' ? body.signature : null;

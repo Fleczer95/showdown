@@ -4,6 +4,7 @@
 // payload is honest, so these checks still matter. Keep in sync with the rules.
 
 import { isChallengeRecord, isValidChallengeId, type ChallengeRecord } from '../../shared/challenge/contract';
+import { eventLifecycle, findEdition } from '../../shared/events/definitions';
 
 export const SIGNATURE_SLUGS = ['sprout', 'spark', 'fire', 'gem', 'star', 'crown'];
 export const RANKED_GAMES = ['the-ladder', 'the-drop', 'the-wheel'];
@@ -67,15 +68,25 @@ export function isRankedGame(game: string): boolean {
 }
 
 /**
- * The server clock decides the month: a `YYYY-MM` period must equal the current
- * UTC month, so a tampered device clock can't write into another month. 'alltime'
- * is always writable (it never resets).
+ * The server clock decides every period: a `YYYY-MM` must equal the current UTC
+ * month, and an event board is only open while its edition is running — so a
+ * tampered device clock can write into neither. 'alltime' is always writable
+ * (it never resets).
+ *
+ * An event board's period IS its edition id. Standings therefore freeze the
+ * moment the edition closes, with no scheduled job and no flag to flip. Test
+ * fixtures are looked up out (no `includeTestFixture`): they are a device-side
+ * development affordance and must never be writable on the real backend.
  */
-export function isWritablePeriod(period: string): boolean {
+export function isWritablePeriod(period: string, game: string, now: number = Date.now()): boolean {
     if (period === 'alltime') return true;
+    const edition = findEdition(period);
+    if (edition) {
+        return eventLifecycle(edition, now) === 'active' && edition.activities.some((a) => a.game === game);
+    }
     if (period.length !== 7) return false;
-    const now = new Date();
-    const yyyy = now.getUTCFullYear();
-    const mm = `${now.getUTCMonth() + 1}`.padStart(2, '0');
+    const d = new Date(now);
+    const yyyy = d.getUTCFullYear();
+    const mm = `${d.getUTCMonth() + 1}`.padStart(2, '0');
     return period === `${yyyy}-${mm}`;
 }

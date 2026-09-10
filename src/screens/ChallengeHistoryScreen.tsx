@@ -18,8 +18,10 @@ import { listChallenges, challengeStatus, type ChallengeStub, type ChallengeStat
 import { shareChallenge } from '../game/challenge/share';
 import { syncIncomingRematches } from '../game/challenge/rematchSync';
 import { getPendingEventStart, listSessions } from '../game/challenge/session/store';
+import { findEdition } from '../../shared/events/definitions';
 
-/** Status → icon + i18n label key. Color is the game accent (muted for expired). */
+/** Status → icon + i18n label key. Colour is the event accent when the round
+ * belongs to one, else the game accent (muted for completed and expired). */
 const STATUS_META: Record<ChallengeStatus, { icon: LucideIcon; labelKey: string }> = {
     yourTurn: { icon: Swords, labelKey: 'challenge.history.yourTurn' },
     resume: { icon: Swords, labelKey: 'challenge.history.resume' },
@@ -35,6 +37,7 @@ interface ChallengeRowProps {
     opponent: string;
     isRematch: boolean;
     opponentJoined?: boolean;
+    eventId?: string;
     status: ChallengeStatus;
     onOpen: (id: string) => void;
     onShare: (id: string) => Promise<void>;
@@ -46,20 +49,27 @@ const ChallengeRow = React.memo(function ChallengeRow({
     opponent,
     isRematch,
     opponentJoined,
+    eventId,
     status,
     onOpen,
     onShare,
 }: ChallengeRowProps) {
     const theme = useTheme();
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const { scale, iconSize } = useResponsive();
     const game = games.find((g) => g.id === gameId);
     const meta = STATUS_META[status];
-    const accent = game ? resolveAccent(theme, game.accent) : theme.colors.primary;
+    // An event round wears its edition's colour instead of the game's, so a
+    // Halloween challenge is recognisable among ordinary ones at a glance.
+    const edition = eventId ? findEdition(eventId, true) : undefined;
+    const eventAccent = edition ? (edition.accent ?? theme.colors.primary) : undefined;
+    const accent = eventAccent ?? (game ? resolveAccent(theme, game.accent) : theme.colors.primary);
     const muted = status === 'completed' || status === 'expired';
     const tint = status === 'waitingOpponent' ? theme.colors.warning : muted ? theme.colors.textMuted : accent;
 
-    const title = opponent ? t('challenge.history.vs', { name: opponent }) : t('challenge.history.yours');
+    const name = opponent ? t('challenge.history.vs', { name: opponent }) : t('challenge.history.yours');
+    // Colour alone must not carry the distinction: the label names the event too.
+    const title = edition ? `${edition.name[locale]} · ${name}` : name;
     const handleOpen = useCallback(() => onOpen(id), [id, onOpen]);
     const handleShare = useCallback(() => {
         void onShare(id).catch(() => undefined);
@@ -80,6 +90,8 @@ const ChallengeRow = React.memo(function ChallengeRow({
                     borderRadius: theme.radii.lg,
                     borderCurve: 'continuous',
                     borderColor: hexToRgba(tint, status === 'yourTurn' ? 0.4 : 0.28),
+                    // Survives the muted tint, so a finished event round still reads as one.
+                    ...(eventAccent ? { borderLeftWidth: scale(4), borderLeftColor: eventAccent } : {}),
                     opacity: status === 'expired' ? 0.62 : status === 'completed' ? 0.82 : 1,
                     paddingRight: canShare ? scale(64) : theme.spacing.md,
                 }}
@@ -107,10 +119,10 @@ const ChallengeRow = React.memo(function ChallengeRow({
                                 color={muted ? 'textSecondary' : undefined}
                                 numberOfLines={1}
                             >
-                                {title}
+                                {name}
                             </Text>
                             <Text variant='caption' color='textSecondary' numberOfLines={1}>
-                                {game ? `${t(`game.${game.id}.name`)} · ` : ''}
+                                {edition ? `${edition.name[locale]} · ` : game ? `${t(`game.${game.id}.name`)} · ` : ''}
                                 {t(meta.labelKey)}
                                 {opponentJoined === false ? ` · ${t('events.unmatched')}` : ''}
                             </Text>
@@ -216,6 +228,7 @@ export function ChallengeHistoryScreen() {
                 opponent={item.opponent}
                 isRematch={item.isRematch === true}
                 opponentJoined={item.opponentJoined}
+                eventId={item.eventId}
                 status={challengeStatus(item, Date.now(), sessions.get(item.id) ?? null)}
                 onOpen={openChallenge}
                 onShare={shareChallenge}

@@ -4,6 +4,7 @@ import { ChallengeHistoryScreen } from './ChallengeHistoryScreen';
 import { listChallenges } from '../game/challenge/log';
 import { shareChallenge } from '../game/challenge/share';
 import { getPendingEventStart } from '../game/challenge/session/store';
+import { eventEditions } from '../../shared/events/definitions';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -99,6 +100,24 @@ it('visually distinguishes my turn, waiting for the opponent, and completed', ()
     expect(tree).toContain('challenge.history.yourTurn');
     expect(tree).toContain('challenge.history.waitingOpponent');
     expect(tree).toContain('challenge.history.completed');
+});
+
+it('marks an event round with its edition colour and name', () => {
+    const edition = eventEditions[0];
+    jest.mocked(listChallenges).mockReturnValue([{ ...stub, eventId: edition.id }]);
+
+    const screen = render(<ChallengeHistoryScreen />);
+
+    // The spine is the part that survives the muted tint of a finished round.
+    expect(JSON.stringify(screen.toJSON())).toContain(`"borderLeftColor":"${edition.accent}"`);
+    // Colour alone would leave the distinction invisible to a screen reader.
+    expect(screen.getByLabelText(`${edition.name.en} · Challenge you created`)).toBeTruthy();
+});
+
+it('leaves an ordinary challenge unmarked', () => {
+    const screen = render(<ChallengeHistoryScreen />);
+
+    expect(JSON.stringify(screen.toJSON())).not.toContain('borderLeftColor');
 });
 
 it('keeps a directed rematch private and labels its opponent', () => {

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react-native';
 import { useNavigation, usePreventRemove, useRoute, type RouteProp } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import Button from '../components/molecules/Button';
 import Card from '../components/molecules/Card';
 import IconButton from '../components/molecules/IconButton';
 import Input from '../components/molecules/Input';
+import BottomSheet from '../components/molecules/BottomSheet';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../theme';
 import { hexToRgba } from '../theme/colorUtils';
@@ -25,6 +26,11 @@ import { eventRewardTitleKey } from '../game/events/access';
 import { remainingEventPlays, startEvent } from '../game/events/participation';
 import { getPendingEventStart } from '../game/challenge/session/store';
 import { getChallengeNickname, setChallengeNickname } from '../game/challenge/nickname';
+import {
+    createModalDismissalBarrier,
+    createWhileModalDismisses,
+    type ModalDismissalResult,
+} from '../game/challenge/createFlow';
 import { MAX_NICKNAME_LENGTH } from '../game/leaderboard';
 import { BlockedError } from '../game/challenge/store';
 import { eventLifecycle, findEdition, type EventEdition } from '../../shared/events/definitions';
@@ -44,6 +50,10 @@ export function EventHubScreen() {
     const [nickname, setNickname] = useState(getChallengeNickname);
     const [busy, setBusy] = useState(false);
     const [previewReward, setPreviewReward] = useState<string | null>(null);
+    // Matchmaking spends a play the moment it succeeds, so it is confirmed first.
+    // Inviting a friend is not: its share sheet is already a visible last step.
+    const [confirmRandom, setConfirmRandom] = useState<EventEdition | null>(null);
+    const completeConfirmDismissal = useRef<(() => void) | null>(null);
     // Seven prizes push the friend/random actions below the fold, so the list
     // starts hidden. Tracked by the ids that are OPEN, so the default is closed.
     const [openPrizes, setOpenPrizes] = useState<ReadonlySet<string>>(new Set());
@@ -66,20 +76,17 @@ export function EventHubScreen() {
         if (trimmed.length > 0) Alert.alert(t('challenge.nicknameRejected'));
     }
 
-    async function begin(edition: EventEdition, mode: 'friend' | 'random') {
+    async function begin(edition: EventEdition, mode: 'friend' | 'random', dismissal?: Promise<ModalDismissalResult>) {
         if (!pending && !setChallengeNickname(nickname.trim())) {
             Alert.alert(t('challenge.nicknameRejected'));
             return;
         }
         setBusy(true);
         try {
-            const result = await startEvent({
-                edition,
-                mode,
-                nickname: nickname.trim(),
-                locale,
-                entitlements: access,
-            });
+            const start = () => startEvent({ edition, mode, nickname: nickname.trim(), locale, entitlements: access });
+            // Admit while the sheet animates away, but never navigate before the
+            // native modal is actually gone — the GameSetup create flow's rule.
+            const result = dismissal ? (await createWhileModalDismisses(start, dismissal)).value : await start();
             navigation.navigate('Challenge', { challengeId: result.id, autoShare: result.share });
         } catch (error) {
             Alert.alert(
@@ -96,6 +103,20 @@ export function EventHubScreen() {
             setBusy(false);
         }
     }
+    /** Hold the round until the confirmation sheet has left the screen. */
+    function startRandom() {
+        const edition = confirmRandom;
+        if (!edition || busy) return;
+        const dismissal = createModalDismissalBarrier();
+        completeConfirmDismissal.current = dismissal.dismiss;
+        setConfirmRandom(null);
+        void begin(edition, 'random', dismissal.promise);
+    }
+    const onConfirmDismissComplete = useCallback(() => {
+        const complete = completeConfirmDismissal.current;
+        completeConfirmDismissal.current = null;
+        complete?.();
+    }, []);
     return (
         <SafeContainer edges={['top', 'bottom']}>
             <View style={[styles.header, { paddingHorizontal: theme.spacing.sm, paddingVertical: theme.spacing.md }]}>
@@ -293,7 +314,11 @@ export function EventHubScreen() {
                                             <Button
                                                 key={mode}
                                                 disabled={busy || !!pending || remaining === 0}
-                                                onPress={() => void begin(edition, mode)}
+                                                onPress={() =>
+                                                    mode === 'random'
+                                                        ? setConfirmRandom(edition)
+                                                        : void begin(edition, mode)
+                                                }
                                             >
                                                 {t(`events.${mode}`)}
                                             </Button>
@@ -322,6 +347,26 @@ export function EventHubScreen() {
                 </Stack>
             </ScrollView>
             <EventRewardPreview rewardId={previewReward} onClose={() => setPreviewReward(null)} />
+            <BottomSheet
+                visible={confirmRandom !== null}
+                onClose={() => setConfirmRandom(null)}
+                onDismissComplete={onConfirmDismissComplete}
+                title={t('events.confirmRandomTitle')}
+            >
+                <Stack gap='sm' align='stretch'>
+                    <Text align='center'>
+                        {t('events.confirmRandomBody', {
+                            count: confirmRandom ? remainingEventPlays(confirmRandom, access) : 0,
+                        })}
+                    </Text>
+                    <Button testID='event-confirm-random' variant='primary' loading={busy} onPress={startRandom}>
+                        {t('events.random')}
+                    </Button>
+                    <Button variant='ghost' onPress={() => setConfirmRandom(null)}>
+                        {t('common.cancel')}
+                    </Button>
+                </Stack>
+            </BottomSheet>
         </SafeContainer>
     );
 }

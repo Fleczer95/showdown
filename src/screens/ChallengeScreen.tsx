@@ -204,7 +204,9 @@ export function ChallengeScreen() {
     // React Navigation 7. Pop it instead so its modal, timers and clock unmount.
     const exit = useCallback(() => navigation.popTo('Home'), [navigation]);
     const viewRanking = useCallback(() => {
-        if (record) navigation.navigate('Ranking', { gameId: record.game });
+        // Land on the board this round was actually ranked on: an event round is
+        // on its edition's board, never the game's.
+        if (record) navigation.navigate('Ranking', { gameId: record.game, editionId: record.event?.editionId });
     }, [navigation, record]);
 
     const showResults = useCallback(

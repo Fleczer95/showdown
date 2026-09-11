@@ -184,6 +184,13 @@
         "deadline": "Koniec gry: %{date}",
         "friend": "Zaproś znajomego",
         "random": "Znajdź przeciwnika",
+        "confirmRandomTitle": "Znaleźć przeciwnika?",
+        "confirmRandomBody": {
+            "one": "Zostaniesz sparowany z losowym graczem. Zużyjesz jedną z %{count} rozgrywki, która została ci dziś w wydarzeniu.",
+            "few": "Zostaniesz sparowany z losowym graczem. Zużyjesz jedną z %{count} rozgrywek, które zostały ci dziś w wydarzeniu.",
+            "many": "Zostaniesz sparowany z losowym graczem. Zużyjesz jedną z %{count} rozgrywek, które zostały ci dziś w wydarzeniu.",
+            "other": "Zostaniesz sparowany z losowym graczem. Zużyjesz jedną z %{count} rozgrywek, które zostały ci dziś w wydarzeniu."
+        },
         "unmatched": "Czeka na dobranie przeciwnika",
         "goal": "Ukończone rozgrywki: %{count} / %{total}",
         "winsGoal": {

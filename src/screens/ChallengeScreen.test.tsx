@@ -397,6 +397,25 @@ describe('ChallengeScreen progression', () => {
         expect(within(resultsScroll).getByText('common.home')).toBeTruthy();
     });
 
+    it('sends an event round to its edition board, not the game board', async () => {
+        // Reveal an already-played round rather than playing one: the destination
+        // depends on the record, not on how the results were reached.
+        (getChallenge as jest.Mock).mockResolvedValue({
+            ...record,
+            event: { editionId: 'halloween-2026', contentRevision: 'r', mode: 'random', endsAt: Date.now() + 1000 },
+        });
+        (getAttempt as jest.Mock).mockResolvedValue(myAttempt);
+        (getAttempts as jest.Mock).mockResolvedValue([myAttempt, opponentAttempt]);
+
+        const screen = render(<ChallengeScreen />);
+        fireEvent.press(await screen.findByLabelText('challenge.viewGlobalRankings'));
+        // The round was ranked on the edition board, so that is where it must land.
+        expect(mockNavigate).toHaveBeenCalledWith('Ranking', {
+            gameId: 'the-ladder',
+            editionId: 'halloween-2026',
+        });
+    });
+
     it('keeps the XP on a failed submit and does not re-record on retry', async () => {
         (getAttempt as jest.Mock).mockResolvedValue(null);
         (submitAttempt as jest.Mock).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined);

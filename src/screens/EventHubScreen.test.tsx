@@ -24,6 +24,27 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../game/events/useEventNow', () => ({ useEventNow: () => mockNow }));
 jest.mock('../game/events/catalogue', () => ({ visibleEvents: jest.fn() }));
 jest.mock('../game/events/participation', () => ({ remainingEventPlays: () => 3, startEvent: jest.fn() }));
+// Mirrors GameSetupScreen.challenge.test: renders inline and fires the dismissal
+// callback the create flow waits on, without needing a SafeAreaProvider.
+jest.mock('../components/molecules/BottomSheet', () => {
+    const React = jest.requireActual<typeof import('react')>('react');
+    const { Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
+    function MockBottomSheet({ visible, title, children, onDismissComplete }: any) {
+        const previouslyVisible = React.useRef(visible);
+        React.useEffect(() => {
+            if (previouslyVisible.current && !visible) onDismissComplete?.();
+            previouslyVisible.current = visible;
+        }, [visible, onDismissComplete]);
+        return visible ? (
+            <View>
+                <Text>{title}</Text>
+                {children}
+            </View>
+        ) : null;
+    }
+    return { __esModule: true, default: MockBottomSheet };
+});
+
 jest.mock('../game/challenge/session/store', () => ({ getPendingEventStart: jest.fn() }));
 jest.mock('../game/challenge/nickname', () => ({
     getChallengeNickname: jest.fn(() => 'Ada'),
@@ -81,9 +102,31 @@ test.each([
 
 test('active editions retain admission', async () => {
     const screen = mount();
-    await act(async () => fireEvent.press(screen.getByText('events.random', options)));
+    fireEvent.press(screen.getByText('events.random', options));
+    // Matchmaking spends a play, so nothing is admitted until the sheet is confirmed.
+    expect(startEvent).not.toHaveBeenCalled();
+    expect(screen.getByText('events.confirmRandomTitle', options)).toBeTruthy();
+
+    await act(async () => fireEvent.press(screen.getByTestId('event-confirm-random', options)));
+
     expect(startEvent).toHaveBeenCalledWith(expect.objectContaining({ edition, mode: 'random' }));
     expect(mockNavigate).toHaveBeenCalledWith('Challenge', { challengeId: 'saved-event', autoShare: false });
+});
+
+test('cancelling the matchmaking sheet spends nothing', () => {
+    const screen = mount();
+    fireEvent.press(screen.getByText('events.random', options));
+    fireEvent.press(screen.getByText('common.cancel', options));
+
+    expect(startEvent).not.toHaveBeenCalled();
+    expect(screen.queryByText('events.confirmRandomTitle', options)).toBeNull();
+});
+
+test('inviting a friend still starts without a confirmation sheet', async () => {
+    const screen = mount();
+    await act(async () => fireEvent.press(screen.getByText('events.friend', options)));
+
+    expect(startEvent).toHaveBeenCalledWith(expect.objectContaining({ edition, mode: 'friend' }));
 });
 
 test('closed edition exposes results through history', () => {

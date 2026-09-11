@@ -184,6 +184,11 @@
         "deadline": "Play ends: %{date}",
         "friend": "Invite a friend",
         "random": "Find an opponent",
+        "confirmRandomTitle": "Find an opponent?",
+        "confirmRandomBody": {
+            "one": "You'll be matched with a random player. This uses one of the %{count} event play you have left today.",
+            "other": "You'll be matched with a random player. This uses one of the %{count} event plays you have left today."
+        },
         "unmatched": "Waiting to be matched",
         "goal": "%{count} / %{total} completed runs",
         "winsGoal": {

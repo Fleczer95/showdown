@@ -86,31 +86,22 @@ The D1 harness uses the installed Miniflare/workerd runtime, not SQL mocks. It u
 
 Jest reports non-fatal React `act`/open-handle warnings in the existing suite. Translation analysis reports existing potentially-unused English plural forms; locale synchronization and static-key checks pass.
 
-## Local fixture demonstration (not a production event)
+## Fixture editions are test data only
 
-1. Use a **local** D1 database. For a fresh database, run `npm run schema:local` inside `server/`. An existing pre-event local database instead needs `migrations/20260906-add-timed-events.sql` applied once before using the new schema/Worker.
-2. Inside `server/`, start `npx wrangler dev --local --ip 0.0.0.0 --var ENABLE_EVENT_FIXTURE:true`.
-3. Start the app development server with `EXPO_PUBLIC_EVENT_FIXTURE=true` and `EXPO_PUBLIC_CHALLENGE_API_URL` pointing at that local Worker. Use a reachable development HTTPS endpoint where platform transport policy requires it; **do not weaken native transport/permission settings**.
-4. The Home event entry exposes **Halloween · preview / Halloween · podgląd**, an isolated test edition, not the production Halloween draft. The `local-halloween-preview-v2` edition uses 300 dedicated EN/PL Halloween questions, sampling a primary and up to five Skip alternates from all 20 candidates per rung. The original `local-halloween-preview` remains bound to `halloween-2026-v1`; its bank and saved runs are not reinterpreted. The earlier `local-event-fixture` / `local-ladder-v1` also remain resolvable and still use their original base questions. Its one-run fixture prize is the existing Champion theme, making permanent earned access observable without inventing launch assets.
-5. On two installations, exercise friend/random entry, pause and reopen via history, finish offline, then reconnect and inspect both results. A first-question loss earns the fixture milestone.
+Fixture editions (`local-event-fixture`, `local-halloween-preview`,
+`local-halloween-preview-v2`) exist only as data for unit tests and for the D1
+regression suite. There is no app-side switch that shows them: `visibleEvents`
+returns the shipped editions and nothing else, so no environment variable can
+put a fixture event on Home.
 
-The fixture is excluded from the production catalogue. The app override is development-only, and the Worker rejects fixture admissions unless its explicit fixture variable is set. Never enable that variable on the production Worker.
+The Worker keeps a test-only seam — `ENABLE_EVENT_FIXTURE`, read by
+`admitEvent` and the attempt route — used by `npm run test:events:d1`, which
+drives admission, seats, idempotency, closure and retention entirely through
+fixture editions. It is never set in `wrangler.jsonc`, so a deployed Worker
+always refuses a fixture admission. Never set it on the production Worker.
 
-### Simulator-only preview without hardware attestation
-
-For the iOS simulator, `scripts/run-event-preview.mjs` creates an in-memory Worker bundle with ephemeral-token verification, binds only to `127.0.0.1:8787`, and uses isolated D1 data in `/tmp/showdown-halloween-preview-db`. No remote resources are changed. Run both processes with the same environment:
-
-```bash
-export EXPO_PUBLIC_EVENT_FIXTURE=true
-export EXPO_PUBLIC_CHALLENGE_API_URL=http://127.0.0.1:8787
-export EXPO_PUBLIC_LOCAL_PREVIEW_TOKEN=$(openssl rand -hex 32)
-node scripts/run-event-preview.mjs &
-npx expo start --localhost --port 8082 --clear
-# In another terminal, with the Debug app installed:
-xcrun simctl launch booted com.showdown.app -RCT_jsLocation localhost:8082
-```
-
-The app token override rejects release builds, disabled fixtures, remote/LAN endpoints and missing tokens. Stop these processes and unset the three `EXPO_PUBLIC_*` variables to disable preview; do not save them in release environment files. Metro should run without `CI=1` so edits remain watched.
+To exercise the real event, build the app and play `halloween-2026` against the
+deployed Worker; see "Running Halloween on the internal track" above.
 
 Verified with the original base-content fixture on iPhone 17 Pro / iOS 26.3 (2026-09-07): event hub and reward goal display; random admission; orange-accent Ladder gameplay; first correct answer; save/pause; process stop/relaunch; history resume at question 2; allowance remains 2 of 3. Screenshots: `/tmp/showdown-halloween-hub.png`, `/tmp/showdown-halloween-playing.png`, `/tmp/showdown-halloween-resumed.png`. Local preview/transport tests: **2 suites / 32 tests passed**, plus app type check, targeted lint/format, i18n and whitespace checks. This is not a full native matrix pass.
 

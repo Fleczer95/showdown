@@ -1,5 +1,4 @@
 import { eventEditions, eventLifecycle, validateEdition, type EventEdition } from '../../../shared/events/definitions';
-import { halloweenPreviewEdition } from '../../../shared/events/fixtures';
 import { eventContent } from '../../../shared/events/content';
 import { eventRewardTitleKey } from './access';
 
@@ -17,11 +16,7 @@ export function eventDiscoveryPhase(edition: EventEdition, now: number) {
 }
 
 export function visibleEvents(now = Date.now()) {
-    const editions =
-        __DEV__ && process.env.EXPO_PUBLIC_EVENT_FIXTURE === 'true'
-            ? [...eventEditions, halloweenPreviewEdition]
-            : eventEditions;
-    return editions.filter(
+    return eventEditions.filter(
         (edition) =>
             validateEdition(
                 edition,

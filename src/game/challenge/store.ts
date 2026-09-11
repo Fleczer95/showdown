@@ -1,5 +1,4 @@
 import appCheck from '@react-native-firebase/app-check';
-import { localPreviewToken } from '../events/localPreview';
 import { parseChallengeRecord, serializeChallengeRecord, type Attempt, type ChallengeRecord } from './types';
 import { generateUuid } from './deviceId';
 import { SafeSentry } from '../../utils/sentry/init';
@@ -99,8 +98,6 @@ export function withTimeout<T>(promise: Promise<T>, onTimeout?: () => void): Pro
 }
 
 async function appCheckHeaders(forceRefresh: boolean): Promise<Record<string, string>> {
-    const previewToken = localPreviewToken();
-    if (previewToken) return { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': previewToken };
     const { token } = await appCheck().getToken(forceRefresh);
     if (!token) throw new Error('App Check token unavailable');
     return { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': token };

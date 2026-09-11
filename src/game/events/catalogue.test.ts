@@ -1,6 +1,6 @@
 import { eventDiscoveryPhase, visibleEvents } from './catalogue';
 import { eventEditions, validateEdition, type EventEdition } from '../../../shared/events/definitions';
-import { testEventEdition } from '../../../shared/events/fixtures';
+import { halloweenPreviewEdition, halloweenV1PreviewEdition, testEventEdition } from '../../../shared/events/fixtures';
 
 const day = 86400000;
 const edition: EventEdition = { ...testEventEdition, id: 'seasonal-test', startsAt: 20 * day, endsAt: 30 * day };
@@ -58,5 +58,14 @@ test('catalogue includes upcoming/results editions, but hides drafts and invalid
         expect(visibleEvents(37 * day)).toEqual([]);
     } finally {
         mutable.splice(0, mutable.length, ...original);
+    }
+});
+
+test('no fixture edition can reach the catalogue', () => {
+    // Fixtures are test data. There is no environment switch that shows them, so
+    // a second Halloween card can never appear on Home.
+    const ids = visibleEvents(Date.UTC(2026, 9, 1)).map((e) => e.id);
+    for (const fixture of [testEventEdition, halloweenPreviewEdition, halloweenV1PreviewEdition]) {
+        expect(ids).not.toContain(fixture.id);
     }
 });

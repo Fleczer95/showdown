@@ -32,8 +32,8 @@ it('accepts alltime and the current UTC month, and nothing else that looks like 
     expect(isWritablePeriod('not-a-period', RANKED_GAME, now)).toBe(false);
 });
 
-// Asserted over whatever editions ship rather than a named one, so deleting the
-// rehearsal entry before a public release cannot quietly hollow this out.
+// Asserted over whatever editions ship rather than a named one, so changing the
+// shipped window before a public release cannot quietly hollow this out.
 it.each(eventEditions.map((edition) => [edition.id, edition] as const))(
     'gates writes to the %s board on its own lifecycle',
     (_id, edition) => {

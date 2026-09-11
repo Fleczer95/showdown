@@ -182,11 +182,11 @@ test('sampling can select IDs beyond the first six entries in each rung', () => 
     }
 });
 
-test('production Halloween stays disabled and preview does not reinterpret existing fixture saves', () => {
+test('production Halloween ships live and preview does not reinterpret existing fixture saves', () => {
     const production = eventEditions.find((e) => e.id === 'halloween-2026')!;
-    expect(production.enabled).toBe(false);
-    expect(production.startsAt).toBeUndefined();
-    expect(production.endsAt).toBeUndefined();
+    expect(production.enabled).toBe(true);
+    expect(Number.isSafeInteger(production.startsAt)).toBe(true);
+    expect(Number.isSafeInteger(production.endsAt)).toBe(true);
     expect(production.winsPerPrize).toBe(13);
     expect(production.prizePool).toHaveLength(7);
     expect(production.activities[0].contentRevision).toBe(HALLOWEEN_CONTENT_REVISION);

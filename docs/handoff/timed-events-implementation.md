@@ -21,40 +21,41 @@ Source: `docs/plans/2026-09-06-timed-events.md`.
 - [x] Dedicated Halloween simulator smoke: new-bank admission, Skip to another Halloween question, correct answer, pause/relaunch/resume with the consumed lifeline retained and no extra daily charge; original base-content save also still resumes.
 - [ ] Full iOS/Android background/kill/relaunch, offline completion, and app-update matrix on devices remains outstanding.
 
-## Running the Halloween rehearsal on the internal track
+## Running Halloween on the internal track
 
-The `halloween-2026-rehearsal` edition exists so two devices on the internal
-track can play the real flow against production before October. Two things are
-required, and the second fails silently if forgotten.
+There is one shipped edition, `halloween-2026`, and it is **enabled** with a
+deliberately wide temporary window (`2026-09-01` → `2026-12-31`) so the real
+flow can be played against production before October. There is no rehearsal
+edition, no env flag and no fixture involved: whatever window ships is the
+window every user of that build sees.
 
-1. **Just build it.** The rehearsal edition is enabled unconditionally, so any
-   build containing it shows the event. There is no env flag.
+1. **Just build it.**
 
     ```bash
     npx expo run:ios --configuration Release
     npx expo run:android --variant release
     ```
 
-    The corollary is that containment is procedural: **delete the rehearsal entry
-    from `eventEditions` before cutting any public release.** The tripwire test in
-    `src/game/events/events.test.ts` fails the moment `halloween-2026` is enabled
-    while the rehearsal entry is still present, but nothing stops a public build
-    that ships the rehearsal event while `halloween-2026` stays disabled.
-
 2. **Redeploy the Worker.** `admitEvent` resolves the edition from the Worker's
-   own bundled copy of `shared/events/definitions.ts` (`server/src/events/admission.ts`).
-   The deployed Worker predates the rehearsal edition, so until it is redeployed
-   every admission fails with `410 Event closed or unavailable` — the app looks
-   correct and simply refuses to start a round. No env var is needed on the
-   Worker: the rehearsal edition is a normal entry in `eventEditions`, not a
-   fixture, so `ENABLE_EVENT_FIXTURE` is irrelevant to it.
+   own bundled copy of `shared/events/definitions.ts`
+   (`server/src/events/admission.ts`), and `isWritablePeriod`
+   (`server/src/validation.ts`) decides whether the edition's ranking board
+   accepts writes. A Worker deployed with different dates fails silently in both
+   places: admissions return `410 Event closed or unavailable` and ranking
+   writes return `400`, while the app looks perfectly normal.
 
-Both devices must run the same build: matchmaking pairs on edition id and content
-revision. Test runs write real production D1 rows and real ranking entries.
+    ```bash
+    cd server && npx wrangler deploy
+    ```
 
-Delete the rehearsal edition before the public release that enables
-`halloween-2026`; the tripwire test in `src/game/events/events.test.ts` fails if
-both are ever enabled at once.
+Both devices must run the same build: matchmaking pairs on edition id and
+content revision. Test runs write real production D1 rows — challenges,
+attempts, and entries on the `halloween-2026` ranking board.
+
+**Before any public release**, replace the temporary window with the real
+Halloween dates and redeploy the Worker in the same change. The dates are the
+only containment; nothing automated can tell an intentional window from a
+leftover test one.
 
 ## Important paths
 

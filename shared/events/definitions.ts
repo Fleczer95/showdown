@@ -51,28 +51,18 @@ const HALLOWEEN_PRIZE_POOL = [
 export const eventEditions: readonly EventEdition[] = [
     {
         id: 'halloween-2026',
-        enabled: false,
-        name: { en: 'Halloween', pl: 'Halloween' },
-        accent: '#F97316',
-        artwork: 'pumpkin',
-        activities: [{ game: 'the-ladder', contentRevision: HALLOWEEN_CONTENT_REVISION }],
-        allowance: { base: 3, perPaidItem: 1, premium: 10 },
-        winsPerPrize: 13,
-        prizePool: HALLOWEEN_PRIZE_POOL,
-    },
-    // INTERNAL TRACK ONLY — AND VISIBLE IN EVERY BUILD THAT SHIPS IT.
-    // There is no env gate: this edition appears on Home for any user running a
-    // build that contains it. Containment is procedural — DELETE this entry before
-    // cutting any public release. The tripwire test in
-    // src/game/events/events.test.ts fails the moment halloween-2026 is enabled
-    // while this is still here, which is the only automated guard.
-    // A server-side flag could not help: the Worker validates whatever definitions
-    // file it was deployed with, and one Worker serves the internal and public apps
-    // alike.
-    {
-        id: 'halloween-2026-rehearsal',
         enabled: true,
         name: { en: 'Halloween', pl: 'Halloween' },
+        // ---------------------------------------------------------------------
+        // TEMPORARY WINDOW — INTERNAL TRACK ONLY.
+        // Wide enough that the event is live today, so two internal-track devices
+        // can play the real flow against production before October. There is no
+        // env gate and no flag: whatever window ships here is the window every
+        // user of that build sees.
+        // BEFORE ANY PUBLIC RELEASE, replace both dates with the real Halloween
+        // window and redeploy the Worker — it validates admissions against its own
+        // bundled copy of this file.
+        // ---------------------------------------------------------------------
         startsAt: Date.UTC(2026, 8, 1),
         endsAt: Date.UTC(2026, 11, 31),
         accent: '#F97316',
@@ -83,7 +73,6 @@ export const eventEditions: readonly EventEdition[] = [
         prizePool: HALLOWEEN_PRIZE_POOL,
     },
 ];
-
 export function eventLifecycle(edition: EventEdition, now: number): 'draft' | 'upcoming' | 'active' | 'closed' {
     if (!edition.enabled || !Number.isFinite(edition.startsAt) || !Number.isFinite(edition.endsAt)) return 'draft';
     if (now < edition.startsAt!) return 'upcoming';

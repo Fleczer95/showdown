@@ -11,33 +11,37 @@ import { eventLadderIndex } from './content';
 import { validEventQuestions } from '../../../shared/events/content';
 import { eventRewardTitleKey } from './access';
 
-test('Halloween is a disabled incomplete draft and never becomes active just because time passes', () => {
-    expect(eventEditions).toHaveLength(2);
+test('Halloween is the one shipped edition and its window governs its lifecycle', () => {
+    expect(eventEditions).toHaveLength(1);
     const halloween = eventEditions.find((e) => e.id === 'halloween-2026')!;
-    expect(halloween.startsAt).toBeUndefined();
-    expect(halloween.endsAt).toBeUndefined();
     expect(halloween.winsPerPrize).toBe(13);
     expect(halloween.prizePool).toHaveLength(7);
-    expect(eventLifecycle(halloween, Date.UTC(2026, 9, 31))).toBe('draft');
+    // Whatever the window is, the edition may only be live inside it.
+    expect(eventLifecycle(halloween, halloween.startsAt! - 1)).toBe('upcoming');
+    expect(eventLifecycle(halloween, halloween.startsAt!)).toBe('active');
+    expect(eventLifecycle(halloween, halloween.endsAt!)).toBe('closed');
+    // Stripping the dates must make it unshippable rather than permanently live.
     expect(
         validateEdition(
-            { ...halloween, enabled: true },
+            { ...halloween, startsAt: undefined, endsAt: undefined },
             () => false,
             (id) => !!eventRewardTitleKey(id),
         ),
     ).toEqual(expect.arrayContaining(['schedule', 'content']));
 });
 
-test('the shipped Halloween draft is well-formed but cannot go live without dates', () => {
+test('the shipped Halloween edition is well-formed and rejects a bad schedule or prize', () => {
     const halloween = eventEditions.find((e) => e.id === 'halloween-2026')!;
     // The real reward resolver, same as production's catalogue.ts wiring — a typo'd
     // id in the pool must fail this, not just membership-in-itself.
     const hasReward = (id: string) => !!eventRewardTitleKey(id);
-    // As shipped it is a clean draft: every prize resolves, nothing is malformed.
+    // As shipped it is clean: every prize resolves, nothing is malformed.
     expect(validateEdition(halloween, () => true, hasReward)).toEqual([]);
-    // Flipping it live without a schedule must still be rejected.
-    expect(validateEdition({ ...halloween, enabled: true }, () => true, hasReward)).toContain('schedule');
-    // A prize id that does not resolve must be rejected even in a draft.
+    // Losing the schedule must be rejected rather than shipped.
+    expect(validateEdition({ ...halloween, startsAt: undefined, endsAt: undefined }, () => true, hasReward)).toContain(
+        'schedule',
+    );
+    // A prize id that does not resolve must be rejected too.
     expect(
         validateEdition(
             halloween,
@@ -136,26 +140,29 @@ test('a pool listing the same reward twice is rejected', () => {
     expect(validateEdition({ ...enabled, prizePool: ['reward-a', 'reward-a'] }, ok, ok)).toContain('prizes');
 });
 
-test('halloween ships as a draft with the full pool', () => {
+test('halloween is live on a dated window with the full pool', () => {
+    // The single shipped edition. Its window is temporary and internal-track only
+    // (see the comment in shared/events/definitions.ts); the real Halloween dates
+    // go in before any public release.
     const halloween = eventEditions.find((e) => e.id === 'halloween-2026')!;
-    expect(halloween.enabled).toBe(false);
+    expect(halloween.enabled).toBe(true);
+    expect(Number.isSafeInteger(halloween.startsAt)).toBe(true);
+    expect(Number.isSafeInteger(halloween.endsAt)).toBe(true);
+    expect(halloween.startsAt! < halloween.endsAt!).toBe(true);
     expect(halloween.winsPerPrize).toBe(13);
     expect(halloween.prizePool).toHaveLength(7);
 });
 
-test('the rehearsal edition is enabled and dated', () => {
-    const rehearsal = eventEditions.find((e) => e.id === 'halloween-2026-rehearsal')!;
-    expect(rehearsal.enabled).toBe(true);
-    expect(Number.isSafeInteger(rehearsal.startsAt)).toBe(true);
-    expect(Number.isSafeInteger(rehearsal.endsAt)).toBe(true);
-});
-
-test('a rehearsal edition must never be live alongside the real event', () => {
-    // RELEASE TRIPWIRE. The rehearsal edition is visible in EVERY build that ships
-    // it — there is no env gate — so it must be DELETED from eventEditions before
-    // any public release. This test is the only automated guard: it fails the moment
-    // halloween-2026 is enabled while a rehearsal edition is still present.
-    const rehearsals = eventEditions.filter((e) => e.id.endsWith('-rehearsal') && e.enabled);
-    const live = eventEditions.filter((e) => !e.id.endsWith('-rehearsal') && e.enabled);
-    expect(rehearsals.length === 0 || live.length === 0).toBe(true);
+test('every shipped edition is complete enough to go live', () => {
+    // No edition ships as a draft any more, so an incomplete entry would reach
+    // users rather than sitting harmlessly disabled.
+    for (const edition of eventEditions) {
+        expect(
+            validateEdition(
+                edition,
+                () => true,
+                () => true,
+            ),
+        ).toEqual([]);
+    }
 });

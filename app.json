@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShowDown",
     "slug": "showdown",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "scheme": "showdown",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.showdown.app",
-      "buildNumber": "40",
+      "buildNumber": "41",
       "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": [
         "applinks:showdown.lebene.pl"
@@ -41,7 +41,7 @@
         "monochromeImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1A1A2E"
       },
-      "versionCode": 40,
+      "versionCode": 41,
       "intentFilters": [
         {
           "action": "VIEW",
